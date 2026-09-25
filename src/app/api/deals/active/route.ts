@@ -11,12 +11,29 @@ export async function GET() {
     });
 
     const allProducts = await prisma.product.findMany({
-      select: { id: true, gender: true, subcategory: true, subcategoryLabel: true, brandLabel: true, brandId: true }
+      select: { id: true, name: true, slug: true, brandLabel: true, gender: true, subcategory: true, subcategoryLabel: true, images: true, inStock: true, stock: true, price: true }
     });
+
+    // In-stock tester products
+    const inStockTesters = allProducts.filter(p => {
+      const pSub = (p.subcategory || '').toLowerCase();
+      const isTester = pSub !== 'arabic'; // Non-arabic designer tester
+      const isInStock = p.inStock !== false && (p.stock === undefined || p.stock === null || p.stock > 0);
+      return isTester && isInStock;
+    }).map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      brandLabel: p.brandLabel,
+      images: p.images,
+      price: p.price,
+      stock: p.stock ?? 10,
+    }));
 
     const formatted = deals.map((d) => {
       let parsedCategories: string[] = [];
       let parsedProductIds: number[] = [];
+      let parsedGiftProductIds: number[] = [];
       if (d.categories) {
         try {
           parsedCategories = JSON.parse(d.categories);
@@ -25,6 +42,11 @@ export async function GET() {
       if (d.productIds) {
         try {
           parsedProductIds = JSON.parse(d.productIds);
+        } catch {}
+      }
+      if (d.freeGiftProductIds) {
+        try {
+          parsedGiftProductIds = JSON.parse(d.freeGiftProductIds);
         } catch {}
       }
 
@@ -48,10 +70,19 @@ export async function GET() {
         }).map(p => p.id);
       }
 
+      // Filter available tester gifts if custom selection specified, else all in-stock testers
+      let availableGifts = inStockTesters;
+      if (d.freeGiftType === 'CLIENT_CHOICE_CUSTOM' && parsedGiftProductIds.length > 0) {
+        const giftSet = new Set(parsedGiftProductIds);
+        availableGifts = inStockTesters.filter(p => giftSet.has(p.id));
+      }
+
       return {
         ...d,
         categories: parsedCategories,
         productIds: parsedProductIds,
+        freeGiftProductIds: parsedGiftProductIds,
+        availableGifts,
       };
     });
 

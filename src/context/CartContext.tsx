@@ -60,6 +60,14 @@ export function calculatePromoDiscount(cart: CartItem[], appliedPromo: AppliedPr
   return Math.min(Math.round(discount * 100) / 100, eligibleSubtotal);
 }
 
+export type FreeGiftSelection = {
+  id: number;
+  name: string;
+  brandLabel?: string;
+  image?: string;
+  slug?: string;
+};
+
 export type ActiveDeal = {
   id: string;
   title: string;
@@ -77,6 +85,17 @@ export type ActiveDeal = {
   promoCode?: string | null;
   freeShipping: boolean;
   freeGiftName?: string | null;
+  freeGiftType?: string | null;
+  freeGiftProductIds?: number[];
+  availableGifts?: Array<{
+    id: number;
+    name: string;
+    slug: string;
+    brandLabel?: string;
+    images?: any;
+    price: number;
+    stock: number;
+  }>;
 };
 
 export function evaluateActiveDeals(
@@ -123,10 +142,15 @@ export function evaluateActiveDeals(
 
     if (deal.dealType === 'BUY_X_GET_Y_FREE') {
       const groupSize = deal.buyQuantity + deal.getQuantity;
-      const freeUnitsCount = Math.floor(units.length / groupSize) * deal.getQuantity;
-      if (freeUnitsCount > 0) {
-        const freeUnits = units.slice(0, freeUnitsCount);
-        currentDiscount = freeUnits.reduce((sum, u) => sum + u.price * (deal.discountPercent / 100), 0);
+      if (groupSize > 0 && deal.getQuantity > 0) {
+        const freeUnitsCount = Math.floor(units.length / groupSize) * deal.getQuantity;
+        if (freeUnitsCount > 0) {
+          const freeUnits = units.slice(0, freeUnitsCount);
+          currentDiscount = freeUnits.reduce((sum, u) => sum + u.price * (deal.discountPercent / 100), 0);
+        }
+      } else if (deal.getQuantity === 0 && units.length >= deal.buyQuantity) {
+        // Gift-only deal (e.g. buy 2 get free gift)
+        if (deal.freeGiftName) gift = deal.freeGiftName;
       }
     } else if (deal.dealType === 'SECOND_AT_DISCOUNT') {
       const pairsCount = Math.floor(units.length / 2);
@@ -147,7 +171,7 @@ export function evaluateActiveDeals(
       }
     }
 
-    if (currentDiscount > highestDiscount) {
+    if (currentDiscount > highestDiscount || (!chosenDeal && (deal.freeGiftName || deal.freeShipping))) {
       highestDiscount = currentDiscount;
       chosenDeal = deal;
       if (deal.freeShipping) freeShipping = true;
@@ -189,6 +213,17 @@ type CartContextType = {
   activeDeals: ActiveDeal[];
   appliedDeal: ActiveDeal | null;
   dealDiscount: number;
+  selectedFreeGift: FreeGiftSelection | null;
+  setSelectedFreeGift: (gift: FreeGiftSelection | null) => void;
+  availableTesterGifts: Array<{
+    id: number;
+    name: string;
+    slug: string;
+    brandLabel?: string;
+    images?: any;
+    price: number;
+    stock: number;
+  }>;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -199,10 +234,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [shippingFee, setShippingFee] = useState(35);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const [activeDeals, setActiveDeals] = useState<ActiveDeal[]>([]);
+  const [selectedFreeGift, setSelectedFreeGift] = useState<FreeGiftSelection | null>(null);
 
   useEffect(() => {
     // Migration: Read from localStorage first, then fallback to Cookies.
-    // This prevents losing existing carts for current users.
     let saved = localStorage.getItem('nouamaneCart');
     if (!saved) {
       saved = Cookies.get('nouamaneCart') || null;
@@ -227,6 +262,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } catch {
         setAppliedPromo(null);
       }
+    }
+
+    const savedGift = Cookies.get('nouamaneFreeGift');
+    if (savedGift) {
+      try {
+        setSelectedFreeGift(JSON.parse(savedGift));
+      } catch {}
     }
     
     setIsLoaded(true);
@@ -256,8 +298,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (isLoaded) {
       const cartStr = JSON.stringify(cart);
       Cookies.set('nouamaneCart', cartStr, { expires: 30, path: '/' });
-      // Remove from localStorage to finish migration
       localStorage.removeItem('nouamaneCart');
+      
+      if (appliedPromo) {
+        const promoStr = JSON.stringify(appliedPromo);
+        Cookies.set('nouamanePromo', promoStr, { expires: 30, path: '/' });
+        localStorage.removeItem('nouamanePromo');
+      } else {
+        Cookies.remove('nouamanePromo', { path: '/' });
+      }
+
+      if (selectedFreeGift) {
+        Cookies.set('nouamaneFreeGift', JSON.stringify(selectedFreeGift), { expires: 30, path: '/' });
+      } else {
+        Cookies.remove('nouamaneFreeGift', { path: '/' });
+      }
       
       if (appliedPromo) {
         const promoStr = JSON.stringify(appliedPromo);
@@ -351,7 +406,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removePromo = () => setAppliedPromo(null);
 
   // Evaluate automatic deals for the current cart
-  const { bestDeal, dealDiscount, freeShippingUnlocked } = evaluateActiveDeals(cart, activeDeals);
+  const { bestDeal, dealDiscount, freeShippingUnlocked, freeGift } = evaluateActiveDeals(cart, activeDeals);
+
+  // Available tester gifts from active deal
+  const availableTesterGifts = bestDeal?.availableGifts || [];
 
   return (
     <CartContext.Provider
@@ -370,6 +428,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         activeDeals,
         appliedDeal: bestDeal,
         dealDiscount,
+        selectedFreeGift: freeGift ? selectedFreeGift : null,
+        setSelectedFreeGift,
+        availableTesterGifts,
       }}
     >
       {children}

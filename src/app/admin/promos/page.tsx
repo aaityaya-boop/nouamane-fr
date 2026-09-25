@@ -131,7 +131,11 @@ export default function AdminPromos() {
   const [dealIsAutomatic, setDealIsAutomatic] = useState(true);
   const [dealPromoCode, setDealPromoCode] = useState('');
   const [dealFreeShipping, setDealFreeShipping] = useState(false);
-  const [dealFreeGiftName, setDealFreeGiftName] = useState('');
+  const [dealHasGift, setDealHasGift] = useState(false);
+  const [dealFreeGiftName, setDealFreeGiftName] = useState('Échantillon Testeur 5ml au Choix');
+  const [dealFreeGiftType, setDealFreeGiftType] = useState<'CLIENT_CHOICE_TESTERS' | 'CLIENT_CHOICE_CUSTOM' | 'FIXED'>('CLIENT_CHOICE_TESTERS');
+  const [dealFreeGiftProductIds, setDealFreeGiftProductIds] = useState<number[]>([]);
+  const [giftTesterSearch, setGiftTesterSearch] = useState('');
   const [dealPriority, setDealPriority] = useState(10);
   const [isSubmittingDeal, setIsSubmittingDeal] = useState(false);
 
@@ -270,6 +274,25 @@ export default function AdminPromos() {
     return map;
   }, [products]);
 
+  // List of all tester perfumes in catalog
+  const testerProducts = useMemo(() => {
+    return products.filter((p) => {
+      const pSub = (p.subcategory || '').toLowerCase();
+      return pSub !== 'arabic';
+    });
+  }, [products]);
+
+  // Filtered tester samples for the gift selector
+  const filteredGiftTesters = useMemo(() => {
+    if (!giftTesterSearch.trim()) return testerProducts;
+    const q = giftTesterSearch.toLowerCase();
+    return testerProducts.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        (p.brandLabel && p.brandLabel.toLowerCase().includes(q))
+    );
+  }, [testerProducts, giftTesterSearch]);
+
   // ==========================================
   // PRESET DEAL TEMPLATES
   // ==========================================
@@ -345,7 +368,7 @@ export default function AdminPromos() {
 
       case 'freeGiftDeal':
         setDealTitle('Cadeau Échantillon Luxe Offert dès 2 Parfums');
-        setDealSubtitle('Recevez un vaporisateur nomade de luxe 5ml offert dès 2 flacons achetés.');
+        setDealSubtitle('Recevez un échantillon testeur de luxe 5ml au choix dès 2 flacons achetés.');
         setDealBadgeText('CADEAU OFFERT');
         setDealType('BUY_X_GET_Y_FREE');
         setBuyQuantity(2);
@@ -354,7 +377,9 @@ export default function AdminPromos() {
         setDealScope('ALL');
         setDealIsAutomatic(true);
         setDealFreeShipping(false);
-        setDealFreeGiftName('Vaporisateur Nomade 5ml Luxe');
+        setDealHasGift(true);
+        setDealFreeGiftType('CLIENT_CHOICE_TESTERS');
+        setDealFreeGiftName('Échantillon Testeur 5ml au Choix');
         break;
     }
   };
@@ -379,6 +404,11 @@ export default function AdminPromos() {
       return;
     }
 
+    if (dealHasGift && dealFreeGiftType === 'CLIENT_CHOICE_CUSTOM' && dealFreeGiftProductIds.length === 0) {
+      alert('Veuillez sélectionner au moins un testeur pour la liste restreinte des échantillons offerts.');
+      return;
+    }
+
     setIsSubmittingDeal(true);
     try {
       const res = await fetch('/api/admin/deals', {
@@ -399,7 +429,9 @@ export default function AdminPromos() {
           isAutomatic: dealIsAutomatic,
           promoCode: dealPromoCode || null,
           freeShipping: dealFreeShipping,
-          freeGiftName: dealFreeGiftName || null,
+          freeGiftName: dealHasGift ? dealFreeGiftName : null,
+          freeGiftType: dealHasGift ? dealFreeGiftType : null,
+          freeGiftProductIds: dealHasGift && dealFreeGiftType === 'CLIENT_CHOICE_CUSTOM' ? dealFreeGiftProductIds : [],
           priority: dealPriority,
           isActive: true,
         })
@@ -1184,39 +1216,186 @@ export default function AdminPromos() {
                   )}
                 </div>
 
-                {/* Extra Perks: Free Shipping & Free Gift */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div className="p-3 bg-neutral-50/70 border border-neutral-200 rounded-xl space-y-1">
+                {/* Extra Perks: Free Shipping */}
+                <div className="p-3.5 bg-neutral-50/70 border border-neutral-200 rounded-xl space-y-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={dealFreeShipping}
+                      onChange={(e) => setDealFreeShipping(e.target.checked)}
+                      className="rounded text-[#0ea5e9] focus:ring-[#0ea5e9] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                      <Truck size={14} className="text-emerald-600" />
+                      <span>Livraison Gratuite Automatique (0 DH partout au Maroc)</span>
+                    </span>
+                  </label>
+                </div>
+
+                {/* Extra Perks: Free Gift / Tester Sample Picker */}
+                <div className="p-4 bg-sky-50/40 border border-sky-200/80 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={dealFreeShipping}
-                        onChange={(e) => setDealFreeShipping(e.target.checked)}
-                        className="rounded text-[#0ea5e9] focus:ring-[#0ea5e9] w-4 h-4"
+                        checked={dealHasGift}
+                        onChange={(e) => setDealHasGift(e.target.checked)}
+                        className="rounded text-[#0ea5e9] focus:ring-[#0ea5e9] w-4 h-4 cursor-pointer"
                       />
                       <span className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                        <Truck size={13} className="text-emerald-600" />
-                        <span>Livraison Gratuite Automatique</span>
+                        <Gift size={14} className="text-[#0ea5e9]" />
+                        <span>Offrir un Cadeau / Échantillon Gratuit</span>
                       </span>
                     </label>
-                    <p className="text-[10px] text-neutral-500 pl-6">
-                      Débloque 0 DH de livraison partout au Maroc.
-                    </p>
+
+                    {dealHasGift && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-[#0ea5e9]">
+                        Cadeau Activé
+                      </span>
+                    )}
                   </div>
 
-                  <div className="p-3 bg-neutral-50/70 border border-neutral-200 rounded-xl space-y-1">
-                    <label className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                      <Gift size={13} className="text-[#0ea5e9]" />
-                      <span>Cadeau / Échantillon Offert</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={dealFreeGiftName}
-                      onChange={(e) => setDealFreeGiftName(e.target.value)}
-                      placeholder="ex: Miniature 5ml Luxe offerte"
-                      className="w-full px-2.5 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs"
-                    />
-                  </div>
+                  {dealHasGift && (
+                    <div className="space-y-3 pt-2 border-t border-sky-100 animate-in fade-in">
+                      <div>
+                        <label className="text-[11px] font-bold text-neutral-700 block mb-1.5">
+                          Mode de sélection de l&apos;échantillon :
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setDealFreeGiftType('CLIENT_CHOICE_TESTERS')}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                              dealFreeGiftType === 'CLIENT_CHOICE_TESTERS'
+                                ? 'bg-[#0ea5e9] text-white border-[#0ea5e9] shadow-xs'
+                                : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+                            }`}
+                          >
+                            <div className="text-xs font-bold mb-0.5">🌟 Tous les Testeurs</div>
+                            <div className={`text-[10px] ${dealFreeGiftType === 'CLIENT_CHOICE_TESTERS' ? 'text-sky-100' : 'text-neutral-400'}`}>
+                              Le client choisit parmi tous les testeurs en stock ({testerProducts.length})
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setDealFreeGiftType('CLIENT_CHOICE_CUSTOM')}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                              dealFreeGiftType === 'CLIENT_CHOICE_CUSTOM'
+                                ? 'bg-[#0ea5e9] text-white border-[#0ea5e9] shadow-xs'
+                                : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+                            }`}
+                          >
+                            <div className="text-xs font-bold mb-0.5">🎯 Sélection Manuelle</div>
+                            <div className={`text-[10px] ${dealFreeGiftType === 'CLIENT_CHOICE_CUSTOM' ? 'text-sky-100' : 'text-neutral-400'}`}>
+                              Vous choisissez la liste des testeurs offerts ({dealFreeGiftProductIds.length} choisis)
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setDealFreeGiftType('FIXED')}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                              dealFreeGiftType === 'FIXED'
+                                ? 'bg-[#0ea5e9] text-white border-[#0ea5e9] shadow-xs'
+                                : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+                            }`}
+                          >
+                            <div className="text-xs font-bold mb-0.5">🎁 Cadeau Prédéfini</div>
+                            <div className={`text-[10px] ${dealFreeGiftType === 'FIXED' ? 'text-sky-100' : 'text-neutral-400'}`}>
+                              Cadeau ou miniature fixe sans choix client
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Manual Tester Selection List */}
+                      {dealFreeGiftType === 'CLIENT_CHOICE_CUSTOM' && (
+                        <div className="bg-white border border-neutral-200 rounded-xl p-3 space-y-2.5 animate-in fade-in">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-neutral-800">
+                              Cochez les testeurs offerts en échantillon ({dealFreeGiftProductIds.length} sélectionnés) :
+                            </span>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setDealFreeGiftProductIds(testerProducts.map(p => p.id))}
+                                className="text-[10px] text-[#0ea5e9] hover:underline font-bold"
+                              >
+                                Tout cocher ({testerProducts.length})
+                              </button>
+                              <span className="text-neutral-300">•</span>
+                              <button
+                                type="button"
+                                onClick={() => setDealFreeGiftProductIds([])}
+                                className="text-[10px] text-neutral-500 hover:underline"
+                              >
+                                Vider
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="relative">
+                            <Search size={13} className="absolute left-3 top-2.5 text-neutral-400" />
+                            <input
+                              type="text"
+                              value={giftTesterSearch}
+                              onChange={(e) => setGiftTesterSearch(e.target.value)}
+                              placeholder="Rechercher parmi les testeurs (ex: Dior Sauvage, Creed...)"
+                              className="w-full pl-8 pr-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-xs"
+                            />
+                          </div>
+
+                          <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                            {filteredGiftTesters.map((t) => {
+                              const isChecked = dealFreeGiftProductIds.includes(t.id);
+                              return (
+                                <button
+                                  key={t.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setDealFreeGiftProductIds(prev =>
+                                      prev.includes(t.id) ? prev.filter(id => id !== t.id) : [...prev, t.id]
+                                    );
+                                  }}
+                                  className={`w-full flex items-center justify-between p-2 rounded-lg border text-left transition-colors cursor-pointer ${
+                                    isChecked
+                                      ? 'bg-sky-50 border-[#0ea5e9] text-[#0ea5e9] font-bold'
+                                      : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div className={`w-4 h-4 rounded flex items-center justify-center ${isChecked ? 'bg-[#0ea5e9] text-white' : 'border border-neutral-300'}`}>
+                                      {isChecked && <Check size={11} />}
+                                    </div>
+                                    <span className="text-xs truncate">{t.name}</span>
+                                  </div>
+                                  <span className="text-[10px] px-1.5 py-0.5 bg-neutral-100 rounded text-neutral-500">
+                                    {t.brandLabel || 'Testeur'}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Gift Label / Title */}
+                      <div>
+                        <label className="text-[11px] font-bold text-neutral-700 block mb-1">
+                          Libellé du cadeau affiché au client
+                        </label>
+                        <input
+                          type="text"
+                          value={dealFreeGiftName}
+                          onChange={(e) => setDealFreeGiftName(e.target.value)}
+                          placeholder="ex: Échantillon Testeur 5ml au Choix"
+                          className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs text-neutral-900 focus:outline-none focus:border-[#0ea5e9]"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit button in Brand Blue */}

@@ -14,6 +14,7 @@ export async function GET() {
     const formatted = deals.map((d) => {
       let parsedCategories: string[] = [];
       let parsedProductIds: number[] = [];
+      let parsedGiftProductIds: number[] = [];
       if (d.categories) {
         try {
           parsedCategories = JSON.parse(d.categories);
@@ -22,6 +23,11 @@ export async function GET() {
       if (d.productIds) {
         try {
           parsedProductIds = JSON.parse(d.productIds);
+        } catch {}
+      }
+      if (d.freeGiftProductIds) {
+        try {
+          parsedGiftProductIds = JSON.parse(d.freeGiftProductIds);
         } catch {}
       }
 
@@ -49,6 +55,7 @@ export async function GET() {
         ...d,
         categories: parsedCategories,
         productIds: parsedProductIds,
+        freeGiftProductIds: parsedGiftProductIds,
       };
     });
 
@@ -78,6 +85,8 @@ export async function POST(request: Request) {
       promoCode,
       freeShipping = false,
       freeGiftName,
+      freeGiftType = 'CLIENT_CHOICE_TESTERS',
+      freeGiftProductIds = [],
       priority = 0,
       isActive = true,
     } = body;
@@ -88,6 +97,7 @@ export async function POST(request: Request) {
 
     const cleanCategories = Array.isArray(categories) ? categories.map(String) : [];
     const cleanProductIds = Array.isArray(productIds) ? productIds.map(Number).filter(id => !isNaN(id)) : [];
+    const cleanGiftProductIds = Array.isArray(freeGiftProductIds) ? freeGiftProductIds.map(Number).filter(id => !isNaN(id)) : [];
 
     const newDeal = await prisma.specialDeal.create({
       data: {
@@ -106,6 +116,8 @@ export async function POST(request: Request) {
         promoCode: promoCode ? promoCode.trim().toUpperCase() : null,
         freeShipping: Boolean(freeShipping),
         freeGiftName: freeGiftName ? freeGiftName.trim() : null,
+        freeGiftType: freeGiftType || 'CLIENT_CHOICE_TESTERS',
+        freeGiftProductIds: cleanGiftProductIds.length > 0 ? JSON.stringify(cleanGiftProductIds) : null,
         priority: parseInt(priority, 10) || 0,
         isActive: Boolean(isActive),
       }
@@ -115,6 +127,7 @@ export async function POST(request: Request) {
       ...newDeal,
       categories: cleanCategories,
       productIds: cleanProductIds,
+      freeGiftProductIds: cleanGiftProductIds,
     });
   } catch (error) {
     console.error('Error creating deal:', error);
@@ -138,6 +151,18 @@ export async function PATCH(request: Request) {
     if (rest.title) updateData.title = rest.title;
     if (rest.subtitle !== undefined) updateData.subtitle = rest.subtitle;
     if (rest.badgeText !== undefined) updateData.badgeText = rest.badgeText;
+    if (rest.dealType) updateData.dealType = rest.dealType;
+    if (rest.buyQuantity) updateData.buyQuantity = parseInt(rest.buyQuantity, 10);
+    if (rest.getQuantity) updateData.getQuantity = parseInt(rest.getQuantity, 10);
+    if (rest.discountPercent !== undefined) updateData.discountPercent = parseFloat(rest.discountPercent);
+    if (rest.bundlePrice !== undefined) updateData.bundlePrice = rest.bundlePrice ? parseFloat(rest.bundlePrice) : null;
+    if (rest.applicableScope) updateData.applicableScope = rest.applicableScope;
+    if (Array.isArray(rest.categories)) updateData.categories = JSON.stringify(rest.categories);
+    if (Array.isArray(rest.productIds)) updateData.productIds = JSON.stringify(rest.productIds.map(Number));
+    if (typeof rest.freeShipping === 'boolean') updateData.freeShipping = rest.freeShipping;
+    if (rest.freeGiftName !== undefined) updateData.freeGiftName = rest.freeGiftName;
+    if (rest.freeGiftType !== undefined) updateData.freeGiftType = rest.freeGiftType;
+    if (Array.isArray(rest.freeGiftProductIds)) updateData.freeGiftProductIds = JSON.stringify(rest.freeGiftProductIds.map(Number));
     if (rest.dealType) updateData.dealType = rest.dealType;
     if (rest.buyQuantity) updateData.buyQuantity = parseInt(rest.buyQuantity, 10);
     if (rest.getQuantity) updateData.getQuantity = parseInt(rest.getQuantity, 10);

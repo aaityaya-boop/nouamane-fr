@@ -10,6 +10,7 @@ import { useCart, calculatePromoDiscount } from '@/context/CartContext';
 import { usePathname } from 'next/navigation';
 import { formatMAD } from '@/lib/products';
 import { Plus, Minus, Trash2, ArrowRight, ShoppingBag, Truck, ShieldCheck, Gift, Tag, CheckCircle2, XCircle } from 'lucide-react';
+import FreeGiftSelector from '@/components/FreeGiftSelector';
 
 /* ============================================================
    CART PAGE — Full-page cart with summary
@@ -267,7 +268,11 @@ export default function CartPage() {
                     Récapitulatif
                   </h3>
 
-                  <div className="mt-6 space-y-3 pb-6 border-b border-[#e0ddd4]">
+                  <div className="mt-4">
+                    <FreeGiftSelector />
+                  </div>
+
+                  <div className="mt-5 space-y-3 pb-6 border-b border-[#e0ddd4]">
                     <div className="flex justify-between text-[14px]">
                       <span className="text-[#6B6B6B]">Sous-total</span>
                       <span className="text-[#1A1A1A] font-medium">
@@ -276,21 +281,14 @@ export default function CartPage() {
                     </div>
 
                     {dealDiscount > 0 && appliedDeal && (
-                      <div className="flex justify-between text-[14px] text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                        <div className="flex items-center gap-1.5 font-semibold text-xs">
+                      <div className="flex justify-between text-[14px] text-[#0ea5e9] bg-sky-50 p-2.5 rounded-xl border border-sky-200">
+                        <div className="flex items-center gap-1.5 font-bold text-xs">
                           <span>🎉</span>
                           <span>{appliedDeal.badgeText || appliedDeal.title}</span>
                         </div>
                         <span className="font-bold text-xs">
                           -{formatMAD(dealDiscount)}
                         </span>
-                      </div>
-                    )}
-
-                    {appliedDeal?.freeGiftName && (
-                      <div className="flex justify-between text-[12px] text-pink-700 bg-pink-50 p-2 rounded-lg border border-pink-200">
-                        <span>🎁 Cadeau offert</span>
-                        <span className="font-bold">{appliedDeal.freeGiftName}</span>
                       </div>
                     )}
 

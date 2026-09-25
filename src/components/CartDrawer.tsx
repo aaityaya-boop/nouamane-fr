@@ -12,6 +12,7 @@ import { X, Plus, Minus, Trash2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import Image from 'next/image';
 import { formatMAD } from '@/lib/products';
+import FreeGiftSelector from '@/components/FreeGiftSelector';
 
 export default function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -162,9 +163,9 @@ export default function CartDrawer() {
               ))}
             </div>
 
-            <div className="border-t border-[#e0ddd4] p-6 bg-[#fafaf7] space-y-4">
+            <div className="border-t border-[#e0ddd4] p-6 bg-[#fafaf7] space-y-3">
               {appliedDeal && dealDiscount > 0 && (
-                <div className="bg-amber-500/10 border border-amber-300/60 rounded-xl p-3 flex items-center justify-between">
+                <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm">🎉</span>
                     <div>
@@ -172,16 +173,11 @@ export default function CartDrawer() {
                       <div className="text-[10px] text-neutral-500">Offre automatique appliquée</div>
                     </div>
                   </div>
-                  <div className="text-xs font-bold text-amber-700">-{formatMAD(dealDiscount)}</div>
+                  <div className="text-xs font-bold text-[#0ea5e9]">-{formatMAD(dealDiscount)}</div>
                 </div>
               )}
 
-              {appliedDeal?.freeGiftName && (
-                <div className="bg-pink-50 border border-pink-200 rounded-xl p-2.5 flex items-center gap-2 text-pink-700 text-xs font-bold">
-                  <span>🎁</span>
-                  <span>Cadeau offert : {appliedDeal.freeGiftName}</span>
-                </div>
-              )}
+              <FreeGiftSelector compact />
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-baseline">

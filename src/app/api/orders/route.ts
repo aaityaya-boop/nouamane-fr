@@ -24,6 +24,7 @@ export async function POST(request: Request) {
       total,
       promoCode,
       discount,
+      selectedFreeGift,
     } = body;
 
     // Basic validation
@@ -112,6 +113,21 @@ export async function POST(request: Request) {
       })
     );
 
+    // Append selected free sample if present
+    const finalItemsWithSKU = [...itemsWithSKU];
+    if (selectedFreeGift && selectedFreeGift.name) {
+      finalItemsWithSKU.push({
+        id: Number(selectedFreeGift.id) || 0,
+        sku: 'GIFT-5ML',
+        slug: selectedFreeGift.slug || '',
+        name: `🎁 Échantillon Offert : ${selectedFreeGift.name}`,
+        price: 0,
+        image: selectedFreeGift.image || '',
+        quantity: 1,
+        size: '5ml',
+      });
+    }
+
     const created = await prisma.order.create({
       data: {
         orderNumber,
@@ -122,7 +138,7 @@ export async function POST(request: Request) {
         shippingCity,
         shippingPostalCode: shippingPostalCode || '',
         paymentMethod,
-        items: JSON.stringify(itemsWithSKU),
+        items: JSON.stringify(finalItemsWithSKU),
         subtotal: Number(subtotal),
         shippingCost: Number(shippingCost),
         total: Number(total),

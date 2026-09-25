@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   XCircle
 } from 'lucide-react';
+import FreeGiftSelector from '@/components/FreeGiftSelector';
 
 /* ============================================================
    ONE-PAGE CHECKOUT
@@ -25,7 +26,7 @@ import {
    ============================================================ */
 
 export default function CheckoutPage() {
-  const { cart, getSubtotal, clearCart, shippingFee, appliedPromo, applyPromo, removePromo, appliedDeal, dealDiscount } = useCart();
+  const { cart, getSubtotal, clearCart, shippingFee, appliedPromo, applyPromo, removePromo, appliedDeal, dealDiscount, selectedFreeGift } = useCart();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -155,6 +156,7 @@ export default function CheckoutPage() {
           total,
           promoCode: appliedPromo?.code || (appliedDeal ? `OFFRE:${appliedDeal.badgeText || appliedDeal.title}` : null),
           discount: totalDiscount > 0 ? totalDiscount : null,
+          selectedFreeGift: selectedFreeGift || null,
         }),
       });
 
@@ -180,6 +182,7 @@ export default function CheckoutPage() {
         total,
         promoCode: appliedPromo?.code || (appliedDeal ? `OFFRE:${appliedDeal.badgeText || appliedDeal.title}` : null),
         discount: totalDiscount > 0 ? totalDiscount : null,
+        selectedFreeGift: selectedFreeGift || null,
         createdAt: new Date().toISOString(),
       };
       localStorage.setItem('nouamaneLastOrder', JSON.stringify(confirmationData));
@@ -476,6 +479,10 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
+                  <div className="mb-2">
+                    <FreeGiftSelector />
+                  </div>
+
                   <div className="flex justify-between text-[13px]">
                     <span className="text-[#6B6B6B]">Sous-total</span>
                     <span className="text-[#1A1A1A] font-medium">
@@ -484,7 +491,7 @@ export default function CheckoutPage() {
                   </div>
 
                   {dealDiscount > 0 && appliedDeal && (
-                    <div className="flex justify-between text-[13px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                    <div className="flex justify-between text-[13px] text-[#0ea5e9] bg-sky-50 p-2.5 rounded-xl border border-sky-200">
                       <span className="font-bold flex items-center gap-1">
                         <span>🎉</span>
                         <span>{appliedDeal.badgeText || appliedDeal.title}</span>
@@ -492,13 +499,6 @@ export default function CheckoutPage() {
                       <span className="font-bold">
                         -{formatMAD(dealDiscount)}
                       </span>
-                    </div>
-                  )}
-
-                  {appliedDeal?.freeGiftName && (
-                    <div className="flex justify-between text-[12px] text-pink-700 bg-pink-50 p-2 rounded-lg border border-pink-200">
-                      <span>🎁 Cadeau offert</span>
-                      <span className="font-bold">{appliedDeal.freeGiftName}</span>
                     </div>
                   )}
 
