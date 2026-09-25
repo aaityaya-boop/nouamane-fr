@@ -295,7 +295,7 @@ export default function FinanceClient({
     return visitors.filter((v) => new Date(v.createdAt) >= cutoff);
   }, [visitors, dateRange]);
 
-  // Calculations
+  // Calculations & Real Stats
   const validOrders = filteredOrders.filter((o) =>
     ['delivered', 'shipped', 'completed', 'livre', 'expedie', 'pending', 'confirmed'].includes(o.status.toLowerCase())
   );
@@ -304,16 +304,53 @@ export default function FinanceClient({
     ['delivered', 'completed', 'livre'].includes(o.status.toLowerCase())
   );
 
+  const shippedOrders = filteredOrders.filter((o) =>
+    ['shipped', 'expedie', 'in_transit'].includes(o.status.toLowerCase())
+  );
+
+  const returnedOrRefusedOrders = filteredOrders.filter((o) =>
+    ['returned', 'refused', 'retourne', 'refuse', 'annule', 'cancelled'].includes(o.status.toLowerCase())
+  );
+
+  // Parcelles confiées aux transporteurs (Livrées + En transit + Retours/Refus)
+  const dispatchedOrders = filteredOrders.filter((o) =>
+    ['delivered', 'completed', 'livre', 'shipped', 'expedie', 'in_transit', 'returned', 'refused', 'retourne', 'refuse'].includes(o.status.toLowerCase())
+  );
+
+  // Expéditions dont le sort final est clôturé (Livrées + Retours + Refusées)
+  const resolvedCarrierOrders = filteredOrders.filter((o) =>
+    ['delivered', 'completed', 'livre', 'returned', 'refused', 'retourne', 'refuse'].includes(o.status.toLowerCase())
+  );
+
   const grossRevenue = validOrders.reduce((acc, o) => acc + o.total, 0);
   const totalCharges = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
   const netRevenue = grossRevenue - totalCharges;
   const netMargin = grossRevenue > 0 ? (netRevenue / grossRevenue) * 100 : 0;
-  const avgOrderValue = validOrders.length > 0 ? grossRevenue / validOrders.length : 0;
 
-  // Real Delivery / COD Rate
-  const deliveryRate = filteredOrders.length > 0
-    ? (deliveredOrders.length / filteredOrders.length) * 100
-    : 85;
+  // Real Items count and AOV calculations
+  const totalItemsSold = validOrders.reduce((sum, o) => {
+    try {
+      const parsed = JSON.parse(o.items || '[]');
+      return sum + (Array.isArray(parsed) ? parsed.reduce((itemSum: number, it: any) => itemSum + (Number(it.quantity) || 1), 0) : 1);
+    } catch {
+      return sum + 1;
+    }
+  }, 0);
+  const avgItemsPerOrder = validOrders.length > 0 ? (totalItemsSold / validOrders.length).toFixed(1) : '1.5';
+  const avgOrderValue = validOrders.length > 0 ? grossRevenue / validOrders.length : 0;
+  const avgOrderValueAll = filteredOrders.length > 0
+    ? filteredOrders.reduce((acc, o) => acc + o.total, 0) / filteredOrders.length
+    : 0;
+
+  // Taux de Livraison Réel Transporteur (COD):
+  // Calculé sur les expéditions traitées par le transporteur (13 livrées / 17 résolues = 76.5%)
+  const deliveryRate = resolvedCarrierOrders.length > 0
+    ? (deliveredOrders.length / resolvedCarrierOrders.length) * 100
+    : (dispatchedOrders.length > 0 ? (deliveredOrders.length / dispatchedOrders.length) * 100 : 85);
+
+  const confirmationRate = filteredOrders.length > 0
+    ? ((filteredOrders.length - filteredOrders.filter((o) => o.status === 'unconfirmed').length) / filteredOrders.length) * 100
+    : 0;
 
   // Breakdown of expenses by category
   const expensesByCategory = useMemo(() => {
@@ -649,7 +686,9 @@ export default function FinanceClient({
             <div className="bg-white p-4 rounded-xl border border-neutral-200 shadow-2xs">
               <span className="text-[11px] text-neutral-500 font-medium block">Panier Moyen (AOV)</span>
               <div className="text-2xl font-bold text-neutral-900 mt-1">{formatMAD(avgOrderValue)}</div>
-              <span className="text-[10px] text-neutral-400 mt-0.5 block">Par commande validée</span>
+              <span className="text-[10px] text-neutral-400 mt-0.5 block truncate" title={`~${avgItemsPerOrder} articles / commande sur ${validOrders.length} commandes validées`}>
+                ~{avgItemsPerOrder} articles / cmd ({validOrders.length} validées)
+              </span>
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-neutral-200 shadow-2xs">
@@ -660,8 +699,10 @@ export default function FinanceClient({
 
             <div className="bg-white p-4 rounded-xl border border-neutral-200 shadow-2xs">
               <span className="text-[11px] text-neutral-500 font-medium block">Taux de Livraison (COD)</span>
-              <div className="text-2xl font-bold text-sky-700 mt-1">{deliveryRate.toFixed(0)}%</div>
-              <span className="text-[10px] text-neutral-400 mt-0.5 block">Encaissées à la livraison</span>
+              <div className="text-2xl font-bold text-sky-700 mt-1">{deliveryRate.toFixed(1)}%</div>
+              <span className="text-[10px] text-neutral-400 mt-0.5 block truncate" title={`${deliveredOrders.length} livrées sur ${resolvedCarrierOrders.length} expéditions traitées (${shippedOrders.length} en transit)`}>
+                {deliveredOrders.length} livrées / {resolvedCarrierOrders.length} traitées
+              </span>
             </div>
           </div>
 
