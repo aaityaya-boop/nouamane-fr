@@ -1147,6 +1147,14 @@ function OrdersPageContent() {
               </div>
 
               <div className="flex items-center gap-2">
+                <Link
+                  href={`/admin/sav?newClaim=true&orderId=${editingOrder.id}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition-colors"
+                  title="Ouvrir une réclamation SAV pour cette commande"
+                >
+                  <RotateCcw size={13} className="text-amber-600" />
+                  <span>Ouvrir SAV</span>
+                </Link>
                 <a
                   href={`/invoice/${editingOrder.orderNumber}`}
                   target="_blank"

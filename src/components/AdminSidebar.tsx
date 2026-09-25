@@ -40,7 +40,8 @@ import {
   Globe,
   Bot,
   HeartPulse,
-  PieChart
+  PieChart,
+  RotateCcw
 } from 'lucide-react';
 
 interface MenuItem {
@@ -54,6 +55,7 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   { href: '/admin', label: 'Tableau de bord', icon: <LayoutDashboard size={16} />, permission: 'dashboard.view' },
   { href: '/admin/orders', label: 'Commandes', icon: <ShoppingBag size={16} />, permission: 'orders.view' },
+  { href: '/admin/sav', label: 'SAV & Réclamations', icon: <RotateCcw size={16} />, permission: 'orders.view' },
   { href: '/admin/products', label: 'Testeurs', icon: <PackageSearch size={16} />, permission: 'products.view' },
   { href: '/admin/coffrets', label: 'Coffrets Cadeaux', icon: <Gift size={16} />, permission: 'products.view' },
   { href: '/admin/parfums-originaux', label: 'Parfums Originaux', icon: <Sparkles size={16} />, permission: 'products.view' },

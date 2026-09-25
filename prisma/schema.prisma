@@ -32,6 +32,7 @@ model Order {
   affiliate          Affiliate?           @relation(fields: [affiliateCode], references: [code])
   customer           Customer?            @relation(fields: [customerId], references: [id])
   timeline           OrderTimelineEvent[]
+  claims             ClaimTicket[]
 }
 
 model Customer {
@@ -47,6 +48,7 @@ model Customer {
   postalCode       String?
   wishlist         String               @default("[]")
   orders           Order[]
+  claims           ClaimTicket[]
   notes            CustomerNote[]
   tags             CustomerTag[]
   marketingConsent MarketingConsent?
@@ -956,6 +958,8 @@ model AdminUser {
   activities        AdminActivityLog[]
   createdTasks      AdminTask[]         @relation("CreatedTasks")
   assignedTasks     AdminTask[]         @relation("AssignedTasks")
+  createdClaims     ClaimTicket[]       @relation("CreatedClaims")
+  assignedClaims    ClaimTicket[]       @relation("AssignedClaims")
   taskComments      AdminTaskComment[]
   notifications     AdminNotification[]
   sentMessages      AdminChatMessage[]  @relation("SentMessages")
@@ -1286,5 +1290,178 @@ model AdDailySpend {
   @@index([platform])
   @@index([date])
   @@index([campaignId])
+}
+
+// ==========================================
+// SAV & RÉCLAMATIONS (SERVICE APRÈS-VENTE & RETOURS)
+// ==========================================
+
+model ClaimTicket {
+  id                   String              @id @default(cuid())
+  ticketNumber         String              @unique // e.g. "SAV-2026-0001"
+  
+  // Relations
+  orderId              String
+  order                Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId           String?
+  customer             Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  
+  // Customer Snapshot Data
+  customerName         String
+  customerPhone        String?
+  customerEmail        String?
+  
+  // Claim Details
+  category             String              // WRONG_PRODUCT, MISSING_PRODUCT, BROKEN_LEAK, DELIVERY_ISSUE, EXCHANGE_REQUEST, RETURN_REQUEST, OTHER
+  categoryLabel        String
+  channel              String              @default("WHATSAPP") // PHONE, WHATSAPP, EMAIL, OTHER
+  priority             String              @default("MEDIUM")   // LOW, MEDIUM, HIGH, URGENT
+  status               String              @default("NEW")      // NEW, IN_PROGRESS, PENDING, RESOLVED, CLOSED
+  pendingReason        String?             // WAITING_CUSTOMER, WAITING_CARRIER, WAITING_RETURN, INTERNAL_ACTION, OTHER
+  description          String              @db.Text
+  
+  // Affected Products (JSON array of { productId, productName, sku, size, quantity, unitPrice })
+  affectedItems        String              @db.Text
+  
+  // Attachments (JSON array of { id, name, url, type, size, uploadedAt, uploadedByName })
+  attachments          String              @default("[]") @db.Text
+  
+  // Assignee & Ownership
+  assignedToId         String?
+  assignedToName       String?
+  assignedTo           AdminUser?          @relation("AssignedClaims", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdById          String?
+  createdByName        String
+  creator              AdminUser?          @relation("CreatedClaims", fields: [createdById], references: [id], onDelete: SetNull)
+  
+  // Next Action & Deadlines
+  nextAction           String?             // Action à mener
+  nextActionDueDate    DateTime?           // Échéance de la prochaine action
+  
+  // Solutions
+  proposedSolution     String?             // ASSISTANCE, SEND_MISSING, REPLACEMENT, EXCHANGE, RETURN, REFUND_PARTIAL, REFUND_TOTAL, REJECTED
+  proposedSolutionNotes String?            @db.Text
+  solutionStatus       String              @default("NONE") // NONE, PROPOSED, VALIDATED, EXECUTED, REJECTED
+  solutionExecutedAt   DateTime?
+  solutionExecutedById String?
+  solutionExecutedByName String?
+  
+  // Resolution & Reopening
+  resolutionNotes      String?             @db.Text
+  resolvedAt           DateTime?
+  closedAt             DateTime?
+  reopenedAt           DateTime?
+  reopenReason         String?             @db.Text
+  
+  // Timestamps
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  
+  // Relations
+  events               ClaimEvent[]
+  internalNotes        ClaimInternalNote[]
+  returnItems          ClaimReturnItem[]
+  refunds              ClaimRefund[]
+
+  @@index([orderId])
+  @@index([customerId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([assignedToId])
+  @@index([nextActionDueDate])
+  @@index([createdAt])
+}
+
+model ClaimEvent {
+  id          String      @id @default(cuid())
+  claimId     String
+  claim       ClaimTicket @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  actorId     String?
+  actorName   String
+  actorRole   String?
+  type        String      // CREATED, STATUS_CHANGE, ASSIGNED, NOTE_ADDED, ATTACHMENT_ADDED, SOLUTION_PROPOSED, SOLUTION_VALIDATED, RETURN_STATUS_CHANGE, RESTOCK_EXECUTED, REFUND_REQUESTED, REFUND_COMPLETED, REOPENED, CLOSED, OTHER
+  title       String
+  description String?     @db.Text
+  metadata    String?     @db.Text // JSON with old/new values
+  createdAt   DateTime    @default(now())
+
+  @@index([claimId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model ClaimInternalNote {
+  id           String      @id @default(cuid())
+  claimId      String
+  claim        ClaimTicket @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  authorId     String?
+  authorName   String
+  authorAvatar String?
+  content      String      @db.Text
+  createdAt    DateTime    @default(now())
+
+  @@index([claimId])
+  @@index([createdAt])
+}
+
+model ClaimReturnItem {
+  id                 String      @id @default(cuid())
+  claimId            String
+  claim              ClaimTicket @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  productId          Int?
+  productName        String
+  sku                String?
+  quantity           Int         @default(1)
+  
+  // Return workflow: RETURN_REQUESTED -> RETURN_RECEIVED (quarantine) -> INSPECTED
+  status             String      @default("RETURN_REQUESTED") // RETURN_REQUESTED, RETURN_RECEIVED, INSPECTED
+  
+  // Inspection decision
+  inspectionDecision String?     // RESTOCK_SELLABLE, DAMAGED_DISCARD, NOT_RESALEABLE, OTHER_JUSTIFIED
+  inspectionNotes    String?     @db.Text
+  inspectedAt        DateTime?
+  inspectedById      String?
+  inspectedByName    String?
+  
+  // Restocking (strictly enforced to prevent double restock)
+  isRestocked        Boolean     @default(false)
+  restockedAt        DateTime?
+  restockedQuantity  Int         @default(0)
+  restockedById      String?
+  restockedByName    String?
+  
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([claimId])
+  @@index([status])
+  @@index([isRestocked])
+}
+
+model ClaimRefund {
+  id                   String      @id @default(cuid())
+  claimId              String
+  claim                ClaimTicket @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  orderId              String
+  amount               Float       // MAD
+  reason               String      // Motif du remboursement
+  paymentMethod        String      @default("VIREMENT_BANCAIRE") // VIREMENT_BANCAIRE, ESPECES, RECHARGE, CARTE, AUTRE
+  transactionReference String?     // Ref bancaire / N° opération
+  status               String      @default("PENDING") // PENDING (À effectuer), COMPLETED (Effectué), CANCELLED
+  effectiveDate        DateTime?
+  receiptUrl           String?
+  confirmedById        String?
+  confirmedByName      String?
+  confirmedAt          DateTime?
+  expenseId            String?     // Lié à AdminExpense
+  notes                String?     @db.Text
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  @@index([claimId])
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
 }
 

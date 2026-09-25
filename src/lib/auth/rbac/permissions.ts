@@ -9,6 +9,7 @@ export interface PermissionDefinition {
 export type PermissionModule =
   | 'dashboard'
   | 'orders'
+  | 'sav'
   | 'products'
   | 'inventory'
   | 'customers'
@@ -24,6 +25,7 @@ export type PermissionModule =
 export const PERMISSION_MODULES: { id: PermissionModule; label: string; iconName: string }[] = [
   { id: 'dashboard', label: 'Tableau de Bord & KPIs', iconName: 'LayoutDashboard' },
   { id: 'orders', label: 'Commandes & Expéditions', iconName: 'ShoppingBag' },
+  { id: 'sav', label: 'SAV & Réclamations Clients', iconName: 'RotateCcw' },
   { id: 'products', label: 'Produits & Testeurs', iconName: 'PackageSearch' },
   { id: 'inventory', label: 'Inventaire & Stock', iconName: 'Archive' },
   { id: 'customers', label: 'Clients & CRM', iconName: 'Users' },
@@ -147,6 +149,51 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     label: 'Gérer les Pièces Jointes des Commandes',
     description: 'Téléverser et consulter les bordereaux de transport, justificatifs et photos de colis',
     module: 'orders',
+  },
+
+  // --- SAV & RÉCLAMATIONS ---
+  {
+    key: 'claims.view',
+    label: 'Consulter le SAV & Réclamations',
+    description: 'Voir la liste des dossiers de réclamations, échanges et retours clients',
+    module: 'sav',
+  },
+  {
+    key: 'claims.create',
+    label: 'Créer un Dossier SAV',
+    description: 'Ouvrir une nouvelle réclamation liée à une commande',
+    module: 'sav',
+  },
+  {
+    key: 'claims.manage',
+    label: 'Traiter & Modifier un Dossier SAV',
+    description: 'Mettre à jour le statut, les notes internes et proposer des solutions',
+    module: 'sav',
+  },
+  {
+    key: 'claims.assign',
+    label: 'Attribuer / Réassigner un Dossier',
+    description: 'Désigner le collaborateur responsable du suivi',
+    module: 'sav',
+  },
+  {
+    key: 'claims.approve_refund',
+    label: 'Valider un Remboursement Financier',
+    description: 'Autoriser et exécuter l\'enregistrement d\'un remboursement',
+    module: 'sav',
+    isSensitive: true,
+  },
+  {
+    key: 'claims.restock',
+    label: 'Valider le Contrôle Qualité & Remise en Stock',
+    description: 'Inspecter les retours et valider la réintégration en inventaire vendable',
+    module: 'sav',
+  },
+  {
+    key: 'claims.close_reopen',
+    label: 'Clôturer / Réouvrir un Dossier SAV',
+    description: 'Finaliser la résolution ou réouvrir un dossier avec motif',
+    module: 'sav',
   },
 
   // --- PRODUCTS ---
