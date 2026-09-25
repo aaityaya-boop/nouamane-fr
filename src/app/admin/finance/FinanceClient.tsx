@@ -76,7 +76,22 @@ type FinanceClientProps = {
   orders: OrderData[];
   visitors: VisitorData[];
   viewsBySlug: Record<string, { total: number; dates: string[] }>;
-  products: { id: number; slug: string; name: string; brandLabel: string; price: number; testerPrice?: number | null; originalPrice?: number | null; images: string; sku: string | null }[];
+  products: {
+    id: number;
+    slug: string;
+    name: string;
+    brandLabel: string;
+    price: number;
+    testerPrice?: number | null;
+    originalPrice?: number | null;
+    images: string;
+    sku: string | null;
+    isTester?: boolean;
+    subcategory?: string;
+    subcategoryLabel?: string;
+    inStock?: boolean;
+    stock?: number | null;
+  }[];
   initialExpenses: ExpenseData[];
   employees: EmployeeData[];
   affiliates?: AffiliateData[];
@@ -166,6 +181,13 @@ export default function FinanceClient({
   const [simDeliveryRate, setSimDeliveryRate] = useState<number>(85); // %
   const [simCogsRate, setSimCogsRate] = useState<number>(32); // % COGS of product price
   const [simFixedCharges, setSimFixedCharges] = useState<number>(6000); // Fixed rent, tools, base salaires in MAD
+
+  // Unit Economics & Grossiste Pricing State
+  // Grossiste tester price range: 150 - 170 MAD (Standard/Default: 160 MAD)
+  const [testerWholesalePrice, setTesterWholesalePrice] = useState<number>(160);
+  const [unitEcoCategoryFilter, setUnitEcoCategoryFilter] = useState<'ALL' | 'TESTERS' | 'ORIGINALS'>('ALL');
+  const [unitEcoSearch, setUnitEcoSearch] = useState<string>('');
+  const [unitEcoPageSize, setUnitEcoPageSize] = useState<number>(25);
 
   // Monthly Financial Target (Customizable Goal)
   const [monthlyRevenueGoal, setMonthlyRevenueGoal] = useState<number>(initialGoal);
@@ -793,108 +815,332 @@ export default function FinanceClient({
         </div>
       )}
 
-      {/* TAB 2: UNIT ECONOMICS (Marges par Flacon) */}
+      {/* TAB 2: UNIT ECONOMICS (Marges Réelles & Coût Grossiste Parfums) */}
       {activeTab === 'UNIT_ECONOMICS' && (
         <div className="space-y-6">
+          {/* Top Banner: Real Unit Cost Breakdown */}
           <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-2xs">
-            <div className="max-w-2xl">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-sky-50 text-sky-800 border border-sky-200">
-                Analyse de Marge Unitaire
-              </span>
-              <h2 className="text-xl font-bold text-neutral-900 mt-2">
-                Décomposition du Coût de Revient d'un Parfum NAY
-              </h2>
-              <p className="text-xs text-neutral-500 mt-1">
-                Comprenez précisément où va chaque Dirham sur une vente moyenne de <strong>{formatMAD(avgOrderValue || 420)}</strong>.
-              </p>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-sky-50 text-sky-800 border border-sky-200">
+                    Analyse de Marge Unitaire Réelle
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    Testeurs : 150 – 170 MAD Grossiste
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold text-neutral-900 mt-1">
+                  Décomposition du Coût de Revient d'un Parfum Testeur NAY
+                </h2>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Prix d'achat grossiste des testeurs : <strong>150 DH à 170 DH</strong>. Pour les parfums originaux, le coût grossiste est en attente de communication fournisseur.
+                </p>
+              </div>
+
+              {/* Interactive Wholesale Price Toggle for Testers */}
+              <div className="bg-neutral-50 p-3 rounded-2xl border border-neutral-200 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="text-xs">
+                  <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider block">
+                    Prix Achat Grossiste (Testeur) :
+                  </span>
+                  <div className="font-bold text-neutral-900 font-mono text-sm mt-0.5">
+                    {testerWholesalePrice} MAD / flacon
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs">
+                  {[
+                    { val: 150, label: '150 DH', tip: 'Min Grossiste' },
+                    { val: 160, label: '160 DH', tip: 'Moyen Standard' },
+                    { val: 170, label: '170 DH', tip: 'Max Grossiste' },
+                  ].map((tier) => (
+                    <button
+                      key={tier.val}
+                      type="button"
+                      onClick={() => setTesterWholesalePrice(tier.val)}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        testerWholesalePrice === tier.val
+                          ? 'bg-neutral-900 text-white shadow-xs'
+                          : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                      }`}
+                      title={tier.tip}
+                    >
+                      {tier.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Visual Waterfall */}
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mt-6">
               <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 text-center">
-                <span className="text-[11px] text-neutral-500 block font-medium">Prix Vente Moyen</span>
-                <span className="text-xl font-black text-neutral-900 mt-1 block">{formatMAD(avgOrderValue || 420)}</span>
-                <span className="text-[10px] text-neutral-400">100% du CA</span>
+                <span className="text-[11px] text-neutral-500 block font-medium">Prix Vente Boutique</span>
+                <span className="text-xl font-black text-neutral-900 mt-1 block">299 MAD</span>
+                <span className="text-[10px] text-neutral-400">100% du CA Testeur</span>
               </div>
 
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-center">
-                <span className="text-[11px] text-rose-700 block font-medium">- Achat Parfum (COGS)</span>
-                <span className="text-xl font-bold text-rose-800 mt-1 block">~135 MAD</span>
-                <span className="text-[10px] text-rose-600">~32% du prix</span>
+              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-center relative overflow-hidden">
+                <div className="absolute top-1 right-2 text-[9px] font-bold text-rose-600 uppercase">Grossiste</div>
+                <span className="text-[11px] text-rose-700 block font-medium">- Achat Testeur (COGS)</span>
+                <span className="text-xl font-bold text-rose-800 mt-1 block font-mono">-{testerWholesalePrice} MAD</span>
+                <span className="text-[10px] text-rose-600">Fourchette 150 - 170 DH</span>
               </div>
 
               <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-center">
-                <span className="text-[11px] text-amber-700 block font-medium">- Emballage & Flacon</span>
-                <span className="text-xl font-bold text-amber-800 mt-1 block">~25 MAD</span>
-                <span className="text-[10px] text-amber-600">Boîte & Pochon luxe</span>
+                <span className="text-[11px] text-amber-700 block font-medium">- Emballage & Pochon</span>
+                <span className="text-xl font-bold text-amber-800 mt-1 block font-mono">-25 MAD</span>
+                <span className="text-[10px] text-amber-600">Boîte & Pochon luxe satin</span>
               </div>
 
               <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 text-center">
-                <span className="text-[11px] text-purple-700 block font-medium">- Livraison & COD</span>
-                <span className="text-xl font-bold text-purple-800 mt-1 block">~35 MAD</span>
-                <span className="text-[10px] text-purple-600">Amana / Cathedis</span>
+                <span className="text-[11px] text-purple-700 block font-medium">- Livraison Express & COD</span>
+                <span className="text-xl font-bold text-purple-800 mt-1 block font-mono">-35 MAD</span>
+                <span className="text-[10px] text-purple-600">Transporteur & Encaissement</span>
               </div>
 
               <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-center shadow-xs">
-                <span className="text-[11px] text-emerald-800 block font-bold">MARGE NETTE / FLACON</span>
-                <span className="text-xl font-black text-emerald-700 mt-1 block">
-                  ~{formatMAD((avgOrderValue || 420) - 195)}
+                <span className="text-[11px] text-emerald-800 block font-bold">BÉNÉFICE NET / FLACON</span>
+                <span className="text-xl font-black text-emerald-700 mt-1 block font-mono">
+                  +{299 - testerWholesalePrice - 25 - 35} MAD
                 </span>
-                <span className="text-[10px] text-emerald-700 font-bold">~53% Marge Brute</span>
+                <span className="text-[10px] text-emerald-700 font-bold">
+                  Marge Brute : +{299 - testerWholesalePrice} MAD ({(((299 - testerWholesalePrice) / 299) * 100).toFixed(1)}%)
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Top Selling & Highest Margin Fragrances */}
+          {/* Table: Rentabilité du Catalogue Parfums */}
           <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-2xs">
-            <div className="p-4 border-b border-neutral-200 bg-neutral-50/50 flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-700">
-                Rentabilité du Catalogue Parfums ({products.length} références)
-              </h3>
-              <span className="text-xs text-neutral-500">Classés par rentabilité unitaire</span>
+            {/* Table Header & Controls */}
+            <div className="p-4 border-b border-neutral-200 bg-neutral-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-2">
+                  <Package size={15} className="text-sky-600" />
+                  <span>Rentabilité du Catalogue Parfums ({products.length} références)</span>
+                </h3>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  Visualisez les marges réelles par référence (Prix Grossiste appliqué aux testeurs)
+                </p>
+              </div>
+
+              {/* Filters & Search */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={unitEcoSearch}
+                    onChange={(e) => setUnitEcoSearch(e.target.value)}
+                    placeholder="Rechercher parfum ou marque..."
+                    className="pl-8 pr-3 py-1.5 text-xs bg-white border border-neutral-200 rounded-lg w-52 focus:outline-hidden focus:ring-1 focus:ring-sky-500"
+                  />
+                  {unitEcoSearch && (
+                    <button
+                      onClick={() => setUnitEcoSearch('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Filter Tabs */}
+                <div className="flex items-center bg-white border border-neutral-200 rounded-lg p-0.5 shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => setUnitEcoCategoryFilter('ALL')}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      unitEcoCategoryFilter === 'ALL'
+                        ? 'bg-neutral-900 text-white'
+                        : 'text-neutral-600 hover:text-neutral-900'
+                    }`}
+                  >
+                    Tous ({products.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUnitEcoCategoryFilter('TESTERS')}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer flex items-center gap-1 ${
+                      unitEcoCategoryFilter === 'TESTERS'
+                        ? 'bg-sky-600 text-white'
+                        : 'text-neutral-600 hover:text-neutral-900'
+                    }`}
+                  >
+                    <span>Testeurs (172)</span>
+                    <span className="text-[10px] opacity-80">(150-170 DH)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUnitEcoCategoryFilter('ORIGINALS')}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer flex items-center gap-1 ${
+                      unitEcoCategoryFilter === 'ORIGINALS'
+                        ? 'bg-amber-600 text-white'
+                        : 'text-neutral-600 hover:text-neutral-900'
+                    }`}
+                  >
+                    <span>Originaux (27)</span>
+                    <span className="text-[10px] opacity-80">(En attente)</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div className="overflow-x-auto max-h-96">
+            {/* Information Banner */}
+            <div className="bg-sky-50/60 border-b border-sky-100 px-4 py-2 flex items-center gap-2 text-xs text-sky-900">
+              <Sparkles size={14} className="text-sky-600 shrink-0" />
+              <span>
+                <strong>Tarification Grossiste :</strong> Les parfums testeurs bénéficient d'un coût d'achat grossiste de <strong>150 DH à 170 DH</strong> ({testerWholesalePrice} MAD appliqué). Les parfums originaux sont en cours de tarification par les distributeurs officiels.
+              </span>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto max-h-[500px]">
               <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-neutral-50 border-b border-neutral-200 text-[11px] font-semibold text-neutral-600 uppercase">
-                    <th className="py-2.5 px-4">Parfum & Marque</th>
-                    <th className="py-2.5 px-4">Prix Vente Boutique</th>
-                    <th className="py-2.5 px-4">Prix Testeur</th>
-                    <th className="py-2.5 px-4">Coût d'Achat Estimé</th>
-                    <th className="py-2.5 px-4">Marge Brute (MAD)</th>
-                    <th className="py-2.5 px-4">Rentabilité</th>
+                <thead className="sticky top-0 bg-neutral-50 z-10 shadow-2xs">
+                  <tr className="border-b border-neutral-200 text-[11px] font-semibold text-neutral-600 uppercase">
+                    <th className="py-3 px-4">Parfum & Marque</th>
+                    <th className="py-3 px-4">Type / Format</th>
+                    <th className="py-3 px-4">Prix Vente Boutique</th>
+                    <th className="py-3 px-4">Coût Grossiste (Achat)</th>
+                    <th className="py-3 px-4">Marge Brute (MAD)</th>
+                    <th className="py-3 px-4">Marge Nette Estimée</th>
+                    <th className="py-3 px-4">Rentabilité</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100 text-neutral-700">
-                  {products.slice(0, 15).map((p) => {
-                    const price = p.price || 400;
-                    const estimatedCost = price * 0.35;
-                    const unitMargin = price - estimatedCost;
-                    const marginPercent = ((unitMargin / price) * 100).toFixed(0);
+                  {(() => {
+                    const filtered = products.filter((p) => {
+                      const isTesterItem = p.isTester === true || (p.subcategory !== 'arabic' && p.subcategory !== 'oriental');
+                      if (unitEcoCategoryFilter === 'TESTERS' && !isTesterItem) return false;
+                      if (unitEcoCategoryFilter === 'ORIGINALS' && isTesterItem) return false;
 
-                    return (
-                      <tr key={p.id} className="hover:bg-neutral-50">
-                        <td className="py-2.5 px-4">
-                          <div className="flex flex-col">
-                            <span className="font-bold text-neutral-900">{p.name}</span>
-                            <span className="text-[10px] text-neutral-500 uppercase">{p.brandLabel}</span>
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-4 font-bold text-neutral-900">{formatMAD(price)}</td>
-                        <td className="py-2.5 px-4 font-mono text-neutral-600">{p.testerPrice ? formatMAD(p.testerPrice) : '-'}</td>
-                        <td className="py-2.5 px-4 text-rose-700 font-mono">~{formatMAD(estimatedCost)}</td>
-                        <td className="py-2.5 px-4 font-bold text-emerald-700">+{formatMAD(unitMargin)}</td>
-                        <td className="py-2.5 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {marginPercent}% Marge
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                      if (unitEcoSearch.trim()) {
+                        const q = unitEcoSearch.toLowerCase();
+                        const matchName = p.name.toLowerCase().includes(q);
+                        const matchBrand = (p.brandLabel || '').toLowerCase().includes(q);
+                        const matchSub = (p.subcategoryLabel || p.subcategory || '').toLowerCase().includes(q);
+                        if (!matchName && !matchBrand && !matchSub) return false;
+                      }
+
+                      return true;
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={7} className="text-center py-8 text-neutral-400">
+                            Aucun parfum ne correspond à vos critères de recherche.
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return filtered.slice(0, unitEcoPageSize).map((p) => {
+                      const isTesterItem = p.isTester === true || (p.subcategory !== 'arabic' && p.subcategory !== 'oriental');
+                      const price = p.price || (isTesterItem ? 299 : 500);
+
+                      if (isTesterItem) {
+                        const wholesaleCost = testerWholesalePrice;
+                        const grossMargin = price - wholesaleCost;
+                        const netMargin = grossMargin - 25 - 35; // after 25 MAD box & 35 MAD delivery
+                        const marginPercent = ((grossMargin / price) * 100).toFixed(0);
+
+                        return (
+                          <tr key={p.id} className="hover:bg-neutral-50/80 transition-colors">
+                            <td className="py-3 px-4">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-neutral-900">{p.name}</span>
+                                <span className="text-[10px] text-neutral-500 uppercase">{p.brandLabel}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                                Testeur 100ml
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 font-bold text-neutral-900 font-mono">
+                              {formatMAD(price)}
+                            </td>
+                            <td className="py-3 px-4 text-rose-700 font-mono font-semibold">
+                              ~{formatMAD(wholesaleCost)}
+                              <span className="text-[9px] text-neutral-400 block font-normal">(150-170 DH)</span>
+                            </td>
+                            <td className="py-3 px-4 font-bold text-emerald-700 font-mono">
+                              +{formatMAD(grossMargin)}
+                            </td>
+                            <td className="py-3 px-4 font-semibold text-neutral-800 font-mono">
+                              +{formatMAD(netMargin)}
+                              <span className="text-[9px] text-neutral-400 block font-normal">après boîte & livraison</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                {marginPercent}% Marge
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      // Original fragrance (wholesale price unknown)
+                      return (
+                        <tr key={p.id} className="hover:bg-amber-50/30 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-neutral-900">{p.name}</span>
+                              <span className="text-[10px] text-neutral-500 uppercase">{p.brandLabel}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                              Parfum Original
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-bold text-neutral-900 font-mono">
+                            {formatMAD(price)}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 w-fit">
+                              <AlertCircle size={10} />
+                              <span>En attente grossiste</span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-neutral-400 font-mono italic">
+                            —
+                          </td>
+                          <td className="py-3 px-4 text-neutral-400 font-mono italic">
+                            —
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 text-neutral-500 border border-neutral-200">
+                              Non chiffré
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
+            </div>
+
+            {/* Pagination / Show more */}
+            <div className="p-3 border-t border-neutral-200 bg-neutral-50 flex items-center justify-between text-xs text-neutral-500">
+              <span>
+                Affichage de {Math.min(unitEcoPageSize, products.length)} sur {products.length} références du catalogue
+              </span>
+              {unitEcoPageSize < products.length && (
+                <button
+                  type="button"
+                  onClick={() => setUnitEcoPageSize((prev) => Math.min(prev + 50, products.length))}
+                  className="px-3 py-1 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-lg font-semibold text-neutral-800 transition-colors cursor-pointer"
+                >
+                  Afficher +50 parfums
+                </button>
+              )}
             </div>
           </div>
         </div>

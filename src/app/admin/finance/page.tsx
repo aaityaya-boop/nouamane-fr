@@ -121,7 +121,7 @@ export default async function FinancePage() {
     }
   });
 
-  // Fetch products with tester prices
+  // Fetch products with tester prices and category info
   const products = await prisma.product.findMany({
     select: {
       id: true,
@@ -131,6 +131,11 @@ export default async function FinancePage() {
       price: true,
       originalPrice: true,
       testerPrice: true,
+      isTester: true,
+      subcategory: true,
+      subcategoryLabel: true,
+      inStock: true,
+      stock: true,
       images: true,
       sku: true,
     },
