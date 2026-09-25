@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/admin/encaissements',
+        destination: '/admin/sav',
+        permanent: false,
+      },
+      {
         source: '/:locale/parfums-orientaux',
         destination: '/:locale/parfums-originaux',
         permanent: true,
