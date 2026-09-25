@@ -9,29 +9,46 @@ datasource db {
 }
 
 model Order {
-  id                 String     @id @default(cuid())
-  orderNumber        String     @unique
-  customerName       String
-  customerEmail      String
-  customerPhone      String
-  shippingAddress    String
-  shippingCity       String
-  shippingPostalCode String
-  paymentMethod      String
-  items              String
-  subtotal           Float
-  shippingCost       Float
-  total              Float
-  promoCode          String?
-  discount           Float?
-  status             String     @default("pending")
-  affiliateCode      String?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-  customerId         String?
-  affiliate          Affiliate?           @relation(fields: [affiliateCode], references: [code])
-  customer           Customer?            @relation(fields: [customerId], references: [id])
-  timeline           OrderTimelineEvent[]
+  id                  String                    @id @default(cuid())
+  orderNumber         String                    @unique
+  customerName        String
+  customerEmail       String
+  customerPhone       String
+  shippingAddress     String
+  shippingCity        String
+  shippingPostalCode  String
+  paymentMethod       String
+  items               String
+  subtotal            Float
+  shippingCost        Float
+  total               Float
+  promoCode           String?
+  discount            Float?
+  status              String                    @default("pending")
+  affiliateCode       String?
+  carrierId           String?
+  carrierName         String?
+  trackingNumber      String?
+  dispatchedAt        DateTime?
+  deliveredAt         DateTime?
+  carrierFee          Float?
+  codCollectedAmount  Float?
+  expectedPayoutDate  DateTime?
+  encaissementStatus  String                    @default("PENDING") // PENDING, AWAITING_PAYOUT, PARTIALLY_PAID, SETTLED, DISCREPANCY, CANCELLED
+  reconciliationNotes String?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  customerId          String?
+  affiliate           Affiliate?                @relation(fields: [affiliateCode], references: [code])
+  customer            Customer?                 @relation(fields: [customerId], references: [id])
+  carrier             Carrier?                  @relation(fields: [carrierId], references: [id])
+  timeline            OrderTimelineEvent[]
+  payoutAllocations   CarrierPayoutAllocation[]
+  adjustments         CarrierAdjustment[]
+
+  @@index([carrierId])
+  @@index([trackingNumber])
+  @@index([encaissementStatus])
 }
 
 model Customer {
@@ -1287,4 +1304,121 @@ model AdDailySpend {
   @@index([date])
   @@index([campaignId])
 }
+
+model Carrier {
+  id               String                   @id @default(cuid())
+  name             String                   @unique
+  code             String                   @unique
+  contactPhone     String?
+  contactEmail     String?
+  defaultFee       Float?                   @default(35)
+  payoutTermsDays  Int?                     @default(7)
+  active           Boolean                  @default(true)
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  orders           Order[]
+  payouts          CarrierPayout[]
+  adjustments      CarrierAdjustment[]
+  statementImports CarrierStatementImport[]
+}
+
+model CarrierPayout {
+  id              String                    @id @default(cuid())
+  carrierId       String
+  carrier         Carrier                   @relation(fields: [carrierId], references: [id])
+  reference       String                    @unique
+  receivedAt      DateTime                  @default(now())
+  amount          Float
+  paymentMethod   String                    @default("BANK_TRANSFER") // BANK_TRANSFER, CASH, CHECK, OTHER
+  status          String                    @default("CONFIRMED")     // DRAFT, CONFIRMED, CANCELLED
+  receiptUrl      String?
+  notes           String?
+  createdById     String?
+  createdByName   String?
+  confirmedById   String?
+  confirmedByName String?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  allocations     CarrierPayoutAllocation[]
+  adjustments     CarrierAdjustment[]
+
+  @@index([carrierId])
+  @@index([status])
+  @@index([receivedAt])
+}
+
+model CarrierPayoutAllocation {
+  id                 String        @id @default(cuid())
+  payoutId           String
+  payout             CarrierPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  orderId            String
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  allocatedAmount    Float
+  carrierFeeDeducted Float         @default(0)
+  notes              String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@unique([payoutId, orderId])
+  @@index([orderId])
+  @@index([payoutId])
+}
+
+model CarrierAdjustment {
+  id            String         @id @default(cuid())
+  carrierId     String
+  carrier       Carrier        @relation(fields: [carrierId], references: [id])
+  orderId       String?
+  order         Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  payoutId      String?
+  payout        CarrierPayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  type          String         // FEE_CORRECTION, RETURN_PENALTY, SHORT_PAYMENT, OVERPAYMENT, DISPUTE, OTHER
+  amount        Float          // positive or negative
+  reason        String
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime       @default(now())
+
+  @@index([carrierId])
+  @@index([orderId])
+  @@index([payoutId])
+}
+
+model CarrierStatementImport {
+  id              String   @id @default(cuid())
+  carrierId       String
+  carrier         Carrier  @relation(fields: [carrierId], references: [id])
+  fileName        String
+  fileUrl         String?
+  totalRows       Int
+  matchedRows     Int
+  discrepancyRows Int
+  unmatchedRows   Int
+  totalAmount     Float
+  status          String   @default("COMPLETED") // PENDING, COMPLETED, FAILED
+  summary         String?  // JSON string
+  importedById    String?
+  importedByName  String?
+  createdAt       DateTime @default(now())
+
+  @@index([carrierId])
+  @@index([createdAt])
+}
+
+model EncaissementAuditLog {
+  id         String   @id @default(cuid())
+  action     String   // CREATE_PAYOUT, CONFIRM_PAYOUT, CANCEL_PAYOUT, ALLOCATE, ADJUST, IMPORT_CSV, UPDATE_ORDER_COD
+  entityType String   // PAYOUT, ALLOCATION, ORDER, ADJUSTMENT, IMPORT
+  entityId   String
+  userId     String?
+  userName   String
+  details    String
+  oldValue   String?
+  newValue   String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
 

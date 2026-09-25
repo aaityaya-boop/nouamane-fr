@@ -299,6 +299,27 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     module: 'finance',
     isSensitive: true,
   },
+  {
+    key: 'finance.view_encaissements',
+    label: 'Voir le Suivi des Encaissements COD',
+    description: 'Consulter les créances transporteurs, rapprochements et soldes dus',
+    module: 'finance',
+    isSensitive: true,
+  },
+  {
+    key: 'finance.manage_encaissements',
+    label: 'Gérer les Versements & Rapprochements',
+    description: 'Enregistrer des bordereaux de reversement, affecter aux commandes et importer des relevés CSV',
+    module: 'finance',
+    isSensitive: true,
+  },
+  {
+    key: 'finance.confirm_versement',
+    label: 'Confirmer les Versements Bancaires',
+    description: 'Valider définitivement les montants reçus en banque des transporteurs',
+    module: 'finance',
+    isSensitive: true,
+  },
 
   // --- MARKETING ---
   {
