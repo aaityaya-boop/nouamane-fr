@@ -120,6 +120,7 @@ model SiteConfig {
   facebookUrl         String?
   tiktokUrl           String?
   whatsappUrl         String?
+  monthlyRevenueGoal  Float    @default(150000)
   updatedAt           DateTime @updatedAt
   featuredBestsellers String   @default("[]")
   featuredSeasonal    String   @default("[]")

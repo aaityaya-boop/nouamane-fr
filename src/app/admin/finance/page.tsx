@@ -139,6 +139,12 @@ export default async function FinancePage() {
   // Fetch customers count for CAC & LTV
   const customersCount = await prisma.customer.count();
 
+  // Fetch monthly revenue goal from site config
+  const siteConfig = await prisma.siteConfig.findFirst({
+    select: { monthlyRevenueGoal: true },
+  });
+  const initialRevenueGoal = siteConfig?.monthlyRevenueGoal ?? 150000;
+
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-[1600px] mx-auto text-neutral-900 space-y-6">
       <FinanceClient
@@ -150,6 +156,7 @@ export default async function FinancePage() {
         employees={employees}
         affiliates={affiliates}
         customersCount={customersCount}
+        initialGoal={initialRevenueGoal}
       />
     </div>
   );

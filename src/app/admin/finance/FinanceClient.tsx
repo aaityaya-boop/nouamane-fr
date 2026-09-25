@@ -81,6 +81,7 @@ type FinanceClientProps = {
   employees: EmployeeData[];
   affiliates?: AffiliateData[];
   customersCount?: number;
+  initialGoal?: number;
 };
 
 const EXPENSE_CATEGORIES = [
@@ -92,6 +93,15 @@ const EXPENSE_CATEGORIES = [
   { id: 'TOOLS', label: 'Logiciels, IA & Abonnements SaaS', color: '#ec4899' },
   { id: 'OFFICE', label: 'Bureaux, Atelier & Fournitures', color: '#64748b' },
   { id: 'OTHER', label: 'Autres Charges Diverses', color: '#a855f7' },
+];
+
+const GOAL_PRESETS = [
+  { value: 50000, label: '50.000 MAD', tag: 'Démarrage', desc: 'Phase de lancement & validation' },
+  { value: 100000, label: '100.000 MAD', tag: 'Croissance', desc: 'Consolidation & expansion continue' },
+  { value: 150000, label: '150.000 MAD', tag: 'Standard NAY', desc: 'Objectif régulier Maison NAY' },
+  { value: 250000, label: '250.000 MAD', tag: 'Performance', desc: 'Campagnes intensives & scaling' },
+  { value: 500000, label: '500.000 MAD', tag: 'Expansion', desc: 'Leader Beauté & Parfums Maroc' },
+  { value: 1000000, label: '1.000.000 MAD', tag: 'Club 7 Chiffres', desc: 'Vision 1 Million MAD / mois' },
 ];
 
 const PAYMENT_METHODS = [
@@ -111,6 +121,7 @@ export default function FinanceClient({
   employees,
   affiliates = [],
   customersCount = 0,
+  initialGoal = 150000,
 }: FinanceClientProps) {
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'UNIT_ECONOMICS' | 'ACQUISITION_ROAS' | 'SIMULATOR' | 'PNL_STATEMENT' | 'EXPENSES'>('OVERVIEW');
   const [dateRange, setDateRange] = useState<number>(30); // days, 0 = all time
@@ -156,12 +167,58 @@ export default function FinanceClient({
   const [simCogsRate, setSimCogsRate] = useState<number>(32); // % COGS of product price
   const [simFixedCharges, setSimFixedCharges] = useState<number>(6000); // Fixed rent, tools, base salaires in MAD
 
-  // Monthly Financial Target (Goal)
-  const monthlyRevenueGoal = 150000; // 150,000 MAD
+  // Monthly Financial Target (Customizable Goal)
+  const [monthlyRevenueGoal, setMonthlyRevenueGoal] = useState<number>(initialGoal);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState<boolean>(false);
+  const [customGoalInput, setCustomGoalInput] = useState<string>(String(initialGoal));
+  const [isSavingGoal, setIsSavingGoal] = useState<boolean>(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Save / Update Financial Revenue Target
+  const handleSaveGoal = async (targetValue?: number) => {
+    const valueToSave = targetValue !== undefined ? targetValue : Number(customGoalInput);
+    if (isNaN(valueToSave) || valueToSave <= 0) {
+      alert('Veuillez entrer un montant d\'objectif valide supérieur à 0 MAD.');
+      return;
+    }
+
+    try {
+      setIsSavingGoal(true);
+      const res = await fetch('/api/admin/finance/goal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ monthlyRevenueGoal: valueToSave }),
+      });
+
+      if (res.ok) {
+        setMonthlyRevenueGoal(valueToSave);
+        setCustomGoalInput(String(valueToSave));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('nay_monthlyRevenueGoal', String(valueToSave));
+        }
+        showToast(`🎯 Objectif mensuel fixé à ${formatMAD(valueToSave)} avec succès !`);
+        setIsGoalModalOpen(false);
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Erreur lors de l\'enregistrement de l\'objectif.');
+      }
+    } catch (err) {
+      console.error('Error updating goal:', err);
+      // Local fallback
+      setMonthlyRevenueGoal(valueToSave);
+      setCustomGoalInput(String(valueToSave));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('nay_monthlyRevenueGoal', String(valueToSave));
+      }
+      showToast(`🎯 Objectif mensuel mis à jour : ${formatMAD(valueToSave)}`);
+      setIsGoalModalOpen(false);
+    } finally {
+      setIsSavingGoal(false);
+    }
   };
 
   // Upload Invoice / Receipt
@@ -587,33 +644,66 @@ export default function FinanceClient({
           </div>
 
           {/* Monthly Revenue Goal & Break-Even Banner */}
-          <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-neutral-50 border border-emerald-200 rounded-2xl p-5 shadow-2xs">
+          <div className="bg-gradient-to-r from-emerald-50/90 via-teal-50/70 to-sky-50/50 border border-emerald-200/90 rounded-2xl p-5 shadow-2xs transition-all hover:border-emerald-300">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Target size={16} className="text-emerald-700" />
-                  <span className="text-xs font-bold text-emerald-950 uppercase tracking-wider">
-                    Objectif Mensuel NAY : {formatMAD(monthlyRevenueGoal)}
+                <div className="flex items-center flex-wrap gap-2.5 mb-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomGoalInput(String(monthlyRevenueGoal));
+                      setIsGoalModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 hover:bg-emerald-200/80 border border-emerald-300 text-emerald-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-2xs group"
+                    title="Cliquer pour personnaliser l'objectif"
+                  >
+                    <Target size={15} className="text-emerald-700 group-hover:rotate-12 transition-transform" />
+                    <span>Objectif Mensuel NAY : {formatMAD(monthlyRevenueGoal)}</span>
+                    <Sliders size={12} className="text-emerald-600 opacity-60 group-hover:opacity-100 transition-opacity ml-0.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomGoalInput(String(monthlyRevenueGoal));
+                      setIsGoalModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-emerald-800 hover:text-emerald-950 bg-white hover:bg-emerald-50 border border-emerald-300/80 hover:border-emerald-400 rounded-lg shadow-2xs hover:shadow transition-all cursor-pointer"
+                  >
+                    <Sliders size={13} className="text-emerald-600" />
+                    <span>Changer d'objectif</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-emerald-900 mt-2">
+                  <span>
+                    Progression actuelle : <strong className="text-emerald-950 font-bold">{((grossRevenue / (monthlyRevenueGoal || 1)) * 100).toFixed(1)}%</strong> ({formatMAD(grossRevenue)} atteints)
+                  </span>
+                  <span className="text-emerald-300 hidden sm:inline">•</span>
+                  <span>
+                    Reste : <strong className="text-emerald-800">{formatMAD(Math.max(0, monthlyRevenueGoal - grossRevenue))}</strong>
+                  </span>
+                  <span className="text-emerald-300 hidden sm:inline">•</span>
+                  <span className="text-emerald-700 font-medium">
+                    Rythme cible : <strong>~{formatMAD(Math.round(monthlyRevenueGoal / 30))} / jour</strong>
                   </span>
                 </div>
-                <p className="text-xs text-emerald-800">
-                  Progression actuelle : <strong>{((grossRevenue / monthlyRevenueGoal) * 100).toFixed(1)}%</strong> ({formatMAD(grossRevenue)} atteints).
-                </p>
               </div>
 
-              <div className="sm:text-right">
-                <span className="text-[11px] text-neutral-600 block">Seuil de Rentabilité (Break-Even)</span>
+              <div className="sm:text-right bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-emerald-100/90 shadow-2xs sm:self-center">
+                <span className="text-[11px] text-neutral-500 font-medium block">Seuil de Rentabilité (Break-Even)</span>
                 <span className="text-sm font-bold text-neutral-900">
-                  ~{(totalCharges / (avgOrderValue || 400)).toFixed(0)} commandes nécessaires pour couvrir les frais
+                  ~{(totalCharges / (avgOrderValue || 400)).toFixed(0)} commandes nécessaires
                 </span>
+                <span className="text-[10px] text-neutral-400 block">pour couvrir l'ensemble des charges</span>
               </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full h-2.5 bg-emerald-200/60 rounded-full mt-3 overflow-hidden">
+            <div className="w-full h-3 bg-emerald-200/60 rounded-full mt-3.5 overflow-hidden p-0.5 relative">
               <div
-                className="h-full bg-emerald-600 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, (grossRevenue / monthlyRevenueGoal) * 100)}%` }}
+                className="h-full bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 rounded-full transition-all duration-700 ease-out shadow-xs"
+                style={{ width: `${Math.min(100, Math.max(1.5, (grossRevenue / (monthlyRevenueGoal || 1)) * 100))}%` }}
               />
             </div>
           </div>
@@ -1006,6 +1096,16 @@ export default function FinanceClient({
                       <span>- Charges Fixes & Logiciels :</span>
                       <span className="font-mono">-{formatMAD(simFixedCharges)}</span>
                     </div>
+
+                    <div className="flex justify-between text-emerald-300 pt-2 border-t border-neutral-800">
+                      <span className="flex items-center gap-1.5">
+                        <Target size={12} className="text-emerald-400" />
+                        <span>Objectif Mensuel Fixé :</span>
+                      </span>
+                      <span className="font-mono text-white font-bold">
+                        {formatMAD(monthlyRevenueGoal)} ({((simGrossRevenue / (monthlyRevenueGoal || 1)) * 100).toFixed(0)}% atteint)
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1394,6 +1494,184 @@ export default function FinanceClient({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CUSTOMIZE MONTHLY REVENUE GOAL */}
+      {isGoalModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-neutral-200 animate-in fade-in zoom-in duration-200">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-neutral-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-300/60 flex items-center justify-center text-emerald-800 shadow-2xs">
+                  <Target size={22} className="text-emerald-700" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-neutral-900">
+                    Définir l'Objectif Mensuel NAY
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Choisissez ou personnalisez le chiffre d'affaires cible pour le suivi financier
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGoalModalOpen(false)}
+                className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="py-5 space-y-5">
+              {/* Presets Grid */}
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-2.5">
+                  1. Choix Rapide par Palier Stratégique
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {GOAL_PRESETS.map((preset) => {
+                    const isSelected = Number(customGoalInput) === preset.value;
+                    return (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        onClick={() => setCustomGoalInput(String(preset.value))}
+                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden group ${
+                          isSelected
+                            ? 'bg-emerald-50/90 border-emerald-500 shadow-xs ring-2 ring-emerald-400/20'
+                            : 'bg-white border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/60'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
+                            isSelected ? 'bg-emerald-200/80 text-emerald-900' : 'bg-neutral-100 text-neutral-600'
+                          }`}>
+                            {preset.tag}
+                          </span>
+                          {isSelected && <CheckCircle2 size={14} className="text-emerald-600" />}
+                        </div>
+                        <div className="text-sm font-bold text-neutral-900 font-mono">
+                          {preset.label}
+                        </div>
+                        <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
+                          {preset.desc}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Input */}
+              <div className="bg-neutral-50/80 p-4 rounded-2xl border border-neutral-200">
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">
+                  2. Ou Saisir un Montant Personnalisé
+                </label>
+                <div className="relative mt-1">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+                    <Banknote size={18} className="text-emerald-700" />
+                  </div>
+                  <input
+                    type="number"
+                    min="1000"
+                    step="5000"
+                    value={customGoalInput}
+                    onChange={(e) => setCustomGoalInput(e.target.value)}
+                    placeholder="Ex: 180000"
+                    className="w-full pl-10 pr-16 py-2.5 bg-white border border-neutral-200 rounded-xl text-sm font-bold text-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-xs font-bold text-neutral-400">
+                    MAD
+                  </div>
+                </div>
+
+                {/* Quick adjustments */}
+                <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
+                  <span className="text-[10px] text-neutral-400 font-medium">Ajustements :</span>
+                  {[-50000, -10000, 10000, 50000].map((delta) => (
+                    <button
+                      key={delta}
+                      type="button"
+                      onClick={() => {
+                        const cur = Number(customGoalInput) || 0;
+                        setCustomGoalInput(String(Math.max(5000, cur + delta)));
+                      }}
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white hover:bg-neutral-100 border border-neutral-200 text-neutral-700 transition-colors cursor-pointer"
+                    >
+                      {delta > 0 ? `+${delta / 1000}k` : `${delta / 1000}k`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic Live Simulation Preview Cards */}
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-2">
+                  Aperçu de la Progression avec cet Objectif
+                </label>
+                {(() => {
+                  const targetMAD = Number(customGoalInput) || 1;
+                  const percentAchieved = ((grossRevenue / targetMAD) * 100).toFixed(1);
+                  const remainingMAD = Math.max(0, targetMAD - grossRevenue);
+                  const dailyRunRate = Math.round(targetMAD / 30);
+                  const estimatedOrders = Math.ceil(targetMAD / (avgOrderValue || 450));
+
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-emerald-50/50 p-3.5 rounded-2xl border border-emerald-200/80">
+                      <div className="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                        <span className="text-[10px] text-neutral-400 font-medium block">Taux Atteint</span>
+                        <span className="text-sm font-black text-emerald-700 font-mono">{percentAchieved}%</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                        <span className="text-[10px] text-neutral-400 font-medium block">Reste à faire</span>
+                        <span className="text-xs font-bold text-neutral-800 font-mono mt-0.5 block">{formatMAD(remainingMAD)}</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                        <span className="text-[10px] text-neutral-400 font-medium block">Cible / jour</span>
+                        <span className="text-xs font-bold text-neutral-800 font-mono mt-0.5 block">~{formatMAD(dailyRunRate)}</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs">
+                        <span className="text-[10px] text-neutral-400 font-medium block">Commandes requises</span>
+                        <span className="text-xs font-bold text-neutral-800 font-mono mt-0.5 block">~{estimatedOrders} cmds</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
+              <button
+                type="button"
+                onClick={() => setIsGoalModalOpen(false)}
+                className="flex-1 py-2.5 px-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={isSavingGoal}
+                onClick={() => handleSaveGoal()}
+                className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-xs hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isSavingGoal ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Enregistrement...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={14} />
+                    <span>Enregistrer l'Objectif</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

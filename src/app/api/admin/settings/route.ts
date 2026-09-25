@@ -39,6 +39,7 @@ export async function PUT(request: Request) {
         facebookUrl: body.facebookUrl !== undefined ? body.facebookUrl : undefined,
         tiktokUrl: body.tiktokUrl !== undefined ? body.tiktokUrl : undefined,
         whatsappUrl: body.whatsappUrl !== undefined ? body.whatsappUrl : undefined,
+        monthlyRevenueGoal: body.monthlyRevenueGoal !== undefined ? Number(body.monthlyRevenueGoal) : undefined,
         featuredBestsellers: body.featuredBestsellers !== undefined ? body.featuredBestsellers : undefined,
         featuredSeasonal: body.featuredSeasonal !== undefined ? body.featuredSeasonal : undefined,
         featuredLatest: body.featuredLatest !== undefined ? body.featuredLatest : undefined,
