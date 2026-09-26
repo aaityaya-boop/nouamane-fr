@@ -1462,7 +1462,7 @@ export default function SavClient({ currentAdmin }: SavClientProps) {
                     <div>
                       <h3 className="font-bold text-slate-900 text-sm">Gestion des Retours Physiques</h3>
                       <p className="text-[11px] text-slate-500">
-                        Réception à l'atelier, mise en quarantaine et contrôle qualité avant remise en stock.
+                        Réception du colis, mise en quarantaine et contrôle qualité avant remise en stock.
                       </p>
                     </div>
                     <button
@@ -1557,7 +1557,7 @@ export default function SavClient({ currentAdmin }: SavClientProps) {
                                 disabled={isProcessingReturn}
                                 className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition-all"
                               >
-                                Marquer comme reçu à l'atelier
+                                Marquer comme colis retour reçu
                               </button>
                             )}
 

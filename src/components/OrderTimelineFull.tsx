@@ -344,11 +344,11 @@ export default function OrderTimelineFull({
                     Refus client
                   </button>
                   <button
-                    onClick={() => handleQuickAdvance('returned', 'Colis retourné à l\'atelier')}
+                    onClick={() => handleQuickAdvance('returned', 'Colis retourné')}
                     disabled={isSubmitting}
                     className="px-3 py-1.5 bg-white hover:bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-[12px] font-medium transition-colors disabled:opacity-50 cursor-pointer"
                   >
-                    Retour atelier
+                    Retour colis
                   </button>
                 </>
               )}

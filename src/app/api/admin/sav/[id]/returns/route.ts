@@ -61,7 +61,7 @@ export async function POST(request: Request, context: RouteContext) {
             actorRole: admin.role,
             type: 'RETURN_STATUS_CHANGE',
             title: `Retour demandé : ${retItem.productName} (x${retItem.quantity})`,
-            description: 'Article ajouté à la liste des retours attendus à l\'atelier.',
+            description: 'Article ajouté à la liste des retours de colis attendus.',
           },
         });
 
@@ -98,7 +98,7 @@ export async function POST(request: Request, context: RouteContext) {
             actorRole: admin.role,
             type: 'RETURN_STATUS_CHANGE',
             title: `Colis retour réceptionné : ${item.productName} (x${item.quantity})`,
-            description: 'Le produit a été réceptionné à l\'atelier et placé en quarantaine pour contrôle qualité.',
+            description: 'Le produit a été réceptionné et placé en quarantaine pour contrôle qualité.',
           },
         });
 

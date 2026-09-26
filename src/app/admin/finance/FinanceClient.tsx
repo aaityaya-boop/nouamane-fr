@@ -106,7 +106,7 @@ const EXPENSE_CATEGORIES = [
   { id: 'PACKAGING', label: 'Flacons, Packaging & Coffrets', color: '#10b981' },
   { id: 'LOGISTICS', label: 'Logistique & Transporteurs (Amana...)', color: '#8b5cf6' },
   { id: 'TOOLS', label: 'Logiciels, IA & Abonnements SaaS', color: '#ec4899' },
-  { id: 'OFFICE', label: 'Bureaux, Atelier & Fournitures', color: '#64748b' },
+  { id: 'OFFICE', label: 'Fournitures, Matériel & Bureautique', color: '#64748b' },
   { id: 'OTHER', label: 'Autres Charges Diverses', color: '#a855f7' },
 ];
 

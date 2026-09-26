@@ -150,13 +150,13 @@ export default function AdminInventoryPage() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-sky-200 text-xs font-semibold">
               <Archive size={13} className="text-sky-300" />
-              <span>Atelier NAY • Inventaire & Gestion des Stocks</span>
+              <span>NAY Parfum • Inventaire & Gestion des Stocks</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Stock Flacons & Parfums en Direct
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-light">
-              Gérez les stocks en temps réel pour éviter les ruptures, mettez à jour les quantités en 1 clic et suivez les approvisionnements de l&apos;atelier.
+              Gérez les stocks en temps réel pour éviter les ruptures, mettez à jour les quantités en 1 clic et suivez les approvisionnements de la boutique en ligne.
             </p>
           </div>
 

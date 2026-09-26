@@ -202,7 +202,7 @@ export default function AdminLogin() {
 
             {/* Bottom info */}
             <div className="pt-6 mt-6 border-t border-slate-200/70 flex items-center justify-between text-[11px] text-slate-600">
-              <span>Casablanca, Maroc</span>
+              <span>Boutique en Ligne • Maroc</span>
               <span className="font-mono text-slate-600">v2.4.0</span>
             </div>
           </div>

@@ -110,8 +110,8 @@ export async function recordStatusTransition({
       statusKey = 'REFUSED';
       break;
     case 'returned':
-      title = 'Retour à l\'atelier';
-      description = description || 'Colis retourné à l\'atelier NAY Parfum.';
+      title = 'Retour de colis';
+      description = description || 'Colis retourné et réintégré.';
       statusKey = 'RETURNED';
       break;
     case 'unconfirmed':

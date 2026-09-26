@@ -162,7 +162,7 @@ export default async function AdminDashboard() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-400">
-              NAY Parfums • Atelier Casablanca
+              NAY Parfums • Boutique en Ligne
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -776,7 +776,7 @@ function ProfessionalStatusBadge({ status }: { status: string }) {
     shipped: { label: 'En livraison', bg: 'bg-indigo-50 text-indigo-800 border border-indigo-200/60', text: '', dot: 'bg-indigo-500' },
     delivered: { label: 'Livrée & Encaissée', bg: 'bg-emerald-50 text-emerald-800 border border-emerald-200/60', text: '', dot: 'bg-emerald-500' },
     refused: { label: 'Refusée', bg: 'bg-rose-50 text-rose-800 border border-rose-200/60', text: '', dot: 'bg-rose-500' },
-    returned: { label: 'Retour Atelier', bg: 'bg-rose-50 text-rose-800 border border-rose-200/60', text: '', dot: 'bg-rose-500' },
+    returned: { label: 'Retour Colis', bg: 'bg-rose-50 text-rose-800 border border-rose-200/60', text: '', dot: 'bg-rose-500' },
   };
 
   const config = configs[status] || {

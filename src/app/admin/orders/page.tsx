@@ -379,7 +379,7 @@ function OrdersPageContent() {
         };
       case 'PREPARATION':
         return {
-          badge: 'Atelier & Emballage',
+          badge: 'Préparation & Emballage',
           title: 'Préparation & Packaging des Commandes',
           subtitle: 'Conditionnement soigné des flacons de parfum, emballage et préparation des colis.',
         };
@@ -425,7 +425,7 @@ function OrdersPageContent() {
           { value: 'shipped', label: 'En livraison' },
           { value: 'delivered', label: 'Livrée & Encaissée' },
           { value: 'refused', label: 'Refusée' },
-          { value: 'returned', label: 'Retour atelier' },
+          { value: 'returned', label: 'Retour colis' },
         ];
       case 'SUPPORT':
         return [
@@ -468,7 +468,7 @@ function OrdersPageContent() {
       if (status === 'shipped') return 'En cours de livraison';
       if (status === 'delivered') return 'Livrée & Encaissée';
       if (status === 'refused') return 'Refusée';
-      if (status === 'returned') return 'Retour atelier';
+      if (status === 'returned') return 'Retour colis';
       return STATUS_LABELS[status] || status;
     }
     return STATUS_LABELS[status] || status;
@@ -555,7 +555,7 @@ function OrdersPageContent() {
                 </div>
               </div>
               <div className="text-2xl font-bold text-amber-600 mt-2">{tauxRetour}%</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{returnedCount} refus & retours atelier</div>
+              <div className="text-[11px] text-slate-500 mt-1 font-medium">{returnedCount} refus & retours colis</div>
             </div>
           </>
         )}
@@ -582,7 +582,7 @@ function OrdersPageContent() {
                 </div>
               </div>
               <div className="text-2xl font-bold text-[#0284c7] mt-2">{tabCounts.PROCESSING}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">Commandes confirmées prêtes pour atelier</div>
+              <div className="text-[11px] text-slate-500 mt-1 font-medium">Commandes confirmées prêtes pour emballage</div>
             </div>
 
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-all">
@@ -729,7 +729,7 @@ function OrdersPageContent() {
                 </div>
               </div>
               <div className="text-2xl font-bold text-amber-600 mt-2">{tabCounts.TO_CONFIRM_COMBINED + tabCounts.PROCESSING}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{tabCounts.TO_CONFIRM_COMBINED} en attente • {tabCounts.PROCESSING} en atelier</div>
+              <div className="text-[11px] text-slate-500 mt-1 font-medium">{tabCounts.TO_CONFIRM_COMBINED} en attente • {tabCounts.PROCESSING} en préparation</div>
             </div>
 
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-all">

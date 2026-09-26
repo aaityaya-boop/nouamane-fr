@@ -36,7 +36,7 @@ export const PENDING_REASONS = [
   { value: 'WAITING_CUSTOMER', label: 'En attente de réponse client' },
   { value: 'WAITING_CARRIER', label: 'En attente du transporteur / livreur' },
   { value: 'WAITING_RETURN', label: 'En attente de réception du colis retour' },
-  { value: 'INTERNAL_ACTION', label: 'En attente d’action interne / atelier' },
+  { value: 'INTERNAL_ACTION', label: 'En attente d’action interne / contrôle' },
   { value: 'OTHER', label: 'Autre motif d’attente' },
 ] as const;
 

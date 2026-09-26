@@ -216,7 +216,7 @@ export default function TrackingPage() {
                       />
                       <TimelineStep
                         icon={<Package size={14} />}
-                        title="Préparation à l'atelier"
+                        title="Préparation du colis"
                         subtitle="Colis soigneusement emballé"
                         active={getStatusLevel(orderData.status) === 1}
                         completed={getStatusLevel(orderData.status) >= 2}

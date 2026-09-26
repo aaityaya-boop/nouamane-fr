@@ -158,7 +158,7 @@ function OrderConfirmationInner() {
               />
               <TimelineStep
                 icon={<Package size={16} />}
-                title="Préparation à l'atelier"
+                title="Préparation du colis"
                 subtitle="Sous 24 heures"
                 active
               />
