@@ -49,12 +49,12 @@ export default function AnalyticsTracker() {
     // 1. Send immediate pageview
     sendTrack('PAGEVIEW');
 
-    // 2. Active online presence heartbeat every 45s while tab is visible
+    // 2. Active online presence heartbeat every 30s while tab is visible
     const heartbeatInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         sendTrack('HEARTBEAT');
       }
-    }, 45000);
+    }, 30000);
 
     // 3. Re-ping presence when visitor switches back to the tab
     const handleVisibilityChange = () => {
@@ -63,11 +63,23 @@ export default function AnalyticsTracker() {
       }
     };
 
+    // 4. Immediately notify server on page close / navigation away
+    const handlePageHide = () => {
+      if (visitorIdRef.current && typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const payload = JSON.stringify({ visitorId: visitorIdRef.current });
+        navigator.sendBeacon('/api/track/leave', new Blob([payload], { type: 'application/json' }));
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('beforeunload', handlePageHide);
 
     return () => {
       clearInterval(heartbeatInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('beforeunload', handlePageHide);
     };
   }, [pathname]);
 

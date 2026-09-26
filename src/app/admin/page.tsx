@@ -136,13 +136,32 @@ export default async function AdminDashboard() {
     isOrdersGrowthPositive = true;
   }
 
-  // Real Visitors (Active, Today, Yesterday & Total)
+  // Real Visitors (Active within last 90s heartbeat, Today, Yesterday & Total)
+  const ninetySecondsAgo = new Date(now.getTime() - 90 * 1000);
+  const maxFutureThreshold = new Date(now.getTime() + 10 * 1000);
+
+  // Auto-fix any stuck future timestamps in the database
+  await prisma.visitor.updateMany({
+    where: { lastSeen: { gt: maxFutureThreshold } },
+    data: { lastSeen: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
+  });
+
   const activeVisitorsCount = await prisma.visitor.count({
-    where: { lastSeen: { gte: fiveMinutesAgo } }
+    where: { 
+      lastSeen: { 
+        gte: ninetySecondsAgo,
+        lte: maxFutureThreshold
+      } 
+    }
   });
 
   const todayVisitorsCount = await prisma.visitor.count({
-    where: { lastSeen: { gte: startOfDay } }
+    where: { 
+      lastSeen: { 
+        gte: startOfDay,
+        lte: maxFutureThreshold
+      } 
+    }
   });
 
   const yesterdayVisitorsCount = await prisma.visitor.count({

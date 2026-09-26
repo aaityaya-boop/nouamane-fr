@@ -12,18 +12,42 @@ export async function GET() {
     }
 
     const now = new Date();
-    // In active e-commerce presence, active users are those seen within the last 3 minutes (with 45s heartbeat)
-    const threeMinutesAgo = new Date(now.getTime() - 3 * 60000);
+    // Active visitors window: 90 seconds (paired with 30s heartbeat)
+    const ninetySecondsAgo = new Date(now.getTime() - 90 * 1000);
+    const maxFutureThreshold = new Date(now.getTime() + 10 * 1000);
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Auto-fix any stuck records where lastSeen is in the future
+    await prisma.visitor.updateMany({
+      where: {
+        lastSeen: { gt: maxFutureThreshold }
+      },
+      data: {
+        lastSeen: new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      }
+    });
 
     const [activeVisitorsCount, todayVisitorsCount, recentPageViews, activeCarts] = await Promise.all([
       prisma.visitor.count({
-        where: { lastSeen: { gte: threeMinutesAgo } }
+        where: {
+          lastSeen: {
+            gte: ninetySecondsAgo,
+            lte: maxFutureThreshold
+          }
+        }
       }),
       prisma.visitor.count({
-        where: { lastSeen: { gte: startOfDay } }
+        where: {
+          lastSeen: {
+            gte: startOfDay,
+            lte: maxFutureThreshold
+          }
+        }
       }),
       prisma.pageView.findMany({
+        where: {
+          createdAt: { lte: maxFutureThreshold }
+        },
         orderBy: { createdAt: 'desc' },
         take: 6,
         include: { visitor: true }
