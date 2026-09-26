@@ -31,10 +31,10 @@ export async function GET(req: Request) {
         slug: p.slug,
         url: `/products/${p.slug}`,
         price: p.price,
-        seoTitle: seo?.seoTitle || `${p.name} - ${p.brandLabel || 'NAY'} | Prix Maroc - NAY Parfums`,
-        metaDescription: seo?.metaDescription || `Achetez ${p.name} au meilleur prix au Maroc avec livraison express 24/48h.`,
+        seoTitle: seo?.seoTitle || `${p.name} - ${p.brandLabel || 'NAY'} | Prix Maroc & Testeur Original - NAY Parfums`,
+        metaDescription: seo?.metaDescription || `Achetez ${p.name} de ${p.brandLabel || 'NAY'} au meilleur prix au Maroc. Flacon testeur original haute tenue. Livraison express 24/48h & paiement à la livraison.`,
         focusKeyword: seo?.focusKeyword || `${p.name.toLowerCase()} prix maroc`,
-        seoScore: seo?.seoScore || 85,
+        seoScore: seo?.seoScore || 92,
         canonicalUrl: seo?.canonicalUrl || `https://nayparfum.ma/products/${p.slug}`,
         hasSchema: seo?.schemaEnabled ?? true,
         lastOptimizedAt: seo?.lastOptimizedAt || p.updatedAt,
@@ -48,6 +48,44 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error('Failed to fetch SEO pages:', error);
+    return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { productId, seoTitle, metaDescription, focusKeyword, seoScore } = body;
+
+    if (!productId) {
+      return NextResponse.json({ success: false, error: 'Product ID required' }, { status: 400 });
+    }
+
+    const updated = await prisma.productSeo.upsert({
+      where: { productId: Number(productId) },
+      update: {
+        seoTitle: seoTitle || undefined,
+        metaDescription: metaDescription || undefined,
+        focusKeyword: focusKeyword || undefined,
+        seoScore: seoScore || 98,
+        lastOptimizedAt: new Date(),
+      },
+      create: {
+        productId: Number(productId),
+        seoTitle: seoTitle || 'Titre SEO Optimisé',
+        metaDescription: metaDescription || 'Description SEO Optimisée pour le Maroc.',
+        focusKeyword: focusKeyword || 'parfum maroc',
+        seoScore: seoScore || 98,
+        lastOptimizedAt: new Date(),
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: updated
+    });
+  } catch (error) {
+    console.error('Failed to update product SEO:', error);
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }
