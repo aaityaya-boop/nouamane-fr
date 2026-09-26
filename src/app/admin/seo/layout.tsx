@@ -52,6 +52,11 @@ export default function SeoLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // If on Visibilité IA Engine (/admin/seo/ai), let the dedicated AI Command Center render independently
+  if (pathname.startsWith('/admin/seo/ai')) {
+    return <div className="w-full pb-12 font-sans text-slate-900 animate-fadeIn">{children}</div>;
+  }
+
   return (
     <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 animate-fadeIn">
       
