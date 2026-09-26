@@ -1465,3 +1465,47 @@ model ClaimRefund {
   @@index([createdAt])
 }
 
+// ══════════════════════════════════════════════════════════════════
+// 🧠 CONSEILLER NAY (IA) - INTELLIGENCE CLIENTS & CONVERSATIONS
+// ══════════════════════════════════════════════════════════════════
+model AdvisorConversation {
+  id                 String           @id @default(cuid())
+  sessionId          String           // Anonymous visitor token or session ID
+  customerName       String?
+  customerPhone      String?
+  customerCity       String?
+  summary            String?          // e.g. "Recherche parfum boisé et vanillé pour homme"
+  intent             String           @default("RECOMMENDATION") // RECOMMENDATION, TESTER_INQUIRY, GIFT_SEARCH, PRICE_SHIPPING, SILLAGE_PERFUME, COMPLAINT, GENERAL
+  preferredNotes     String?          // JSON array e.g. '["vanille", "oud", "bois de santal"]'
+  preferredBrands    String?          // JSON array e.g. '["Tom Ford", "YSL"]'
+  preferredGender    String?          // 'HOMME', 'FEMME', 'UNISEXE'
+  budget             String?          // e.g. "< 400 MAD", "Master Copy", "Testeur"
+  recommendedSlugs   String?          // JSON array e.g. '["baccarat-rouge-540", "tom-ford-oud-wood"]'
+  rating             Int?             // Optional 1-5 customer rating on the advice
+  status             String           @default("ACTIVE") // ACTIVE, COMPLETED, CONVERTED
+  device             String?          // Desktop, Mobile, Tablet
+  messagesCount      Int              @default(0)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  messages           AdvisorMessage[]
+
+  @@index([sessionId])
+  @@index([intent])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model AdvisorMessage {
+  id                  String              @id @default(cuid())
+  conversationId      String
+  conversation        AdvisorConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role                String              // 'user' | 'assistant' | 'system'
+  content             String              @db.Text
+  recommendedProducts String?             // JSON array of product references mentioned
+  createdAt           DateTime            @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+

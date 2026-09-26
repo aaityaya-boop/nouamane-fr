@@ -12,8 +12,40 @@ export default function AIChatWidget() {
   const [hasUnread, setHasUnread] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      let vid = localStorage.getItem('nay_vid');
+      if (!vid) {
+        vid = 'v_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+        localStorage.setItem('nay_vid', vid);
+      }
+      setSessionId(vid);
+
+      const savedConv = sessionStorage.getItem('nay_advisor_conv_id');
+      if (savedConv) {
+        setConversationId(savedConv);
+      }
+    }
+  }, []);
+
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/chat',
+    body: {
+      conversationId,
+      sessionId,
+    },
+    onResponse: (res) => {
+      const headerConvId = res.headers.get('x-conversation-id');
+      if (headerConvId && headerConvId !== conversationId) {
+        setConversationId(headerConvId);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('nay_advisor_conv_id', headerConvId);
+        }
+      }
+    },
     initialMessages: [
       {
         id: 'welcome',

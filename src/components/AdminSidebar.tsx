@@ -76,6 +76,7 @@ const TEAM_ITEMS: MenuItem[] = [
 ];
 
 const CRM_ITEMS: MenuItem[] = [
+  { href: '/admin/conseiller', label: 'Conseiller NAY (IA)', icon: <Bot size={16} />, permission: 'customers.view' },
   { href: '/admin/customers', label: 'Tous les Clients', icon: <Users size={16} />, permission: 'customers.view' },
   { href: '/admin/customers/vip', label: 'Clients VIP & Fidélité', icon: <Star size={16} />, permission: 'customers.view_vip' },
   { href: '/admin/customers/segments', label: 'Segmentation Clients', icon: <PieChart size={16} />, permission: 'customers.view' },
