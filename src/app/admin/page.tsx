@@ -90,12 +90,12 @@ export default async function AdminDashboard() {
   const tauxRetourGlobal = totalOrders > 0 ? ((returnedCount / totalOrders) * 100).toFixed(1) : '0';
   const tauxRetourExpedie = dispatchedCount > 0 ? ((returnedCount / dispatchedCount) * 100).toFixed(1) : '0';
 
-  // 2. Real Time Comparisons (7-Day & 24h Windows)
+  // 2. Real Time Comparisons (7-Day & 24h Windows in UTC / GMT+0)
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000);
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+  const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
   const startOfYesterday = new Date(startOfDay.getTime() - 24 * 60 * 60 * 1000);
 
   // Real Revenue 7 Days vs Previous 7 Days
@@ -136,21 +136,11 @@ export default async function AdminDashboard() {
     isOrdersGrowthPositive = true;
   }
 
-  // Real Visitors (Active within last 90s heartbeat, Today, Yesterday & Total)
-  const ninetySecondsAgo = new Date(now.getTime() - 90 * 1000);
-  const maxFutureThreshold = new Date(now.getTime() + 10 * 1000);
-
-  // Auto-fix any stuck future timestamps in the database
-  await prisma.visitor.updateMany({
-    where: { lastSeen: { gt: maxFutureThreshold } },
-    data: { lastSeen: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
-  });
-
+  // Real Visitors (Active in last 5 minutes, Today, Yesterday & Total)
   const activeVisitorsCount = await prisma.visitor.count({
     where: { 
       lastSeen: { 
-        gte: ninetySecondsAgo,
-        lte: maxFutureThreshold
+        gte: fiveMinutesAgo
       } 
     }
   });
@@ -158,8 +148,7 @@ export default async function AdminDashboard() {
   const todayVisitorsCount = await prisma.visitor.count({
     where: { 
       lastSeen: { 
-        gte: startOfDay,
-        lte: maxFutureThreshold
+        gte: startOfDay
       } 
     }
   });

@@ -9,7 +9,7 @@ export default function AnalyticsTracker() {
 
   useEffect(() => {
     // Avoid tracking inside the admin panel to prevent skewing customer metrics
-    if (pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
+    if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
 
     // Retrieve or create persistent anonymous visitor identifier
     if (!visitorIdRef.current) {
@@ -34,12 +34,11 @@ export default function AnalyticsTracker() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             pathname,
-            referrer: document.referrer,
-            userAgent: window.navigator.userAgent,
+            referrer: typeof document !== 'undefined' ? document.referrer : '',
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
             visitorId: visitorIdRef.current,
             type
-          }),
-          keepalive: true
+          })
         });
       } catch {
         // Silently fail without impacting storefront performance
@@ -49,37 +48,13 @@ export default function AnalyticsTracker() {
     // 1. Send immediate pageview
     sendTrack('PAGEVIEW');
 
-    // 2. Active online presence heartbeat every 30s while tab is visible
+    // 2. Active online presence heartbeat every 25 seconds
     const heartbeatInterval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        sendTrack('HEARTBEAT');
-      }
-    }, 30000);
-
-    // 3. Re-ping presence when visitor switches back to the tab
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        sendTrack('HEARTBEAT');
-      }
-    };
-
-    // 4. Immediately notify server on page close / navigation away
-    const handlePageHide = () => {
-      if (visitorIdRef.current && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        const payload = JSON.stringify({ visitorId: visitorIdRef.current });
-        navigator.sendBeacon('/api/track/leave', new Blob([payload], { type: 'application/json' }));
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('beforeunload', handlePageHide);
+      sendTrack('HEARTBEAT');
+    }, 25000);
 
     return () => {
       clearInterval(heartbeatInterval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('beforeunload', handlePageHide);
     };
   }, [pathname]);
 
