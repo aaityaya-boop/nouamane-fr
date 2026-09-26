@@ -122,7 +122,6 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
   const [selectedIntent, setSelectedIntent] = useState<string>('ALL');
   const [selectedGender, setSelectedGender] = useState<string>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [isSeeding, setIsSeeding] = useState<boolean>(false);
 
   const fetchData = async () => {
     try {
@@ -161,23 +160,13 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
     fetchData();
   };
 
-  const handleSeedDemo = async () => {
-    if (confirm('Voulez-vous générer des conversations types de démonstration (ex: vanille gourmande, sillage 24h, testeurs, cadeaux mariage) ?')) {
-      try {
-        setIsSeeding(true);
-        const res = await fetch('/api/admin/conseiller/seed', { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-          await fetchData();
-          alert('Données de démonstration générées avec succès !');
-        }
-      } catch (err) {
-        console.error('Erreur seed:', err);
-      } finally {
-        setIsSeeding(false);
-      }
-    }
-  };
+  // Auto-refresh live data every 10s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [selectedIntent, selectedGender, searchQuery]);
 
   const handleDeleteConversation = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette conversation ?')) return;
@@ -244,12 +233,13 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Conseiller NAY (IA)</h1>
-                <span className="text-[11px] font-semibold uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Sparkles size={11} /> Intelligence Client
+                <span className="text-[11px] font-semibold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  100% Données Réelles en Direct
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-300">
-                Analyse en temps réel des questions clients, familles olfactives demandées et recommandations générées.
+                Analyse en temps réel des questions de vos vrais clients, intentions d'achat et parfums suggérés par l'IA.
               </p>
             </div>
           </div>
@@ -269,20 +259,11 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
           <button
             onClick={handleExportCSV}
             disabled={!conversations.length}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-[#1D9BF0] hover:bg-sky-500 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
             title="Exporter en CSV"
           >
             <Download size={14} />
             <span>Exporter CSV</span>
-          </button>
-
-          <button
-            onClick={handleSeedDemo}
-            disabled={isSeeding}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-[#1D9BF0] hover:bg-sky-500 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
-          >
-            <Sparkles size={14} />
-            <span>{isSeeding ? 'Génération...' : 'Exemples Types'}</span>
           </button>
         </div>
       </div>
@@ -421,6 +402,18 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
       {/* TAB 1: ANALYTICS & OLFACTORY TRENDS */}
       {activeTab === 'ANALYTICS' && (
         <div className="space-y-6">
+          {(!analytics?.totalConversations || analytics.totalConversations === 0) && (
+            <div className="bg-sky-50/70 border border-sky-200/80 rounded-2xl p-6 text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-sky-200 text-[#1D9BF0] flex items-center justify-center mx-auto shadow-2xs">
+                <Bot size={24} />
+              </div>
+              <h3 className="text-sm font-bold text-slate-900">En attente des premières conversations réelles</h3>
+              <p className="text-xs text-slate-600 max-w-lg mx-auto">
+                Toutes les données de test ont été supprimées. Dès qu'un vrai client pose une question au <strong>Conseiller NAY</strong> sur la boutique, ses questions, préférences olfactives, intentions d'achat et recommandations apparaîtront ici automatiquement en direct.
+              </p>
+            </div>
+          )}
+
           {/* Top Olfactory Notes & Customer Intents */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Notes olfactives demandées */}
