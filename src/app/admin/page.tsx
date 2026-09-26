@@ -32,6 +32,8 @@ import {
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import TrafficChart from './components/TrafficChart';
+import LiveOnlineVisitorsCard from './components/LiveOnlineVisitorsCard';
+import LiveActivityStream from './components/LiveActivityStream';
 import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
 import { hasPermission } from '@/lib/auth/rbac/accessControl';
 
@@ -363,24 +365,11 @@ export default async function AdminDashboard() {
               </div>
             </div>
 
-            {/* KPI 4: Live Visitors */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 transition-all">
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Visiteurs en Direct</span>
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-              </div>
-              <div className="text-2xl sm:text-[28px] font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <span>{activeVisitorsCount}</span>
-                <span className="text-xs font-normal text-slate-400">actifs</span>
-              </div>
-              <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-                <span>Taux conv. boutique : <strong className="text-slate-800 font-semibold">{tauxConversionVisiteurs}%</strong></span>
-                <span className="text-emerald-600 font-semibold text-[11px]">Temps réel</span>
-              </div>
-            </div>
+            {/* KPI 4: Live Visitors (Real-time auto-refresh) */}
+            <LiveOnlineVisitorsCard 
+              initialActiveCount={activeVisitorsCount} 
+              conversionRate={tauxConversionVisiteurs} 
+            />
           </>
         ) : (
           <>
@@ -866,38 +855,8 @@ export default async function AdminDashboard() {
             </div>
           </div>
 
-          {/* LIVE ACTIVITY STREAM */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">Flux Visites en Direct</h2>
-              </div>
-              <span className="text-[10px] font-mono text-slate-400">Temps réel</span>
-            </div>
-
-            <div className="divide-y divide-slate-100">
-              {recentPageViews.length === 0 ? (
-                <p className="px-5 py-6 text-slate-400 text-center text-xs">En attente de nouvelles visites...</p>
-              ) : (
-                recentPageViews.map((view: any) => (
-                  <div key={view.id} className="p-3.5 hover:bg-slate-50/70 flex items-center justify-between text-xs transition-colors">
-                    <div className="min-w-0 pr-2">
-                      <p className="font-semibold text-slate-900 truncate">
-                        {view.pathname === '/' ? 'Accueil Boutique' : view.pathname}
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-0.5 truncate">
-                        {view.visitor?.city || 'Maroc'} • {view.referrer ? view.referrer.replace('https://', '').replace('http://', '').slice(0, 18) : 'Accès Direct'}
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                      {new Date(view.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          {/* LIVE ACTIVITY STREAM (Auto-refresh) */}
+          <LiveActivityStream initialViews={recentPageViews} />
 
           {/* ACQUISITION SOURCES */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3">

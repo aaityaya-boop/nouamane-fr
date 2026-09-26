@@ -4,13 +4,13 @@ import crypto from 'crypto';
 
 export async function POST(req: Request) {
   try {
-    const { pathname, referrer, userAgent } = await req.json();
+    const { pathname, referrer, userAgent, visitorId, type } = await req.json();
     
     // Parse device from userAgent
     let device = 'Desktop';
     if (userAgent) {
       if (/mobile/i.test(userAgent)) device = 'Mobile';
-      if (/ipad|tablet/i.test(userAgent)) device = 'Tablet';
+      else if (/ipad|tablet/i.test(userAgent)) device = 'Tablet';
     }
 
     // Clean up referrer
@@ -30,47 +30,66 @@ export async function POST(req: Request) {
     }
 
     // Get IP
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
+    const rawIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                  req.headers.get('x-real-ip') || 
+                  '127.0.0.1';
     
-    // Hash IP for privacy
-    const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
+    // Unique fingerprint: combine IP with client persistent visitor ID
+    // This guarantees that multiple devices on the same Wi-Fi / NAT / localhost are accurately counted as distinct visitors
+    const clientToken = visitorId || '';
+    const hashKey = clientToken ? `${rawIp}_${clientToken}` : rawIp;
+    const ipHash = crypto.createHash('sha256').update(hashKey).digest('hex');
 
     // Get Country/City using Vercel headers (silent and automatic, no prompt)
-    let country = req.headers.get('x-vercel-ip-country') || 'Inconnu';
+    let country = req.headers.get('x-vercel-ip-country') || 'MA';
     let city = req.headers.get('x-vercel-ip-city') || 'Inconnu';
 
-    if (ip === '127.0.0.1' || ip === '::1') {
-      country = 'Local';
-      city = 'Localhost';
+    if (rawIp === '127.0.0.1' || rawIp === '::1') {
+      country = 'MA';
+      city = 'Casablanca';
     }
 
     // Decode URI component for city just in case Vercel encodes it
     try {
-      city = decodeURIComponent(city);
+      if (city && city !== 'Inconnu') {
+        city = decodeURIComponent(city);
+      }
     } catch(e) {}
 
-    // Upsert Visitor
+    // Fallback city formatting
+    if (!city || city === 'Inconnu') {
+      city = 'Maroc';
+    }
+
+    // Upsert Visitor with accurate lastSeen timestamp
     const visitor = await prisma.visitor.upsert({
       where: { ipHash },
-      update: { lastSeen: new Date() },
+      update: { 
+        lastSeen: new Date(),
+        ...(city && city !== 'Inconnu' && city !== 'Maroc' ? { city } : {}),
+        ...(country && country !== 'Inconnu' ? { country } : {})
+      },
       create: {
         ipHash,
-        country,
-        city,
+        country: country || 'MA',
+        city: city || 'Casablanca',
+        lastSeen: new Date(),
       }
     });
 
-    // Record PageView
-    await prisma.pageView.create({
-      data: {
-        visitorId: visitor.id,
-        pathname: pathname || '/',
-        referrer: cleanReferrer,
-        device: device,
-      }
-    });
+    // Only record a new PageView row on actual page views (not lightweight heartbeats)
+    if (type !== 'HEARTBEAT') {
+      await prisma.pageView.create({
+        data: {
+          visitorId: visitor.id,
+          pathname: pathname || '/',
+          referrer: cleanReferrer,
+          device: device,
+        }
+      });
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, visitorId: visitor.id });
   } catch (error) {
     console.error('Tracking error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
