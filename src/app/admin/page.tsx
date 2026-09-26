@@ -47,37 +47,94 @@ export default async function AdminDashboard() {
 
   const productsCount = await prisma.product.count();
 
-  // Financial & order metrics
-  const totalRevenue = orders
-    .filter(o => o.status !== 'annule' && o.status !== 'refused' && o.status !== 'returned')
-    .reduce((acc, order) => acc + order.total, 0);
-  
+  // 1. Financial & Order Metrics (Valid Paying Orders)
+  const validOrders = orders.filter(
+    (o) => o.status !== 'annule' && o.status !== 'refused' && o.status !== 'returned'
+  );
+  const totalRevenue = validOrders.reduce((acc, order) => acc + (Number(order.total) || 0), 0);
   const totalOrders = orders.length;
-  const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+  // Real Average Order Value (Panier Moyen) calculated on valid orders
+  const averageOrderValue = validOrders.length > 0 
+    ? totalRevenue / validOrders.length 
+    : (totalOrders > 0 ? totalRevenue / totalOrders : 0);
   
+  // Delivered / Collected revenue
+  const deliveredOrders = orders.filter((o) => o.status === 'delivered');
+  const deliveredRevenue = deliveredOrders.reduce((acc, order) => acc + (Number(order.total) || 0), 0);
+
   // Unique customers
-  const uniqueEmails = new Set(orders.map(o => o.customerEmail));
+  const uniqueEmails = new Set(orders.map((o) => o.customerEmail).filter(Boolean));
   const totalCustomers = uniqueEmails.size;
 
-  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'en-attente').length;
-  const unconfirmedCount = orders.filter(o => o.status === 'unconfirmed').length;
-  const processingCount = orders.filter(o => o.status === 'processing' || o.status === 'confirmed').length;
-  const shippedCount = orders.filter(o => o.status === 'shipped').length;
-  const deliveredCount = orders.filter(o => o.status === 'delivered').length;
-  const returnedCount = orders.filter(o => o.status === 'refused' || o.status === 'returned').length;
+  // Order counts per status
+  const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'en-attente').length;
+  const unconfirmedCount = orders.filter((o) => o.status === 'unconfirmed').length;
+  const processingCount = orders.filter((o) => o.status === 'processing' || o.status === 'confirmed').length;
+  const shippedCount = orders.filter((o) => o.status === 'shipped').length;
+  const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
+  const returnedCount = orders.filter((o) => o.status === 'refused' || o.status === 'returned').length;
 
   // Operational Performance Rates
   const confirmedCount = processingCount + shippedCount + deliveredCount;
+  const dispatchedCount = shippedCount + deliveredCount + returnedCount;
+
   const tauxConfirmation = totalOrders > 0 ? ((confirmedCount / totalOrders) * 100).toFixed(1) : '0';
   const tauxNonConfirmation = totalOrders > 0 ? ((unconfirmedCount / totalOrders) * 100).toFixed(1) : '0';
-  const tauxLivraison = totalOrders > 0 ? ((deliveredCount / totalOrders) * 100).toFixed(1) : '0';
-  const tauxRetour = totalOrders > 0 ? ((returnedCount / totalOrders) * 100).toFixed(1) : '0';
+  const tauxLivraisonGlobal = totalOrders > 0 ? ((deliveredCount / totalOrders) * 100).toFixed(1) : '0';
+  const tauxLivraisonExpedie = dispatchedCount > 0 
+    ? ((deliveredCount / dispatchedCount) * 100).toFixed(1) 
+    : (confirmedCount > 0 ? ((deliveredCount / confirmedCount) * 100).toFixed(1) : '0');
+  const tauxRetourGlobal = totalOrders > 0 ? ((returnedCount / totalOrders) * 100).toFixed(1) : '0';
+  const tauxRetourExpedie = dispatchedCount > 0 ? ((returnedCount / dispatchedCount) * 100).toFixed(1) : '0';
 
-  // Real-time visitor metrics
+  // 2. Real Time Comparisons (7-Day & 24h Windows)
   const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
   const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000);
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYesterday = new Date(startOfDay.getTime() - 24 * 60 * 60 * 1000);
 
+  // Real Revenue 7 Days vs Previous 7 Days
+  const last7DaysOrders = orders.filter((o) => new Date(o.createdAt) >= sevenDaysAgo);
+  const prev7DaysOrders = orders.filter(
+    (o) => new Date(o.createdAt) >= fourteenDaysAgo && new Date(o.createdAt) < sevenDaysAgo
+  );
+
+  const last7DaysRevenue = last7DaysOrders
+    .filter((o) => o.status !== 'annule' && o.status !== 'refused' && o.status !== 'returned')
+    .reduce((acc, o) => acc + (Number(o.total) || 0), 0);
+  const prev7DaysRevenue = prev7DaysOrders
+    .filter((o) => o.status !== 'annule' && o.status !== 'refused' && o.status !== 'returned')
+    .reduce((acc, o) => acc + (Number(o.total) || 0), 0);
+
+  let revenueGrowthText = '0% vs 7j';
+  let isRevenueGrowthPositive = true;
+  if (prev7DaysRevenue > 0) {
+    const diff = ((last7DaysRevenue - prev7DaysRevenue) / prev7DaysRevenue) * 100;
+    revenueGrowthText = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}% vs 7j`;
+    isRevenueGrowthPositive = diff >= 0;
+  } else if (last7DaysRevenue > 0) {
+    revenueGrowthText = '+100% vs 7j';
+    isRevenueGrowthPositive = true;
+  }
+
+  // Real Order Volume 7 Days vs Previous 7 Days
+  const last7DaysOrdersCount = last7DaysOrders.length;
+  const prev7DaysOrdersCount = prev7DaysOrders.length;
+  let ordersGrowthText = '0% vs 7j';
+  let isOrdersGrowthPositive = true;
+  if (prev7DaysOrdersCount > 0) {
+    const diff = ((last7DaysOrdersCount - prev7DaysOrdersCount) / prev7DaysOrdersCount) * 100;
+    ordersGrowthText = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}% vs 7j`;
+    isOrdersGrowthPositive = diff >= 0;
+  } else if (last7DaysOrdersCount > 0) {
+    ordersGrowthText = '+100% vs 7j';
+    isOrdersGrowthPositive = true;
+  }
+
+  // Real Visitors (Active, Today, Yesterday & Total)
   const activeVisitorsCount = await prisma.visitor.count({
     where: { lastSeen: { gte: fiveMinutesAgo } }
   });
@@ -85,6 +142,31 @@ export default async function AdminDashboard() {
   const todayVisitorsCount = await prisma.visitor.count({
     where: { lastSeen: { gte: startOfDay } }
   });
+
+  const yesterdayVisitorsCount = await prisma.visitor.count({
+    where: { 
+      lastSeen: { 
+        gte: startOfYesterday,
+        lt: startOfDay
+      } 
+    }
+  });
+
+  let visitorsGrowthText = 'Aujourd’hui';
+  let isVisitorsGrowthPositive = true;
+  if (yesterdayVisitorsCount > 0) {
+    const diff = ((todayVisitorsCount - yesterdayVisitorsCount) / yesterdayVisitorsCount) * 100;
+    visitorsGrowthText = `${diff >= 0 ? '+' : ''}${diff.toFixed(0)}% vs hier`;
+    isVisitorsGrowthPositive = diff >= 0;
+  } else if (todayVisitorsCount > 0) {
+    visitorsGrowthText = '+100% vs hier';
+    isVisitorsGrowthPositive = true;
+  }
+
+  const totalVisitorsCount = await prisma.visitor.count();
+  const tauxConversionVisiteurs = totalVisitorsCount > 0 
+    ? ((totalOrders / totalVisitorsCount) * 100).toFixed(1) 
+    : '0';
 
   const recentPageViews = await prisma.pageView.findMany({
     orderBy: { createdAt: 'desc' },
@@ -104,6 +186,8 @@ export default async function AdminDashboard() {
   const visitorsByCity = rawVisitorsByCity
     .filter(c => c.city && c.city.trim() !== '' && c.city.toLowerCase() !== 'unknown' && c.city.toLowerCase() !== 'inconnu')
     .slice(0, 5);
+  
+  const totalTopCityVisits = visitorsByCity.reduce((sum, c) => sum + c._count.id, 0);
 
   const formatMAD = (amount: number) => {
     return new Intl.NumberFormat('fr-MA', { 
@@ -114,7 +198,6 @@ export default async function AdminDashboard() {
   };
 
   // 7-Day Chart Data
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const pageViews7Days = await prisma.pageView.findMany({
     where: { createdAt: { gte: sevenDaysAgo } },
     select: { createdAt: true, visitorId: true }
@@ -224,8 +307,12 @@ export default async function AdminDashboard() {
               </div>
               <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
                 <span>Panier moyen : <strong className="text-slate-800 font-semibold">{formatMAD(averageOrderValue)}</strong></span>
-                <span className="text-emerald-600 font-semibold text-[11px] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
-                  +14% vs 7j
+                <span className={`font-semibold text-[11px] px-1.5 py-0.5 rounded border ${
+                  isRevenueGrowthPositive 
+                    ? 'text-emerald-600 bg-emerald-50 border-emerald-100' 
+                    : 'text-rose-600 bg-rose-50 border-rose-100'
+                }`}>
+                  {revenueGrowthText}
                 </span>
               </div>
             </div>
@@ -242,8 +329,14 @@ export default async function AdminDashboard() {
                 {totalOrders}
               </div>
               <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-                <span><strong className="text-slate-800 font-semibold">{confirmedCount}</strong> confirmées</span>
-                <span className="text-slate-500 text-[11px]">{pendingOrders} en attente</span>
+                <span><strong className="text-slate-800 font-semibold">{confirmedCount}</strong> confirmées ({tauxConfirmation}%)</span>
+                <span className={`font-semibold text-[11px] px-1.5 py-0.5 rounded border ${
+                  isOrdersGrowthPositive 
+                    ? 'text-emerald-600 bg-emerald-50 border-emerald-100' 
+                    : 'text-rose-600 bg-rose-50 border-rose-100'
+                }`}>
+                  {ordersGrowthText}
+                </span>
               </div>
             </div>
 
@@ -260,7 +353,13 @@ export default async function AdminDashboard() {
               </div>
               <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
                 <span>Base CRM : <strong className="text-slate-800 font-semibold">{totalCustomers}</strong> clients</span>
-                <span className="text-indigo-600 font-medium text-[11px]">Maroc</span>
+                <span className={`font-semibold text-[11px] px-1.5 py-0.5 rounded border ${
+                  isVisitorsGrowthPositive 
+                    ? 'text-indigo-600 bg-indigo-50 border-indigo-100' 
+                    : 'text-slate-600 bg-slate-50 border-slate-100'
+                }`}>
+                  {visitorsGrowthText}
+                </span>
               </div>
             </div>
 
@@ -278,7 +377,7 @@ export default async function AdminDashboard() {
                 <span className="text-xs font-normal text-slate-400">actifs</span>
               </div>
               <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-                <span className="truncate">Navigation catalogue en cours</span>
+                <span>Taux conv. boutique : <strong className="text-slate-800 font-semibold">{tauxConversionVisiteurs}%</strong></span>
                 <span className="text-emerald-600 font-semibold text-[11px]">Temps réel</span>
               </div>
             </div>
@@ -298,7 +397,7 @@ export default async function AdminDashboard() {
               </div>
               <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
                 <span><strong className="text-slate-800 font-semibold">{confirmedCount}</strong> sur {totalOrders} commandes</span>
-                <span className="text-emerald-700 font-semibold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">Objectif &gt; 80%</span>
+                <span className="text-emerald-700 font-semibold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">Données réelles</span>
               </div>
             </div>
 
@@ -322,16 +421,16 @@ export default async function AdminDashboard() {
             {/* AGENT VIEW: Delivery Rate */}
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-indigo-300 transition-all">
               <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Taux de Livraison</span>
+                <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Taux de Livraison (Expéditions)</span>
                 <span className="text-indigo-600 bg-indigo-50 p-1.5 rounded-lg border border-indigo-100">
                   <Truck size={15} />
                 </span>
               </div>
               <div className="text-2xl sm:text-[28px] font-bold text-indigo-600 tracking-tight">
-                {tauxLivraison}%
+                {tauxLivraisonExpedie}%
               </div>
               <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-                <span><strong className="text-indigo-800 font-semibold">{deliveredCount}</strong> colis encaissés</span>
+                <span><strong className="text-indigo-800 font-semibold">{deliveredCount}</strong> sur {dispatchedCount > 0 ? dispatchedCount : totalOrders} expédiées</span>
                 <span className="text-indigo-600 text-[11px]">Transport</span>
               </div>
             </div>
@@ -345,7 +444,7 @@ export default async function AdminDashboard() {
                 </span>
               </div>
               <div className="text-2xl sm:text-[28px] font-bold text-amber-600 tracking-tight">
-                {tauxRetour}%
+                {tauxRetourGlobal}%
               </div>
               <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
                 <span><strong className="text-amber-800 font-semibold">{returnedCount}</strong> refus & retours</span>
@@ -355,6 +454,71 @@ export default async function AdminDashboard() {
           </>
         )}
       </div>
+
+      {/* ── 2.5 REAL CONVERSION & OPERATIONAL RATES STRIP (EXECUTIVE VIEW) ── */}
+      {canViewRevenue && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Rate 1: Taux de Confirmation */}
+          <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+              <span className="font-semibold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <CheckCircle2 size={13} className="text-emerald-500" />
+                Confirmation
+              </span>
+              <span className="font-mono text-emerald-600 font-bold">{tauxConfirmation}%</span>
+            </div>
+            <div className="text-xs text-slate-600 flex items-center justify-between mt-1">
+              <span>{confirmedCount} validées sur {totalOrders}</span>
+              <span className="text-[10px] text-amber-600 font-medium">{unconfirmedCount} en attente ({tauxNonConfirmation}%)</span>
+            </div>
+          </div>
+
+          {/* Rate 2: Taux de Livraison */}
+          <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+              <span className="font-semibold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <Truck size={13} className="text-indigo-500" />
+                Taux Livraison
+              </span>
+              <span className="font-mono text-indigo-600 font-bold">{tauxLivraisonExpedie}%</span>
+            </div>
+            <div className="text-xs text-slate-600 flex items-center justify-between mt-1">
+              <span>{deliveredCount} colis encaissés</span>
+              <span className="text-[10px] text-slate-500 font-mono font-semibold">{formatMAD(deliveredRevenue)}</span>
+            </div>
+          </div>
+
+          {/* Rate 3: Taux de Retour */}
+          <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+              <span className="font-semibold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <RotateCcw size={13} className="text-amber-500" />
+                Taux de Retour
+              </span>
+              <span className="font-mono text-amber-600 font-bold">{tauxRetourGlobal}%</span>
+            </div>
+            <div className="text-xs text-slate-600 flex items-center justify-between mt-1">
+              <span>{returnedCount} refus & retours</span>
+              <span className="text-[10px] text-slate-500 font-mono">{tauxRetourExpedie}% des envois</span>
+            </div>
+          </div>
+
+          {/* Rate 4: Conversion Boutique */}
+          <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+              <span className="font-semibold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <TrendingUp size={13} className="text-[#1D9BF0]" />
+                Conversion Visiteurs
+              </span>
+              <span className="font-mono text-[#0284c7] font-bold">{tauxConversionVisiteurs}%</span>
+            </div>
+            <div className="text-xs text-slate-600 flex items-center justify-between mt-1">
+              <span>{totalOrders} commandes générées</span>
+              <span className="text-[10px] text-slate-400 font-mono">{totalVisitorsCount} visiteurs</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── 3. ORDER FULFILLMENT PIPELINE BAR ──────────────────────── */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
@@ -675,8 +839,9 @@ export default async function AdminDashboard() {
                 <div className="text-xs text-slate-400 py-4 text-center">Aucune donnée géographique enregistrée.</div>
               ) : (
                 visitorsByCity.map((item, idx) => {
-                  const maxCity = visitorsByCity[0]?._count.id || 1;
-                  const pct = Math.min(100, Math.round((item._count.id / maxCity) * 100));
+                  const pctOfTotal = totalTopCityVisits > 0 
+                    ? Math.round((item._count.id / totalTopCityVisits) * 100) 
+                    : 0;
                   return (
                     <div key={idx} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
@@ -685,13 +850,13 @@ export default async function AdminDashboard() {
                           <span>{item.city}</span>
                         </div>
                         <span className="font-mono font-semibold text-slate-600 text-[11px]">
-                          {item._count.id} visites
+                          {item._count.id} visites <span className="text-slate-400">({pctOfTotal}%)</span>
                         </span>
                       </div>
                       <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                         <div 
                           className="bg-gradient-to-r from-[#1D9BF0] to-indigo-500 h-full rounded-full transition-all duration-500" 
-                          style={{ width: `${pct}%` }}
+                          style={{ width: `${pctOfTotal}%` }}
                         />
                       </div>
                     </div>
