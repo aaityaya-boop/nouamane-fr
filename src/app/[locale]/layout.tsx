@@ -59,6 +59,9 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-48x48.png', type: 'image/png', sizes: '48x48' },
+      { url: '/favicon-96x96.png', type: 'image/png', sizes: '96x96' },
+      { url: '/favicon-192x192.png', type: 'image/png', sizes: '192x192' },
       { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
       { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -75,12 +78,21 @@ export const metadata: Metadata = {
     url: "https://nayparfum.ma",
     title: "NAY Parfums | Testeurs & Parfums Originaux au Maroc",
     description: "Achetez vos parfums et testeurs 100% originaux au Maroc. Livraison rapide et paiement à la livraison (Casablanca, Rabat, Marrakech, etc.).",
-    siteName: "NAY Parfums"
+    siteName: "NAY Parfums",
+    images: [
+      {
+        url: "https://nayparfum.ma/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "NAY Parfums Logo Officiel Maroc",
+      }
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "NAY Parfums | Parfums Originaux au Maroc",
-    description: "Achetez vos parfums et testeurs originaux au Maroc. Livraison rapide et paiement à la livraison."
+    description: "Achetez vos parfums et testeurs originaux au Maroc. Livraison rapide et paiement à la livraison.",
+    images: ["https://nayparfum.ma/android-chrome-512x512.png"],
   },
   robots: {
     index: true,
@@ -144,8 +156,8 @@ export default async function LocaleLayout({
               name: "NAY Parfums",
               description: "Vente de parfums de luxe et testeurs originaux au Maroc",
               url: "https://nayparfum.ma",
-              logo: "https://nayparfum.ma/icon.png",
-              image: "https://nayparfum.ma/icon.png",
+              logo: "https://nayparfum.ma/android-chrome-512x512.png",
+              image: "https://nayparfum.ma/android-chrome-512x512.png",
               telephone: "+212 663-380011",
               priceRange: "$$",
               address: {
