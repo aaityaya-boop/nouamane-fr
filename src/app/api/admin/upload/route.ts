@@ -3,53 +3,129 @@ import fs from 'fs/promises';
 import path from 'path';
 import { put } from '@vercel/blob';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+const DEFAULT_BLOB_TOKEN = "vercel_blob_rw_l3qgCdAjFT9wDKXz_xmbnlKdFScoUNvmLxeDQ7FELLtjtDo";
+
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    let fileBuffer: Buffer | null = null;
+    let mimeType = 'image/jpeg';
+    let originalName = 'upload.jpg';
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    const contentType = request.headers.get('content-type') || '';
+
+    // 1. Support JSON with Base64 payload
+    if (contentType.includes('application/json')) {
+      const body = await request.json();
+      if (!body.base64 && !body.dataUrl) {
+        return NextResponse.json({ error: 'Aucun fichier reçu (JSON)' }, { status: 400 });
+      }
+
+      const rawData = body.base64 || body.dataUrl;
+      const matches = rawData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      
+      if (matches && matches.length === 3) {
+        mimeType = matches[1];
+        fileBuffer = Buffer.from(matches[2], 'base64');
+      } else {
+        fileBuffer = Buffer.from(rawData, 'base64');
+      }
+
+      if (body.filename) originalName = body.filename;
+      if (body.mimeType) mimeType = body.mimeType;
+    } 
+    // 2. Support Multipart FormData
+    else {
+      const formData = await request.formData();
+      const file = formData.get('file') as File | null;
+
+      if (!file) {
+        return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
+      }
+
+      originalName = file.name || 'image.jpg';
+      mimeType = file.type || 'image/jpeg';
+      const bytes = await file.arrayBuffer();
+      fileBuffer = Buffer.from(bytes);
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    if (!fileBuffer || fileBuffer.length === 0) {
+      return NextResponse.json({ error: 'Fichier vide ou corrompu' }, { status: 400 });
+    }
 
-    // Create unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const filename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const savedName = `${uniqueSuffix}-${filename}`;
+    // Determine extension safely
+    const extMatch = originalName.match(/\.([a-zA-Z0-9]+)$/);
+    let ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+    if (!ext || ext.length > 5) {
+      if (mimeType.includes('png')) ext = 'png';
+      else if (mimeType.includes('webp')) ext = 'webp';
+      else if (mimeType.includes('svg')) ext = 'svg';
+      else ext = 'jpg';
+    }
+
+    const cleanBaseName = originalName
+      .replace(/\.[^/.]+$/, '')
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .slice(0, 30);
     
-    // 1. Try Vercel Blob upload if token exists
-    const token = process.env.BLOB_READ_WRITE_TOKEN || "vercel_blob_rw_l3qgCdAjFT9wDKXz_xmbnlKdFScoUNvmLxeDQ7FELLtjtDo";
+    const savedName = `nay_${Date.now()}_${cleanBaseName}.${ext}`;
+    const token = process.env.BLOB_READ_WRITE_TOKEN || DEFAULT_BLOB_TOKEN;
+
+    // ── TIER 1: Vercel Blob Storage ───────────────────────────────────────
     if (token) {
       try {
-        const blob = await put(savedName, buffer, { 
+        const blob = await put(savedName, fileBuffer, {
           access: 'public',
-          contentType: file.type || 'application/octet-stream',
-          token: token
+          contentType: mimeType,
+          token: token,
+          addRandomSuffix: true
         });
-        return NextResponse.json({ url: blob.url });
+
+        if (blob && blob.url) {
+          return NextResponse.json({ 
+            url: blob.url,
+            success: true,
+            storage: 'blob' 
+          });
+        }
       } catch (blobError: any) {
-        console.warn('Vercel Blob failed, falling back to local storage:', blobError?.message);
+        console.warn('[Upload API] Vercel Blob attempt failed:', blobError?.message || blobError);
       }
     }
-    
-    // 2. Fallback to local file system in /public/uploads
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    
+
+    // ── TIER 2: Local Filesystem Storage (Local Dev / Self-Hosted) ─────────
     try {
-      await fs.access(uploadDir);
-    } catch {
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
       await fs.mkdir(uploadDir, { recursive: true });
+      const filepath = path.join(uploadDir, savedName);
+      await fs.writeFile(filepath, fileBuffer);
+
+      return NextResponse.json({ 
+        url: `/uploads/${savedName}`,
+        success: true,
+        storage: 'local'
+      });
+    } catch (fsError: any) {
+      console.warn('[Upload API] Local storage failed (Read-only Serverless):', fsError?.message);
     }
 
-    const filepath = path.join(uploadDir, savedName);
-    await fs.writeFile(filepath, buffer);
+    // ── TIER 3: Bulletproof Base64 Data URI (Guaranteed 100% Availability) ─
+    const base64Data = fileBuffer.toString('base64');
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
 
-    return NextResponse.json({ url: `/uploads/${savedName}` });
-  } catch (error) {
-    console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+    return NextResponse.json({ 
+      url: dataUrl,
+      success: true,
+      storage: 'inline'
+    });
+
+  } catch (error: any) {
+    console.error('[Upload API] Critical error:', error);
+    return NextResponse.json({ 
+      error: error?.message || 'Échec du téléversement de l\'image' 
+    }, { status: 500 });
   }
 }

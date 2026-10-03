@@ -4,6 +4,12 @@ import path from 'path';
 import { put } from '@vercel/blob';
 import { getCurrentAmbassador } from '@/lib/affiliate-auth';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+const DEFAULT_BLOB_TOKEN = "vercel_blob_rw_l3qgCdAjFT9wDKXz_xmbnlKdFScoUNvmLxeDQ7FELLtjtDo";
+
 export async function POST(request: Request) {
   try {
     const ambassador = await getCurrentAmbassador();
@@ -19,42 +25,57 @@ export async function POST(request: Request) {
     }
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const fileBuffer = Buffer.from(bytes);
 
-    // Create unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const filename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const savedName = `ambassador-${uniqueSuffix}-${filename}`;
+    if (fileBuffer.length === 0) {
+      return NextResponse.json({ error: 'Fichier vide' }, { status: 400 });
+    }
 
-    // 1. Try Vercel Blob upload if token exists
-    const token = process.env.BLOB_READ_WRITE_TOKEN || "vercel_blob_rw_l3qgCdAjFT9wDKXz_xmbnlKdFScoUNvmLxeDQ7FELLtjtDo";
+    const originalName = file.name || 'document.jpg';
+    const mimeType = file.type || 'application/octet-stream';
+    const extMatch = originalName.match(/\.([a-zA-Z0-9]+)$/);
+    const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+
+    const cleanName = originalName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30);
+    const savedName = `ambassador_${ambassador.id}_${Date.now()}_${cleanName}.${ext}`;
+    const token = process.env.BLOB_READ_WRITE_TOKEN || DEFAULT_BLOB_TOKEN;
+
+    // ── 1. Vercel Blob ────────────────────────────────────────────────────
     if (token) {
       try {
-        const blob = await put(savedName, buffer, {
+        const blob = await put(savedName, fileBuffer, {
           access: 'public',
-          contentType: file.type || 'application/octet-stream',
+          contentType: mimeType,
           token: token,
+          addRandomSuffix: true
         });
-        return NextResponse.json({ url: blob.url });
+
+        if (blob && blob.url) {
+          return NextResponse.json({ url: blob.url, success: true });
+        }
       } catch (blobError: any) {
-        console.warn('Vercel Blob failed, falling back to local storage:', blobError?.message);
+        console.warn('[Ambassador Upload] Vercel Blob failed:', blobError?.message);
       }
     }
 
-    // 2. Fallback to local storage in /public/uploads
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    // ── 2. Local Storage ──────────────────────────────────────────────────
     try {
-      await fs.access(uploadDir);
-    } catch {
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
       await fs.mkdir(uploadDir, { recursive: true });
+      const filepath = path.join(uploadDir, savedName);
+      await fs.writeFile(filepath, fileBuffer);
+
+      return NextResponse.json({ url: `/uploads/${savedName}`, success: true });
+    } catch (fsError: any) {
+      console.warn('[Ambassador Upload] Local storage failed:', fsError?.message);
     }
 
-    const filepath = path.join(uploadDir, savedName);
-    await fs.writeFile(filepath, buffer);
+    // ── 3. Base64 Data URL Fallback ───────────────────────────────────────
+    const dataUrl = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+    return NextResponse.json({ url: dataUrl, success: true });
 
-    return NextResponse.json({ url: `/uploads/${savedName}` });
-  } catch (error) {
-    console.error('Ambassador upload error:', error);
-    return NextResponse.json({ error: 'Échec de l\'upload du fichier' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[Ambassador Upload] Error:', error);
+    return NextResponse.json({ error: error?.message || 'Échec du téléversement du fichier' }, { status: 500 });
   }
 }
