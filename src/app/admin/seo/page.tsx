@@ -280,15 +280,15 @@ export default async function SeoOverviewPage() {
       </div>
 
       {/* ── 4. STRATEGIC GROWTH OPPORTUNITIES ────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+      <div className="bg-white dark:bg-[#101726] rounded-2xl border border-slate-200/80 dark:border-[#1c273c] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-[#1c273c] flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-[#141d2e] dark:to-[#101726]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 flex items-center justify-center font-bold">
               <Sparkles size={16} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Opportunités de Croissance Immédiates au Maroc</h2>
-              <p className="text-[11px] text-slate-500">Stratégies concrètes pour maximiser les commandes organiques</p>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">Opportunités de Croissance Immédiates au Maroc</h2>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Stratégies concrètes pour maximiser les commandes organiques</p>
             </div>
           </div>
           <Link 
@@ -302,25 +302,25 @@ export default async function SeoOverviewPage() {
 
         <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
           {opportunities.map((opp, idx) => (
-            <div key={opp.id} className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 hover:bg-slate-50 hover:border-slate-300 transition-all space-y-2.5">
+            <div key={opp.id} className="p-4 rounded-2xl bg-slate-50/70 dark:bg-[#0c121e] border border-slate-200/80 dark:border-[#1c273c] hover:bg-slate-50 dark:hover:bg-[#131d30] hover:border-slate-300 dark:hover:border-[#2e4062] transition-all space-y-2.5">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                  <span className="w-6 h-6 rounded-lg bg-slate-900 dark:bg-sky-500 text-white dark:text-slate-950 flex items-center justify-center font-bold text-[11px] shrink-0">
                     {idx + 1}
                   </span>
-                  <h3 className="text-xs font-bold text-slate-900">{opp.title}</h3>
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white">{opp.title}</h3>
                 </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/60 shrink-0">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 shrink-0">
                   Impact {opp.impact === 'HIGH' ? 'Élevé 🚀' : 'Moyen'}
                 </span>
               </div>
 
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 {opp.description}
               </p>
 
-              <div className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 font-medium">
-                <strong className="text-slate-900">Recommandation :</strong> {opp.recommendation}
+              <div className="p-2.5 rounded-xl bg-white dark:bg-[#101726] border border-slate-200 dark:border-[#1c273c] text-xs text-slate-800 dark:text-slate-200 font-medium">
+                <strong className="text-slate-900 dark:text-white">Recommandation :</strong> {opp.recommendation}
               </div>
             </div>
           ))}

@@ -60,10 +60,72 @@ html.dark .lg\:hidden.bg-white {
   color: #ffffff !important;
 }
 
-/* Sidebar Top Logo Box & Header Elements */
-html.dark .from-sky-50\/30 {
-  --tw-gradient-from: #0d1422 !important;
-  --tw-gradient-to: #090e17 !important;
+/* Sidebar Top Logo Box & Header Elements + All Gradients in Dark Mode */
+html.dark .from-slate-50,
+html.dark .from-neutral-50,
+html.dark .from-gray-50,
+html.dark .from-zinc-50,
+html.dark .from-white {
+  --tw-gradient-from: #141d2e !important;
+  --tw-gradient-to: rgba(20, 29, 46, 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html.dark .to-white,
+html.dark .to-slate-50,
+html.dark .to-neutral-50,
+html.dark .to-gray-50,
+html.dark .to-zinc-50 {
+  --tw-gradient-to: #101726 !important;
+}
+
+html.dark .via-slate-50,
+html.dark .via-neutral-50,
+html.dark .via-white {
+  --tw-gradient-stops: var(--tw-gradient-from), #121a2a, var(--tw-gradient-to) !important;
+}
+
+/* Light pastel color gradients */
+html.dark .from-emerald-50,
+html.dark .from-emerald-50\/90,
+html.dark .from-green-50 {
+  --tw-gradient-from: rgba(16, 185, 129, 0.15) !important;
+  --tw-gradient-to: rgba(16, 185, 129, 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html.dark .to-teal-50,
+html.dark .to-emerald-50 {
+  --tw-gradient-to: rgba(20, 184, 166, 0.1) !important;
+}
+
+html.dark .from-sky-50,
+html.dark .from-sky-50\/60,
+html.dark .from-sky-50\/40,
+html.dark .from-sky-50\/30,
+html.dark .from-sky-100 {
+  --tw-gradient-from: rgba(56, 189, 248, 0.15) !important;
+  --tw-gradient-to: rgba(56, 189, 248, 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html.dark .to-sky-50,
+html.dark .to-sky-50\/50,
+html.dark .to-sky-50\/40,
+html.dark .to-indigo-100 {
+  --tw-gradient-to: rgba(99, 102, 241, 0.1) !important;
+}
+
+html.dark .from-slate-200,
+html.dark .from-gray-200 {
+  --tw-gradient-from: #1e293b !important;
+  --tw-gradient-to: rgba(30, 41, 59, 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html.dark .to-slate-300,
+html.dark .to-gray-300 {
+  --tw-gradient-to: #334155 !important;
 }
 
 html.dark .bg-white.border.border-sky-200,
