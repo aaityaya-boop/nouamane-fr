@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X, ShoppingBag, Star, ChevronRight } from 'lucide-react';
-import { formatMAD, type Product } from '@/lib/products';
+import { formatMAD, type Product, isProductInStock } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
 
 type QuickViewModalProps = {
@@ -28,6 +28,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
   }, [isOpen]);
 
   if (!product) return null;
+  const inStock = isProductInStock(product);
 
   return (
     <AnimatePresence>
@@ -66,10 +67,16 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                 className="object-cover"
               />
               {/* Brand Badge */}
-              <div className="absolute top-6 left-6 z-10">
+              <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
                 <span className="text-[10px] font-bold tracking-[0.2em] uppercase bg-white/90 backdrop-blur-sm text-[#1A1A1A] px-4 py-2 rounded-full shadow-sm">
                   {product.brandLabel}
                 </span>
+                {!inStock && (
+                  <span className="text-[10px] font-bold tracking-[0.15em] uppercase bg-white/95 text-red-600 border border-red-200 px-3.5 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    Rupture de stock
+                  </span>
+                )}
               </div>
             </div>
 
@@ -125,20 +132,30 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button
-                    onClick={() => {
-                      addToCart(
-                        { id: product.id, sku: product.sku, slug: product.slug, name: product.name, price: product.price, images: product.images },
-                        1,
-                        product.sizes[0]?.label || '50ml'
-                      );
-                      onClose();
-                    }}
-                    className="flex-1 bg-[#1A1A1A] text-white h-14 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#0ea5e9] transition-colors flex items-center justify-center gap-2"
-                  >
-                    <ShoppingBag size={16} />
-                    Commander maintenant
-                  </button>
+                  {inStock ? (
+                    <button
+                      onClick={() => {
+                        addToCart(
+                          { id: product.id, sku: product.sku, slug: product.slug, name: product.name, price: product.price, images: product.images, inStock: product.inStock, stock: product.stock },
+                          1,
+                          product.sizes[0]?.label || '50ml'
+                        );
+                        onClose();
+                      }}
+                      className="flex-1 bg-[#1A1A1A] text-white h-14 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#0ea5e9] transition-colors flex items-center justify-center gap-2"
+                    >
+                      <ShoppingBag size={16} />
+                      Commander maintenant
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="flex-1 bg-[#eeece5] text-red-600 border border-red-200 h-14 rounded-full text-[11px] font-bold tracking-widest uppercase cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                      Rupture de stock
+                    </button>
+                  )}
                   <Link
                     href={`/${locale}/product/${product.slug}`}
                     className="flex-1 border border-[#1A1A1A] text-[#1A1A1A] h-14 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#f8fafc] transition-colors flex items-center justify-center gap-2"

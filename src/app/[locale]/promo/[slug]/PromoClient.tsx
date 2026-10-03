@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import LandingHeader from '@/components/landing/LandingHeader';
 import LandingFooter from '@/components/landing/LandingFooter';
-import { formatMAD, Product } from '@/lib/products';
+import { formatMAD, Product, isProductInStock } from '@/lib/products';
 import { Truck, ShieldCheck, CheckCircle2, Star, Clock } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,7 @@ export default function PromoClient({ landingPage, products }: { landingPage: an
   const router = useRouter();
 
   const handleQuickBuy = (product: Product) => {
+    if (!isProductInStock(product)) return;
     addToCart({
       id: product.id,
       sku: product.sku,
@@ -22,6 +23,8 @@ export default function PromoClient({ landingPage, products }: { landingPage: an
       price: product.price,
       image: product.images[0],
       size: product.sizes[0]?.label || '50ml',
+      inStock: product.inStock,
+      stock: product.stock,
     });
     router.push('/checkout');
   };
@@ -109,15 +112,26 @@ export default function PromoClient({ landingPage, products }: { landingPage: an
             {products.map((product) => {
               const original = product.originalPrice || Math.round(product.price * 1.3);
               const discountPercent = Math.round((1 - product.price / original) * 100);
+              const inStock = isProductInStock(product);
 
               return (
                 <div key={product.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-shadow relative">
-                  <div className="absolute -top-4 -right-4 bg-red-600 text-white w-14 h-14 rounded-full flex items-center justify-center font-bold text-[14px] shadow-lg transform rotate-12 z-10">
-                    -{discountPercent}%
-                  </div>
+                  {inStock && (
+                    <div className="absolute -top-4 -right-4 bg-red-600 text-white w-14 h-14 rounded-full flex items-center justify-center font-bold text-[14px] shadow-lg transform rotate-12 z-10">
+                      -{discountPercent}%
+                    </div>
+                  )}
 
                   <div className="relative aspect-square w-full mb-6 rounded-xl overflow-hidden bg-gray-50">
                     <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                    {!inStock && (
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+                        <span className="text-[11px] font-bold tracking-widest text-red-600 uppercase bg-white border border-red-200 px-4 py-2 rounded-full shadow-md flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                          Rupture de stock
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-gray-400 mb-2">{product.brandLabel}</div>
                   <h3 className="heading-font text-xl mb-4 line-clamp-1">{product.name}</h3>
@@ -127,12 +141,22 @@ export default function PromoClient({ landingPage, products }: { landingPage: an
                     <span className="text-sm text-gray-400 line-through mb-1">{formatMAD(original)}</span>
                   </div>
 
-                  <button 
-                    onClick={() => handleQuickBuy(product)}
-                    className="w-full bg-[#1A1A1A] text-white py-4 rounded-xl text-[12px] font-bold tracking-[0.1em] uppercase hover:bg-black hover:shadow-lg transition-all"
-                  >
-                    Commander (Paiement à la livraison)
-                  </button>
+                  {inStock ? (
+                    <button 
+                      onClick={() => handleQuickBuy(product)}
+                      className="w-full bg-[#1A1A1A] text-white py-4 rounded-xl text-[12px] font-bold tracking-[0.1em] uppercase hover:bg-black hover:shadow-lg transition-all"
+                    >
+                      Commander (Paiement à la livraison)
+                    </button>
+                  ) : (
+                    <button 
+                      disabled
+                      className="w-full bg-red-50 text-red-600 border border-red-200 py-4 rounded-xl text-[12px] font-bold tracking-[0.1em] uppercase cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                      Rupture de stock
+                    </button>
+                  )}
                   <p className="text-center text-[10px] text-gray-500 mt-3 flex items-center justify-center gap-1">
                     <Truck size={12} /> Livraison Express Gratuite
                   </p>

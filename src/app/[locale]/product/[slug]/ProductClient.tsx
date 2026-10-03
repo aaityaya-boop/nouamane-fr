@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { formatMAD, Product } from '@/lib/products';
+import { formatMAD, Product, isProductInStock } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
 import { usePreferences } from '@/context/PreferencesContext';
 import ReactMarkdown from 'react-markdown';
@@ -194,9 +194,10 @@ export default function ProductClient({
 
   const currentSize = product.sizes?.find((s) => s.label === selectedSize);
   const currentPrice = currentSize?.price || product.price;
+  const inStock = isProductInStock(product);
 
   const handleAddToCart = (e?: React.MouseEvent) => {
-    if (isAdding) return;
+    if (isAdding || !inStock) return;
     setIsAdding(true);
 
     const finalSize = selectedSize;
@@ -264,6 +265,8 @@ export default function ProductClient({
           name: product.name,
           price: currentPrice,
           images: product.images,
+          inStock: product.inStock,
+          stock: product.stock,
         },
         quantity,
         finalSize
@@ -557,10 +560,11 @@ export default function ProductClient({
 
             {/* QUANTITY + ADD */}
             <div className="mt-8 flex flex-col md:flex-row items-center gap-4">
-              <div className="flex w-full md:w-auto items-center justify-between border border-[#e0ddd4] rounded-xl bg-white">
+              <div className={`flex w-full md:w-auto items-center justify-between border border-[#e0ddd4] rounded-xl bg-white ${!inStock ? 'opacity-50 pointer-events-none' : ''}`}>
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-12 h-14 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-l-xl transition"
+                  disabled={!inStock}
+                  className="w-12 h-14 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-l-xl transition disabled:cursor-not-allowed"
                   aria-label="Diminuer"
                 >
                   <Minus size={16} />
@@ -570,14 +574,15 @@ export default function ProductClient({
                 </div>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-12 h-14 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-r-xl transition"
+                  disabled={!inStock}
+                  className="w-12 h-14 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-r-xl transition disabled:cursor-not-allowed"
                   aria-label="Augmenter"
                 >
                   <Plus size={16} />
                 </button>
               </div>
 
-              {product.inStock !== false ? (
+              {inStock ? (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -605,9 +610,10 @@ export default function ProductClient({
               ) : (
                 <button
                   disabled
-                  className="bg-[#eeece5] text-[#9A9A9A] flex-1 w-full h-14 text-[13px] rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest font-semibold cursor-not-allowed"
+                  className="bg-red-50 text-red-600 border border-red-200 flex-1 w-full h-14 text-[13px] rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest font-bold cursor-not-allowed shadow-sm"
                 >
-                  {t.info.outOfStock}
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                  {t.info.outOfStock || 'Rupture de stock'}
                 </button>
               )}
             </div>
@@ -1078,17 +1084,27 @@ export default function ProductClient({
                 <div className="text-[11px] text-[#0ea5e9]">{t.sticky.cod}</div>
               </div>
               
-              <button
-                onClick={() => {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                  setTimeout(() => handleAddToCart(), 300);
-                }}
-                className={`btn-blue px-8 py-3.5 text-[12px] rounded-xl flex items-center justify-center gap-2 transition-all ${
-                  isAdded ? '!bg-green-600' : 'hover:shadow-lg'
-                }`}
-              >
-                {isAdded ? <><Check size={16} /> {t.actions.added}</> : <><ShoppingBag size={16} /> {t.actions.add}</>}
-              </button>
+              {inStock ? (
+                <button
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setTimeout(() => handleAddToCart(), 300);
+                  }}
+                  className={`btn-blue px-8 py-3.5 text-[12px] rounded-xl flex items-center justify-center gap-2 transition-all ${
+                    isAdded ? '!bg-green-600' : 'hover:shadow-lg'
+                  }`}
+                >
+                  {isAdded ? <><Check size={16} /> {t.actions.added}</> : <><ShoppingBag size={16} /> {t.actions.add}</>}
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="bg-red-50 text-red-600 border border-red-200 px-8 py-3.5 text-[12px] rounded-xl flex items-center justify-center gap-2 cursor-not-allowed font-bold uppercase tracking-wider"
+                >
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                  {t.info.outOfStock || 'Rupture de stock'}
+                </button>
+              )}
             </div>
           </motion.div>
         )}

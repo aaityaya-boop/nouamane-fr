@@ -8,6 +8,7 @@ import React, {
   useEffect,
 } from 'react';
 import Cookies from 'js-cookie';
+import { isProductInStock } from '@/lib/products';
 
 export type CartItem = {
   id: number;
@@ -196,6 +197,8 @@ type AddInput = {
   image?: string;
   images?: string[];
   size?: string;
+  inStock?: boolean;
+  stock?: number;
 };
 
 type CartContextType = {
@@ -342,6 +345,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [cart, appliedPromo, isLoaded]);
 
   const addToCart = (product: AddInput, quantity = 1, size = '50ml') => {
+    // Rupture de stock protection
+    if (!isProductInStock(product)) {
+      console.warn(`[Cart] Ajout bloqué : le produit "${product.name}" est en rupture de stock.`);
+      return;
+    }
+
     const priceNum =
       typeof product.price === 'string'
         ? parseFloat(product.price)

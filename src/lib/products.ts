@@ -65,6 +65,13 @@ export type Product = {
   isTester?: boolean;
 };
 
+export function isProductInStock(product: { inStock?: boolean; stock?: number } | null | undefined): boolean {
+  if (!product) return false;
+  if (product.inStock === false) return false;
+  if (typeof product.stock === 'number' && product.stock <= 0) return false;
+  return true;
+}
+
 /* ============================================================
    PRODUCT CATALOG
    ============================================================ */

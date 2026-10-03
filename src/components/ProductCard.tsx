@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingBag, Star, Flower, Sun, Leaf, Snowflake, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { formatMAD, type Product } from '@/lib/products';
+import { formatMAD, type Product, isProductInStock } from '@/lib/products';
 
 type ProductCardProps = {
   product: Product;
@@ -19,6 +19,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
   const { addToCart } = useCart();
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
+  const inStock = isProductInStock(product);
   const isBestseller = product.tags.includes('bestseller');
   const isNew = product.tags.includes('new-arrival') && product.subcategory !== 'coffrets';
   const isDiscounted = !!product.originalPrice && product.originalPrice > product.price;
@@ -26,6 +27,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!inStock) return;
     addToCart(
       {
         id: product.id,
@@ -34,6 +36,8 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
         name: product.name,
         price: product.price,
         images: product.images,
+        inStock: product.inStock,
+        stock: product.stock,
       },
       1,
       product.sizes[0]?.label || '50ml'
@@ -65,7 +69,11 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
         
         {/* Hidden 'Aperçu Rapide' button that slides up */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 w-full px-6 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100 z-30">
-          {onQuickView ? (
+          {!inStock ? (
+            <span className="bg-white/95 backdrop-blur-sm text-red-600 border border-red-200 text-[10px] font-bold tracking-widest uppercase px-6 py-3 rounded-full whitespace-nowrap shadow-xl">
+              Rupture de stock
+            </span>
+          ) : onQuickView ? (
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -83,9 +91,10 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
           )}
         </div>
 
-        {!product.inStock && (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center">
-            <span className="text-[11px] font-bold tracking-widest text-red-600 uppercase bg-white px-4 py-2 rounded-full shadow-sm">
+        {!inStock && (
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-4">
+            <span className="text-[11px] font-bold tracking-widest text-red-600 uppercase bg-white border border-red-200 px-4 py-2 rounded-full shadow-md flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
               Rupture de stock
             </span>
           </div>

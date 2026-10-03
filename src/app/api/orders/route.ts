@@ -94,20 +94,28 @@ export async function POST(request: Request) {
       }
     }
 
-    // Fetch SKUs for items
+    // Stock validation & Fetch SKUs for items
     const itemsWithSKU = await Promise.all(
       items.map(async (item: any) => {
         try {
           if (!item.id) return item;
           const product = await prisma.product.findUnique({
-            where: { id: item.id },
-            select: { sku: true },
+            where: { id: Number(item.id) },
+            select: { name: true, inStock: true, stock: true, sku: true },
           });
+
+          if (product && (!product.inStock || product.stock <= 0)) {
+            throw new Error(`RUPTURE_STOCK:${product.name}`);
+          }
+
           return {
             ...item,
             sku: product?.sku || null,
           };
-        } catch (err) {
+        } catch (err: any) {
+          if (err?.message?.startsWith('RUPTURE_STOCK:')) {
+            throw err;
+          }
           return item;
         }
       })
@@ -190,12 +198,53 @@ export async function POST(request: Request) {
       console.error('Failed to dispatch order notification:', e);
     }
 
+    // Decrement stock for ordered items
+    for (const item of items) {
+      if (item.id) {
+        try {
+          const qty = Math.max(1, Number(item.quantity) || 1);
+          const updatedProd = await prisma.product.update({
+            where: { id: Number(item.id) },
+            data: {
+              stock: {
+                decrement: qty,
+              },
+            },
+            select: { id: true, name: true, stock: true },
+          });
+
+          if (updatedProd.stock <= 0) {
+            await prisma.product.update({
+              where: { id: updatedProd.id },
+              data: { inStock: false },
+            });
+            await createAdminNotification({
+              type: 'STOCK',
+              title: `Rupture de Stock : ${updatedProd.name}`,
+              message: `Le produit "${updatedProd.name}" est désormais épuisé (stock: ${updatedProd.stock}).`,
+              link: '/admin/inventory',
+              metadata: { productId: updatedProd.id, stock: updatedProd.stock },
+            }).catch(() => {});
+          }
+        } catch (stockErr) {
+          console.error('Failed to update product stock:', stockErr);
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       orderNumber: created.orderNumber,
       id: created.id,
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.message?.startsWith('RUPTURE_STOCK:')) {
+      const prodName = error.message.replace('RUPTURE_STOCK:', '');
+      return NextResponse.json(
+        { error: `Le produit "${prodName}" est actuellement en rupture de stock et ne peut plus être commandé.` },
+        { status: 400 }
+      );
+    }
     console.error('Error creating order:', error);
     return NextResponse.json(
       { error: 'Failed to create order' },
