@@ -305,6 +305,93 @@ html.dark .hover\:text-black:hover {
   color: #ffffff !important;
 }
 
+/* ── 6.5. High-Legibility Typography Scaling (Bigger & Ultra-Readable) ────── */
+body, 
+.admin-shell-bg {
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+/* Micro-fonts elevated to clear, comfortable sizes */
+.text-\[10px\] {
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+}
+
+.text-\[11px\] {
+  font-size: 12.5px !important;
+  line-height: 1.4 !important;
+}
+
+.text-xs {
+  font-size: 13.5px !important;
+  line-height: 1.45 !important;
+}
+
+.text-\[13px\] {
+  font-size: 14.5px !important;
+  line-height: 1.45 !important;
+}
+
+.text-sm {
+  font-size: 15.5px !important;
+  line-height: 1.5 !important;
+}
+
+.text-base {
+  font-size: 17px !important;
+  line-height: 1.5 !important;
+}
+
+.text-lg {
+  font-size: 19px !important;
+  line-height: 1.4 !important;
+}
+
+.text-xl {
+  font-size: 22px !important;
+  line-height: 1.3 !important;
+}
+
+.text-2xl {
+  font-size: 27px !important;
+  line-height: 1.25 !important;
+}
+
+.text-\[28px\] {
+  font-size: 32px !important;
+  line-height: 1.2 !important;
+}
+
+/* Form Controls & Inputs font sizing */
+input, 
+select, 
+textarea,
+button {
+  font-size: 13.5px !important;
+}
+
+/* Table Cells & Headers readability */
+table th {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+}
+
+table td {
+  font-size: 13.5px !important;
+}
+
+table td input {
+  font-size: 13.5px !important;
+}
+
+/* Navigation items */
+aside a, 
+.admin-sidebar a {
+  font-size: 13.5px !important;
+}
+
 /* ── 7. Navigation Links & Sidebar Items ─────────────────────────────────── */
 html.dark .hover\:bg-slate-100\/70:hover,
 html.dark .hover\:bg-slate-100\/80:hover,
