@@ -464,18 +464,26 @@ export default function SuggestionsClient({ currentAdmin }: { currentAdmin: any 
           <p className="text-sm font-medium text-slate-600">Chargement des idées...</p>
         </div>
       ) : suggestions.length === 0 ? (
-        <div className="py-16 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
-          <Lightbulb size={36} className="mx-auto text-amber-400/60 mb-3" />
-          <p className="text-base font-bold text-slate-700">Aucune idée trouvée pour ces critères</p>
-          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-            Soyez le premier à proposer une idée d'amélioration pour la Maison NAY Parfums !
+        <div className="py-20 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 shadow-xs space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto mb-2">
+            <Lightbulb size={28} />
+          </div>
+          <h3 className="text-base font-bold text-slate-900">
+            {search || categoryFilter !== 'ALL' || statusFilter !== 'ALL' || impactFilter !== 'ALL'
+              ? 'Aucune idée ne correspond à vos filtres'
+              : 'Aucune suggestion pour le moment'}
+          </h3>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+            {search || categoryFilter !== 'ALL' || statusFilter !== 'ALL' || impactFilter !== 'ALL'
+              ? 'Essayez de réinitialiser vos critères de recherche pour afficher les idées.'
+              : 'Votre boîte à idées est actuellement vierge. Proposez une première initiative pour booster les ventes, optimiser la logistique ou perfectionner nos offres !'}
           </p>
           <button
             onClick={() => setIsSubmitOpen(true)}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold cursor-pointer"
+            className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
           >
-            <Plus size={14} />
-            <span>Proposer une Idée</span>
+            <Plus size={15} className="text-amber-400" />
+            <span>+ Proposer une Idée</span>
           </button>
         </div>
       ) : (
