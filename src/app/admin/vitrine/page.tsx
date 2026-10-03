@@ -428,7 +428,7 @@ export default function VitrinePage() {
                       }`}
                     >
                       {isActive && (
-                        <motion.div layoutId="activeTabBadge" className="absolute inset-0 bg-white shadow-2xs rounded-lg border border-neutral-200/80" />
+                        <motion.div layoutId="activeShopTabBadge" className="absolute inset-0 bg-white shadow-2xs rounded-lg border border-neutral-200/80" />
                       )}
                       <span className="relative z-10 flex items-center gap-1.5">
                         {tab.icon}
@@ -465,7 +465,7 @@ export default function VitrinePage() {
                       }`}
                     >
                       {isActive && (
-                        <motion.div layoutId="activeTabBadge" className="absolute inset-0 bg-white shadow-2xs rounded-lg border border-neutral-200/80" />
+                        <motion.div layoutId="activeHomeTabBadge" className="absolute inset-0 bg-white shadow-2xs rounded-lg border border-neutral-200/80" />
                       )}
                       <span className="relative z-10 flex items-center gap-1.5">
                         {tab.icon}
