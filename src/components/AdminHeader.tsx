@@ -54,18 +54,17 @@ export default function AdminHeader() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentTimeCasablanca, setCurrentTimeCasablanca] = useState('');
 
-  // Live Clock in official Africa/Casablanca Moroccan time
+  // Live Clock in official Africa/Casablanca Moroccan time (GMT+1 / UTC+1)
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const timeString = new Intl.DateTimeFormat('fr-MA', {
-        timeZone: 'Africa/Casablanca',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      }).format(now);
-      setCurrentTimeCasablanca(timeString);
+      const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const moroccoDate = new Date(utcMs + (3600 * 1000));
+      
+      const hours = String(moroccoDate.getHours()).padStart(2, '0');
+      const minutes = String(moroccoDate.getMinutes()).padStart(2, '0');
+      const seconds = String(moroccoDate.getSeconds()).padStart(2, '0');
+      setCurrentTimeCasablanca(`${hours}:${minutes}:${seconds}`);
     };
 
     updateTime();
