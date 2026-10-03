@@ -20,8 +20,11 @@ import {
   Info,
   Check,
   X,
-  Clock
+  Clock,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useAdminTheme } from '@/context/AdminThemeContext';
 
 interface AdminUser {
   id: string;
@@ -47,6 +50,7 @@ interface NotificationItem {
 export default function AdminHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, toggleTheme, isDark } = useAdminTheme();
 
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -319,8 +323,23 @@ export default function AdminHeader() {
         </div>
       </div>
 
-      {/* Right Controls: Chat, Notifications, Profile */}
-      <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+      {/* Right Controls: Theme Switcher, Chat, Notifications, Profile */}
+      <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto">
+        {/* DARK / LIGHT THEME TOGGLE BUTTON */}
+        <button
+          onClick={toggleTheme}
+          type="button"
+          className="p-2 rounded-xl text-slate-500 hover:text-amber-500 hover:bg-slate-100 transition-all relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200"
+          title={isDark ? "Basculer en Mode Clair (☀️)" : "Basculer en Mode Sombre (🌙)"}
+          aria-label="Changer de thème d'affichage"
+        >
+          {isDark ? (
+            <Sun size={18} className="text-amber-400" />
+          ) : (
+            <Moon size={18} className="text-slate-600 hover:text-indigo-600 transition-colors" />
+          )}
+        </button>
+
         {/* TEAM CHAT QUICK BUTTON */}
         <Link
           href="/admin/chat"

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import AdminLayoutShell from "@/components/AdminLayoutShell";
 import "../globals.css";
+import "@/styles/admin-dark.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -30,13 +31,32 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr" className={plusJakarta.variable}>
+    <html lang="fr" className={plusJakarta.variable} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/admin-favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/admin-favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/admin-favicon-16x16.png" />
         <link rel="icon" type="image/svg+xml" href="/admin-favicon.svg" />
         <link rel="apple-touch-icon" href="/admin-apple-touch-icon.png" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('nay_admin_theme');
+                  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (saved === 'dark' || (!saved && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </head>
       <body className={`${plusJakarta.className} bg-white antialiased min-h-screen font-sans`}>
         <AdminLayoutShell>

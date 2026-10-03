@@ -1,0 +1,310 @@
+/* ==========================================================================
+   MAISON NAY PARFUMS — ADMIN PANEL LUXURY DARK MODE STYLES
+   Executive Obsidian & Midnight Slate Palette
+   ========================================================================== */
+
+/* ── 1. Root & Base Variables in Dark Mode ─────────────────────────────────── */
+html.dark,
+html.dark body,
+html.dark [data-theme="dark"] {
+  --admin-bg: #090d16;
+  --admin-bg-surface: #111827;
+  --admin-bg-surface-elevated: #161f30;
+  --admin-bg-surface-subtle: #0b0f19;
+  --admin-border: #1e293b;
+  --admin-border-subtle: #192231;
+  --admin-text-primary: #f8fafc;
+  --admin-text-secondary: #cbd5e1;
+  --admin-text-muted: #94a3b8;
+  --admin-text-faint: #64748b;
+  --admin-accent-sky: #38bdf8;
+  --admin-accent-amber: #fbbf24;
+  --admin-accent-emerald: #34d399;
+  --admin-accent-rose: #fb7185;
+}
+
+html.dark body {
+  background-color: #090d16 !important;
+  color: #f8fafc !important;
+}
+
+/* ── 2. Admin Shell, Sidebar & Header ─────────────────────────────────────── */
+html.dark .bg-\[\#f8fafc\] {
+  background-color: #090d16 !important;
+}
+
+html.dark aside,
+html.dark .admin-sidebar,
+html.dark aside.bg-white {
+  background-color: #0c101c !important;
+  border-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark header,
+html.dark .admin-header,
+html.dark header.bg-white {
+  background-color: #111827 !important;
+  border-color: #1e293b !important;
+}
+
+/* Mobile header */
+html.dark .lg\:hidden.bg-white {
+  background-color: #0c101c !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+/* Sidebar Sections & Brand headers */
+html.dark .from-sky-50\/30 {
+  --tw-gradient-from: rgba(12, 16, 28, 0.9) !important;
+  --tw-gradient-to: rgba(12, 16, 28, 0.9) !important;
+}
+
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-200\/90,
+html.dark .border-\[\#e2e8f0\] {
+  border-color: #1e293b !important;
+}
+
+/* ── 3. Cards, Bento Surfaces & Containers ────────────────────────────────── */
+html.dark .bg-white {
+  background-color: #111827 !important;
+  color: #f8fafc;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/80 {
+  background-color: #0b0f19 !important;
+}
+
+html.dark .bg-slate-100,
+html.dark .bg-slate-100\/70,
+html.dark .bg-slate-100\/80 {
+  background-color: #162032 !important;
+}
+
+/* ── 4. Typography & Text Overrides in Dark Mode ──────────────────────────── */
+html.dark .text-slate-950,
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-\[\#1A1A1A\] {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .hover\:text-slate-900:hover {
+  color: #ffffff !important;
+}
+
+/* ── 5. Navigation Links & Active States ──────────────────────────────────── */
+html.dark .hover\:bg-slate-100\/70:hover,
+html.dark .hover\:bg-slate-100\/80:hover,
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
+  background-color: #1a2436 !important;
+}
+
+html.dark .bg-sky-50 {
+  background-color: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(14, 165, 233, 0.25) !important;
+}
+
+/* ── 6. Form Inputs, Selects, Textareas & Checkboxes ───────────────────────── */
+html.dark input[type="text"],
+html.dark input[type="search"],
+html.dark input[type="email"],
+html.dark input[type="password"],
+html.dark input[type="number"],
+html.dark input[type="tel"],
+html.dark input[type="date"],
+html.dark select,
+html.dark textarea {
+  background-color: #0b1120 !important;
+  color: #f8fafc !important;
+  border-color: #243047 !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  background-color: #10192c !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Date picker calendar icon inversion in dark mode */
+html.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+}
+
+/* ── 7. Tables, Dividers & Lists ─────────────────────────────────────────── */
+html.dark table thead,
+html.dark thead.bg-slate-50 {
+  background-color: #0c101c !important;
+  border-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+html.dark table tbody tr {
+  border-color: #192231 !important;
+}
+
+html.dark table tbody tr:hover,
+html.dark tr.hover\:bg-slate-50\/70:hover {
+  background-color: rgba(22, 32, 50, 0.6) !important;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1e293b !important;
+}
+
+/* ── 8. Modals, Popovers, Drawers & Lightboxes ────────────────────────────── */
+html.dark .fixed .bg-white {
+  background-color: #111827 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* ── 9. Status Badges & Category Pills in Dark Mode ───────────────────────── */
+html.dark .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #34d399 !important;
+}
+
+html.dark .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #fbbf24 !important;
+}
+
+html.dark .bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+  color: #fb7185 !important;
+}
+
+html.dark .bg-indigo-50,
+html.dark .bg-indigo-50\/40,
+html.dark .bg-indigo-50\/50,
+html.dark .bg-indigo-50\/70 {
+  background-color: rgba(99, 102, 241, 0.12) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  color: #a5b4fc !important;
+}
+
+html.dark .bg-purple-50 {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+  color: #c084fc !important;
+}
+
+html.dark .bg-teal-50 {
+  background-color: rgba(20, 184, 166, 0.12) !important;
+  border-color: rgba(20, 184, 166, 0.3) !important;
+  color: #2dd4bf !important;
+}
+
+/* Badges texts */
+html.dark .text-emerald-700,
+html.dark .text-emerald-800 {
+  color: #34d399 !important;
+}
+
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-amber-900 {
+  color: #fbbf24 !important;
+}
+
+html.dark .text-rose-700,
+html.dark .text-rose-800 {
+  color: #fb7185 !important;
+}
+
+html.dark .text-indigo-700,
+html.dark .text-indigo-800,
+html.dark .text-indigo-900,
+html.dark .text-indigo-950 {
+  color: #a5b4fc !important;
+}
+
+html.dark .text-sky-700,
+html.dark .text-sky-800 {
+  color: #38bdf8 !important;
+}
+
+/* ── 10. Buttons & Interactive Controls ──────────────────────────────────── */
+html.dark .bg-slate-900:not(.bg-gradient-to-br) {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border: 1px solid #334155;
+}
+
+html.dark .bg-slate-900:hover {
+  background-color: #2b3952 !important;
+}
+
+html.dark .bg-\[\#0f172a\] {
+  background-color: #1e293b !important;
+  border: 1px solid #334155;
+}
+
+html.dark .bg-\[\#0f172a\]:hover {
+  background-color: #2b3952 !important;
+}
+
+/* ── 11. Dark Scrollbars ─────────────────────────────────────────────────── */
+html.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #090d16;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* ── 12. Smooth Theme Transition ─────────────────────────────────────────── */
+html,
+body,
+aside,
+header,
+main,
+.bg-white,
+.bg-slate-50,
+.border-slate-200 {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}

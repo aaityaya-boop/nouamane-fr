@@ -44,8 +44,11 @@ import {
   RotateCcw,
   Truck,
   Lightbulb,
-  AlertCircle
+  AlertCircle,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useAdminTheme } from '@/context/AdminThemeContext';
 
 interface MenuItem {
   href: string;
@@ -128,6 +131,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<AdminUser | null>(null);
+  const { theme, toggleTheme, isDark } = useAdminTheme();
 
   useEffect(() => {
     let isMounted = true;
@@ -387,16 +391,25 @@ export default function AdminSidebar() {
             <Link 
               href="/" 
               target="_blank"
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 transition-all"
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 transition-all"
               title="Voir la boutique publique"
             >
               <ExternalLink size={12} className="text-slate-400" />
               <span>Boutique</span>
             </Link>
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="px-2 py-1.5 rounded-lg text-slate-600 hover:text-amber-500 hover:bg-white border border-transparent hover:border-slate-200 transition-all cursor-pointer flex items-center justify-center"
+              title={isDark ? "Mode Clair" : "Mode Sombre"}
+            >
+              {isDark ? <Sun size={13} className="text-amber-400" /> : <Moon size={13} />}
+            </button>
             
             <button 
               onClick={handleLogout}
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50/80 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50/80 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
               title="Déconnexion sécurisée"
             >
               <LogOut size={12} />
