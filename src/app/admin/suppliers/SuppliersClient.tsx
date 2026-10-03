@@ -589,6 +589,139 @@ export default function SuppliersClient({
     }
   };
 
+  // Open Supplier Modal (Create or Edit)
+  const handleOpenSupplierModal = (supplier?: SupplierItem | null) => {
+    if (supplier) {
+      setEditingSupplier(supplier);
+      setSupplierFormData({
+        name: supplier.name || '',
+        code: supplier.code || '',
+        category: supplier.category || 'PARFUMS',
+        tier: supplier.tier || 'TIER_1',
+        contactName: supplier.contactName || '',
+        phone: supplier.phone || '',
+        email: supplier.email || '',
+        city: supplier.city || 'Casablanca',
+        country: supplier.country || 'MA',
+        address: supplier.address || '',
+        taxId: supplier.taxId || '',
+        incoterms: supplier.incoterms || 'DDP',
+        currency: supplier.currency || 'MAD',
+        minOrderValueMAD: supplier.minOrderValueMAD || 0,
+        paymentTerms: supplier.paymentTerms || 'A_LA_LIVRAISON',
+        bankName: supplier.bankName || '',
+        bankRib: supplier.bankRib || '',
+        leadTimeDays: supplier.leadTimeDays || 3,
+        status: supplier.status || 'ACTIVE',
+        notes: supplier.notes || '',
+      });
+    } else {
+      setEditingSupplier(null);
+      setSupplierFormData({
+        name: '',
+        code: '',
+        category: 'PARFUMS',
+        tier: 'TIER_1',
+        contactName: '',
+        phone: '',
+        email: '',
+        city: 'Casablanca',
+        country: 'MA',
+        address: '',
+        taxId: '',
+        incoterms: 'DDP',
+        currency: 'MAD',
+        minOrderValueMAD: 0,
+        paymentTerms: 'A_LA_LIVRAISON',
+        bankName: '',
+        bankRib: '',
+        leadTimeDays: 3,
+        status: 'ACTIVE',
+        notes: '',
+      });
+    }
+    setIsSupplierModalOpen(true);
+  };
+
+  // Save Supplier (POST / PUT)
+  const handleSaveSupplier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supplierFormData.name?.trim()) {
+      alert('Veuillez saisir le nom du partenaire fournisseur.');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (editingSupplier) {
+        // Edit existing
+        const res = await fetch(`/api/admin/suppliers/${editingSupplier.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(supplierFormData)
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.error || 'Erreur lors de la modification du fournisseur');
+        }
+
+        setSuppliers(prev => prev.map(s => s.id === editingSupplier.id ? json.supplier : s));
+        if (activeSupplierDossier && activeSupplierDossier.id === editingSupplier.id) {
+          setActiveSupplierDossier(json.supplier);
+        }
+      } else {
+        // Create new
+        const res = await fetch('/api/admin/suppliers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(supplierFormData)
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.error || 'Erreur lors de la création du fournisseur');
+        }
+
+        setSuppliers(prev => [json.supplier, ...prev]);
+      }
+
+      setIsSupplierModalOpen(false);
+      setEditingSupplier(null);
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || 'Erreur réseau');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Delete Supplier
+  const handleDeleteSupplier = async (supplierId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer définitivement ce partenaire fournisseur ?')) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/admin/suppliers/${supplierId}`, {
+        method: 'DELETE'
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Erreur lors de la suppression');
+      }
+
+      setSuppliers(prev => prev.filter(s => s.id !== supplierId));
+      if (activeSupplierDossier && activeSupplierDossier.id === supplierId) {
+        setActiveSupplierDossier(null);
+      }
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || 'Erreur réseau');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-8 pb-24 text-slate-900">
       {/* 👑 LUXURY EXECUTIVE HERO BANNER */}
@@ -621,10 +754,7 @@ export default function SuppliersClient({
             </button>
             <button
               type="button"
-              onClick={() => {
-                setEditingSupplier(null);
-                setIsSupplierModalOpen(true);
-              }}
+              onClick={() => handleOpenSupplierModal()}
               className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold backdrop-blur-md border border-white/15 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
             >
               <Building2 size={15} />
@@ -1608,10 +1738,7 @@ export default function SuppliersClient({
 
               <button
                 type="button"
-                onClick={() => {
-                  setEditingSupplier(null);
-                  setIsSupplierModalOpen(true);
-                }}
+                onClick={() => handleOpenSupplierModal()}
                 className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-sm"
               >
                 <Plus size={14} />
@@ -1630,10 +1757,7 @@ export default function SuppliersClient({
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  setEditingSupplier(null);
-                  setIsSupplierModalOpen(true);
-                }}
+                onClick={() => handleOpenSupplierModal()}
                 className="mt-4 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all inline-flex items-center gap-2"
               >
                 <Plus size={14} />
@@ -1885,6 +2009,531 @@ export default function SuppliersClient({
           </div>
         </div>
       )}
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* 🏢 MODAL: AJOUTER / MODIFIER UN FOURNISSEUR */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {isSupplierModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <Building2 size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {editingSupplier ? 'Modifier le Partenaire Fournisseur' : 'Nouveau Partenaire Fournisseur'}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {editingSupplier ? `Mise à jour de la fiche : ${editingSupplier.name}` : 'Enregistrez un nouveau fournisseur dans votre annuaire stratégique.'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSupplierModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSupplier} className="space-y-6 text-xs">
+              {/* Section 1: Identité */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                  <Sparkles size={14} className="text-amber-500" />
+                  <span>1. Identité & Classification Métier</span>
+                </h4>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Nom / Raison Sociale du Partenaire *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={supplierFormData.name || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, name: e.target.value })}
+                      placeholder="ex: Laboratoires Robertet Grasse, Verrerie Saverglass..."
+                      className="w-full font-bold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Code Référence Fournisseur
+                    </label>
+                    <input
+                      type="text"
+                      value={supplierFormData.code || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, code: e.target.value.toUpperCase() })}
+                      placeholder="FRN-001 (auto si vide)"
+                      className="w-full font-mono uppercase bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Catégorie Métier *
+                    </label>
+                    <select
+                      value={supplierFormData.category || 'PARFUMS'}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, category: e.target.value })}
+                      className="w-full font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="PARFUMS">Parfums & Testeurs Prêts à la Vente</option>
+                      <option value="ESSENCES">Concentrés & Huiles Essentielles (Grasse/Dubaï)</option>
+                      <option value="FLACONS">Flaconnage Lourd, Cristallerie & Pompes</option>
+                      <option value="PACKAGING">Packaging, Coffrets Aimantés & Dorure</option>
+                      <option value="LOGISTIQUE">Logistique, Fret Aérien & Douanes</option>
+                      <option value="AUTRE">Autre Fourniture / Prestation</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Niveau / Tier Stratégique
+                    </label>
+                    <select
+                      value={supplierFormData.tier || 'TIER_1'}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, tier: e.target.value })}
+                      className="w-full font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="TIER_1">Tier 1 - Partenaire Stratégique Clé</option>
+                      <option value="TIER_2">Tier 2 - Fournisseur Régulier Agréé</option>
+                      <option value="TIER_3">Tier 3 - Fournisseur Ponctuel</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Statut Partenaire
+                    </label>
+                    <select
+                      value={supplierFormData.status || 'ACTIVE'}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, status: e.target.value })}
+                      className="w-full font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="ACTIVE">Actif (Opérationnel)</option>
+                      <option value="VIP">Partenaire VIP Privilégié</option>
+                      <option value="PENDING">En cours d'homologation</option>
+                      <option value="INACTIVE">Inactif / Suspendu</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Contact & Localisation */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                  <Phone size={14} className="text-indigo-600" />
+                  <span>2. Contact & Coordonnées</span>
+                </h4>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Nom de l'Interlocuteur / Contact
+                    </label>
+                    <input
+                      type="text"
+                      value={supplierFormData.contactName || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, contactName: e.target.value })}
+                      placeholder="ex: M. Karim Bennis"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Téléphone / WhatsApp
+                    </label>
+                    <input
+                      type="tel"
+                      value={supplierFormData.phone || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, phone: e.target.value })}
+                      placeholder="06 61 XX XX XX ou +212..."
+                      className="w-full font-mono bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Email Professionnel
+                    </label>
+                    <input
+                      type="email"
+                      value={supplierFormData.email || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, email: e.target.value })}
+                      placeholder="contact@fournisseur.com"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Ville
+                    </label>
+                    <input
+                      type="text"
+                      value={supplierFormData.city || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, city: e.target.value })}
+                      placeholder="Casablanca, Tanger, Grasse, Dubaï..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Adresse Physique / Entrepôt
+                    </label>
+                    <input
+                      type="text"
+                      value={supplierFormData.address || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, address: e.target.value })}
+                      placeholder="Zone Industrielle Sidi Maârouf, Casablanca"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Financier & Modalités */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                  <CreditCard size={14} className="text-emerald-600" />
+                  <span>3. Légal & Conditions Commerciales</span>
+                </h4>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      ICE / Identifiant Fiscal / RC
+                    </label>
+                    <input
+                      type="text"
+                      value={supplierFormData.taxId || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, taxId: e.target.value })}
+                      placeholder="002345678000045"
+                      className="w-full font-mono bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Conditions de Règlement
+                    </label>
+                    <select
+                      value={supplierFormData.paymentTerms || 'A_LA_LIVRAISON'}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, paymentTerms: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="A_LA_LIVRAISON">Paiement à la livraison</option>
+                      <option value="30_JOURS">Paiement à 30 jours (Fin de mois)</option>
+                      <option value="50_AVANCE">50% à la commande / 50% à la réception</option>
+                      <option value="COMPTANT">Paiement comptant (Espèces / Chèque)</option>
+                      <option value="VIREMENT">Virement bancaire avant expédition</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Délai Moyen de Livraison (Jours)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={supplierFormData.leadTimeDays || 3}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, leadTimeDays: Number(e.target.value) })}
+                      className="w-full font-mono bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Minimum de Commande (MAD)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={supplierFormData.minOrderValueMAD || 0}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, minOrderValueMAD: Number(e.target.value) })}
+                      className="w-full font-mono bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      Banque Partenaire
+                    </label>
+                    <input
+                      type="text"
+                      value={supplierFormData.bankName || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, bankName: e.target.value })}
+                      placeholder="Attijariwafa Bank, CIH, BOA..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                      RIB Bancaire (24 chiffres)
+                    </label>
+                    <input
+                      type="text"
+                      value={supplierFormData.bankRib || ''}
+                      onChange={e => setSupplierFormData({ ...supplierFormData, bankRib: e.target.value })}
+                      placeholder="007 780 0001234567890123 45"
+                      className="w-full font-mono bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Notes */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                  Notes & Observations Internes
+                </label>
+                <textarea
+                  rows={3}
+                  value={supplierFormData.notes || ''}
+                  onChange={e => setSupplierFormData({ ...supplierFormData, notes: e.target.value })}
+                  placeholder="Informations sur la qualité des flacons, consignes de déchargement, remises accordées..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsSupplierModalOpen(false)}
+                  className="px-5 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
+                  <span>{editingSupplier ? 'Mettre à jour le Fournisseur' : 'Enregistrer le Fournisseur'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* 📂 MODAL: DOSSIER COMPLET DU FOURNISSEUR */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {activeSupplierDossier && (() => {
+        const cleanPhone = (activeSupplierDossier.phone || '').replace(/[^0-9]/g, '');
+        const waPhone = cleanPhone.startsWith('0') ? `212${cleanPhone.slice(1)}` : cleanPhone;
+        const waMessage = encodeURIComponent(`Bonjour ${activeSupplierDossier.contactName || activeSupplierDossier.name}, nous vous contactons de la part de la Maison NAY Parfums.`);
+        const supplierOrders = purchaseOrders.filter(p => p.supplierId === activeSupplierDossier.id);
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6 text-slate-900">
+              {/* Header */}
+              <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase">
+                      {activeSupplierDossier.code}
+                    </span>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+                      {activeSupplierDossier.category}
+                    </span>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                      {activeSupplierDossier.tier}
+                    </span>
+                  </div>
+                  <h2 className="text-2xl font-extrabold text-slate-950">{activeSupplierDossier.name}</h2>
+                  <p className="text-xs text-slate-500 flex items-center gap-1">
+                    <MapPin size={13} className="text-slate-400" />
+                    <span>{activeSupplierDossier.address || activeSupplierDossier.city || 'Maroc'}</span>
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const s = activeSupplierDossier;
+                      setActiveSupplierDossier(null);
+                      handleOpenSupplierModal(s);
+                    }}
+                    className="p-2 rounded-xl text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 cursor-pointer"
+                    title="Modifier"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteSupplier(activeSupplierDossier.id)}
+                    className="p-2 rounded-xl text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 cursor-pointer"
+                    title="Supprimer"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSupplierDossier(null)}
+                    className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Direct Actions Bar */}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const s = activeSupplierDossier;
+                    setActiveSupplierDossier(null);
+                    handleOpenOrderModal(s);
+                  }}
+                  className="flex-1 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                >
+                  <Package size={15} />
+                  <span>+ Émettre un Bon de Commande</span>
+                </button>
+
+                {activeSupplierDossier.phone && (
+                  <a
+                    href={`https://wa.me/${waPhone}?text=${waMessage}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-xs flex items-center gap-2 shadow-sm"
+                  >
+                    <MessageSquare size={15} />
+                    <span>WhatsApp</span>
+                  </a>
+                )}
+
+                {activeSupplierDossier.phone && (
+                  <a
+                    href={`tel:${activeSupplierDossier.phone}`}
+                    className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold text-xs flex items-center gap-2"
+                  >
+                    <Phone size={15} />
+                    <span>Appeler</span>
+                  </a>
+                )}
+              </div>
+
+              {/* Details Bento Grid */}
+              <div className="grid sm:grid-cols-2 gap-4 text-xs">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
+                  <div className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Coordonnées de Contact</div>
+                  <div className="space-y-1 text-slate-600">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Contact :</span>
+                      <span className="font-semibold text-slate-900">{activeSupplierDossier.contactName || 'Non spécifié'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Téléphone :</span>
+                      <span className="font-mono font-semibold text-slate-900">{activeSupplierDossier.phone || 'Non spécifié'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Email :</span>
+                      <span className="font-semibold text-slate-900">{activeSupplierDossier.email || 'Non spécifié'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Ville :</span>
+                      <span className="font-semibold text-slate-900">{activeSupplierDossier.city || 'Casablanca'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
+                  <div className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Données Commerciales & Légal</div>
+                  <div className="space-y-1 text-slate-600">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">ICE / Tax ID :</span>
+                      <span className="font-mono font-semibold text-slate-900">{activeSupplierDossier.taxId || 'Non renseigné'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Règlement :</span>
+                      <span className="font-semibold text-slate-900">{activeSupplierDossier.paymentTerms || 'À la livraison'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Délai moyen :</span>
+                      <span className="font-semibold text-slate-900">{activeSupplierDossier.leadTimeDays || 3} jours</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Min. Commande :</span>
+                      <span className="font-mono font-semibold text-slate-900">{formatMAD(activeSupplierDossier.minOrderValueMAD || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {(activeSupplierDossier.bankName || activeSupplierDossier.bankRib) && (
+                  <div className="sm:col-span-2 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-1 text-xs">
+                    <div className="font-bold text-indigo-950 uppercase tracking-wider text-[11px]">Coordonnées Bancaires (RIB)</div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between text-indigo-900 gap-1">
+                      <span>Banque : <strong>{activeSupplierDossier.bankName || 'Banque'}</strong></span>
+                      <span className="font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-indigo-200">
+                        {activeSupplierDossier.bankRib}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {activeSupplierDossier.notes && (
+                  <div className="sm:col-span-2 bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1 text-xs">
+                    <div className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Notes Internes</div>
+                    <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{activeSupplierDossier.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Purchase Orders History */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center justify-between">
+                  <span>Historique des Bons de Commande ({supplierOrders.length})</span>
+                </h4>
+
+                {supplierOrders.length === 0 ? (
+                  <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-2xl border border-slate-100 text-xs">
+                    Aucun bon de commande n'a encore été émis pour ce partenaire.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {supplierOrders.map(po => (
+                      <div key={po.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs">
+                        <div>
+                          <span className="font-mono font-bold text-slate-900">{po.orderNumber}</span>
+                          <span className="text-[10px] text-slate-400 ml-2">{formatDateGMT(po.createdAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-bold text-slate-900">{formatMAD(po.chargeAmountMAD || po.totalAmount || 0)}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            po.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                          }`}>
+                            {po.paymentStatus === 'PAID' ? 'Payé' : 'Non Payé'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
