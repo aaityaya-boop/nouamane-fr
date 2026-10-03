@@ -19,7 +19,8 @@ import {
   AlertTriangle,
   Info,
   Check,
-  X
+  X,
+  Clock
 } from 'lucide-react';
 
 interface AdminUser {
@@ -51,6 +52,26 @@ export default function AdminHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentTimeCasablanca, setCurrentTimeCasablanca] = useState('');
+
+  // Live Clock in official Africa/Casablanca Moroccan time
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const timeString = new Intl.DateTimeFormat('fr-MA', {
+        timeZone: 'Africa/Casablanca',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }).format(now);
+      setCurrentTimeCasablanca(timeString);
+    };
+
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Notifications State
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -223,8 +244,10 @@ export default function AdminHeader() {
     if (path.startsWith('/admin/parfums-originaux')) return 'Parfums Originaux';
     if (path.startsWith('/admin/master-copier')) return 'Master Copy 1:1';
     if (path.startsWith('/admin/inventory')) return 'Inventaire & Stocks';
+    if (path.startsWith('/admin/suppliers')) return 'Gestion des Fournisseurs & Approvisionnements';
     if (path.startsWith('/admin/brands')) return 'Marques de Luxe';
-    if (path.startsWith('/admin/finance')) return 'Finance & Rémunérations';
+    if (path.startsWith('/admin/team/suggestions')) return 'Boîte à Idées & Suggestions';
+    if (path.startsWith('/admin/team/reclamations')) return 'Réclamations & Signalements RH';
     if (path.startsWith('/admin/team/roles')) return 'Matrice des 26 Rôles';
     if (path.startsWith('/admin/team')) return 'Équipe, Salaires & RBAC';
     if (path.startsWith('/admin/tasks')) return 'Missions & Tâches (Kanban)';
@@ -284,6 +307,16 @@ export default function AdminHeader() {
             <span>nayparfum.ma</span>
             <ExternalLink size={11} className="text-slate-400" />
           </Link>
+
+          {/* Live Casablanca Clock */}
+          <div 
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-xs"
+            title="Heure officielle du Maroc (Casablanca)"
+          >
+            <Clock size={12} className="text-[#0ea5e9]" />
+            <span className="text-slate-500 font-medium">Casablanca :</span>
+            <span className="font-mono font-bold text-slate-900">{currentTimeCasablanca || '--:--:--'}</span>
+          </div>
         </div>
       </div>
 

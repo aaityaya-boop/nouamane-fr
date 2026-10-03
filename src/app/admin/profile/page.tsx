@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   User, 
@@ -63,7 +63,7 @@ const AVATAR_PRESETS = [
   { id: '5', label: 'Oud Royal', url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300&auto=format&fit=crop&q=80' },
 ];
 
-export default function AdminProfilePage() {
+function AdminProfileContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') || 'profile';
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'activity'>(
@@ -864,3 +864,19 @@ export default function AdminProfilePage() {
     </div>
   );
 }
+
+export default function AdminProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 md:p-10 max-w-5xl mx-auto flex items-center justify-center py-24 text-neutral-500 text-xs gap-2">
+          <RefreshCw className="animate-spin text-neutral-600" size={16} />
+          <span>Chargement du profil...</span>
+        </div>
+      }
+    >
+      <AdminProfileContent />
+    </Suspense>
+  );
+}
+

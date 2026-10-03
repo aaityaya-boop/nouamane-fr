@@ -45,16 +45,32 @@ export default function AnalyticsTracker() {
       }
     };
 
-    // 1. Send immediate pageview
+    // 1. Send immediate pageview on mount/navigation
     sendTrack('PAGEVIEW');
 
-    // 2. Active online presence heartbeat every 25 seconds
+    // 2. Active online presence heartbeat every 20 seconds while page is visible
     const heartbeatInterval = setInterval(() => {
-      sendTrack('HEARTBEAT');
-    }, 25000);
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        sendTrack('HEARTBEAT');
+      }
+    }, 20000);
+
+    // 3. Send heartbeat immediately when returning to tab
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        sendTrack('HEARTBEAT');
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
 
     return () => {
       clearInterval(heartbeatInterval);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
     };
   }, [pathname]);
 

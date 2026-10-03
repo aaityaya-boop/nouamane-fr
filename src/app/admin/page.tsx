@@ -36,6 +36,13 @@ import LiveOnlineVisitorsCard from './components/LiveOnlineVisitorsCard';
 import LiveActivityStream from './components/LiveActivityStream';
 import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
 import { hasPermission } from '@/lib/auth/rbac/accessControl';
+import { 
+  formatDateGMT, 
+  formatTimeGMT, 
+  formatDateTimeGMT, 
+  getStartOfDayGMT, 
+  getStartOfYesterdayGMT 
+} from '@/lib/dateUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,9 +101,9 @@ export default async function AdminDashboard() {
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-  const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-  const startOfYesterday = new Date(startOfDay.getTime() - 24 * 60 * 60 * 1000);
+  const activeCutoff = new Date(now.getTime() - 2 * 60 * 1000); // 2-minute active window for live presence
+  const startOfDay = getStartOfDayGMT(now);
+  const startOfYesterday = getStartOfYesterdayGMT(now);
 
   // Real Revenue 7 Days vs Previous 7 Days
   const last7DaysOrders = orders.filter((o) => new Date(o.createdAt) >= sevenDaysAgo);
@@ -136,31 +143,29 @@ export default async function AdminDashboard() {
     isOrdersGrowthPositive = true;
   }
 
-  // Real Visitors (Active in last 5 minutes, Today, Yesterday & Total)
-  const activeVisitorsCount = await prisma.visitor.count({
-    where: { 
-      lastSeen: { 
-        gte: fiveMinutesAgo
-      } 
-    }
-  });
+  // Real Active & Today Visitors evaluated on database server
+  const [activeVisitorsRes, todayVisitorsRes, yesterdayVisitorsRes] = await Promise.all([
+    prisma.$queryRaw<Array<{ count: number }>>`
+      SELECT COUNT(*)::int as count 
+      FROM "Visitor" 
+      WHERE "lastSeen" >= NOW() - INTERVAL '2 minutes'
+    `,
+    prisma.$queryRaw<Array<{ count: number }>>`
+      SELECT COUNT(*)::int as count 
+      FROM "Visitor" 
+      WHERE "lastSeen" >= date_trunc('day', NOW() AT TIME ZONE 'Africa/Casablanca') AT TIME ZONE 'Africa/Casablanca'
+    `,
+    prisma.$queryRaw<Array<{ count: number }>>`
+      SELECT COUNT(*)::int as count 
+      FROM "Visitor" 
+      WHERE "lastSeen" >= (date_trunc('day', NOW() AT TIME ZONE 'Africa/Casablanca') - INTERVAL '1 day') AT TIME ZONE 'Africa/Casablanca'
+        AND "lastSeen" < date_trunc('day', NOW() AT TIME ZONE 'Africa/Casablanca') AT TIME ZONE 'Africa/Casablanca'
+    `
+  ]);
 
-  const todayVisitorsCount = await prisma.visitor.count({
-    where: { 
-      lastSeen: { 
-        gte: startOfDay
-      } 
-    }
-  });
-
-  const yesterdayVisitorsCount = await prisma.visitor.count({
-    where: { 
-      lastSeen: { 
-        gte: startOfYesterday,
-        lt: startOfDay
-      } 
-    }
-  });
+  const activeVisitorsCount = Number(activeVisitorsRes[0]?.count || 0);
+  const todayVisitorsCount = Number(todayVisitorsRes[0]?.count || 0);
+  const yesterdayVisitorsCount = Number(yesterdayVisitorsRes[0]?.count || 0);
 
   let visitorsGrowthText = 'Aujourd’hui';
   let isVisitorsGrowthPositive = true;
@@ -216,12 +221,12 @@ export default async function AdminDashboard() {
   const chartDataMap = new Map();
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit' });
+    const dateStr = formatDateGMT(d, { weekday: 'short', day: '2-digit' });
     chartDataMap.set(dateStr, { name: dateStr, views: 0, visitors: new Set() });
   }
 
   pageViews7Days.forEach((pv: any) => {
-    const dateStr = pv.createdAt.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit' });
+    const dateStr = formatDateGMT(pv.createdAt, { weekday: 'short', day: '2-digit' });
     if (chartDataMap.has(dateStr)) {
       const data = chartDataMap.get(dateStr);
       data.views += 1;

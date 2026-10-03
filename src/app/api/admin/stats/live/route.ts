@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { getStartOfDayGMT } from '@/lib/dateUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,25 +13,21 @@ export async function GET() {
     }
 
     const now = new Date();
-    // 5-minute active window in standard UTC (GMT+0)
-    const activeCutoff = new Date(now.getTime() - 5 * 60 * 1000);
-    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
 
-    const [activeVisitorsCount, todayVisitorsCount, recentPageViews, activeCarts] = await Promise.all([
-      prisma.visitor.count({
-        where: {
-          lastSeen: {
-            gte: activeCutoff
-          }
-        }
-      }),
-      prisma.visitor.count({
-        where: {
-          lastSeen: {
-            gte: startOfDay
-          }
-        }
-      }),
+    const [activeVisitorsRes, todayVisitorsRes, recentPageViews, activeCarts] = await Promise.all([
+      // 2-minute active window evaluated directly on database server
+      prisma.$queryRaw<Array<{ count: number }>>`
+        SELECT COUNT(*)::int as count 
+        FROM "Visitor" 
+        WHERE "lastSeen" >= NOW() - INTERVAL '2 minutes'
+      `,
+      // Today visitors in Casablanca timezone evaluated on database
+      prisma.$queryRaw<Array<{ count: number }>>`
+        SELECT COUNT(*)::int as count 
+        FROM "Visitor" 
+        WHERE "lastSeen" >= date_trunc('day', NOW() AT TIME ZONE 'Africa/Casablanca') AT TIME ZONE 'Africa/Casablanca'
+      `,
+      // 6 most recent real pageviews
       prisma.pageView.findMany({
         orderBy: { createdAt: 'desc' },
         take: 6,
@@ -38,11 +35,14 @@ export async function GET() {
       }),
       prisma.liveCartSession.count({
         where: {
-          lastActivity: { gte: new Date(now.getTime() - 15 * 60000) },
+          lastActivity: { gte: new Date(Date.now() - 15 * 60000) },
           totalValue: { gt: 0 }
         }
       })
     ]);
+
+    const activeVisitorsCount = Number(activeVisitorsRes[0]?.count || 0);
+    const todayVisitorsCount = Number(todayVisitorsRes[0]?.count || 0);
 
     return NextResponse.json({
       success: true,

@@ -261,7 +261,7 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
                 Boutique En Ligne Active
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200/70">
-                🇲🇦 Maroc (GMT+0) • MAD
+                🇲🇦 Maroc (Casablanca) • MAD
               </span>
             </div>
 
@@ -404,7 +404,7 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
                       </label>
                       <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-700 font-medium">
                         <Globe size={14} className="text-slate-500" />
-                        <span>Africa/Casablanca (GMT+0)</span>
+                        <span>Africa/Casablanca (Heure Maroc)</span>
                       </div>
                       <p className="text-[11px] text-slate-400 mt-1.5">
                         Synchronisation en temps réel pour l&apos;activité des visiteurs et commandes.

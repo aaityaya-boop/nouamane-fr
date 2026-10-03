@@ -14,9 +14,17 @@ export default async function EditBlogPost({ params }: { params: Promise<{ id: s
     });
   }
 
-  // Fetch ALL products from DB for the "Parfums mentionnés" selector
+  // Fetch ALL products from DB for the "Parfums mentionnés" selector & image picker
   const products = await prisma.product.findMany({
-    select: { slug: true, name: true, brandId: true },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      brandId: true,
+      brandLabel: true,
+      images: true,
+      price: true
+    },
     orderBy: { name: 'asc' }
   });
 

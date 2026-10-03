@@ -61,35 +61,27 @@ export async function POST(req: Request) {
       city = 'Maroc';
     }
 
-    // Upsert Visitor with accurate lastSeen timestamp
-    const visitor = await prisma.visitor.upsert({
-      where: { ipHash },
-      update: { 
-        lastSeen: new Date(),
-        ...(city && city !== 'Inconnu' && city !== 'Maroc' ? { city } : {}),
-        ...(country && country !== 'Inconnu' ? { country } : {})
-      },
-      create: {
-        ipHash,
-        country: country || 'MA',
-        city: city || 'Casablanca',
-        lastSeen: new Date(),
-      }
-    });
+    // Upsert Visitor using PostgreSQL NOW() for unified clock consistency
+    const rawVisitors: any = await prisma.$queryRaw`
+      INSERT INTO "Visitor" ("id", "ipHash", "city", "country", "createdAt", "lastSeen")
+      VALUES (gen_random_uuid()::text, ${ipHash}, ${city}, ${country}, NOW(), NOW())
+      ON CONFLICT ("ipHash") DO UPDATE
+      SET "lastSeen" = NOW(),
+          "city" = CASE WHEN EXCLUDED."city" NOT IN ('Inconnu', 'Maroc') THEN EXCLUDED."city" ELSE "Visitor"."city" END,
+          "country" = CASE WHEN EXCLUDED."country" != 'Inconnu' THEN EXCLUDED."country" ELSE "Visitor"."country" END
+      RETURNING *;
+    `;
+    const visitor = rawVisitors && rawVisitors[0] ? rawVisitors[0] : null;
 
     // Only record a new PageView row on actual page views (not lightweight heartbeats)
-    if (type !== 'HEARTBEAT') {
-      await prisma.pageView.create({
-        data: {
-          visitorId: visitor.id,
-          pathname: pathname || '/',
-          referrer: cleanReferrer,
-          device: device,
-        }
-      });
+    if (type !== 'HEARTBEAT' && visitor?.id) {
+      await prisma.$queryRaw`
+        INSERT INTO "PageView" ("visitorId", "pathname", "referrer", "device", "createdAt")
+        VALUES (${visitor.id}, ${pathname || '/'}, ${cleanReferrer}, ${device}, NOW())
+      `;
     }
 
-    return NextResponse.json({ success: true, visitorId: visitor.id });
+    return NextResponse.json({ success: true, visitorId: visitor?.id });
   } catch (error) {
     console.error('Tracking error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

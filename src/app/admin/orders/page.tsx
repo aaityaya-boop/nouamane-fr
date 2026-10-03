@@ -955,6 +955,7 @@ function OrdersPageContent() {
                   const parsedItems = getParsedItems(order.items);
                   const itemsCount = parsedItems.reduce((acc: number, item: any) => acc + (item.quantity || 1), 0);
                   const formattedDate = new Date(order.createdAt).toLocaleDateString('fr-MA', {
+                    timeZone: 'Africa/Casablanca',
                     day: 'numeric',
                     month: 'short',
                     hour: '2-digit',
@@ -1137,6 +1138,7 @@ function OrdersPageContent() {
                 </div>
                 <div className="text-[11px] text-slate-400 font-medium mt-0.5">
                   {new Date(editingOrder.createdAt).toLocaleDateString('fr-MA', {
+                    timeZone: 'Africa/Casablanca',
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',

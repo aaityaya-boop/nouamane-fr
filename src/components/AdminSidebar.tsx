@@ -41,7 +41,10 @@ import {
   Bot,
   HeartPulse,
   PieChart,
-  RotateCcw
+  RotateCcw,
+  Truck,
+  Lightbulb,
+  AlertCircle
 } from 'lucide-react';
 
 interface MenuItem {
@@ -61,6 +64,7 @@ const MENU_ITEMS: MenuItem[] = [
   { href: '/admin/parfums-originaux', label: 'Parfums Originaux', icon: <Sparkles size={16} />, permission: 'products.view' },
   { href: '/admin/master-copier', label: 'Master Copy', icon: <Sparkles size={16} />, permission: 'products.edit' },
   { href: '/admin/inventory', label: 'Inventaire & Stock', icon: <Archive size={16} />, permission: 'inventory.view' },
+  { href: '/admin/suppliers', label: 'Fournisseurs & Achats', icon: <Truck size={16} />, permission: 'inventory.view' },
   { href: '/admin/brands', label: 'Marques de Luxe', icon: <Bookmark size={16} />, permission: 'products.view' },
   { href: '/admin/finance', label: 'Finance & CA Net', icon: <TrendingUp size={16} />, permission: 'finance.view_revenue' },
   { href: '/admin/finance?tab=EXPENSES', label: 'Charges & Dépenses', icon: <Banknote size={16} />, permission: 'finance.view_costs' },
@@ -70,6 +74,8 @@ const TEAM_ITEMS: MenuItem[] = [
   { href: '/admin/team', label: 'Gestion Équipe & Salaires', icon: <ShieldCheck size={16} />, permission: 'team.view' },
   { href: '/admin/team/roles', label: 'Annuaire des Rôles', icon: <Users size={16} />, permission: 'team.view' },
   { href: '/admin/tasks', label: 'Missions & Tâches', icon: <CheckSquare size={16} />, permission: 'tasks.view' },
+  { href: '/admin/team/suggestions', label: 'Boîte à Idées & Suggestions', icon: <Lightbulb size={16} /> },
+  { href: '/admin/team/reclamations', label: 'Réclamations & Tickets RH', icon: <AlertCircle size={16} /> },
   { href: '/admin/chat', label: 'NAY Chat', icon: <MessageSquare size={16} /> },
   { href: '/admin/notifications', label: 'Centre Notifications', icon: <Bell size={16} /> },
   { href: '/admin/activity', label: 'Journal d\'Activité', icon: <History size={16} />, permission: 'activity.view_all' },

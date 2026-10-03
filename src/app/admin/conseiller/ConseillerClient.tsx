@@ -195,7 +195,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
 
   const handleCopyTranscript = (conv: AdvisorConversation) => {
     const text = conv.messages
-      .map(m => `[${m.role === 'user' ? 'CLIENT' : 'CONSEILLER NAY'}] (${new Date(m.createdAt).toLocaleTimeString('fr-FR')}):\n${m.content}`)
+      .map(m => `[${m.role === 'user' ? 'CLIENT' : 'CONSEILLER NAY'}] (${new Date(m.createdAt).toLocaleTimeString('fr-FR', { timeZone: 'Africa/Casablanca' })}):\n${m.content}`)
       .join('\n\n---\n\n');
     navigator.clipboard.writeText(text);
     setCopiedId(conv.id);
@@ -204,10 +204,10 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
 
   const handleExportCSV = () => {
     if (!conversations.length) return;
-    const headers = ['ID', 'Date', 'Intention', 'Genre Requis', 'Notes Préférées', 'Produits Recommandés', 'Ville', 'Résumé Question Client'];
+    const headers = ['ID', 'Date (Casablanca)', 'Intention', 'Genre Requis', 'Notes Préférées', 'Produits Recommandés', 'Ville', 'Résumé Question Client'];
     const rows = conversations.map(c => [
       c.id,
-      new Date(c.createdAt).toLocaleDateString('fr-FR') + ' ' + new Date(c.createdAt).toLocaleTimeString('fr-FR'),
+      new Date(c.createdAt).toLocaleDateString('fr-FR', { timeZone: 'Africa/Casablanca' }) + ' ' + new Date(c.createdAt).toLocaleTimeString('fr-FR', { timeZone: 'Africa/Casablanca' }),
       c.intent,
       c.preferredGender,
       c.preferredNotes.join('; '),
@@ -230,6 +230,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
     if (!mounted || !isoStr) return '';
     try {
       return new Date(isoStr).toLocaleDateString('fr-FR', {
+        timeZone: 'Africa/Casablanca',
         day: 'numeric',
         month: 'short',
         hour: '2-digit',
@@ -243,7 +244,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
   const formatShortDate = (isoStr?: string) => {
     if (!mounted || !isoStr) return '';
     try {
-      return new Date(isoStr).toLocaleDateString('fr-FR');
+      return new Date(isoStr).toLocaleDateString('fr-FR', { timeZone: 'Africa/Casablanca' });
     } catch {
       return '';
     }
@@ -252,7 +253,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
   const formatTime = (isoStr?: string) => {
     if (!mounted || !isoStr) return '';
     try {
-      return new Date(isoStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      return new Date(isoStr).toLocaleTimeString('fr-FR', { timeZone: 'Africa/Casablanca', hour: '2-digit', minute: '2-digit' });
     } catch {
       return '';
     }

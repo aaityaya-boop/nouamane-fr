@@ -1,58 +1,65 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nayparfum.ma";
-    const sitemapUrl = `${baseUrl}/sitemap.xml`;
+    const origin = new URL(request.url).origin;
+    const sitemapUrl = `${origin}/sitemap.xml`;
 
     let httpStatus = 0;
     let isValid = false;
     let urlCount = 0;
-    let errorMessage = null;
+    let errorMessage: string | null = null;
     let urls: string[] = [];
 
     try {
-      const response = await fetch(sitemapUrl, { headers: { "User-Agent": "NAY-SEO-Bot/1.0" } });
+      const response = await fetch(sitemapUrl, {
+        headers: { "User-Agent": "NAY-SEO-Bot/1.0" },
+        cache: 'no-store'
+      });
       httpStatus = response.status;
       
       if (response.ok) {
         const xml = await response.text();
-        if (xml.includes("<?xml") && xml.includes("<urlset")) {
+        if (xml.includes("<?xml") && (xml.includes("<urlset") || xml.includes("<sitemapindex"))) {
           isValid = true;
-          // Extract URLs using regex
+          // Extract URLs
           const locMatches = xml.match(/<loc>([^<]+)<\/loc>/g);
           if (locMatches) {
             urls = locMatches.map(m => m.replace(/<\/?loc>/g, "").trim());
             urlCount = urls.length;
           }
         } else {
-          errorMessage = "Invalid XML format";
+          errorMessage = "Format XML invalide ou balise <urlset> manquante";
         }
       } else {
-        errorMessage = `HTTP Status ${httpStatus}`;
+        errorMessage = `Erreur HTTP ${httpStatus}`;
       }
     } catch (e: any) {
-      errorMessage = e.message;
+      errorMessage = e.message || "Impossible de contacter l'URL du sitemap";
     }
 
-    // Upsert status
-    await prisma.seoSitemapStatus.upsert({
-      where: { sitemapUrl },
+    // Upsert status in DB
+    const statusRecord = await prisma.seoSitemapStatus.upsert({
+      where: { sitemapUrl: "https://nayparfum.ma/sitemap.xml" },
       create: {
-        sitemapUrl,
-        httpStatus,
+        sitemapUrl: "https://nayparfum.ma/sitemap.xml",
+        httpStatus: httpStatus || 200,
         isValid,
         urlCount,
         errorMessage,
-        lastCheckedAt: new Date()
+        lastCheckedAt: new Date(),
+        lastModifiedAt: new Date()
       },
       update: {
-        httpStatus,
+        httpStatus: httpStatus || 200,
         isValid,
         urlCount,
         errorMessage,
-        lastCheckedAt: new Date()
+        lastCheckedAt: new Date(),
+        lastModifiedAt: new Date()
       }
     });
 
@@ -67,53 +74,27 @@ export async function POST(request: Request) {
           url: sitemapUrl,
           type: "SITEMAP_ERROR",
           severity: "CRITICAL",
-          title: "Sitemap is invalid or missing",
-          recommendation: "Ensure /sitemap.xml is correctly generated and accessible.",
+          title: "Sitemap XML invalide ou inaccessible",
+          recommendation: "Vérifiez la génération automatique de /sitemap.xml dans Next.js.",
           status: "OPEN"
         }
       });
-      
-      // Redirect back
-      return NextResponse.redirect(new URL('/admin/seo/sitemap', request.url));
     }
 
-    // We could do a deeper check (fetch first 10 urls to see if they 404)
-    // To respect timeouts, we'll just check a few randomly or sequentially.
-    const maxChecks = Math.min(urls.length, 5); // Limit for the API response time
-    for (let i = 0; i < maxChecks; i++) {
-      const u = urls[i];
-      try {
-        const res = await fetch(u, { method: 'HEAD', headers: { "User-Agent": "NAY-SEO-Bot/1.0" }, redirect: "manual" });
-        if (res.status >= 400) {
-          await prisma.seoIssue.create({
-            data: {
-              url: u,
-              type: "SITEMAP_URL_404",
-              severity: "HIGH",
-              title: `Sitemap URL returns ${res.status}`,
-              recommendation: "Remove broken URLs from sitemap or set up a 301 redirect.",
-              status: "OPEN"
-            }
-          });
-        } else if (res.status >= 300 && res.status < 400) {
-          await prisma.seoIssue.create({
-            data: {
-              url: u,
-              type: "SITEMAP_URL_REDIRECT",
-              severity: "MEDIUM",
-              title: "Sitemap URL redirects",
-              recommendation: "Sitemaps should only contain final canonical URLs returning 200 OK.",
-              status: "OPEN"
-            }
-          });
-        }
-      } catch (e) {
-        // network error
-      }
+    const isJson = request.headers.get('accept')?.includes('application/json') ||
+                   request.headers.get('content-type')?.includes('application/json');
+
+    if (isJson) {
+      return NextResponse.json({
+        success: true,
+        status: statusRecord,
+        urlCount,
+        isValid,
+        httpStatus
+      });
     }
 
     return NextResponse.redirect(new URL('/admin/seo/sitemap', request.url));
-
   } catch (error: any) {
     console.error("Sitemap Check Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -12,12 +12,15 @@ export type PermissionModule =
   | 'sav'
   | 'products'
   | 'inventory'
+  | 'suppliers'
   | 'customers'
   | 'finance'
   | 'marketing'
   | 'messages'
   | 'reviews'
   | 'team'
+  | 'suggestions'
+  | 'reclamations'
   | 'tasks'
   | 'activity'
   | 'settings';
@@ -28,12 +31,15 @@ export const PERMISSION_MODULES: { id: PermissionModule; label: string; iconName
   { id: 'sav', label: 'SAV & Réclamations Clients', iconName: 'RotateCcw' },
   { id: 'products', label: 'Produits & Testeurs', iconName: 'PackageSearch' },
   { id: 'inventory', label: 'Inventaire & Stock', iconName: 'Archive' },
+  { id: 'suppliers', label: 'Fournisseurs & Approvisionnements', iconName: 'Truck' },
   { id: 'customers', label: 'Clients & CRM', iconName: 'Users' },
   { id: 'finance', label: 'Finance & Comptabilité', iconName: 'TrendingUp' },
   { id: 'marketing', label: 'Marketing, Ads & Campagnes', iconName: 'Mail' },
   { id: 'messages', label: 'Support & Messagerie', iconName: 'MessageSquare' },
   { id: 'reviews', label: 'Avis Clients & Témoignages', iconName: 'Star' },
   { id: 'team', label: 'Gestion de l\'Équipe & RH', iconName: 'ShieldCheck' },
+  { id: 'suggestions', label: 'Boîte à Idées & Suggestions', iconName: 'Lightbulb' },
+  { id: 'reclamations', label: 'Réclamations & Signalements RH', iconName: 'ShieldAlert' },
   { id: 'tasks', label: 'Missions & Tâches', iconName: 'CheckSquare' },
   { id: 'activity', label: 'Journal d\'Activité & Audit', iconName: 'History' },
   { id: 'settings', label: 'Paramètres & Configuration', iconName: 'Settings' },
@@ -151,16 +157,16 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     module: 'orders',
   },
 
-  // --- SAV & RÉCLAMATIONS ---
+  // --- SAV & RÉCLAMATIONS CLIENTS ---
   {
     key: 'claims.view',
-    label: 'Consulter le SAV & Réclamations',
+    label: 'Consulter le SAV & Réclamations Clients',
     description: 'Voir la liste des dossiers de réclamations, échanges et retours clients',
     module: 'sav',
   },
   {
     key: 'claims.create',
-    label: 'Créer un Dossier SAV',
+    label: 'Créer un Dossier SAV Client',
     description: 'Ouvrir une nouvelle réclamation liée à une commande',
     module: 'sav',
   },
@@ -172,13 +178,13 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
   },
   {
     key: 'claims.assign',
-    label: 'Attribuer / Réassigner un Dossier',
+    label: 'Attribuer / Réassigner un Dossier SAV',
     description: 'Désigner le collaborateur responsable du suivi',
     module: 'sav',
   },
   {
     key: 'claims.approve_refund',
-    label: 'Valider un Remboursement Financier',
+    label: 'Valider un Remboursement Financier Client',
     description: 'Autoriser et exécuter l\'enregistrement d\'un remboursement',
     module: 'sav',
     isSensitive: true,
@@ -258,9 +264,43 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
   },
   {
     key: 'inventory.suppliers',
-    label: 'Gérer les Fournisseurs & Approvisionnements',
+    label: 'Gérer les Fournisseurs & Approvisionnements (Global)',
     description: 'Contacts fournisseurs, bons de commande et réassort',
     module: 'inventory',
+    isSensitive: true,
+  },
+
+  // --- FOURNISSEURS & APPROVISIONNEMENTS ---
+  {
+    key: 'suppliers.view',
+    label: 'Consulter les Fournisseurs & Bons de Commande',
+    description: 'Voir le répertoire des fournisseurs, fiches d\'identité et bons de commande',
+    module: 'suppliers',
+  },
+  {
+    key: 'suppliers.create',
+    label: 'Créer un Fournisseur / Bon de Commande',
+    description: 'Ajouter un nouveau laboratoire, importateur ou émettre un bon de commande',
+    module: 'suppliers',
+  },
+  {
+    key: 'suppliers.edit',
+    label: 'Modifier un Fournisseur / Bon de Commande',
+    description: 'Mettre à jour les informations, statuts de livraison et coordonnées',
+    module: 'suppliers',
+  },
+  {
+    key: 'suppliers.manage_payments',
+    label: 'Gérer les Règlements & Charges Fournisseurs',
+    description: 'Enregistrer les charges, statuts de paiement (Payé/Non Payé) et reçus',
+    module: 'suppliers',
+    isSensitive: true,
+  },
+  {
+    key: 'suppliers.delete',
+    label: 'Supprimer un Fournisseur / Bon de Commande',
+    description: 'Supprimer définitivement un fournisseur ou bon de commande',
+    module: 'suppliers',
     isSensitive: true,
   },
 
@@ -476,6 +516,48 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     label: 'Supprimer Définitivement un Employé',
     description: 'Supprimer complètement un compte collaborateur de la base de données',
     module: 'team',
+    isSensitive: true,
+  },
+
+  // --- BOÎTE À IDÉES & SUGGESTIONS EMPLOYÉS ---
+  {
+    key: 'suggestions.view',
+    label: 'Consulter la Boîte à Idées & Suggestions',
+    description: 'Voir les propositions d\'amélioration et d\'optimisation de l\'équipe',
+    module: 'suggestions',
+  },
+  {
+    key: 'suggestions.create',
+    label: 'Soumettre une Idée / Suggestion',
+    description: 'Proposer une idée d\'amélioration avec photos et descriptif',
+    module: 'suggestions',
+  },
+  {
+    key: 'suggestions.manage',
+    label: 'Modérer & Récompenser les Suggestions',
+    description: 'Approuver, déployer, laisser un feedback de direction ou attribuer une prime',
+    module: 'suggestions',
+    isSensitive: true,
+  },
+
+  // --- RÉCLAMATIONS & SIGNALEMENTS RH ---
+  {
+    key: 'reclamations.view',
+    label: 'Consulter les Réclamations & Tickets RH',
+    description: 'Voir les signalements de l\'équipe (matériel, conditions, logistique)',
+    module: 'reclamations',
+  },
+  {
+    key: 'reclamations.create',
+    label: 'Déposer une Réclamation / Signalement RH',
+    description: 'Ouvrir un ticket d\'incident avec photos et justificatifs',
+    module: 'reclamations',
+  },
+  {
+    key: 'reclamations.manage',
+    label: 'Traiter, Assigner & Résoudre les Tickets RH',
+    description: 'Prendre en charge, définir un plan d\'action et clôturer les signalements',
+    module: 'reclamations',
     isSensitive: true,
   },
 

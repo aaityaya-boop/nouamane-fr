@@ -26,8 +26,11 @@ export default function LiveOnlineVisitorsCard({
       }
     };
 
-    // Poll live presence every 10 seconds
-    const interval = setInterval(fetchLive, 10000);
+    // Fetch immediately on mount
+    fetchLive();
+
+    // Poll live presence every 5 seconds for rapid reactivity
+    const interval = setInterval(fetchLive, 5000);
     return () => clearInterval(interval);
   }, []);
 

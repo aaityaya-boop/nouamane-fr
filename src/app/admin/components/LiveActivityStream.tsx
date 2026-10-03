@@ -64,7 +64,7 @@ export default function LiveActivityStream({
                 </p>
               </div>
               <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                {new Date(view.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                {new Date(view.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Casablanca' })}
               </span>
             </div>
           ))
