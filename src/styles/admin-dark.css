@@ -1,73 +1,76 @@
 /* ==========================================================================
-   MAISON NAY PARFUMS — LUXURY EXECUTIVE DARK MODE (OBSIDIAN & SLATE)
-   Comprehensive Dark Mode & High-Contrast Typography System
+   MAISON NAY PARFUMS — APPLE PRO & LINEAR TITANIUM DARK MODE
+   Pure Deep Onyx, Matte Zinc Surfaces & Crisp High-Contrast Typography
+   Zero blue tint • Ultra-minimalist • Sleek Executive Aesthetic
    ========================================================================== */
 
-/* ── 1. Root & Base Variables in Dark Mode ───────────────────────────────── */
+/* ── 1. Root & Base Theme Variables ───────────────────────────────────────── */
 html.dark,
 html.dark body,
 html.dark [data-theme="dark"] {
-  --admin-bg-root: #080c14;
-  --admin-bg-sidebar: #090e17;
-  --admin-bg-header: #0d1422;
-  --admin-bg-card: #101726;
-  --admin-bg-card-hover: #151f33;
-  --admin-bg-subtle: #0c121e;
-  --admin-bg-elevated: #162035;
-  --admin-border-main: #1c273c;
-  --admin-border-subtle: #162032;
-  --admin-border-focus: #38bdf8;
+  --admin-bg-root: #09090b;
+  --admin-bg-sidebar: #09090b;
+  --admin-bg-header: #0c0c0e;
+  --admin-bg-card: #121215;
+  --admin-bg-card-hover: #18181d;
+  --admin-bg-subtle: #0d0d10;
+  --admin-bg-elevated: #18181c;
+  --admin-border-main: #222227;
+  --admin-border-subtle: #1a1a1f;
+  --admin-border-focus: #52525b;
   --admin-text-title: #ffffff;
-  --admin-text-main: #e2e8f0;
-  --admin-text-secondary: #94a3b8;
-  --admin-text-muted: #64748b;
+  --admin-text-main: #e4e4e7;
+  --admin-text-secondary: #a1a1aa;
+  --admin-text-muted: #71717a;
   color-scheme: dark;
 }
 
 html.dark body {
-  background-color: #080c14 !important;
+  background-color: #09090b !important;
   background-image: none !important;
-  color: #e2e8f0 !important;
+  color: #e4e4e7 !important;
 }
 
 /* ── 2. Admin Layout Shell, Header & Sidebar ──────────────────────────────── */
 html.dark .admin-shell-bg,
 html.dark .bg-\[\#f8fafc\] {
-  background-color: #080c14 !important;
+  background-color: #09090b !important;
   background-image: none !important;
 }
 
 html.dark aside,
 html.dark .admin-sidebar,
 html.dark aside.bg-white {
-  background-color: #090e17 !important;
-  border-color: #182233 !important;
-  color: #94a3b8 !important;
+  background-color: #09090b !important;
+  border-color: #1a1a1f !important;
+  color: #a1a1aa !important;
 }
 
 html.dark header,
 html.dark .admin-header,
 html.dark header.bg-white {
-  background-color: #0d1422 !important;
-  border-color: #182233 !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4) !important;
+  background-color: #0c0c0e !important;
+  border-color: #1a1a1f !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Mobile Top Bar */
 html.dark .lg\:hidden.bg-white {
-  background-color: #090e17 !important;
-  border-color: #182233 !important;
+  background-color: #09090b !important;
+  border-color: #1a1a1f !important;
   color: #ffffff !important;
 }
 
-/* Sidebar Top Logo Box & Header Elements + All Gradients in Dark Mode */
+/* ── 3. Gradient Overrides (Matte Charcoal & Zinc Stops) ──────────────────── */
 html.dark .from-slate-50,
 html.dark .from-neutral-50,
 html.dark .from-gray-50,
 html.dark .from-zinc-50,
-html.dark .from-white {
-  --tw-gradient-from: #141d2e !important;
-  --tw-gradient-to: rgba(20, 29, 46, 0) !important;
+html.dark .from-white,
+html.dark .from-sky-50\/30,
+html.dark .from-sky-50\/60 {
+  --tw-gradient-from: #151519 !important;
+  --tw-gradient-to: rgba(21, 21, 25, 0) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
@@ -76,35 +79,33 @@ html.dark .to-slate-50,
 html.dark .to-neutral-50,
 html.dark .to-gray-50,
 html.dark .to-zinc-50 {
-  --tw-gradient-to: #101726 !important;
+  --tw-gradient-to: #101013 !important;
 }
 
 html.dark .via-slate-50,
 html.dark .via-neutral-50,
 html.dark .via-white {
-  --tw-gradient-stops: var(--tw-gradient-from), #121a2a, var(--tw-gradient-to) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #121216, var(--tw-gradient-to) !important;
 }
 
 /* Light pastel color gradients */
 html.dark .from-emerald-50,
 html.dark .from-emerald-50\/90,
 html.dark .from-green-50 {
-  --tw-gradient-from: rgba(16, 185, 129, 0.15) !important;
+  --tw-gradient-from: rgba(16, 185, 129, 0.12) !important;
   --tw-gradient-to: rgba(16, 185, 129, 0) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
 html.dark .to-teal-50,
 html.dark .to-emerald-50 {
-  --tw-gradient-to: rgba(20, 184, 166, 0.1) !important;
+  --tw-gradient-to: rgba(20, 184, 166, 0.08) !important;
 }
 
 html.dark .from-sky-50,
-html.dark .from-sky-50\/60,
 html.dark .from-sky-50\/40,
-html.dark .from-sky-50\/30,
 html.dark .from-sky-100 {
-  --tw-gradient-from: rgba(56, 189, 248, 0.15) !important;
+  --tw-gradient-from: rgba(56, 189, 248, 0.12) !important;
   --tw-gradient-to: rgba(56, 189, 248, 0) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
@@ -113,36 +114,29 @@ html.dark .to-sky-50,
 html.dark .to-sky-50\/50,
 html.dark .to-sky-50\/40,
 html.dark .to-indigo-100 {
-  --tw-gradient-to: rgba(99, 102, 241, 0.1) !important;
+  --tw-gradient-to: rgba(99, 102, 241, 0.08) !important;
 }
 
 html.dark .from-slate-200,
 html.dark .from-gray-200 {
-  --tw-gradient-from: #1e293b !important;
-  --tw-gradient-to: rgba(30, 41, 59, 0) !important;
+  --tw-gradient-from: #222228 !important;
+  --tw-gradient-to: rgba(34, 34, 40, 0) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
 html.dark .to-slate-300,
 html.dark .to-gray-300 {
-  --tw-gradient-to: #334155 !important;
+  --tw-gradient-to: #2c2c34 !important;
 }
 
-html.dark .bg-white.border.border-sky-200,
-html.dark .bg-white.border.border-slate-200,
-html.dark .bg-white.border.border-neutral-200 {
-  background-color: #101726 !important;
-  border-color: #1e2c42 !important;
-}
-
-/* ── 3. Cards, Bento Surfaces & Containers (All Palettes) ─────────────────── */
+/* ── 4. Cards, Bento Surfaces & Containers (Matte Zinc / Titanium) ────────── */
 html.dark .bg-white:not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/5) {
-  background-color: #101726 !important;
-  border-color: #1c273c !important;
-  color: #e2e8f0;
+  background-color: #121215 !important;
+  border-color: #222227 !important;
+  color: #e4e4e7;
 }
 
-/* Subtle Sub-Containers & Opacity Variations */
+/* Subtle Inset Sub-Containers */
 html.dark .bg-slate-50,
 html.dark .bg-slate-50\/40,
 html.dark .bg-slate-50\/50,
@@ -164,11 +158,11 @@ html.dark .bg-zinc-50,
 html.dark .bg-zinc-50\/50,
 html.dark .bg-zinc-50\/70,
 html.dark .bg-stone-50 {
-  background-color: #0c121e !important;
-  border-color: #182233 !important;
+  background-color: #0c0c0e !important;
+  border-color: #1c1c21 !important;
 }
 
-/* Mid-level containers (Segmented controls, Tab pills bars, Info strips) */
+/* Segmented bars, Tab pills bars, Info blocks */
 html.dark .bg-slate-100,
 html.dark .bg-slate-100\/40,
 html.dark .bg-slate-100\/50,
@@ -190,9 +184,9 @@ html.dark .bg-zinc-100,
 html.dark .bg-zinc-100\/70,
 html.dark .bg-zinc-100\/80,
 html.dark .bg-stone-100 {
-  background-color: #0b111e !important;
-  border-color: #1a263c !important;
-  color: #e2e8f0 !important;
+  background-color: #101013 !important;
+  border-color: #1e1e23 !important;
+  color: #e4e4e7 !important;
 }
 
 html.dark .bg-slate-200,
@@ -207,11 +201,11 @@ html.dark .bg-neutral-200\/70,
 html.dark .bg-neutral-200\/80,
 html.dark .bg-gray-200,
 html.dark .bg-zinc-200 {
-  background-color: #162035 !important;
-  border-color: #24344d !important;
+  background-color: #1c1c22 !important;
+  border-color: #27272f !important;
 }
 
-/* ── 4. All Borders (Slate, Neutral, Gray, Zinc, Stone + Opacity) ─────────── */
+/* ── 5. All Borders & Hairline Dividers ───────────────────────────────────── */
 html.dark .border-slate-100,
 html.dark .border-slate-100\/60,
 html.dark .border-slate-100\/80,
@@ -240,12 +234,13 @@ html.dark .border-gray-300,
 html.dark .border-zinc-100,
 html.dark .border-zinc-200,
 html.dark .border-zinc-300,
+html.dark .border-sky-200,
 html.dark .border-\[\#e2e8f0\],
 html.dark .border-\[\#eaeaea\] {
-  border-color: #1c273c !important;
+  border-color: #222227 !important;
 }
 
-/* ── 5. ALL DARK FONTS & TYPOGRAPHY -> CLAIRE / BRIGHT FONTS ─────────────── */
+/* ── 6. ALL DARK FONTS -> PURE CRISP TITANIUM / WHITE TYPOGRAPHY ─────────── */
 html.dark h1,
 html.dark h2,
 html.dark h3,
@@ -283,7 +278,7 @@ html.dark .text-zinc-700,
 html.dark .text-zinc-600,
 html.dark .text-stone-700,
 html.dark .text-stone-600 {
-  color: #cbd5e1 !important;
+  color: #d4d4d8 !important;
 }
 
 html.dark .text-slate-500,
@@ -296,7 +291,7 @@ html.dark .text-zinc-500,
 html.dark .text-zinc-400,
 html.dark .text-stone-500,
 html.dark .text-stone-400 {
-  color: #94a3b8 !important;
+  color: #a1a1aa !important;
 }
 
 /* Hover Texts */
@@ -310,7 +305,7 @@ html.dark .hover\:text-black:hover {
   color: #ffffff !important;
 }
 
-/* ── 6. Navigation Links & Sidebar Items ─────────────────────────────────── */
+/* ── 7. Navigation Links & Sidebar Items ─────────────────────────────────── */
 html.dark .hover\:bg-slate-100\/70:hover,
 html.dark .hover\:bg-slate-100\/80:hover,
 html.dark .hover\:bg-slate-100:hover,
@@ -319,18 +314,18 @@ html.dark .hover\:bg-slate-200:hover,
 html.dark .hover\:bg-neutral-100:hover,
 html.dark .hover\:bg-neutral-50:hover,
 html.dark .hover\:bg-gray-100:hover {
-  background-color: #151f33 !important;
+  background-color: #18181d !important;
   color: #ffffff !important;
 }
 
-/* Active Nav Item */
+/* Active Nav Item (Apple Pro Matte Charcoal Pill) */
 html.dark .bg-sky-50 {
-  background-color: rgba(14, 165, 233, 0.14) !important;
-  border-color: rgba(14, 165, 233, 0.28) !important;
-  color: #38bdf8 !important;
+  background-color: #22222a !important;
+  border-color: #33333d !important;
+  color: #ffffff !important;
 }
 
-/* ── 7. Form Controls: Inputs, Selects, Textareas & Pickers ───────────────── */
+/* ── 8. Form Controls: Inputs, Selects, Textareas & Pickers ───────────────── */
 html.dark input[type="text"],
 html.dark input[type="search"],
 html.dark input[type="email"],
@@ -340,17 +335,17 @@ html.dark input[type="tel"],
 html.dark input[type="date"],
 html.dark select,
 html.dark textarea {
-  background-color: #0b1120 !important;
-  color: #f8fafc !important;
-  border: 1px solid #223049 !important;
+  background-color: #0c0c0e !important;
+  color: #ffffff !important;
+  border: 1px solid #27272f !important;
 }
 
 html.dark input:focus,
 html.dark select:focus,
 html.dark textarea:focus {
-  background-color: #0e1628 !important;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
+  background-color: #121216 !important;
+  border-color: #52525b !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08) !important;
   outline: none !important;
 }
 
@@ -359,12 +354,12 @@ html.dark textarea::placeholder,
 html.dark .placeholder\:text-neutral-400::placeholder,
 html.dark .placeholder\:text-gray-400::placeholder,
 html.dark .placeholder\:text-slate-400::placeholder {
-  color: #64748b !important;
+  color: #71717a !important;
 }
 
 html.dark select option {
-  background-color: #0f172a !important;
-  color: #f8fafc !important;
+  background-color: #121215 !important;
+  color: #ffffff !important;
 }
 
 /* Inline editable table inputs */
@@ -377,29 +372,29 @@ html.dark td input[type="number"] {
 
 html.dark td input[type="text"]:focus,
 html.dark td input[type="number"]:focus {
-  background-color: #0b1120 !important;
-  border-color: #38bdf8 !important;
+  background-color: #141418 !important;
+  border-color: #52525b !important;
 }
 
 /* Date picker calendar icon inversion in dark mode */
 html.dark input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.85);
+  filter: invert(0.9);
   cursor: pointer;
 }
 
-/* ── 8. Tables, Table Rows, Dividers & Headers ────────────────────────────── */
+/* ── 9. Tables, Table Rows, Dividers & Headers ────────────────────────────── */
 html.dark table thead,
 html.dark thead.bg-slate-50,
 html.dark thead.bg-neutral-50,
 html.dark thead.bg-gray-50,
 html.dark th {
-  background-color: #0b1120 !important;
-  border-color: #1c273c !important;
-  color: #94a3b8 !important;
+  background-color: #0c0c0e !important;
+  border-color: #1f1f25 !important;
+  color: #a1a1aa !important;
 }
 
 html.dark table tbody tr {
-  border-color: #172033 !important;
+  border-color: #1a1a20 !important;
   background-color: transparent;
 }
 
@@ -409,7 +404,7 @@ html.dark tr.hover\:bg-slate-50:hover,
 html.dark tr.hover\:bg-neutral-50\/70:hover,
 html.dark tr.hover\:bg-neutral-50:hover,
 html.dark tr.hover\:bg-gray-50\/70:hover {
-  background-color: rgba(22, 32, 53, 0.6) !important;
+  background-color: #16161b !important;
 }
 
 html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
@@ -417,68 +412,68 @@ html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-neutral-100 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-neutral-200 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #172033 !important;
+  border-color: #1a1a20 !important;
 }
 
-/* ── 9. Modals, Drawers, Flyouts, Popups & Lightboxes ─────────────────────── */
+/* ── 10. Modals, Drawers, Flyouts & Popups ────────────────────────────────── */
 html.dark .fixed .bg-white,
 html.dark .fixed .bg-slate-50,
 html.dark .fixed .bg-neutral-50,
 html.dark .absolute.bg-white,
 html.dark .absolute .bg-white {
-  background-color: #101726 !important;
-  border-color: #1f2d44 !important;
-  color: #e2e8f0 !important;
+  background-color: #141418 !important;
+  border-color: #282830 !important;
+  color: #e4e4e7 !important;
 }
 
 html.dark .fixed.bg-slate-950\/75,
 html.dark .fixed.bg-slate-950\/80,
 html.dark .fixed.bg-slate-950\/85 {
-  background-color: rgba(4, 7, 14, 0.88) !important;
-  backdrop-filter: blur(12px) !important;
+  background-color: rgba(0, 0, 0, 0.82) !important;
+  backdrop-filter: blur(16px) !important;
 }
 
 html.dark .shadow-2xl,
 html.dark .shadow-xl {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Rich Text Editor in Dark Mode */
 html.dark .ql-toolbar {
-  background-color: #0b1120 !important;
-  border-color: #1f2d44 !important;
+  background-color: #0c0c0e !important;
+  border-color: #222227 !important;
 }
 
 html.dark .ql-toolbar button .ql-stroke {
-  stroke: #94a3b8 !important;
+  stroke: #a1a1aa !important;
 }
 
 html.dark .ql-toolbar button .ql-fill {
-  fill: #94a3b8 !important;
+  fill: #a1a1aa !important;
 }
 
 html.dark .ql-container {
-  background-color: #0b1120 !important;
-  border-color: #1f2d44 !important;
-  color: #f8fafc !important;
+  background-color: #0c0c0e !important;
+  border-color: #222227 !important;
+  color: #ffffff !important;
 }
 
-/* ── 10. Status Badges, Category Chips & Metric Indicators ────────────────── */
+/* ── 11. Status Badges & Category Chips (Minimalist Titanium) ─────────────── */
 html.dark .bg-emerald-50 {
-  background-color: rgba(16, 185, 129, 0.14) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
   color: #34d399 !important;
 }
 
 html.dark .bg-amber-50 {
-  background-color: rgba(245, 158, 11, 0.14) !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
   color: #fbbf24 !important;
 }
 
 html.dark .bg-rose-50 {
-  background-color: rgba(244, 63, 94, 0.14) !important;
-  border-color: rgba(244, 63, 94, 0.3) !important;
+  background-color: rgba(244, 63, 94, 0.12) !important;
+  border-color: rgba(244, 63, 94, 0.25) !important;
   color: #fb7185 !important;
 }
 
@@ -486,20 +481,20 @@ html.dark .bg-indigo-50,
 html.dark .bg-indigo-50\/40,
 html.dark .bg-indigo-50\/50,
 html.dark .bg-indigo-50\/70 {
-  background-color: rgba(99, 102, 241, 0.14) !important;
-  border-color: rgba(99, 102, 241, 0.3) !important;
+  background-color: rgba(99, 102, 241, 0.12) !important;
+  border-color: rgba(99, 102, 241, 0.25) !important;
   color: #a5b4fc !important;
 }
 
 html.dark .bg-purple-50 {
-  background-color: rgba(168, 85, 247, 0.14) !important;
-  border-color: rgba(168, 85, 247, 0.3) !important;
+  background-color: rgba(168, 85, 247, 0.12) !important;
+  border-color: rgba(168, 85, 247, 0.25) !important;
   color: #c084fc !important;
 }
 
 html.dark .bg-teal-50 {
-  background-color: rgba(20, 184, 166, 0.14) !important;
-  border-color: rgba(20, 184, 166, 0.3) !important;
+  background-color: rgba(20, 184, 166, 0.12) !important;
+  border-color: rgba(20, 184, 166, 0.25) !important;
   color: #2dd4bf !important;
 }
 
@@ -508,9 +503,9 @@ html.dark .bg-neutral-100.text-neutral-700,
 html.dark .bg-slate-100.text-slate-700,
 html.dark .bg-neutral-200.text-neutral-700,
 html.dark .bg-slate-200.text-slate-700 {
-  background-color: #162238 !important;
-  border-color: #24344d !important;
-  color: #cbd5e1 !important;
+  background-color: #18181c !important;
+  border-color: #27272f !important;
+  color: #d4d4d8 !important;
 }
 
 /* Text Colors for Badges */
@@ -547,91 +542,101 @@ html.dark .text-sky-600 {
   color: #38bdf8 !important;
 }
 
-/* ── 10.5. Segmented Tab Pills & Product Showcase (Vitrine) ───────────────── */
+/* ── 12. Segmented Tab Pills & Product Showcase (Vitrine / Minimalist) ─────── */
 html.dark .border-neutral-900,
 html.dark .border-2.border-neutral-900,
 html.dark .border-slate-900,
 html.dark .border-black {
-  border-color: #38bdf8 !important;
+  border-color: #ffffff !important;
 }
 
 html.dark .ring-neutral-900\/10 {
-  --tw-ring-color: rgba(56, 189, 248, 0.3) !important;
+  --tw-ring-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 html.dark .text-neutral-300 {
-  color: #64748b !important;
+  color: #71717a !important;
 }
 
-/* ── 11. Buttons & Interactive Controls ──────────────────────────────────── */
+/* Active tab pill indicator */
+html.dark .bg-neutral-100\/80 > button > [layoutId],
+html.dark .bg-neutral-100\/80 > [layoutId],
+html.dark .bg-slate-100\/90 > button > [layoutId],
+html.dark .bg-slate-100\/90 > [layoutId] {
+  background-color: #222228 !important;
+  border-color: #33333c !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* ── 13. Buttons & Interactive Controls ──────────────────────────────────── */
 html.dark .bg-slate-900:not(.bg-gradient-to-br),
 html.dark .bg-neutral-900,
 html.dark .bg-black,
 html.dark .bg-\[\#0f172a\] {
-  background-color: #19253b !important;
+  background-color: #1e1e24 !important;
   color: #ffffff !important;
-  border: 1px solid #2d3f5e !important;
+  border: 1px solid #33333d !important;
 }
 
 html.dark .bg-slate-900:not(.bg-gradient-to-br):hover,
 html.dark .bg-neutral-900:hover,
 html.dark .bg-black:hover,
 html.dark .bg-\[\#0f172a\]:hover {
-  background-color: #243552 !important;
-  border-color: #3e567e !important;
+  background-color: #282830 !important;
+  border-color: #444450 !important;
 }
 
 /* Secondary outline button hover */
 html.dark button.border-slate-200:hover,
 html.dark button.border-neutral-300:hover,
 html.dark button.border-neutral-200:hover {
-  background-color: #162238 !important;
-  border-color: #2a3d5e !important;
+  background-color: #18181d !important;
+  border-color: #33333d !important;
   color: #ffffff !important;
 }
 
-/* ── 12. Recharts, Analytics & Tooltips in Dark Mode ──────────────────────── */
+/* ── 14. Recharts, Analytics & Tooltips in Dark Mode ──────────────────────── */
 html.dark .recharts-cartesian-grid line {
-  stroke: #182233 !important;
+  stroke: #1c1c22 !important;
 }
 
 html.dark .recharts-default-tooltip {
-  background-color: #101726 !important;
-  border: 1px solid #24344d !important;
+  background-color: #141418 !important;
+  border: 1px solid #282830 !important;
   color: #ffffff !important;
   border-radius: 12px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8) !important;
 }
 
 html.dark .recharts-tooltip-item {
-  color: #e2e8f0 !important;
+  color: #e4e4e7 !important;
 }
 
 html.dark .recharts-text text,
 html.dark .recharts-cartesian-axis-tick text {
-  fill: #94a3b8 !important;
+  fill: #a1a1aa !important;
 }
 
-/* ── 13. Ultra-Smooth Scrollbars ─────────────────────────────────────────── */
+/* ── 15. Ultra-Smooth Matte Scrollbars ────────────────────────────────────── */
 html.dark ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 html.dark ::-webkit-scrollbar-track {
-  background: #080c14;
+  background: #09090b;
 }
 
 html.dark ::-webkit-scrollbar-thumb {
-  background: #1c273c;
+  background: #222228;
   border-radius: 9999px;
 }
 
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #2b3b57;
+  background: #33333d;
 }
 
-/* ── 14. Smooth Transitions ──────────────────────────────────────────────── */
+/* ── 16. Smooth Transitions ──────────────────────────────────────────────── */
 html,
 body,
 aside,
@@ -642,7 +647,7 @@ main,
 .bg-neutral-50,
 .border-slate-200,
 .border-neutral-200 {
-  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-              color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
