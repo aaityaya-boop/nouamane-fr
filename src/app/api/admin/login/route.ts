@@ -139,6 +139,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       success: true,
       message: `Bienvenue ${user.name} !`,
+      token,
       user: {
         id: user.id,
         name: user.name,

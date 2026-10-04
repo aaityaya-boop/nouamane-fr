@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "NAY Admin",
+    "slug": "nay-admin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nayparfum.admin",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "NAY Admin utilise Face ID pour déverrouiller votre espace sécurisé en toute confidentialité."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.nayparfum.admin",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ]
+    },
+    "scheme": "nayadmin",
+    "plugins": [
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Autorisez NAY Admin à utiliser Face ID pour protéger l'accès à la boutique."
+        }
+      ]
+    ]
+  }
+}
