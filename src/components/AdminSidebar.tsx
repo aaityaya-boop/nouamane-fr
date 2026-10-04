@@ -203,19 +203,19 @@ export default function AdminSidebar() {
           onClick={() => setIsOpen(false)}
           className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 group relative ${
             isActive 
-              ? 'bg-sky-50 text-[#1D9BF0] font-semibold border border-sky-100/90 shadow-2xs' 
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
+              ? 'bg-sky-50 dark:bg-sky-950/40 text-[#1D9BF0] dark:text-sky-400 font-semibold border border-sky-100/90 dark:border-sky-500/30 shadow-2xs' 
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-white/5 border border-transparent'
           }`}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className={`shrink-0 transition-colors ${isActive ? 'text-[#1D9BF0]' : 'text-slate-400 group-hover:text-slate-700'}`}>
+            <div className={`shrink-0 transition-colors ${isActive ? 'text-[#1D9BF0] dark:text-sky-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`}>
               {item.icon}
             </div>
             <span className="truncate">{item.label}</span>
           </div>
 
           {isActive && (
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1D9BF0] shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1D9BF0] dark:bg-sky-400 shrink-0" />
           )}
         </Link>
       );
@@ -231,9 +231,9 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl text-slate-900 flex items-center justify-between px-4 z-40 border-b border-slate-200/80 shadow-xs">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-[#090e1a]/95 backdrop-blur-xl text-slate-900 dark:text-white flex items-center justify-between px-4 z-40 border-b border-slate-200/80 dark:border-slate-800 shadow-xs">
         <Link href="/admin" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-white border border-sky-200 p-1 flex items-center justify-center shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-sky-200 dark:border-sky-500/30 p-1 flex items-center justify-center shadow-2xs">
             <Image 
               src="/images/nay/nay-logo-blue.png" 
               alt="NAY" 
@@ -243,13 +243,13 @@ export default function AdminSidebar() {
             />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-900 tracking-wider">NAY PARFUMS</div>
-            <div className="text-[10px] text-slate-400 font-medium">Administration</div>
+            <div className="text-xs font-bold text-slate-900 dark:text-white tracking-wider">NAY PARFUMS</div>
+            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Administration</div>
           </div>
         </Link>
         <button 
           onClick={() => setIsOpen(true)} 
-          className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100"
+          className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
           aria-label="Ouvrir le menu"
         >
           <Menu size={20} />
@@ -259,18 +259,18 @@ export default function AdminSidebar() {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-slate-900/30 z-40 backdrop-blur-xs" 
+          className="lg:hidden fixed inset-0 bg-slate-900/30 dark:bg-black/60 z-40 backdrop-blur-xs" 
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar Desktop & Mobile Drawer */}
-      <aside className={`admin-sidebar w-[260px] bg-white/95 backdrop-blur-xl border-r border-slate-200/80 h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 transition-transform duration-200 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0 shadow-[2px_0_24px_-4px_rgba(0,0,0,0.02)]`}>
+      <aside className={`admin-sidebar w-[260px] bg-white/95 dark:bg-[#090e1a]/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-800/80 h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 dark:text-slate-300 transition-transform duration-200 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0 shadow-[2px_0_24px_-4px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_32px_rgba(0,0,0,0.6)]`}>
         
         {/* Brand Top Header */}
-        <div className="p-4 pb-3 flex justify-between items-center border-b border-sky-100/80 bg-gradient-to-b from-sky-100/40 to-transparent">
+        <div className="p-4 pb-3 flex justify-between items-center border-b border-sky-100/80 dark:border-slate-800/80 bg-gradient-to-b from-sky-100/40 dark:from-sky-950/20 to-transparent">
           <Link href="/admin" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-white border border-sky-200 p-1.5 flex items-center justify-center shadow-2xs group-hover:border-[#1D9BF0] transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-sky-200 dark:border-sky-500/30 p-1.5 flex items-center justify-center shadow-2xs group-hover:border-[#1D9BF0] dark:group-hover:border-sky-400 transition-colors">
               <Image 
                 src="/images/nay/nay-logo-blue.png" 
                 alt="NAY Logo" 
@@ -281,10 +281,10 @@ export default function AdminSidebar() {
               />
             </div>
             <div>
-              <div className="text-xs font-bold tracking-wider text-slate-900 group-hover:text-[#1D9BF0] transition-colors">
+              <div className="text-xs font-bold tracking-wider text-slate-900 dark:text-white group-hover:text-[#1D9BF0] dark:group-hover:text-sky-400 transition-colors">
                 NAY PARFUMS
               </div>
-              <div className="text-[10px] text-slate-500 font-medium">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                 Maison de Luxe
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function AdminSidebar() {
           {isOpen && (
             <button 
               onClick={() => setIsOpen(false)} 
-              className="lg:hidden text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100"
+              className="lg:hidden text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <X size={18} />
             </button>
@@ -304,7 +304,7 @@ export default function AdminSidebar() {
         <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto custom-scrollbar">
           {hasGeneralItems && (
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1.5 px-3">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5 px-3">
                 Général
               </div>
               <div className="space-y-0.5">
@@ -315,7 +315,7 @@ export default function AdminSidebar() {
 
           {hasTeamItems && (
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1.5 px-3 flex items-center justify-between">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5 px-3 flex items-center justify-between">
                 <span>Équipe & Rôles</span>
               </div>
               <div className="space-y-0.5">
@@ -326,7 +326,7 @@ export default function AdminSidebar() {
 
           {hasCrmItems && (
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1.5 px-3">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5 px-3">
                 Clients & CRM
               </div>
               <div className="space-y-0.5">
@@ -337,7 +337,7 @@ export default function AdminSidebar() {
 
           {hasMarketingItems && (
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1.5 px-3">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5 px-3">
                 Marketing & Ventes
               </div>
               <div className="space-y-0.5">
@@ -348,7 +348,7 @@ export default function AdminSidebar() {
 
           {hasSystemItems && (
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1.5 px-3">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5 px-3">
                 Système
               </div>
               <div className="space-y-0.5">
@@ -359,30 +359,30 @@ export default function AdminSidebar() {
         </nav>
 
         {/* Current Connected User Footer Card */}
-        <div className="p-3 border-t border-slate-100 bg-slate-50/50 mt-auto space-y-2">
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 mt-auto space-y-2">
           {/* User Profile Card */}
           <Link
             href="/admin/profile"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-2.5 p-2 rounded-xl bg-white hover:bg-slate-100/80 border border-slate-200/90 shadow-2xs transition-all group"
+            className="flex items-center gap-2.5 p-2 rounded-xl bg-white dark:bg-slate-900/80 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-800 shadow-2xs transition-all group"
           >
             <div className="relative shrink-0">
-              <div className="w-8 h-8 rounded-full bg-sky-100 border border-sky-200 text-[#0284c7] flex items-center justify-center text-xs font-bold">
+              <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 text-[#0284c7] dark:text-sky-400 flex items-center justify-center text-xs font-bold">
                 {user?.avatar ? (
                   <img src={user.avatar} alt={user.name} className="w-full h-full object-cover rounded-full" />
                 ) : (
                   <span>{getInitials(user?.name)}</span>
                 )}
               </div>
-              <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 border-2 border-white rounded-full"></span>
+              <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
             </div>
             
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#1D9BF0] transition-colors">
+              <p className="text-xs font-semibold text-slate-900 dark:text-white truncate group-hover:text-[#1D9BF0] dark:group-hover:text-sky-400 transition-colors">
                 {user?.name || 'Administrateur'}
               </p>
               <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[9px] uppercase font-bold tracking-wider text-[#0284c7] bg-sky-100/70 border border-sky-200/60 px-1.5 py-0.2 rounded">
+                <span className="text-[9px] uppercase font-bold tracking-wider text-[#0284c7] dark:text-sky-400 bg-sky-100/70 dark:bg-sky-950/60 border border-sky-200/60 dark:border-sky-800 px-1.5 py-0.2 rounded">
                   {user?.isOwner ? 'Propriétaire' : (user?.role || 'Membre')}
                 </span>
               </div>
@@ -394,7 +394,7 @@ export default function AdminSidebar() {
             <Link 
               href="/" 
               target="_blank"
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 transition-all"
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all"
               title="Voir la boutique publique"
             >
               <ExternalLink size={12} className="text-slate-400" />
@@ -404,7 +404,7 @@ export default function AdminSidebar() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="px-2 py-1.5 rounded-lg text-slate-600 hover:text-amber-500 hover:bg-white border border-transparent hover:border-slate-200 transition-all cursor-pointer flex items-center justify-center"
+              className="px-2 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all cursor-pointer flex items-center justify-center"
               title={isDark ? "Mode Clair" : "Mode Sombre"}
             >
               {isDark ? <Sun size={13} className="text-amber-400" /> : <Moon size={13} />}
@@ -412,7 +412,7 @@ export default function AdminSidebar() {
             
             <button 
               onClick={handleLogout}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50/80 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50/80 dark:hover:bg-rose-950/30 border border-transparent hover:border-rose-200 dark:hover:border-rose-900 transition-all cursor-pointer"
               title="Déconnexion sécurisée"
             >
               <LogOut size={12} />

@@ -284,23 +284,23 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="admin-header w-full bg-white/80 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_-2px_rgba(14,165,233,0.06),0_1px_3px_rgba(0,0,0,0.03)] px-4 lg:px-8 py-3 mb-6 rounded-2xl flex items-center justify-between transition-all">
+    <header className="admin-header w-full bg-white/80 dark:bg-[#0c1424]/85 backdrop-blur-xl border border-white/80 dark:border-sky-500/20 shadow-[0_4px_20px_-2px_rgba(14,165,233,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_12px_36px_-4px_rgba(0,0,0,0.7),0_0_18px_rgba(14,165,233,0.08)] px-4 lg:px-8 py-3 mb-6 rounded-2xl flex items-center justify-between transition-all">
       {/* Left: Breadcrumb / Active Route Context */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider hidden md:inline">
+          <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider hidden md:inline">
             Admin /
           </span>
-          <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
+          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white tracking-tight">
             {getPageContextLabel(pathname)}
           </span>
         </div>
 
-        <div className="hidden lg:flex items-center gap-1.5 pl-3 border-l border-slate-200/80">
+        <div className="hidden lg:flex items-center gap-1.5 pl-3 border-l border-slate-200/80 dark:border-slate-800">
           <Link
             href="/"
             target="_blank"
-            className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 hover:text-[#0ea5e9] bg-white/90 hover:bg-sky-50 px-2.5 py-1 rounded-lg border border-slate-200/80 hover:border-sky-200 transition-all shadow-2xs"
+            className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:text-[#0ea5e9] dark:hover:text-sky-400 bg-white/90 dark:bg-slate-800/80 hover:bg-sky-50 dark:hover:bg-slate-700/80 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-200 dark:hover:border-sky-500/40 transition-all shadow-2xs"
             title="Ouvrir la boutique publique dans un nouvel onglet"
           >
             <span className="relative flex h-1.5 w-1.5">
@@ -308,17 +308,17 @@ export default function AdminHeader() {
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
             </span>
             <span>nayparfum.ma</span>
-            <ExternalLink size={11} className="text-slate-400" />
+            <ExternalLink size={11} className="text-slate-400 dark:text-slate-400" />
           </Link>
 
           {/* Live Casablanca Clock */}
           <div 
-            className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 bg-white/90 px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs"
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-white/90 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 shadow-2xs"
             title="Heure officielle du Maroc (Casablanca)"
           >
-            <Clock size={12} className="text-[#0ea5e9]" />
-            <span className="text-slate-400 font-medium">Casablanca :</span>
-            <span className="font-mono font-bold text-slate-800">{currentTimeCasablanca || '--:--:--'}</span>
+            <Clock size={12} className="text-[#0ea5e9] dark:text-sky-400" />
+            <span className="text-slate-400 dark:text-slate-400 font-medium">Casablanca :</span>
+            <span className="font-mono font-bold text-slate-800 dark:text-sky-300">{currentTimeCasablanca || '--:--:--'}</span>
           </div>
         </div>
       </div>
@@ -329,7 +329,7 @@ export default function AdminHeader() {
         <button
           onClick={toggleTheme}
           type="button"
-          className="p-2 rounded-xl text-slate-500 hover:text-amber-500 hover:bg-slate-100/80 transition-all relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80"
+          className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-all relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10"
           title={isDark ? "Basculer en Mode Clair (☀️)" : "Basculer en Mode Sombre (🌙)"}
           aria-label="Changer de thème d'affichage"
         >
@@ -343,7 +343,7 @@ export default function AdminHeader() {
         {/* TEAM CHAT QUICK BUTTON */}
         <Link
           href="/admin/chat"
-          className="p-2 rounded-xl text-slate-500 hover:text-[#0ea5e9] hover:bg-slate-100/80 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80"
+          className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#0ea5e9] dark:hover:text-sky-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10"
           title="Messagerie d'équipe (NAY Chat)"
         >
           <MessageSquare size={18} />
@@ -353,7 +353,7 @@ export default function AdminHeader() {
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="p-2 rounded-xl text-slate-500 hover:text-[#0ea5e9] hover:bg-slate-100/80 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#0ea5e9] dark:hover:text-sky-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10"
             aria-label="Centre de notifications"
           >
             <Bell size={18} />
@@ -366,12 +366,12 @@ export default function AdminHeader() {
 
           {/* NOTIFICATION FLYOUT DROPDOWN */}
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-200/80 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white/95 dark:bg-[#0c1424]/95 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
               {/* Flyout Header */}
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/60">
                 <div className="flex items-center gap-2">
-                  <Bell size={16} className="text-[#0ea5e9]" />
-                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                  <Bell size={16} className="text-[#0ea5e9] dark:text-sky-400" />
+                  <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
                     Notifications & Alertes
                   </h4>
                   {unreadCount > 0 && (
@@ -393,39 +393,39 @@ export default function AdminHeader() {
               </div>
 
               {/* Notifications List */}
-              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 custom-scrollbar">
+              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80 custom-scrollbar">
                 {notifications.length === 0 ? (
                   <div className="py-12 text-center text-slate-400 text-xs">
-                    <Bell size={24} className="mx-auto text-slate-300 mb-2" />
-                    <p className="font-medium text-slate-600">Aucune notification pour l'instant</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Tout est à jour sur votre boutique</p>
+                    <Bell size={24} className="mx-auto text-slate-300 dark:text-slate-600 mb-2" />
+                    <p className="font-medium text-slate-600 dark:text-slate-300">Aucune notification pour l'instant</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Tout est à jour sur votre boutique</p>
                   </div>
                 ) : (
                   notifications.map((notif) => (
                     <div
                       key={notif.id}
                       onClick={() => handleNotificationClick(notif)}
-                      className={`p-3.5 flex items-start gap-3 hover:bg-slate-50 transition-colors cursor-pointer text-xs ${
-                        !notif.isRead ? 'bg-sky-50/40' : ''
+                      className={`p-3.5 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer text-xs ${
+                        !notif.isRead ? 'bg-sky-50/40 dark:bg-sky-950/30' : ''
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                         {getNotifIcon(notif.type)}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1 mb-0.5">
-                          <p className={`font-bold truncate ${!notif.isRead ? 'text-slate-900' : 'text-slate-700'}`}>
+                          <p className={`font-bold truncate ${!notif.isRead ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                             {notif.title}
                           </p>
                           {!notif.isRead && (
                             <span className="w-2 h-2 rounded-full bg-[#0ea5e9] shrink-0" />
                           )}
                         </div>
-                        <p className="text-slate-500 text-[11px] line-clamp-2 leading-relaxed">
+                        <p className="text-slate-500 dark:text-slate-400 text-[11px] line-clamp-2 leading-relaxed">
                           {notif.message}
                         </p>
-                        <span className="text-[10px] text-slate-400 mt-1 block">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">
                           {getRelativeTime(notif.createdAt)}
                         </span>
                       </div>
@@ -435,11 +435,11 @@ export default function AdminHeader() {
               </div>
 
               {/* Flyout Footer */}
-              <div className="p-3 border-t border-slate-100 bg-slate-50/70 text-center">
+              <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-center">
                 <Link
                   href="/admin/notifications"
                   onClick={() => setIsNotifOpen(false)}
-                  className="text-xs font-bold text-[#0ea5e9] hover:text-sky-700 block transition-colors"
+                  className="text-xs font-bold text-[#0ea5e9] dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 block transition-colors"
                 >
                   Voir tout le centre de notifications →
                 </Link>
@@ -452,11 +452,11 @@ export default function AdminHeader() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-slate-100/80 border border-transparent hover:border-slate-200/80 transition-all focus:outline-none cursor-pointer"
+            className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-slate-100/80 dark:hover:bg-white/10 border border-transparent hover:border-slate-200/80 dark:hover:border-white/10 transition-all focus:outline-none cursor-pointer"
             aria-label="Menu profil administrateur"
           >
             {/* Avatar Pill */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0ea5e9] to-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-sm ring-2 ring-white overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0ea5e9] to-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-sm ring-2 ring-white/80 dark:ring-sky-500/30 overflow-hidden">
               {currentUser?.avatar ? (
                 <img
                   src={currentUser.avatar}
@@ -470,10 +470,10 @@ export default function AdminHeader() {
 
             {/* User Info */}
             <div className="text-left hidden sm:block">
-              <div className="text-xs font-bold text-slate-900 leading-tight">
+              <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
                 {isLoading ? 'Chargement...' : currentUser?.name || 'Administrateur'}
               </div>
-              <div className="text-[10px] uppercase font-bold tracking-wider text-[#0284c7] leading-tight">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-[#0284c7] dark:text-sky-400 leading-tight">
                 {currentUser?.isOwner ? 'Propriétaire NAY' : (currentUser?.role || 'Membre')}
               </div>
             </div>
@@ -481,16 +481,16 @@ export default function AdminHeader() {
             <ChevronDown
               size={14}
               className={`text-slate-400 transition-transform duration-200 ${
-                isDropdownOpen ? 'rotate-180 text-slate-700' : ''
+                isDropdownOpen ? 'rotate-180 text-slate-700 dark:text-slate-200' : ''
               }`}
             />
           </button>
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-[#0c1424]/95 backdrop-blur-2xl rounded-2xl shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               {/* Profile Card Header */}
-              <div className="px-4 py-3 border-b border-slate-100">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#0ea5e9] to-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-500/20 overflow-hidden shrink-0">
                     {currentUser?.avatar ? (
@@ -504,18 +504,18 @@ export default function AdminHeader() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                       {currentUser?.name}
                     </p>
-                    <p className="text-[11px] text-slate-500 truncate">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                       {currentUser?.email}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+                <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
                   <span className="text-slate-400 font-medium">Statut compte</span>
-                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-transparent dark:border-emerald-800/40">
                     <CheckCircle2 size={11} />
                     Actif
                   </span>
@@ -527,7 +527,7 @@ export default function AdminHeader() {
                 <Link
                   href="/admin/profile"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0ea5e9] transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-[#0ea5e9] dark:hover:text-sky-400 transition-colors"
                 >
                   <User size={15} />
                   <span>Mon Compte & Profil</span>
@@ -536,16 +536,16 @@ export default function AdminHeader() {
                 <Link
                   href="/admin/chat"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0ea5e9] transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-[#0ea5e9] dark:hover:text-sky-400 transition-colors"
                 >
-                  <MessageSquare size={15} className="text-[#0ea5e9]" />
+                  <MessageSquare size={15} className="text-[#0ea5e9] dark:text-sky-400" />
                   <span>Messagerie d'Équipe (NAY Chat)</span>
                 </Link>
 
                 <Link
                   href="/admin/notifications"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0ea5e9] transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-[#0ea5e9] dark:hover:text-sky-400 transition-colors"
                 >
                   <Bell size={15} className="text-amber-500" />
                   <span>Centre de Notifications</span>
@@ -554,7 +554,7 @@ export default function AdminHeader() {
                 <Link
                   href="/admin/tasks"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0ea5e9] transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-[#0ea5e9] dark:hover:text-sky-400 transition-colors"
                 >
                   <CheckSquare size={15} className="text-emerald-500" />
                   <span>Missions & Tâches</span>
@@ -563,7 +563,7 @@ export default function AdminHeader() {
                 <Link
                   href="/admin/activity"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0ea5e9] transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-[#0ea5e9] dark:hover:text-sky-400 transition-colors"
                 >
                   <History size={15} className="text-purple-500" />
                   <span>Journal d'Activité Global</span>
@@ -572,7 +572,7 @@ export default function AdminHeader() {
                 <Link
                   href="/admin/profile?tab=security"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0ea5e9] transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-[#0ea5e9] dark:hover:text-sky-400 transition-colors"
                 >
                   <ShieldCheck size={15} />
                   <span>Sécurité & Mon Mot de Passe</span>
@@ -580,10 +580,10 @@ export default function AdminHeader() {
               </div>
 
               {/* Footer / Logout */}
-              <div className="pt-1 border-t border-slate-100">
+              <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                 >
                   <LogOut size={15} />
                   <span>Se déconnecter</span>

@@ -40,31 +40,26 @@ html.dark body {
 
 /* ── 2. Dark Mode Admin Shell: Simple Dark Blue Gradient from Up ──────────── */
 html.dark .admin-shell-bg {
-  background-color: #09090b !important;
-  background-image: linear-gradient(180deg, #0f2347 0%, #0c1a33 130px, #091222 250px, #09090b 420px) !important;
+  background-color: #070a12 !important;
+  background-image: linear-gradient(180deg, #0d284f 0%, #091c38 140px, #071326 280px, #070a12 480px) !important;
   background-repeat: no-repeat !important;
 }
 
-/* ── Header & Sidebar: Always iOS Liquid Glass / Clean White (Zero Black) ─── */
-aside,
-.admin-sidebar,
-aside.bg-white,
-html.dark aside,
-html.dark .admin-sidebar,
-html.dark aside.bg-white {
-  background-color: rgba(255, 255, 255, 0.95) !important;
+/* ── Light Mode: iOS Liquid Glass White (Clean Frosted Translucent, Zero Black) ── */
+html:not(.dark) aside,
+html:not(.dark) .admin-sidebar,
+html:not(.dark) aside.bg-white {
+  background-color: rgba(255, 255, 255, 0.92) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   border-color: rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 2px 0 24px -4px rgba(0, 0, 0, 0.02) !important;
   color: #334155 !important;
 }
 
-header,
-.admin-header,
-header.bg-white,
-html.dark header,
-html.dark .admin-header,
-html.dark header.bg-white {
+html:not(.dark) header,
+html:not(.dark) .admin-header,
+html:not(.dark) header.bg-white {
   background-color: rgba(255, 255, 255, 0.82) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
@@ -73,14 +68,45 @@ html.dark header.bg-white {
   color: #0f172a !important;
 }
 
-.lg\:hidden.bg-white,
-html.dark .lg\:hidden.bg-white,
-html.dark .lg\:hidden.bg-white\/90 {
-  background-color: rgba(255, 255, 255, 0.95) !important;
+html:not(.dark) .lg\:hidden.bg-white,
+html:not(.dark) .lg\:hidden.bg-white\/90,
+html:not(.dark) .lg\:hidden.bg-white\/95 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   border-color: rgba(226, 232, 240, 0.8) !important;
   color: #0f172a !important;
+}
+
+/* ── Dark Mode: Distinct Premium iOS Liquid Glass / Dark Midnight Obsidian Style ── */
+html.dark aside,
+html.dark .admin-sidebar {
+  background-color: rgba(10, 15, 29, 0.94) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border-right-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.6) !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark header,
+html.dark .admin-header {
+  background-color: rgba(12, 19, 36, 0.84) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.2) !important;
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.6), 0 0 18px rgba(14, 165, 233, 0.08) !important;
+  color: #ffffff !important;
+}
+
+html.dark .lg\:hidden.bg-white,
+html.dark .lg\:hidden.bg-white\/90,
+html.dark .lg\:hidden.bg-white\/95 {
+  background-color: rgba(10, 15, 29, 0.94) !important;
+  backdrop-filter: blur(20px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
 }
 
 /* Sub-containers inside dark mode */
