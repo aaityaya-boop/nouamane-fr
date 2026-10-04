@@ -284,7 +284,7 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="admin-header w-full bg-white/80 dark:bg-[#0c182d]/80 backdrop-blur-xl border border-sky-100/90 dark:border-blue-900/40 px-4 lg:px-8 py-3 mb-6 rounded-2xl shadow-[0_4px_24px_-4px_rgba(14,165,233,0.08)] dark:shadow-[0_8px_30px_rgba(2,6,23,0.6)] flex items-center justify-between transition-all">
+    <header className="w-full bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-[#222227] px-4 lg:px-8 py-3 mb-6 rounded-2xl shadow-xs flex items-center justify-between transition-all">
       {/* Left: Breadcrumb / Active Route Context */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
@@ -296,11 +296,11 @@ export default function AdminHeader() {
           </span>
         </div>
 
-        <div className="hidden lg:flex items-center gap-1.5 pl-3 border-l border-slate-200/80 dark:border-blue-900/40">
+        <div className="hidden lg:flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-[#222227]">
           <Link
             href="/"
             target="_blank"
-            className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 dark:text-sky-300 hover:text-sky-600 dark:hover:text-sky-200 bg-sky-50/70 hover:bg-sky-100/70 dark:bg-blue-950/40 dark:hover:bg-blue-900/40 px-2.5 py-1 rounded-lg border border-sky-200/70 dark:border-blue-800/50 transition-all shadow-2xs"
+            className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-[#0ea5e9] bg-slate-50 hover:bg-sky-50 dark:bg-[#18181d] dark:hover:bg-[#202026] px-2.5 py-1 rounded-lg border border-slate-200 hover:border-sky-200 dark:border-[#222227] transition-all shadow-2xs"
             title="Ouvrir la boutique publique dans un nouvel onglet"
           >
             <span className="relative flex h-1.5 w-1.5">
@@ -313,7 +313,7 @@ export default function AdminHeader() {
 
           {/* Live Casablanca Clock */}
           <div 
-            className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-sky-50/50 dark:bg-blue-950/30 px-2.5 py-1 rounded-lg border border-sky-200/60 dark:border-blue-800/40 shadow-2xs"
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-100/80 dark:bg-[#18181d] px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-[#222227] shadow-2xs"
             title="Heure officielle du Maroc (Casablanca)"
           >
             <Clock size={12} className="text-[#0ea5e9]" />
@@ -329,7 +329,7 @@ export default function AdminHeader() {
         <button
           onClick={toggleTheme}
           type="button"
-          className="p-2 rounded-xl text-slate-500 hover:text-amber-500 hover:bg-sky-50/80 dark:hover:bg-blue-950/50 transition-all relative flex items-center justify-center cursor-pointer border border-transparent hover:border-sky-200/80 dark:hover:border-blue-800/50"
+          className="p-2 rounded-xl text-slate-500 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-[#18181d] transition-all relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-[#222227]"
           title={isDark ? "Basculer en Mode Clair (☀️)" : "Basculer en Mode Sombre (🌙)"}
           aria-label="Changer de thème d'affichage"
         >
@@ -343,7 +343,7 @@ export default function AdminHeader() {
         {/* TEAM CHAT QUICK BUTTON */}
         <Link
           href="/admin/chat"
-          className="p-2 rounded-xl text-slate-500 hover:text-[#0ea5e9] hover:bg-sky-50/80 dark:hover:bg-blue-950/50 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-sky-200/70 dark:hover:border-blue-800/50"
+          className="p-2 rounded-xl text-slate-500 hover:text-[#0ea5e9] hover:bg-slate-100 dark:hover:bg-[#18181d] transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-[#222227]"
           title="Messagerie d'équipe (NAY Chat)"
         >
           <MessageSquare size={18} />
@@ -353,7 +353,7 @@ export default function AdminHeader() {
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="p-2 rounded-xl text-slate-500 hover:text-[#0ea5e9] hover:bg-sky-50/80 dark:hover:bg-blue-950/50 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-sky-200/70 dark:hover:border-blue-800/50"
+            className="p-2 rounded-xl text-slate-500 hover:text-[#0ea5e9] hover:bg-slate-100 dark:hover:bg-[#18181d] transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-[#222227]"
             aria-label="Centre de notifications"
           >
             <Bell size={18} />
@@ -366,9 +366,9 @@ export default function AdminHeader() {
 
           {/* NOTIFICATION FLYOUT DROPDOWN */}
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#0c182d] rounded-3xl shadow-2xl border border-slate-200 dark:border-blue-900/50 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#121215] rounded-3xl shadow-2xl border border-slate-200 dark:border-[#222227] z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
               {/* Flyout Header */}
-              <div className="p-4 border-b border-slate-100 dark:border-blue-900/40 flex items-center justify-between bg-slate-50/70 dark:bg-blue-950/40">
+              <div className="p-4 border-b border-slate-100 dark:border-[#222227] flex items-center justify-between bg-slate-50/70 dark:bg-[#18181d]">
                 <div className="flex items-center gap-2">
                   <Bell size={16} className="text-[#0ea5e9]" />
                   <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
@@ -452,11 +452,11 @@ export default function AdminHeader() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-sky-50/80 dark:hover:bg-blue-950/50 border border-transparent hover:border-sky-200/70 dark:hover:border-blue-800/50 transition-all focus:outline-none cursor-pointer"
+            className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-slate-100 dark:hover:bg-[#18181d] border border-transparent hover:border-slate-200 dark:hover:border-[#222227] transition-all focus:outline-none cursor-pointer"
             aria-label="Menu profil administrateur"
           >
             {/* Avatar Pill */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0ea5e9] to-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-sm ring-2 ring-white dark:ring-blue-950 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0ea5e9] to-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-sm ring-2 ring-white dark:ring-[#121215] overflow-hidden">
               {currentUser?.avatar ? (
                 <img
                   src={currentUser.avatar}
@@ -473,7 +473,7 @@ export default function AdminHeader() {
               <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
                 {isLoading ? 'Chargement...' : currentUser?.name || 'Administrateur'}
               </div>
-              <div className="text-[10px] uppercase font-bold tracking-wider text-[#0284c7] dark:text-sky-400 leading-tight">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-[#0284c7] leading-tight">
                 {currentUser?.isOwner ? 'Propriétaire NAY' : (currentUser?.role || 'Membre')}
               </div>
             </div>
@@ -488,9 +488,9 @@ export default function AdminHeader() {
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#0c182d] rounded-2xl shadow-xl border border-slate-100 dark:border-blue-900/50 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#121215] rounded-2xl shadow-xl border border-slate-100 dark:border-[#222227] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               {/* Profile Card Header */}
-              <div className="px-4 py-3 border-b border-slate-100 dark:border-blue-900/40">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-[#222227]">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#0ea5e9] to-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-500/20 overflow-hidden shrink-0">
                     {currentUser?.avatar ? (

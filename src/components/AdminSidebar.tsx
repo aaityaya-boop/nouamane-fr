@@ -231,7 +231,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-[#0b172a]/90 backdrop-blur-xl text-slate-900 dark:text-white flex items-center justify-between px-4 z-40 border-b border-sky-200/60 dark:border-blue-900/50 shadow-xs">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-[#09090b] text-slate-900 dark:text-white flex items-center justify-between px-4 z-40 border-b border-slate-200/80 dark:border-[#1a1a1f] shadow-xs">
         <Link href="/admin" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-white border border-sky-200 p-1 flex items-center justify-center shadow-2xs">
             <Image 
@@ -244,12 +244,12 @@ export default function AdminSidebar() {
           </div>
           <div>
             <div className="text-xs font-bold text-slate-900 dark:text-white tracking-wider">NAY PARFUMS</div>
-            <div className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">Administration</div>
+            <div className="text-[10px] text-slate-400 font-medium">Administration</div>
           </div>
         </Link>
         <button 
           onClick={() => setIsOpen(true)} 
-          className="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-sky-50 dark:hover:bg-blue-950/60"
+          className="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-[#18181d]"
           aria-label="Ouvrir le menu"
         >
           <Menu size={20} />
@@ -265,10 +265,10 @@ export default function AdminSidebar() {
       )}
 
       {/* Sidebar Desktop & Mobile Drawer */}
-      <aside className={`admin-sidebar w-[260px] bg-white/95 dark:bg-[#080d1a]/95 backdrop-blur-md border-r border-sky-100/80 dark:border-blue-950/70 h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 dark:text-slate-300 transition-transform duration-200 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0`}>
+      <aside className={`w-[260px] bg-white dark:bg-[#09090b] border-r border-slate-200/80 dark:border-[#1a1a1f] h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 dark:text-slate-300 transition-transform duration-200 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0`}>
         
         {/* Brand Top Header */}
-        <div className="p-4 pb-3 flex justify-between items-center border-b border-sky-100/70 dark:border-blue-950/60 bg-gradient-to-b from-sky-100/70 via-sky-50/30 to-transparent dark:from-blue-950/60 dark:via-blue-950/25 dark:to-transparent">
+        <div className="p-4 pb-3 flex justify-between items-center border-b border-slate-100 dark:border-[#1a1a1f]">
           <Link href="/admin" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-white border border-sky-200 p-1.5 flex items-center justify-center shadow-2xs group-hover:border-[#1D9BF0] transition-colors">
               <Image 

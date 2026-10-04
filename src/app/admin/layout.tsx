@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className={`${plusJakarta.className} bg-[#f8fafc] dark:bg-[#060913] antialiased min-h-screen font-sans`}>
+      <body className={`${plusJakarta.className} bg-[#f8fafc] dark:bg-[#09090b] antialiased min-h-screen font-sans`}>
         <AdminLayoutShell>
           {children}
         </AdminLayoutShell>

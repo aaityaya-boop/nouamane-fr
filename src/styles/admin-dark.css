@@ -1,106 +1,77 @@
 /* ==========================================================================
-   MAISON NAY PARFUMS — EXECUTIVE LUXURY ADMIN THEME
-   Light Mode: Ethereal Sky Blue Ambient Gradient from the top
-   Dark Mode: Deep Royal Sapphire / Midnight Blue Gradient from the top
-   Crisp High-Contrast Typography • Sleek Executive Glass Surfaces
+   MAISON NAY PARFUMS — EXECUTIVE ADMIN THEME
+   Light Mode: Simple Soft Sky Blue Gradient from the top
+   Dark Mode: Simple Deep Dark Blue Gradient from the top
+   Crisp High-Contrast Typography & Clean Professional Surfaces
    ========================================================================== */
 
-/* ── 0. Light Mode Admin Shell & Sky Blue Gradient from Up ────────────────── */
+/* ── 0. Light Mode Admin Shell: Simple Sky Blue Gradient from Up ──────────── */
 .admin-shell-bg {
   background-color: #f8fafc;
-  background-image: 
-    radial-gradient(1400px 520px at 50% 0px, rgba(56, 189, 248, 0.28) 0%, rgba(125, 211, 252, 0.16) 35%, rgba(224, 242, 254, 0.05) 70%, transparent 100%),
-    linear-gradient(180deg, #dbeafe 0%, #e0f2fe 120px, #eff6ff 260px, #f0f9ff 440px, #f8fafc 620px, #f8fafc 100%);
+  background-image: linear-gradient(180deg, #dbeafe 0%, #eff6ff 160px, #f8fafc 380px);
   background-repeat: no-repeat;
-  background-attachment: local;
-  position: relative;
 }
 
-.admin-top-horizon-glow {
-  background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.6) 20%, rgba(14, 165, 233, 0.95) 50%, rgba(56, 189, 248, 0.6) 80%, transparent 100%);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
-}
-
-.admin-glow-orb {
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(125, 211, 252, 0.20) 40%, rgba(224, 242, 254, 0.05) 70%, transparent 100%);
-}
-
-/* ── 1. Root & Dark Mode Variables ────────────────────────────────────────── */
+/* ── 1. Root & Base Theme Variables ───────────────────────────────────────── */
 html.dark,
 html.dark body,
 html.dark [data-theme="dark"] {
-  --admin-bg-root: #060913;
-  --admin-bg-sidebar: #080d1a;
-  --admin-bg-header: #0c182d;
-  --admin-bg-card: #0e1726;
-  --admin-bg-card-hover: #131f33;
-  --admin-bg-subtle: #0a1120;
-  --admin-bg-elevated: #111d33;
-  --admin-border-main: #1e293b;
-  --admin-border-subtle: #172033;
-  --admin-border-focus: #38bdf8;
+  --admin-bg-root: #09090b;
+  --admin-bg-sidebar: #09090b;
+  --admin-bg-header: #0c0c0e;
+  --admin-bg-card: #121215;
+  --admin-bg-card-hover: #18181d;
+  --admin-bg-subtle: #0d0d10;
+  --admin-bg-elevated: #18181c;
+  --admin-border-main: #222227;
+  --admin-border-subtle: #1a1a1f;
+  --admin-border-focus: #52525b;
   --admin-text-title: #ffffff;
-  --admin-text-main: #e2e8f0;
-  --admin-text-secondary: #94a3b8;
-  --admin-text-muted: #64748b;
+  --admin-text-main: #e4e4e7;
+  --admin-text-secondary: #a1a1aa;
+  --admin-text-muted: #71717a;
   color-scheme: dark;
 }
 
 html.dark body {
-  background-color: #060913 !important;
-  color: #e2e8f0 !important;
+  background-color: #09090b !important;
+  color: #e4e4e7 !important;
 }
 
-/* ── 2. Admin Layout Shell, Header & Sidebar with Dark Blue Gradient from Up ── */
+/* ── 2. Dark Mode Admin Shell: Simple Dark Blue Gradient from Up ──────────── */
 html.dark .admin-shell-bg {
-  background-color: #060913 !important;
-  background-image: 
-    radial-gradient(1400px 560px at 50% 0px, rgba(29, 78, 216, 0.45) 0%, rgba(30, 58, 138, 0.28) 35%, rgba(14, 116, 144, 0.12) 65%, transparent 100%),
-    linear-gradient(180deg, #0d1e3d 0%, #0a1832 130px, #081326 270px, #070e1c 450px, #060913 650px, #060913 100%) !important;
+  background-color: #09090b !important;
+  background-image: linear-gradient(180deg, #0e1e38 0%, #0a1526 160px, #09090b 380px) !important;
   background-repeat: no-repeat !important;
-  background-attachment: local !important;
-}
-
-html.dark .admin-top-horizon-glow {
-  background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.6) 20%, rgba(96, 165, 250, 0.95) 50%, rgba(59, 130, 246, 0.6) 80%, transparent 100%) !important;
-  box-shadow: 0 0 14px rgba(96, 165, 250, 0.5) !important;
-}
-
-html.dark .admin-glow-orb {
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.45) 0%, rgba(30, 58, 138, 0.25) 45%, rgba(14, 116, 144, 0.08) 70%, transparent 100%) !important;
 }
 
 html.dark aside,
 html.dark .admin-sidebar,
 html.dark aside.bg-white {
-  background-color: #080d1a !important;
-  border-color: #172033 !important;
-  color: #94a3b8 !important;
+  background-color: #09090b !important;
+  border-color: #1a1a1f !important;
+  color: #a1a1aa !important;
 }
 
 html.dark header,
 html.dark .admin-header,
 html.dark header.bg-white {
-  background-color: rgba(12, 24, 45, 0.8) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border-color: rgba(30, 58, 138, 0.45) !important;
-  box-shadow: 0 10px 30px -5px rgba(2, 6, 23, 0.7), 0 0 1px 1px rgba(56, 189, 248, 0.12) !important;
+  background-color: #0c0c0e !important;
+  border-color: #1a1a1f !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Mobile Top Bar */
 html.dark .lg\:hidden.bg-white,
 html.dark .lg\:hidden.bg-white\/90 {
-  background-color: rgba(11, 23, 42, 0.92) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border-color: rgba(30, 58, 138, 0.4) !important;
+  background-color: #09090b !important;
+  border-color: #1a1a1f !important;
   color: #ffffff !important;
 }
 
 /* Sub-containers inside dark mode */
 html.dark .bg-\[\#f8fafc\] {
-  background-color: #0c1220 !important;
+  background-color: #0d0d10 !important;
   background-image: none !important;
 }
 
@@ -172,11 +143,11 @@ html.dark .to-gray-300 {
   --tw-gradient-to: #2c2c34 !important;
 }
 
-/* ── 4. Cards, Bento Surfaces & Containers (Executive Midnight Navy Surfaces) ────────── */
+/* ── 4. Cards, Bento Surfaces & Containers (Matte Zinc / Titanium) ────────── */
 html.dark .bg-white:not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/5) {
-  background-color: #0e1726 !important;
-  border-color: #1e293b !important;
-  color: #e2e8f0;
+  background-color: #121215 !important;
+  border-color: #222227 !important;
+  color: #e4e4e7;
 }
 
 /* Subtle Inset Sub-Containers */
@@ -201,8 +172,8 @@ html.dark .bg-zinc-50,
 html.dark .bg-zinc-50\/50,
 html.dark .bg-zinc-50\/70,
 html.dark .bg-stone-50 {
-  background-color: #0a1120 !important;
-  border-color: #172033 !important;
+  background-color: #0c0c0e !important;
+  border-color: #1c1c21 !important;
 }
 
 /* Segmented bars, Tab pills bars, Info blocks */
@@ -227,9 +198,9 @@ html.dark .bg-zinc-100,
 html.dark .bg-zinc-100\/70,
 html.dark .bg-zinc-100\/80,
 html.dark .bg-stone-100 {
-  background-color: #0d1527 !important;
-  border-color: #1b263b !important;
-  color: #e2e8f0 !important;
+  background-color: #101013 !important;
+  border-color: #1e1e23 !important;
+  color: #e4e4e7 !important;
 }
 
 html.dark .bg-slate-200,
@@ -244,8 +215,8 @@ html.dark .bg-neutral-200\/70,
 html.dark .bg-neutral-200\/80,
 html.dark .bg-gray-200,
 html.dark .bg-zinc-200 {
-  background-color: #162032 !important;
-  border-color: #1e293b !important;
+  background-color: #1c1c22 !important;
+  border-color: #27272f !important;
 }
 
 /* ── 5. All Borders & Hairline Dividers ───────────────────────────────────── */
@@ -280,7 +251,7 @@ html.dark .border-zinc-300,
 html.dark .border-sky-200,
 html.dark .border-\[\#e2e8f0\],
 html.dark .border-\[\#eaeaea\] {
-  border-color: #1e293b !important;
+  border-color: #222227 !important;
 }
 
 /* ── 6. ALL DARK FONTS -> PURE CRISP TITANIUM / WHITE TYPOGRAPHY ─────────── */

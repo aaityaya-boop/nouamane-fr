@@ -256,7 +256,7 @@ export default async function AdminDashboard() {
     <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 dark:text-slate-100">
       
       {/* ── 1. REFINED EXECUTIVE HEADER ───────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-blue-900/40">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-[#222227]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-400">
@@ -288,7 +288,7 @@ export default async function AdminDashboard() {
           </Link>
           <Link
             href="/admin/tasks"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#0e1726] dark:hover:bg-[#131f33] border border-slate-200 dark:border-blue-900/50 text-xs font-medium text-slate-700 dark:text-slate-200 shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#121215] dark:hover:bg-[#18181d] border border-slate-200 dark:border-[#222227] text-xs font-medium text-slate-700 dark:text-slate-200 shadow-xs transition-all cursor-pointer"
           >
             <CheckSquare size={13} className="text-slate-500 dark:text-slate-400" />
             <span>Missions</span>
@@ -296,7 +296,7 @@ export default async function AdminDashboard() {
           <Link
             href="/"
             target="_blank"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#0e1726] dark:hover:bg-[#131f33] border border-slate-200 dark:border-blue-900/50 text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#121215] dark:hover:bg-[#18181d] border border-slate-200 dark:border-[#222227] text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white shadow-xs transition-all cursor-pointer"
             title="Voir la vitrine publique"
           >
             <span>Vitrine</span>

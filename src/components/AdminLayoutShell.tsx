@@ -23,17 +23,9 @@ export default function AdminLayoutShell({ children }: { children: React.ReactNo
 
   return (
     <AdminThemeProvider>
-      <div className="admin-shell-bg relative text-[#1A1A1A] antialiased flex flex-col lg:flex-row min-h-screen w-full transition-colors duration-200">
-        {/* Top ambient horizon accent line */}
-        <div className="admin-top-horizon-glow pointer-events-none fixed top-0 left-0 right-0 h-[2px] z-50" />
-
-        {/* Ambient Top Glow Diffusion (Sky Blue in Light / Deep Sapphire Blue in Dark) */}
-        <div className="admin-ambient-glow pointer-events-none fixed top-0 left-0 right-0 h-[520px] overflow-hidden z-0" aria-hidden="true">
-          <div className="admin-glow-orb absolute -top-[240px] left-1/2 -translate-x-1/2 w-[900px] sm:w-[1400px] h-[600px] rounded-full blur-[110px] transition-all duration-300" />
-        </div>
-
+      <div className="admin-shell-bg text-[#1A1A1A] antialiased flex flex-col lg:flex-row min-h-screen w-full transition-colors duration-200">
         <AdminSidebar />
-        <main className="flex-1 pt-20 lg:pt-4 lg:ml-[260px] p-4 lg:p-8 w-full overflow-x-hidden flex flex-col min-h-screen relative z-10">
+        <main className="flex-1 pt-20 lg:pt-4 lg:ml-[260px] p-4 lg:p-8 w-full overflow-x-hidden flex flex-col min-h-screen">
           <AdminHeader />
           <div className="flex-1">
             {children}
