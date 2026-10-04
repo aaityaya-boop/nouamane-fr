@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { syncPurchaseOrderExpense, deletePurchaseOrderExpense } from '@/lib/syncSupplierExpenses';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +118,13 @@ export async function POST(request: Request) {
       }
     }
 
+    // Synchronize directly with AdminExpense to reflect in Charges & CA Net
+    try {
+      await syncPurchaseOrderExpense(purchaseOrder.id);
+    } catch (syncErr) {
+      console.warn('Expense sync warning on PO create:', syncErr);
+    }
+
     return NextResponse.json({ success: true, purchaseOrder });
   } catch (error: any) {
     console.error('Error creating purchase order:', error);
@@ -198,9 +206,67 @@ export async function PATCH(request: Request) {
       }
     });
 
+    // Synchronize directly with AdminExpense to reflect in Charges & CA Net
+    try {
+      await syncPurchaseOrderExpense(updated.id);
+    } catch (syncErr) {
+      console.warn('Expense sync warning on PO update:', syncErr);
+    }
+
     return NextResponse.json({ success: true, purchaseOrder: updated });
   } catch (error: any) {
     console.error('Error updating purchase order:', error);
     return NextResponse.json({ error: error.message || 'Erreur lors de la mise à jour' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const admin = await getAuthenticatedAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID requis' }, { status: 400 });
+    }
+
+    const po = await prisma.supplierPurchaseOrder.findUnique({
+      where: { id },
+      select: { id: true, orderNumber: true, supplierId: true, chargeAmountMAD: true, totalAmount: true }
+    });
+
+    if (!po) {
+      return NextResponse.json({ error: 'Bon de commande introuvable' }, { status: 404 });
+    }
+
+    // Delete linked expense in Finance
+    await deletePurchaseOrderExpense(po.orderNumber);
+
+    // Delete the purchase order
+    await prisma.supplierPurchaseOrder.delete({
+      where: { id }
+    });
+
+    // Recalculate supplier stats
+    const remainingOrders = await prisma.supplierPurchaseOrder.findMany({
+      where: { supplierId: po.supplierId }
+    });
+    const newSpend = remainingOrders.reduce((sum, o) => sum + (o.chargeAmountMAD || o.totalAmount || 0), 0);
+    await prisma.supplier.update({
+      where: { id: po.supplierId },
+      data: {
+        totalOrdersCount: remainingOrders.length,
+        totalSpendMAD: newSpend
+      }
+    });
+
+    return NextResponse.json({ success: true, message: 'Bon de commande supprimé avec succès' });
+  } catch (error: any) {
+    console.error('Error deleting purchase order:', error);
+    return NextResponse.json({ error: error.message || 'Erreur lors de la suppression' }, { status: 500 });
   }
 }

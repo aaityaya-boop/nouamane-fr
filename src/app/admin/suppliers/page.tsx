@@ -1,6 +1,7 @@
 import React from 'react';
 import prisma from '@/lib/prisma';
 import SuppliersClient, { SupplierItem, PurchaseOrderItem } from './SuppliersClient';
+import { syncAllPurchaseOrdersExpenses } from '@/lib/syncSupplierExpenses';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,6 +12,8 @@ export default async function AdminSuppliersPage() {
   let dbProducts: any[] = [];
 
   try {
+    // Automatically keep expenses in sync with Finance & CA Net
+    await syncAllPurchaseOrdersExpenses().catch(err => console.warn('Background expense sync error:', err));
     const rawSuppliers = await prisma.supplier.findMany({
       include: {
         purchaseOrders: {

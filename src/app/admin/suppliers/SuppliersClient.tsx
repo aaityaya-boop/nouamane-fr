@@ -14,9 +14,28 @@ import {
   BarChart3, PieChart, Percent, ArrowUpRight, Scale,
   FileCheck, Shield, ChevronRight, Copy, Hash, Globe,
   Briefcase, Boxes, Gauge, Landmark, BadgePercent, Upload,
-  Image as ImageIcon, ZoomIn, CreditCard, Wallet
+  Image as ImageIcon, ZoomIn, CreditCard, Wallet, Paperclip
 } from 'lucide-react';
 import { formatDateGMT, formatTimeGMT } from '@/lib/dateUtils';
+
+export const isPdfUrl = (url?: string | null): boolean => {
+  if (!url) return false;
+  const clean = url.toLowerCase().split('?')[0];
+  return clean.endsWith('.pdf') || url.includes('application/pdf') || url.startsWith('data:application/pdf');
+};
+
+export const getDocumentName = (url?: string | null, fallback = 'Document joint'): string => {
+  if (!url) return fallback;
+  try {
+    const clean = url.split('?')[0];
+    const parts = clean.split('/');
+    const last = parts[parts.length - 1];
+    if (last && last.length < 50 && !last.startsWith('data:')) {
+      return decodeURIComponent(last);
+    }
+  } catch {}
+  return fallback;
+};
 
 export interface NegotiatedSku {
   sku: string;
@@ -162,6 +181,9 @@ export default function SuppliersClient({
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const invoiceFileInputRef = useRef<HTMLInputElement | null>(null);
+  const receiptFileInputRef = useRef<HTMLInputElement | null>(null);
+  const orderDocFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [suppliers, setSuppliers] = useState<SupplierItem[]>(initialSuppliers);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderItem[]>(initialPurchaseOrders);
@@ -175,6 +197,7 @@ export default function SuppliersClient({
   const [selectedTier, setSelectedTier] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [paymentFilter, setPaymentFilter] = useState<'ALL' | 'UNPAID' | 'PAID' | 'PARTIAL'>('ALL');
+  const [documentFilter, setDocumentFilter] = useState<'ALL' | 'WITH_DOCS' | 'WITHOUT_DOCS'>('ALL');
 
   // Modals & Drawers
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
@@ -205,12 +228,24 @@ export default function SuppliersClient({
     paymentMethod: 'VIREMENT',
     paidAt: '',
     invoiceNumber: '',
+    invoiceUrl: '',
     receiptUrl: '',
     notes: ''
   });
 
-  // Photo / Receipt Lightbox Modal
-  const [activeReceiptPhoto, setActiveReceiptPhoto] = useState<{ url: string; orderNumber: string; supplierName: string } | null>(null);
+  // Universal Document Viewer Lightbox (PDF, JPG, PNG)
+  const [activeDocument, setActiveDocument] = useState<{
+    url: string;
+    title: string;
+    subtitle: string;
+    orderNumber: string;
+    supplierName: string;
+    typeLabel?: string;
+  } | null>(null);
+
+  // Finance Auto-Sync State
+  const [isSyncingFinance, setIsSyncingFinance] = useState(false);
+  const [syncNotice, setSyncNotice] = useState<string | null>(null);
 
   // Printable PO Modal
   const [activeOrderToPrint, setActiveOrderToPrint] = useState<PurchaseOrderItem | null>(null);
@@ -266,7 +301,10 @@ export default function SuppliersClient({
     deliveryExpectedAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     paymentDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     notes: 'Marchandise fragile • Vérification qualitative à la réception.',
-    receiptUrl: ''
+    invoiceNumber: '',
+    invoiceUrl: '',
+    receiptUrl: '',
+    chargeAmountMAD: 0
   });
 
   // Format MAD helper
@@ -304,9 +342,14 @@ export default function SuppliersClient({
         (po.invoiceNumber && po.invoiceNumber.toLowerCase().includes(q))
       );
       const matchPayment = paymentFilter === 'ALL' || po.paymentStatus === paymentFilter;
-      return matchSearch && matchPayment;
+      const matchDoc = documentFilter === 'ALL' || (
+        documentFilter === 'WITH_DOCS'
+          ? Boolean(po.invoiceUrl || po.receiptUrl)
+          : (!po.invoiceUrl && !po.receiptUrl)
+      );
+      return matchSearch && matchPayment && matchDoc;
     });
-  }, [purchaseOrders, search, paymentFilter]);
+  }, [purchaseOrders, search, paymentFilter, documentFilter]);
 
   // Filtered Suppliers
   const filteredSuppliers = useMemo(() => {
@@ -344,6 +387,8 @@ export default function SuppliersClient({
     const totalPaidMAD = paidOrders.reduce((acc, p) => acc + (p.chargeAmountMAD || p.totalAmount || 0), 0) +
                          partialOrders.reduce((acc, p) => acc + (p.paidAmount || 0), 0);
 
+    const ordersWithDocuments = purchaseOrders.filter(p => Boolean(p.invoiceUrl || p.receiptUrl));
+    const coveragePercent = totalOrders > 0 ? Math.round((ordersWithDocuments.length / totalOrders) * 100) : 0;
     const lowStockAlerts = dbProducts.filter((p: any) => (p.stock || 0) <= 5);
 
     return {
@@ -354,6 +399,8 @@ export default function SuppliersClient({
       totalUnpaidMAD,
       paidCount: paidOrders.length,
       totalPaidMAD,
+      ordersWithDocumentsCount: ordersWithDocuments.length,
+      coveragePercent,
       lowStockAlerts
     };
   }, [suppliers, purchaseOrders, dbProducts]);
@@ -388,7 +435,10 @@ export default function SuppliersClient({
       deliveryExpectedAt: new Date(Date.now() + (targetSupplier?.leadTimeDays || 3) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
       paymentDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
       notes: 'Marchandise fragile • Vérification qualitative à la réception.',
-      receiptUrl: ''
+      invoiceNumber: '',
+      invoiceUrl: '',
+      receiptUrl: '',
+      chargeAmountMAD: 0
     });
     setProductSearchTerm('');
     setIsOrderModalOpen(true);
@@ -455,11 +505,13 @@ export default function SuppliersClient({
           deliveryExpectedAt: orderMeta.deliveryExpectedAt,
           paymentDueDate: orderMeta.paymentDueDate,
           notes: orderMeta.notes,
+          invoiceNumber: orderMeta.invoiceNumber || null,
+          invoiceUrl: orderMeta.invoiceUrl || null,
           receiptUrl: orderMeta.receiptUrl || null,
           status: 'PENDING',
-          paymentStatus: 'UNPAID',
-          totalAmount: 0,
-          chargeAmountMAD: 0
+          paymentStatus: Number(orderMeta.chargeAmountMAD) > 0 ? 'PARTIAL' : 'UNPAID',
+          totalAmount: Number(orderMeta.chargeAmountMAD) || 0,
+          chargeAmountMAD: Number(orderMeta.chargeAmountMAD) || 0
         })
       });
 
@@ -488,6 +540,7 @@ export default function SuppliersClient({
       paymentMethod: po.paymentMethod || 'VIREMENT',
       paidAt: po.paidAt ? new Date(po.paidAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
       invoiceNumber: po.invoiceNumber || '',
+      invoiceUrl: po.invoiceUrl || '',
       receiptUrl: po.receiptUrl || '',
       notes: po.notes || ''
     });
@@ -518,6 +571,7 @@ export default function SuppliersClient({
           paymentMethod: chargeFormData.paymentMethod,
           paidAt: chargeFormData.paymentStatus === 'PAID' || chargeFormData.paymentStatus === 'PARTIAL' ? chargeFormData.paidAt : null,
           invoiceNumber: chargeFormData.invoiceNumber,
+          invoiceUrl: chargeFormData.invoiceUrl,
           receiptUrl: chargeFormData.receiptUrl,
           notes: chargeFormData.notes
         })
@@ -536,9 +590,11 @@ export default function SuppliersClient({
     }
   };
 
-  // Handle Receipt Upload via /api/admin/upload
-  const handleUploadReceiptFile = async (e: React.ChangeEvent<HTMLInputElement>, targetMode: 'create' | 'manage') => {
-    const file = e.target.files?.[0];
+  // Handle Multi-Format Document Upload (PDF, JPG, PNG, WEBP)
+  const handleUploadDocument = async (
+    file: File,
+    target: 'orderInvoice' | 'orderReceipt' | 'chargeInvoice' | 'chargeReceipt'
+  ) => {
     if (!file) return;
 
     setIsUploading(true);
@@ -552,17 +608,71 @@ export default function SuppliersClient({
       });
       const data = await res.json();
       if (data.url) {
-        if (targetMode === 'create') {
+        if (target === 'orderInvoice') {
+          setOrderMeta(prev => ({ ...prev, invoiceUrl: data.url }));
+        } else if (target === 'orderReceipt') {
           setOrderMeta(prev => ({ ...prev, receiptUrl: data.url }));
-        } else {
+        } else if (target === 'chargeInvoice') {
+          setChargeFormData(prev => ({ ...prev, invoiceUrl: data.url }));
+        } else if (target === 'chargeReceipt') {
           setChargeFormData(prev => ({ ...prev, receiptUrl: data.url }));
         }
+      } else {
+        alert(data.error || 'Erreur lors du téléchargement');
       }
     } catch (err) {
       console.error('Upload error:', err);
-      alert('Erreur lors du téléchargement de la photo');
+      alert('Erreur lors du téléchargement du document (PDF ou Image)');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // Delete Purchase Order (removes PO and its linked AdminExpense from Finance)
+  const handleDeletePurchaseOrder = async (orderId: string, orderNumber: string) => {
+    if (!confirm(`Supprimer définitivement le bon de commande ${orderNumber} ?\nCette opération retirera automatiquement la charge associée de Finance & CA Net.`)) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/admin/suppliers/purchases?id=${orderId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erreur lors de la suppression');
+      }
+
+      setPurchaseOrders(prev => prev.filter(p => p.id !== orderId));
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || 'Erreur suppression');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Manual Trigger: Synchronize all Purchase Orders with Finance & CA Net
+  const handleSyncWithFinance = async () => {
+    setIsSyncingFinance(true);
+    try {
+      const res = await fetch('/api/admin/suppliers/sync-charges', {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSyncNotice(data.message || 'Charges synchronisées avec succès !');
+        setTimeout(() => setSyncNotice(null), 5000);
+        router.refresh();
+      } else {
+        alert(data.error || 'Erreur lors de la synchronisation');
+      }
+    } catch (err) {
+      console.error('Finance sync error:', err);
+      alert('Erreur réseau lors de la synchronisation');
+    } finally {
+      setIsSyncingFinance(false);
     }
   };
 
@@ -739,101 +849,148 @@ export default function SuppliersClient({
               Bons de Commande, Charges & Fournisseurs
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-light leading-relaxed">
-              Sélectionnez vos parfums en un clic pour créer vos bons de commande, suivez les charges réelles facturées, gérez les statuts de paiement et rattachez vos photos de reçus & factures.
+              Créez vos bons de commande en sélectionnant directement vos parfums, joignez tous vos bons (PDF, JPG, PNG), et retrouvez vos charges d'approvisionnement déduites en temps réel dans votre Chiffre d'Affaires Net.
             </p>
+
+            {syncNotice && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold animate-fadeIn">
+                <CheckCircle size={14} className="text-emerald-400" />
+                <span>{syncNotice}</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               onClick={() => handleOpenOrderModal()}
-              className="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2 cursor-pointer"
             >
-              <Package size={16} />
-              <span>+ Nouveau Bon de Commande (Sélection Rapide)</span>
+              <Package size={15} />
+              <span>+ Nouveau Bon</span>
             </button>
             <button
               type="button"
-              onClick={() => handleOpenSupplierModal()}
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold backdrop-blur-md border border-white/15 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+              onClick={handleSyncWithFinance}
+              disabled={isSyncingFinance}
+              className="px-3.5 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 text-xs font-bold backdrop-blur-md border border-cyan-400/30 transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+              title="Synchroniser automatiquement toutes les charges avec Finance & CA Net"
             >
-              <Building2 size={15} />
-              <span>Ajouter Fournisseur</span>
+              <RefreshCw size={14} className={isSyncingFinance ? 'animate-spin text-cyan-300' : 'text-cyan-300'} />
+              <span>{isSyncingFinance ? 'Synchronisation...' : 'Synchroniser Finance & CA Net'}</span>
+            </button>
+            <a
+              href="/admin/finance?tab=EXPENSES"
+              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold backdrop-blur-md border border-white/15 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+              title="Consulter le compte de résultat et charges dans le cockpit Finance"
+            >
+              <BarChart3 size={14} className="text-amber-300" />
+              <span>Finance & CA Net ↗</span>
+            </a>
+            <button
+              type="button"
+              onClick={() => handleOpenSupplierModal()}
+              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold backdrop-blur-md border border-white/15 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <Building2 size={14} />
+              <span>+ Fournisseur</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* 📊 EXECUTIVE BENTO KPI METRICS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {/* Total Charges Fournisseurs */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
-            <span>Charges Facturées (Total)</span>
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
-              <Banknote size={16} />
+            <span>Charges Facturées</span>
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+              <Banknote size={15} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">
+          <div className="mt-2.5">
+            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono">
               {formatMAD(kpis.totalSpend)}
             </div>
-            <div className="text-[11px] text-slate-500 font-medium mt-1">
-              Sur {kpis.totalOrders} bons de commande
+            <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+              Sur {kpis.totalOrders} commandes
             </div>
           </div>
         </div>
 
-        {/* Total Payé */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
-            <span>Charges Payées</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
-              <CheckCircle2 size={16} />
+        {/* Impact sur CA Net */}
+        <div className="bg-white border border-cyan-200/70 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-cyan-300 transition-all bg-gradient-to-br from-white to-cyan-50/30">
+          <div className="flex items-center justify-between text-cyan-800 text-xs font-semibold">
+            <span>Déduit du CA Net</span>
+            <div className="w-7 h-7 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold">
+              <TrendingUp size={15} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 font-mono">
+          <div className="mt-2.5">
+            <div className="text-xl sm:text-2xl font-extrabold text-cyan-700 font-mono">
+              -{formatMAD(kpis.totalSpend)}
+            </div>
+            <a
+              href="/admin/finance?tab=EXPENSES"
+              className="text-[10px] text-cyan-600 font-bold hover:underline flex items-center gap-1 mt-0.5"
+            >
+              <span>Vérifier dans Finance</span>
+              <ArrowUpRight size={11} />
+            </a>
+          </div>
+        </div>
+
+        {/* Total Payé */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+            <span>Charges Payées</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+              <CheckCircle2 size={15} />
+            </div>
+          </div>
+          <div className="mt-2.5">
+            <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono">
               {formatMAD(kpis.totalPaidMAD)}
             </div>
-            <div className="text-[11px] text-emerald-600 font-semibold mt-1">
-              {kpis.paidCount} factures réglées avec reçus
+            <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">
+              {kpis.paidCount} réglées
             </div>
           </div>
         </div>
 
         {/* Total Non Payé / En attente */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
-            <span>Soldes Non Payés (À Régler)</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
-              <AlertCircle size={16} />
+            <span>Soldes À Régler</span>
+            <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
+              <AlertCircle size={15} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-extrabold text-rose-600 font-mono">
+          <div className="mt-2.5">
+            <div className="text-xl sm:text-2xl font-extrabold text-rose-600 font-mono">
               {formatMAD(kpis.totalUnpaidMAD)}
             </div>
-            <div className="text-[11px] text-rose-600 font-semibold mt-1">
-              {kpis.unpaidCount} bons en attente de paiement
+            <div className="text-[10px] text-rose-600 font-semibold mt-0.5">
+              {kpis.unpaidCount} en attente
             </div>
           </div>
         </div>
 
-        {/* Partenaires & Stock */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+        {/* Bons & Documents Archivés */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
-            <span>Partenaires Référencés</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
-              <Building2 size={16} />
+            <span>Bons & Justificatifs</span>
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
+              <Paperclip size={15} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-              {kpis.totalSuppliers}
+          <div className="mt-2.5">
+            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono">
+              {kpis.ordersWithDocumentsCount}/{kpis.totalOrders}
             </div>
-            <div className="text-[11px] text-indigo-600 font-semibold mt-1">
-              Maroc, Grasse & Dubaï
+            <div className="text-[10px] text-indigo-600 font-semibold mt-0.5">
+              {kpis.coveragePercent}% couverture PDF/Reçus
             </div>
           </div>
         </div>
@@ -912,8 +1069,9 @@ export default function SuppliersClient({
               />
             </div>
 
-            {/* Payment Filter Pills */}
+            {/* Payment & Document Filter Pills */}
             <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Paiement :</span>
               <button
                 type="button"
                 onClick={() => setPaymentFilter('ALL')}
@@ -958,6 +1116,37 @@ export default function SuppliersClient({
               >
                 Acomptes ({purchaseOrders.filter(p => p.paymentStatus === 'PARTIAL').length})
               </button>
+
+              <span className="text-slate-300 mx-1 hidden md:inline">|</span>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Bons :</span>
+
+              <button
+                type="button"
+                onClick={() => setDocumentFilter(prev => prev === 'WITH_DOCS' ? 'ALL' : 'WITH_DOCS')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  documentFilter === 'WITH_DOCS'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
+                }`}
+                title="Filtrer les commandes ayant au moins un bon joint (PDF ou image)"
+              >
+                <Paperclip size={12} />
+                <span>Avec Bons ({purchaseOrders.filter(p => Boolean(p.invoiceUrl || p.receiptUrl)).length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDocumentFilter(prev => prev === 'WITHOUT_DOCS' ? 'ALL' : 'WITHOUT_DOCS')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  documentFilter === 'WITHOUT_DOCS'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+                }`}
+                title="Filtrer les commandes nécessitant l'ajout d'un bon ou d'un reçu"
+              >
+                <AlertCircle size={12} />
+                <span>Sans Justificatif ({purchaseOrders.filter(p => !p.invoiceUrl && !p.receiptUrl).length})</span>
+              </button>
             </div>
           </div>
 
@@ -981,11 +1170,11 @@ export default function SuppliersClient({
                 <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200">
                   <tr>
                     <th className="px-5 py-3.5">N° Bon & Date</th>
-                    <th className="px-5 py-3.5">Fournisseur</th>
+                    <th className="px-5 py-3.5">Fournisseur & Transport</th>
                     <th className="px-5 py-3.5">Articles Commandés</th>
-                    <th className="px-5 py-3.5">Charge Fournisseur (MAD)</th>
-                    <th className="px-5 py-3.5">Statut de Paiement</th>
-                    <th className="px-5 py-3.5">Photo / Reçu</th>
+                    <th className="px-5 py-3.5">Charge & CA Net</th>
+                    <th className="px-5 py-3.5">Statut Paiement</th>
+                    <th className="px-5 py-3.5">Bons & Pièces Jointes (PDF / Img)</th>
                     <th className="px-5 py-3.5">Statut Livraison</th>
                     <th className="px-5 py-3.5 text-right">Actions</th>
                   </tr>
@@ -1012,6 +1201,9 @@ export default function SuppliersClient({
                           <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
                             <MapPin size={10} />
                             <span>{po.supplier?.city || 'Maroc'}</span>
+                            {po.carrierName && (
+                              <span className="text-slate-500 font-medium ml-1">• {po.carrierName}</span>
+                            )}
                           </div>
                         </td>
 
@@ -1034,11 +1226,19 @@ export default function SuppliersClient({
                           </div>
                         </td>
 
-                        {/* Charge Fournisseur (MAD) */}
+                        {/* Charge Fournisseur (MAD) & Imputation CA Net */}
                         <td className="px-5 py-4">
                           {charge > 0 ? (
-                            <div>
+                            <div className="space-y-1">
                               <div className="font-mono font-bold text-slate-900 text-sm">{formatMAD(charge)}</div>
+                              <a
+                                href="/admin/finance?tab=EXPENSES"
+                                className="inline-flex items-center gap-1 text-[9px] font-bold text-cyan-700 bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-200 hover:bg-cyan-100 hover:underline transition-colors"
+                                title="Cette charge est immédiatement déduite du CA Brut pour calculer le CA Net sur la page Finance"
+                              >
+                                <span>Lié au CA Net</span>
+                                <ArrowUpRight size={10} />
+                              </a>
                               {po.paidAmount > 0 && po.paymentStatus === 'PARTIAL' && (
                                 <div className="text-[10px] text-sky-600 font-mono">Acompte versé: {formatMAD(po.paidAmount)}</div>
                               )}
@@ -1070,32 +1270,105 @@ export default function SuppliersClient({
                           )}
                         </td>
 
-                        {/* Reçu / Photo Lightbox */}
+                        {/* Bons & Pièces Jointes (PDF / Image) */}
                         <td className="px-5 py-4">
-                          {po.receiptUrl ? (
-                            <div className="flex items-center gap-2">
-                              <div
-                                onClick={() => setActiveReceiptPhoto({ url: po.receiptUrl!, orderNumber: po.orderNumber, supplierName: po.supplier?.name || '' })}
-                                className="w-9 h-9 rounded-xl border border-slate-200 overflow-hidden relative group cursor-pointer shadow-xs hover:border-indigo-500 transition-all"
-                                title="Cliquer pour agrandir la photo du reçu"
-                              >
-                                <Image src={po.receiptUrl} alt="Reçu" fill className="object-cover" />
-                                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                                  <ZoomIn size={14} />
+                          {po.invoiceUrl || po.receiptUrl ? (
+                            <div className="flex flex-col gap-1.5">
+                              {/* Bon de Commande / Livraison / Facture */}
+                              {po.invoiceUrl && (
+                                <div className="flex items-center gap-1.5">
+                                  {isPdfUrl(po.invoiceUrl) ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => setActiveDocument({
+                                        url: po.invoiceUrl!,
+                                        title: `Bon / Facture • ${po.orderNumber}`,
+                                        subtitle: `${po.supplier?.name || ''} • Document PDF`,
+                                        orderNumber: po.orderNumber,
+                                        supplierName: po.supplier?.name || '',
+                                        typeLabel: 'Bon / Facture PDF'
+                                      })}
+                                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-102"
+                                      title="Consulter le Bon / Facture (PDF)"
+                                    >
+                                      <FileText size={12} className="text-rose-600 shrink-0" />
+                                      <span className="truncate max-w-[85px]">Bon (PDF)</span>
+                                    </button>
+                                  ) : (
+                                    <div
+                                      onClick={() => setActiveDocument({
+                                        url: po.invoiceUrl!,
+                                        title: `Bon / Facture • ${po.orderNumber}`,
+                                        subtitle: `${po.supplier?.name || ''} • Image`,
+                                        orderNumber: po.orderNumber,
+                                        supplierName: po.supplier?.name || '',
+                                        typeLabel: 'Bon / Facture Image'
+                                      })}
+                                      className="w-7 h-7 rounded-lg border border-slate-200 overflow-hidden relative group cursor-pointer hover:border-indigo-500 transition-all shrink-0"
+                                      title="Agrandir le Bon / Facture (Image)"
+                                    >
+                                      <Image src={po.invoiceUrl} alt="Bon" fill className="object-cover" />
+                                      <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                        <ZoomIn size={11} />
+                                      </div>
+                                    </div>
+                                  )}
+                                  <span className="text-[9px] text-slate-500 font-medium">Bon</span>
                                 </div>
-                              </div>
-                              <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                                Reçu joint
-                              </span>
+                              )}
+
+                              {/* Reçu de Paiement */}
+                              {po.receiptUrl && (
+                                <div className="flex items-center gap-1.5">
+                                  {isPdfUrl(po.receiptUrl) ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => setActiveDocument({
+                                        url: po.receiptUrl!,
+                                        title: `Reçu de Règlement • ${po.orderNumber}`,
+                                        subtitle: `${po.supplier?.name || ''} • Document PDF`,
+                                        orderNumber: po.orderNumber,
+                                        supplierName: po.supplier?.name || '',
+                                        typeLabel: 'Reçu / Virement PDF'
+                                      })}
+                                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-102"
+                                      title="Consulter le Reçu de Règlement (PDF)"
+                                    >
+                                      <FileCheck size={12} className="text-emerald-600 shrink-0" />
+                                      <span className="truncate max-w-[85px]">Reçu (PDF)</span>
+                                    </button>
+                                  ) : (
+                                    <div
+                                      onClick={() => setActiveDocument({
+                                        url: po.receiptUrl!,
+                                        title: `Reçu de Règlement • ${po.orderNumber}`,
+                                        subtitle: `${po.supplier?.name || ''} • Image`,
+                                        orderNumber: po.orderNumber,
+                                        supplierName: po.supplier?.name || '',
+                                        typeLabel: 'Reçu / Virement Image'
+                                      })}
+                                      className="w-7 h-7 rounded-lg border border-emerald-200 overflow-hidden relative group cursor-pointer hover:border-emerald-500 transition-all shrink-0"
+                                      title="Agrandir le Reçu de Paiement (Image)"
+                                    >
+                                      <Image src={po.receiptUrl} alt="Reçu" fill className="object-cover" />
+                                      <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                        <ZoomIn size={11} />
+                                      </div>
+                                    </div>
+                                  )}
+                                  <span className="text-[9px] text-emerald-700 font-semibold">Reçu</span>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <button
                               type="button"
                               onClick={() => handleOpenChargeModal(po)}
-                              className="text-[10px] text-slate-500 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-lg font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                              className="text-[10px] text-slate-500 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                              title="Joindre un Bon de commande/livraison ou un reçu de paiement (PDF, Image)"
                             >
-                              <Upload size={11} />
-                              <span>+ Ajouter photo</span>
+                              <Upload size={12} />
+                              <span>+ Joindre Bon</span>
                             </button>
                           )}
                         </td>
@@ -1122,10 +1395,10 @@ export default function SuppliersClient({
                               type="button"
                               onClick={() => handleOpenChargeModal(po)}
                               className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 flex items-center gap-1 transition-colors cursor-pointer"
-                              title="Gérer la charge & paiement"
+                              title="Gérer le montant de la charge, le règlement et joindre les bons"
                             >
                               <Banknote size={13} />
-                              <span>Règlement</span>
+                              <span>Règlement & Bons</span>
                             </button>
 
                             <button
@@ -1135,6 +1408,15 @@ export default function SuppliersClient({
                               title="Imprimer / Visualiser le Bon de Commande"
                             >
                               <Printer size={14} />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePurchaseOrder(po.id, po.orderNumber)}
+                              className="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors cursor-pointer"
+                              title="Supprimer ce bon de commande et retirer la charge de Finance"
+                            >
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </td>
@@ -1386,11 +1668,131 @@ export default function SuppliersClient({
                 </div>
               </div>
 
-              {/* Info Note: No Price constraint */}
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-2.5 text-amber-900">
-                <AlertCircle size={18} className="text-amber-600 shrink-0" />
+              {/* 📄 PIÈCE JOINTE DU BON DE COMMANDE (PDF / IMAGE) */}
+              <div className="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                    <FileText size={15} className="text-indigo-600" />
+                    <span>4. Joindre un Bon / Devis / Facture Proforma (PDF, JPG, PNG)</span>
+                  </label>
+                  {orderMeta.invoiceUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setOrderMeta({ ...orderMeta, invoiceUrl: '' })}
+                      className="text-[10px] font-bold text-rose-600 hover:underline"
+                    >
+                      Supprimer le document
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  ref={orderDocFileInputRef}
+                  accept=".pdf,image/png,image/jpeg,image/webp,image/jpg,application/pdf"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUploadDocument(file, 'orderInvoice');
+                  }}
+                  className="hidden"
+                />
+
+                {orderMeta.invoiceUrl ? (
+                  <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-indigo-200">
+                    {isPdfUrl(orderMeta.invoiceUrl) ? (
+                      <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 flex flex-col items-center justify-center text-rose-600 shrink-0">
+                        <FileText size={20} />
+                        <span className="text-[9px] font-black uppercase mt-0.5">PDF</span>
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl relative overflow-hidden border border-slate-200 shrink-0">
+                        <Image src={orderMeta.invoiceUrl} alt="Bon" fill className="object-cover" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold text-slate-900 truncate">
+                        {getDocumentName(orderMeta.invoiceUrl, 'Bon joint au format PDF / Image')}
+                      </div>
+                      <div className="text-[10px] text-slate-400 truncate">{orderMeta.invoiceUrl}</div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDocument({
+                          url: orderMeta.invoiceUrl,
+                          title: 'Bon joint • Nouveau bon',
+                          subtitle: 'Aperçu du document',
+                          orderNumber: 'Nouveau',
+                          supplierName: 'Fournisseur sélectionné',
+                          typeLabel: isPdfUrl(orderMeta.invoiceUrl) ? 'Bon PDF' : 'Bon Image'
+                        })}
+                        className="text-[11px] font-bold text-indigo-600 hover:underline mt-1 flex items-center gap-1"
+                      >
+                        <ZoomIn size={12} />
+                        <span>Visualiser le document</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => orderDocFileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+                    >
+                      {isUploading ? <RefreshCw size={14} className="animate-spin" /> : <Upload size={14} />}
+                      <span>Télécharger Bon (PDF ou Image)</span>
+                    </button>
+                    <span className="text-slate-400 text-[11px]">ou</span>
+                    <input
+                      type="text"
+                      placeholder="Coller l'URL du bon (PDF, JPG, PNG)..."
+                      value={orderMeta.invoiceUrl}
+                      onChange={e => setOrderMeta({ ...orderMeta, invoiceUrl: e.target.value })}
+                      className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* 💰 CHARGE ESTIMÉE INITIALE (OPTIONNEL) */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                    5. Charge Initiale Estimée (MAD) - Optionnel
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={orderMeta.chargeAmountMAD || ''}
+                      onChange={e => setOrderMeta({ ...orderMeta, chargeAmountMAD: Number(e.target.value) })}
+                      placeholder="ex: 12500"
+                      className="w-full font-mono bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 font-mono">MAD</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                    N° Facture / Devis Fournisseur
+                  </label>
+                  <input
+                    type="text"
+                    value={orderMeta.invoiceNumber}
+                    onChange={e => setOrderMeta({ ...orderMeta, invoiceNumber: e.target.value })}
+                    placeholder="FAC-PRO-2026..."
+                    className="w-full font-mono bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Info Note: Linked with Finance */}
+              <div className="p-3.5 rounded-2xl bg-cyan-50/70 border border-cyan-200 flex items-center gap-2.5 text-cyan-950">
+                <Sparkles size={18} className="text-cyan-600 shrink-0" />
                 <span className="text-[11px] leading-relaxed">
-                  <strong>Bon de commande initial :</strong> Vous n'avez pas besoin d'indiquer de prix estimé maintenant. La charge réelle sera consignée lors de la réception de la facture fournisseur avec photo du reçu.
+                  <strong>Liaison comptable & CA Net automatique :</strong> Dès qu'un montant facturé est consigné, il est instantanément répercuté dans vos charges d'exploitation et déduit de votre CA Brut pour calculer votre CA Net et votre marge réelle.
                 </span>
               </div>
 
@@ -1430,8 +1832,8 @@ export default function SuppliersClient({
                   </span>
                   <span className="text-xs text-slate-500 font-semibold">{managingChargePo.supplier?.name}</span>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">Enregistrer la Charge & le Règlement</h3>
-                <p className="text-xs text-slate-500">Saisissez le montant facturé par le fournisseur, le statut de paiement et joignez le reçu / justificatif.</p>
+                <h3 className="text-lg font-bold text-slate-900">Enregistrer la Charge & les Bons</h3>
+                <p className="text-xs text-slate-500">Saisissez le montant facturé, le règlement et joignez vos bons (PDF, JPG, PNG).</p>
               </div>
               <button
                 type="button"
@@ -1443,6 +1845,14 @@ export default function SuppliersClient({
             </div>
 
             <form onSubmit={handleSaveCharge} className="space-y-5 text-xs">
+              {/* Linked to Finance Banner */}
+              <div className="p-3.5 rounded-2xl bg-cyan-50/80 border border-cyan-200 flex items-center gap-3 text-cyan-950">
+                <Sparkles size={18} className="text-cyan-600 shrink-0" />
+                <div className="text-[11px] leading-relaxed">
+                  <strong>Imputation Finance & CA Net :</strong> Cette charge sera automatiquement rattachée à la comptabilité Maison NAY et déduite de votre Chiffre d'Affaires Brut dans <strong className="text-cyan-800">Finance & CA Net</strong>.
+                </div>
+              </div>
+
               {/* Charge Amount (MAD) */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
@@ -1545,12 +1955,98 @@ export default function SuppliersClient({
                 </div>
               )}
 
-              {/* 📷 RECEIPT / INVOICE PHOTO UPLOAD & PREVIEW */}
-              <div className="space-y-2 p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100">
+              {/* 📑 SECTION 1: BON DE COMMANDE / BON DE LIVRAISON / FACTURE (PDF, JPG, PNG) */}
+              <div className="space-y-2 p-4 rounded-2xl bg-slate-50 border border-slate-200">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
-                    <ImageIcon size={15} className="text-indigo-600" />
-                    <span>Photo du Reçu / Facture / Bon de Livraison</span>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                    <FileText size={15} className="text-indigo-600" />
+                    <span>Bon de Livraison / Facture d'Achat (PDF, JPG, PNG)</span>
+                  </label>
+                  {chargeFormData.invoiceUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setChargeFormData({ ...chargeFormData, invoiceUrl: '' })}
+                      className="text-[10px] font-bold text-rose-600 hover:underline"
+                    >
+                      Supprimer le document
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  ref={invoiceFileInputRef}
+                  accept=".pdf,image/png,image/jpeg,image/webp,image/jpg,application/pdf"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUploadDocument(file, 'chargeInvoice');
+                  }}
+                  className="hidden"
+                />
+
+                {chargeFormData.invoiceUrl ? (
+                  <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200">
+                    {isPdfUrl(chargeFormData.invoiceUrl) ? (
+                      <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 flex flex-col items-center justify-center text-rose-600 shrink-0">
+                        <FileText size={20} />
+                        <span className="text-[9px] font-black uppercase mt-0.5">PDF</span>
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl relative overflow-hidden border border-slate-200 shrink-0">
+                        <Image src={chargeFormData.invoiceUrl} alt="Bon" fill className="object-cover" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold text-slate-900 truncate">
+                        {getDocumentName(chargeFormData.invoiceUrl, 'Bon / Facture fournisseur')}
+                      </div>
+                      <div className="text-[10px] text-slate-400 truncate">{chargeFormData.invoiceUrl}</div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDocument({
+                          url: chargeFormData.invoiceUrl,
+                          title: `Bon / Facture • ${managingChargePo.orderNumber}`,
+                          subtitle: managingChargePo.supplier?.name || '',
+                          orderNumber: managingChargePo.orderNumber,
+                          supplierName: managingChargePo.supplier?.name || '',
+                          typeLabel: isPdfUrl(chargeFormData.invoiceUrl) ? 'Bon PDF' : 'Bon Image'
+                        })}
+                        className="text-[11px] font-bold text-indigo-600 hover:underline mt-1 flex items-center gap-1"
+                      >
+                        <ZoomIn size={12} />
+                        <span>Visualiser en plein écran</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => invoiceFileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+                    >
+                      {isUploading ? <RefreshCw size={14} className="animate-spin" /> : <Upload size={14} />}
+                      <span>Télécharger Bon (PDF / Image)</span>
+                    </button>
+                    <span className="text-slate-400 text-[11px]">ou</span>
+                    <input
+                      type="text"
+                      placeholder="Coller l'URL du bon (PDF, JPG, PNG)..."
+                      value={chargeFormData.invoiceUrl}
+                      onChange={e => setChargeFormData({ ...chargeFormData, invoiceUrl: e.target.value })}
+                      className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* 📷 SECTION 2: REÇU DE PAIEMENT / SCAN VIREMENT (PDF, JPG, PNG) */}
+              <div className="space-y-2 p-4 rounded-2xl bg-emerald-50/40 border border-emerald-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                    <FileCheck size={15} className="text-emerald-600" />
+                    <span>Reçu de Règlement / Avis de Virement (PDF, JPG, PNG)</span>
                   </label>
                   {chargeFormData.receiptUrl && (
                     <button
@@ -1558,51 +2054,71 @@ export default function SuppliersClient({
                       onClick={() => setChargeFormData({ ...chargeFormData, receiptUrl: '' })}
                       className="text-[10px] font-bold text-rose-600 hover:underline"
                     >
-                      Supprimer la photo
+                      Supprimer le reçu
                     </button>
                   )}
                 </div>
 
+                <input
+                  type="file"
+                  ref={receiptFileInputRef}
+                  accept=".pdf,image/png,image/jpeg,image/webp,image/jpg,application/pdf"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUploadDocument(file, 'chargeReceipt');
+                  }}
+                  className="hidden"
+                />
+
                 {chargeFormData.receiptUrl ? (
-                  <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-indigo-200">
-                    <div className="w-16 h-16 rounded-lg relative overflow-hidden border border-slate-200 shrink-0">
-                      <Image src={chargeFormData.receiptUrl} alt="Reçu" fill className="object-cover" />
-                    </div>
+                  <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-emerald-200">
+                    {isPdfUrl(chargeFormData.receiptUrl) ? (
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col items-center justify-center text-emerald-600 shrink-0">
+                        <FileCheck size={20} />
+                        <span className="text-[9px] font-black uppercase mt-0.5">PDF</span>
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl relative overflow-hidden border border-slate-200 shrink-0">
+                        <Image src={chargeFormData.receiptUrl} alt="Reçu" fill className="object-cover" />
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-slate-900 truncate">Photo du reçu enregistrée</div>
+                      <div className="text-xs font-bold text-slate-900 truncate">
+                        {getDocumentName(chargeFormData.receiptUrl, 'Reçu de paiement enregistré')}
+                      </div>
                       <div className="text-[10px] text-slate-400 truncate">{chargeFormData.receiptUrl}</div>
                       <button
                         type="button"
-                        onClick={() => setActiveReceiptPhoto({ url: chargeFormData.receiptUrl, orderNumber: managingChargePo.orderNumber, supplierName: managingChargePo.supplier?.name || '' })}
-                        className="text-[11px] font-bold text-indigo-600 hover:underline mt-1 flex items-center gap-1"
+                        onClick={() => setActiveDocument({
+                          url: chargeFormData.receiptUrl,
+                          title: `Reçu de Règlement • ${managingChargePo.orderNumber}`,
+                          subtitle: managingChargePo.supplier?.name || '',
+                          orderNumber: managingChargePo.orderNumber,
+                          supplierName: managingChargePo.supplier?.name || '',
+                          typeLabel: isPdfUrl(chargeFormData.receiptUrl) ? 'Reçu PDF' : 'Reçu Image'
+                        })}
+                        className="text-[11px] font-bold text-emerald-700 hover:underline mt-1 flex items-center gap-1"
                       >
                         <ZoomIn size={12} />
-                        <span>Agrandir la photo</span>
+                        <span>Visualiser en plein écran</span>
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      accept="image/*"
-                      onChange={e => handleUploadReceiptFile(e, 'manage')}
-                      className="hidden"
-                    />
+                  <div className="flex flex-col sm:flex-row items-center gap-2.5">
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => receiptFileInputRef.current?.click()}
                       disabled={isUploading}
-                      className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
+                      className="w-full sm:w-auto px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
                     >
                       {isUploading ? <RefreshCw size={14} className="animate-spin" /> : <Upload size={14} />}
-                      <span>Télécharger photo depuis l'appareil</span>
+                      <span>Télécharger Reçu (PDF / Image)</span>
                     </button>
                     <span className="text-slate-400 text-[11px]">ou</span>
                     <input
                       type="text"
-                      placeholder="Coller l'URL de l'image du reçu..."
+                      placeholder="Coller l'URL du reçu (PDF, JPG, PNG)..."
                       value={chargeFormData.receiptUrl}
                       onChange={e => setChargeFormData({ ...chargeFormData, receiptUrl: e.target.value })}
                       className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
@@ -1633,7 +2149,7 @@ export default function SuppliersClient({
                     type="text"
                     value={chargeFormData.notes}
                     onChange={e => setChargeFormData({ ...chargeFormData, notes: e.target.value })}
-                    placeholder="Chèque émis le 03/10..."
+                    placeholder="Virement émis le 03/10..."
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
                   />
                 </div>
@@ -1653,7 +2169,7 @@ export default function SuppliersClient({
                   className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
-                  <span>Enregistrer le Règlement</span>
+                  <span>Enregistrer la Charge & les Bons</span>
                 </button>
               </div>
             </form>
@@ -1662,46 +2178,87 @@ export default function SuppliersClient({
       )}
 
       {/* ══════════════════════════════════════════════════════════════ */}
-      {/* 🔍 MODAL LIGHTBOX: PHOTO AGRANDIE DU REÇU / FACTURE */}
+      {/* 🔍 MODAL UNIVERSELLE: VISIONNEUSE DE DOCUMENTS (PDF & IMAGES) */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      {activeReceiptPhoto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <div className="font-mono text-xs font-bold text-slate-900">{activeReceiptPhoto.orderNumber}</div>
-                <div className="text-[11px] text-slate-500 font-semibold">{activeReceiptPhoto.supplierName} • Justificatif de Paiement</div>
+      {activeDocument && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-3 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-slate-200 flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  {activeDocument.orderNumber}
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900">{activeDocument.title}</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">{activeDocument.subtitle}</p>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveReceiptPhoto(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
-              >
-                <X size={16} />
-              </button>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={activeDocument.url}
+                  download={getDocumentName(activeDocument.url, `${activeDocument.orderNumber}_bon`)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                  title="Télécharger le fichier"
+                >
+                  <Download size={13} />
+                  <span className="hidden sm:inline">Télécharger</span>
+                </a>
+
+                <a
+                  href={activeDocument.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+                  title="Ouvrir dans un nouvel onglet"
+                >
+                  <ExternalLink size={13} />
+                  <span className="hidden sm:inline">Plein écran</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveDocument(null)}
+                  className="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+                  title="Fermer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
-            <div className="relative w-full h-[65vh] bg-slate-950 flex items-center justify-center p-2">
-              <Image
-                src={activeReceiptPhoto.url}
-                alt="Reçu"
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 800px"
-              />
+            {/* Modal Body: PDF Iframe or High-Res Image */}
+            <div className="relative w-full flex-1 min-h-[60vh] max-h-[75vh] bg-slate-950 flex items-center justify-center p-2 sm:p-4 overflow-hidden">
+              {isPdfUrl(activeDocument.url) ? (
+                <div className="w-full h-full flex flex-col items-center">
+                  <iframe
+                    src={activeDocument.url}
+                    title={activeDocument.title}
+                    className="w-full h-full min-h-[65vh] rounded-2xl bg-white border border-slate-800 shadow-2xl"
+                  />
+                </div>
+              ) : (
+                <div className="relative w-full h-full min-h-[60vh]">
+                  <Image
+                    src={activeDocument.url}
+                    alt={activeDocument.title}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 1024px) 100vw, 1000px"
+                  />
+                </div>
+              )}
             </div>
 
-            <div className="p-4 bg-slate-50 flex items-center justify-between text-xs">
-              <span className="text-slate-500 text-[11px]">Photo originale du reçu / bordereau</span>
-              <a
-                href={activeReceiptPhoto.url}
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold flex items-center gap-1.5"
-              >
-                <ExternalLink size={13} />
-                <span>Ouvrir en plein écran</span>
-              </a>
+            {/* Modal Footer */}
+            <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span className="text-slate-500 text-[11px] font-mono truncate max-w-md">
+                {getDocumentName(activeDocument.url, 'Document')} • {isPdfUrl(activeDocument.url) ? 'Format Document PDF' : 'Format Image (Haute Résolution)'}
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium">Maison NAY Parfums • Archivage Sécurisé</span>
             </div>
           </div>
         </div>

@@ -101,6 +101,7 @@ type FinanceClientProps = {
 
 const EXPENSE_CATEGORIES = [
   { id: 'ADS', label: 'Publicité & Ads (TikTok, Meta, Google)', color: '#f43f5e' },
+  { id: 'SUPPLIES', label: 'Achats Stock & Fournisseurs', color: '#06b6d4' },
   { id: 'HOSTING', label: 'Hébergement, Web & Domaine', color: '#38bdf8' },
   { id: 'SALARY', label: 'Salaires & Rémunérations Équipe', color: '#f59e0b' },
   { id: 'PACKAGING', label: 'Flacons, Packaging & Coffrets', color: '#10b981' },
@@ -493,6 +494,7 @@ export default function FinanceClient({
       ['MARGE BRUTE COMMERCIALE', grossProfit.toFixed(0), `${((grossProfit / (grossRevenue || 1)) * 100).toFixed(1)}%`],
       ['Dépenses Publicitaires (TikTok, Meta, Google)', (-adSpendTotal).toFixed(0), `-${((adSpendTotal / (grossRevenue || 1)) * 100).toFixed(1)}%`],
       ['Commissions Ambassadeurs & Influenceurs', (-totalInfluencerCommissions).toFixed(0), `-${((totalInfluencerCommissions / (grossRevenue || 1)) * 100).toFixed(1)}%`],
+      ['Achats Stock & Fournisseurs (Bons de Commande)', (-(expensesByCategory['SUPPLIES'] || 0)).toFixed(0), `-${(((expensesByCategory['SUPPLIES'] || 0) / (grossRevenue || 1)) * 100).toFixed(1)}%`],
       ['Frais Logistiques & Emballages', (-(expensesByCategory['LOGISTICS'] || 0 + (expensesByCategory['PACKAGING'] || 0))).toFixed(0), ''],
       ['Masse Salariale & Salaires Fixes', (-(expensesByCategory['SALARY'] || 0)).toFixed(0), ''],
       ['Hébergement, Logiciels & SaaS', (-(expensesByCategory['HOSTING'] || 0 + (expensesByCategory['TOOLS'] || 0))).toFixed(0), ''],
@@ -1486,6 +1488,18 @@ export default function FinanceClient({
                     <td className="py-2.5 px-6 text-right font-mono text-rose-600">-{formatMAD(totalInfluencerCommissions)}</td>
                     <td className="py-2.5 px-6 text-right font-mono text-neutral-500">
                       -{((totalInfluencerCommissions / (grossRevenue || 1)) * 100).toFixed(1)}%
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td className="py-2.5 px-6 pl-10 text-neutral-600 flex items-center gap-1.5">
+                      <span>- Achats Stock & Fournisseurs (Bons de Commande)</span>
+                    </td>
+                    <td className="py-2.5 px-6 text-right font-mono text-rose-600">
+                      -{formatMAD(expensesByCategory['SUPPLIES'] || 0)}
+                    </td>
+                    <td className="py-2.5 px-6 text-right font-mono text-neutral-500">
+                      -{((((expensesByCategory['SUPPLIES'] || 0)) / (grossRevenue || 1)) * 100).toFixed(1)}%
                     </td>
                   </tr>
 

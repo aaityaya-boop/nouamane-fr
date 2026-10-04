@@ -59,7 +59,10 @@ export async function POST(request: Request) {
     // Determine extension safely
     const extMatch = originalName.match(/\.([a-zA-Z0-9]+)$/);
     let ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
-    if (!ext || ext.length > 5) {
+    if (originalName.toLowerCase().endsWith('.pdf') || mimeType.includes('pdf')) {
+      ext = 'pdf';
+      mimeType = 'application/pdf';
+    } else if (!ext || ext.length > 5) {
       if (mimeType.includes('png')) ext = 'png';
       else if (mimeType.includes('webp')) ext = 'webp';
       else if (mimeType.includes('svg')) ext = 'svg';
