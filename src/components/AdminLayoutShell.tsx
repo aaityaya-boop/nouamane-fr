@@ -23,9 +23,11 @@ export default function AdminLayoutShell({ children }: { children: React.ReactNo
 
   return (
     <AdminThemeProvider>
-      <div className="admin-shell-bg text-[#1A1A1A] antialiased flex flex-col lg:flex-row min-h-screen w-full transition-colors duration-200">
+      <div className="admin-shell-bg text-[#1A1A1A] antialiased flex flex-col lg:flex-row min-h-screen w-full transition-colors duration-200 relative">
+        {/* Subtle, creative top accent line */}
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-sky-300 via-sky-500 to-sky-300 dark:from-blue-700 dark:via-sky-500 dark:to-blue-700 z-30" />
         <AdminSidebar />
-        <main className="flex-1 pt-20 lg:pt-4 lg:ml-[260px] p-4 lg:p-8 w-full overflow-x-hidden flex flex-col min-h-screen">
+        <main className="flex-1 pt-20 lg:pt-4 lg:ml-[260px] p-4 lg:p-8 w-full overflow-x-hidden flex flex-col min-h-screen relative z-10">
           <AdminHeader />
           <div className="flex-1">
             {children}

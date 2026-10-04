@@ -284,7 +284,7 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="w-full bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-[#222227] px-4 lg:px-8 py-3 mb-6 rounded-2xl shadow-xs flex items-center justify-between transition-all">
+    <header className="w-full bg-white/90 dark:bg-[#121215] backdrop-blur-md border border-sky-100/90 dark:border-[#222227] px-4 lg:px-8 py-3 mb-6 rounded-2xl shadow-xs flex items-center justify-between transition-all">
       {/* Left: Breadcrumb / Active Route Context */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">

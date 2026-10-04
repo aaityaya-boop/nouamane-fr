@@ -5,10 +5,10 @@
    Crisp High-Contrast Typography & Clean Professional Surfaces
    ========================================================================== */
 
-/* ── 0. Light Mode Admin Shell: Simple Sky Blue Gradient from Up ──────────── */
+/* ── 0. Light Mode Admin Shell: Creative Sky Blue Gradient from Up ────────── */
 .admin-shell-bg {
   background-color: #f8fafc;
-  background-image: linear-gradient(180deg, #dbeafe 0%, #eff6ff 160px, #f8fafc 380px);
+  background-image: linear-gradient(180deg, #bae6fd 0%, #dbeafe 120px, #eff6ff 260px, #f8fafc 460px);
   background-repeat: no-repeat;
 }
 
@@ -41,7 +41,7 @@ html.dark body {
 /* ── 2. Dark Mode Admin Shell: Simple Dark Blue Gradient from Up ──────────── */
 html.dark .admin-shell-bg {
   background-color: #09090b !important;
-  background-image: linear-gradient(180deg, #0e1e38 0%, #0a1526 160px, #09090b 380px) !important;
+  background-image: linear-gradient(180deg, #0f2347 0%, #0c1a33 130px, #091222 250px, #09090b 420px) !important;
   background-repeat: no-repeat !important;
 }
 

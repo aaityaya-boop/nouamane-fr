@@ -268,7 +268,7 @@ export default function AdminSidebar() {
       <aside className={`w-[260px] bg-white dark:bg-[#09090b] border-r border-slate-200/80 dark:border-[#1a1a1f] h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 dark:text-slate-300 transition-transform duration-200 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0`}>
         
         {/* Brand Top Header */}
-        <div className="p-4 pb-3 flex justify-between items-center border-b border-slate-100 dark:border-[#1a1a1f]">
+        <div className="p-4 pb-3 flex justify-between items-center border-b border-sky-100/80 dark:border-[#1a1a1f] bg-gradient-to-b from-sky-100/40 to-transparent dark:from-transparent">
           <Link href="/admin" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-white border border-sky-200 p-1.5 flex items-center justify-center shadow-2xs group-hover:border-[#1D9BF0] transition-colors">
               <Image 

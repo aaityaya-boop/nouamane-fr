@@ -18,16 +18,14 @@ export function AdminThemeProvider({ children }: { children: React.ReactNode }) 
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Read from localStorage or system preference
+    // Read from localStorage (defaults to light mode)
     const savedTheme = localStorage.getItem('nay_admin_theme') as Theme | null;
-    if (savedTheme === 'dark' || savedTheme === 'light') {
-      setThemeState(savedTheme);
-      applyTheme(savedTheme);
+    if (savedTheme === 'dark') {
+      setThemeState('dark');
+      applyTheme('dark');
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initial = prefersDark ? 'dark' : 'light';
-      setThemeState(initial);
-      applyTheme(initial);
+      setThemeState('light');
+      applyTheme('light');
     }
     setMounted(true);
   }, []);
