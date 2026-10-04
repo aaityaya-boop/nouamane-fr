@@ -29,7 +29,9 @@
       "package": "com.nayparfum.admin",
       "permissions": [
         "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
+        "USE_FINGERPRINT",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "scheme": "nayadmin",
@@ -40,6 +42,11 @@
           "faceIDPermission": "Autorisez NAY Admin à utiliser Face ID pour protéger l'accès à la boutique."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "72130bd3-1881-496e-9e2d-481f7dd82208"
+      }
+    }
   }
 }
