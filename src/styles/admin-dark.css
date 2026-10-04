@@ -78,6 +78,29 @@ html:not(.dark) .lg\:hidden.bg-white\/95 {
   color: #0f172a !important;
 }
 
+/* ── Claire Mode: Ultra High-Contrast Readable Typography ─────────────────── */
+html:not(.dark) h1,
+html:not(.dark) h2,
+html:not(.dark) h3,
+html:not(.dark) h4,
+html:not(.dark) .text-slate-900,
+html:not(.dark) .text-slate-950 {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .text-slate-700,
+html:not(.dark) .text-slate-600 {
+  color: #334155 !important;
+}
+
+html:not(.dark) .text-slate-500 {
+  color: #64748b !important;
+}
+
+html:not(.dark) .text-slate-400 {
+  color: #64748b !important;
+}
+
 /* ── Dark Mode: Distinct Premium iOS Liquid Glass / Dark Midnight Obsidian Style ── */
 html.dark aside,
 html.dark .admin-sidebar {

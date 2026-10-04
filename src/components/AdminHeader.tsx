@@ -288,10 +288,10 @@ export default function AdminHeader() {
       {/* Left: Breadcrumb / Active Route Context */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider hidden md:inline">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden md:inline">
             Admin /
           </span>
-          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white tracking-tight">
+          <span className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
             {getPageContextLabel(pathname)}
           </span>
         </div>
@@ -300,7 +300,7 @@ export default function AdminHeader() {
           <Link
             href="/"
             target="_blank"
-            className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:text-[#0ea5e9] dark:hover:text-sky-400 bg-white/90 dark:bg-slate-800/80 hover:bg-sky-50 dark:hover:bg-slate-700/80 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-200 dark:hover:border-sky-500/40 transition-all shadow-2xs"
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800 dark:text-slate-200 hover:text-[#0ea5e9] dark:hover:text-sky-400 bg-white/95 dark:bg-slate-800/80 hover:bg-sky-50 dark:hover:bg-slate-700/80 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700/80 hover:border-sky-200 dark:hover:border-sky-500/40 transition-all shadow-2xs"
             title="Ouvrir la boutique publique dans un nouvel onglet"
           >
             <span className="relative flex h-1.5 w-1.5">
@@ -308,17 +308,17 @@ export default function AdminHeader() {
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
             </span>
             <span>nayparfum.ma</span>
-            <ExternalLink size={11} className="text-slate-400 dark:text-slate-400" />
+            <ExternalLink size={11} className="text-slate-500 dark:text-slate-400" />
           </Link>
 
           {/* Live Casablanca Clock */}
           <div 
-            className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-white/90 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 shadow-2xs"
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800 dark:text-slate-200 bg-white/95 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700/80 shadow-2xs"
             title="Heure officielle du Maroc (Casablanca)"
           >
             <Clock size={12} className="text-[#0ea5e9] dark:text-sky-400" />
-            <span className="text-slate-400 dark:text-slate-400 font-medium">Casablanca :</span>
-            <span className="font-mono font-bold text-slate-800 dark:text-sky-300">{currentTimeCasablanca || '--:--:--'}</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Casablanca :</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-sky-300">{currentTimeCasablanca || '--:--:--'}</span>
           </div>
         </div>
       </div>

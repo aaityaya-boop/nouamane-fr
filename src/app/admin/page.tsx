@@ -259,18 +259,18 @@ export default async function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-[#222227]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-400">
+            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-600 dark:text-slate-400">
               NAY Parfums • Boutique en Ligne
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/40">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/40">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               Boutique en direct
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">
             {canViewRevenue ? `Bonjour, ${adminFirstName}` : `Espace Confirmation & Suivi • ${adminFirstName}`}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
             {canViewRevenue 
               ? 'Pilotage exécutif, indicateurs de ventes et performance logistique en temps réel.'
               : 'Validation téléphonique des commandes, suivi des livraisons et satisfaction client.'}

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 .js-fallback-opacity {
   opacity: 1 !important;
   visibility: visible !important;
