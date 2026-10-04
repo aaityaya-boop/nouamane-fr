@@ -9,11 +9,19 @@
     },
     "preview": {
       "distribution": "internal",
+      "node": "22.14.0",
+      "env": {
+        "EAS_SKIP_AUTO_FINGERPRINT": "1"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "node": "22.14.0",
+      "env": {
+        "EAS_SKIP_AUTO_FINGERPRINT": "1"
+      },
       "android": {
         "buildType": "apk"
       }
