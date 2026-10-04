@@ -51,12 +51,17 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
  */
 export async function createAdminToken(payload: AdminJWTPayload, rememberMe: boolean = false): Promise<string> {
   const expiration = rememberMe ? '30d' : '1d';
+  // Strip base64 data URLs from avatar: browsers strictly reject cookies > 4KB
+  const safeAvatar = payload.avatar && !payload.avatar.startsWith('data:') && payload.avatar.length < 250
+    ? payload.avatar
+    : null;
+
   return new SignJWT({
     userId: payload.userId,
     name: payload.name,
     email: payload.email,
     role: payload.role,
-    avatar: payload.avatar || null,
+    avatar: safeAvatar,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
