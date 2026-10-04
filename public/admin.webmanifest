@@ -1,0 +1,36 @@
+{
+  "name": "NAY Parfum Admin",
+  "short_name": "NAY Admin",
+  "description": "Console d'administration officielle Maison NAY Parfums",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "id": "/admin",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/admin-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/admin-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/admin-icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

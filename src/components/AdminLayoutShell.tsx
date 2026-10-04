@@ -6,6 +6,7 @@ import AdminSidebar from '@/components/AdminSidebar';
 import AdminHeader from '@/components/AdminHeader';
 import AdminNotifier from '@/components/AdminNotifier';
 import AdminMobileBottomBar from '@/components/AdminMobileBottomBar';
+import AdminPwaManager from '@/components/AdminPwaManager';
 import { AdminThemeProvider } from '@/context/AdminThemeContext';
 
 export default function AdminLayoutShell({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export default function AdminLayoutShell({ children }: { children: React.ReactNo
         <div className="w-full min-h-screen bg-white text-slate-900 overflow-x-hidden">
           {children}
         </div>
+        <AdminPwaManager />
       </AdminThemeProvider>
     );
   }
@@ -36,6 +38,7 @@ export default function AdminLayoutShell({ children }: { children: React.ReactNo
         </main>
         <AdminNotifier />
         <AdminMobileBottomBar />
+        <AdminPwaManager />
       </div>
     </AdminThemeProvider>
   );

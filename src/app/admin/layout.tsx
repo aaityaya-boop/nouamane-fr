@@ -25,17 +25,27 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Admin | NAY Parfums",
+  description: "Console d'administration officielle Maison NAY Parfums",
+  manifest: '/admin.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'NAY Admin',
+  },
   icons: {
     icon: [
       { url: '/admin-favicon.ico', sizes: 'any' },
       { url: '/admin-favicon-48x48.png', type: 'image/png', sizes: '48x48' },
       { url: '/admin-favicon-96x96.png', type: 'image/png', sizes: '96x96' },
-      { url: '/admin-favicon-192x192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/admin-icon-192x192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/admin-icon-512x512.png', type: 'image/png', sizes: '512x512' },
       { url: '/admin-favicon-32x32.png', type: 'image/png', sizes: '32x32' },
       { url: '/admin-favicon-16x16.png', type: 'image/png', sizes: '16x16' },
       { url: '/admin-favicon.svg', type: 'image/svg+xml' },
     ],
-    apple: '/admin-apple-touch-icon.png',
+    apple: [
+      { url: '/admin-apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
     shortcut: '/admin-favicon.ico',
   },
 };
@@ -45,9 +55,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <html lang="fr" className={plusJakarta.variable} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="NAY Admin" />
+        <meta name="application-name" content="NAY Admin" />
         <meta name="format-detection" content="telephone=no" />
+        <meta name="theme-color" content="#0ea5e9" />
+        <link rel="manifest" href="/admin.webmanifest" />
         <link rel="icon" href="/admin-favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/admin-favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/admin-favicon-16x16.png" />

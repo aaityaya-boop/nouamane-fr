@@ -22,7 +22,9 @@ import {
   X,
   Clock,
   Sun,
-  Moon
+  Moon,
+  BellRing,
+  Download
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 
@@ -57,6 +59,14 @@ export default function AdminHeader() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentTimeCasablanca, setCurrentTimeCasablanca] = useState('');
+  const [canInstall, setCanInstall] = useState(false);
+
+  // Listen for PWA installability
+  useEffect(() => {
+    const handleCanInstall = () => setCanInstall(true);
+    window.addEventListener('nay_pwa_can_install', handleCanInstall);
+    return () => window.removeEventListener('nay_pwa_can_install', handleCanInstall);
+  }, []);
 
   // Live Clock in official Africa/Casablanca Moroccan time (GMT+1 / UTC+1)
   useEffect(() => {
@@ -163,6 +173,9 @@ export default function AdminHeader() {
 
   const handleLogout = async () => {
     try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('nay_admin_logout'));
+      }
       await fetch('/api/admin/logout', { method: 'POST' });
     } catch (e) {
       console.error('Logout error:', e);
@@ -435,6 +448,29 @@ export default function AdminHeader() {
                 )}
               </div>
 
+              {/* Push Notifications Placeholder (Requirement 9) */}
+              <div className="px-4 py-2.5 bg-slate-50/90 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BellRing size={13} className="text-slate-400 dark:text-slate-500" />
+                  <div>
+                    <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
+                      Notifications Push
+                    </span>
+                    <span className="text-[10px] text-slate-400 block">
+                      Alertes instantanées PWA
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled
+                  className="px-2.5 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-slate-800/80 rounded-lg cursor-not-allowed border border-slate-200 dark:border-slate-700"
+                  title="Disponible dès l'activation du service push"
+                >
+                  Bientôt disponible
+                </button>
+              </div>
+
               {/* Flyout Footer */}
               <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-center">
                 <Link
@@ -580,8 +616,22 @@ export default function AdminHeader() {
                 </Link>
               </div>
 
-              {/* Footer / Logout */}
+              {/* Footer / Logout & PWA Install */}
               <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
+                {canInstall && (
+                  <button
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('nay_pwa_trigger_install'));
+                      }
+                      setIsDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#0ea5e9] dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer"
+                  >
+                    <Download size={15} />
+                    <span>Installer NAY Admin App</span>
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"

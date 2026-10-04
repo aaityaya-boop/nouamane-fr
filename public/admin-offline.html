@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, viewport-fit=cover">
+  <title>Hors ligne | NAY Parfum Admin</title>
+  <meta name="theme-color" content="#0ea5e9">
+  <link rel="icon" href="/admin-favicon-32x32.png" type="image/png">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #090e1a;
+        color: #f8fafc;
+      }
+      .card {
+        background: rgba(15, 23, 42, 0.9) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+      }
+      .notice {
+        background: rgba(14, 165, 233, 0.1) !important;
+        border-color: rgba(14, 165, 233, 0.2) !important;
+        color: #7dd3fc !important;
+      }
+      .text-muted {
+        color: #94a3b8 !important;
+      }
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 36px 28px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+    .logo-badge {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+    .logo-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .wifi-icon {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 16px;
+      color: #0ea5e9;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    p {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+    .notice {
+      background: #f0f9ff;
+      border: 1px solid #e0f2fe;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #0369a1;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 13px 20px;
+      background: #0ea5e9;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.25);
+    }
+    .btn:hover {
+      background: #0284c7;
+      transform: translateY(-1px);
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-badge">
+      <img src="/images/nay/nay-logo-blue.png" alt="NAY Parfums">
+    </div>
+    
+    <svg class="wifi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 4.243a9 9 0 01-12.728 0m0 0l2.829-2.829m-2.829 2.829L3 21m2.828-12.536a5 5 0 017.072 0m0 0L10.07 11.293M12 18h.01M1 1l22 22"></path>
+    </svg>
+
+    <h1>Connexion indisponible</h1>
+    <p>Connexion internet indisponible. Reconnectez-vous pour accéder aux données à jour du tableau de bord.</p>
+
+    <div class="notice">
+      🔒 <strong>Sécurité active :</strong> Vos commandes, finances et données clients restent protégées et ne sont jamais enregistrées en cache local.
+    </div>
+
+    <button class="btn" onclick="window.location.reload()">
+      Réessayer la connexion
+    </button>
+  </div>
+</body>
+</html>

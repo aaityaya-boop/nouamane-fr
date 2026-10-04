@@ -194,6 +194,9 @@ export default function AdminSidebar() {
 
   const handleLogout = async () => {
     try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('nay_admin_logout'));
+      }
       await fetch('/api/admin/logout', { method: 'POST' });
     } catch (e) {
       console.error('Logout error:', e);
