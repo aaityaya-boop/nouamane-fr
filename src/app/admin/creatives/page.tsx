@@ -193,34 +193,65 @@ export default function AdminCreativesPage() {
     setIsUploadModalOpen(true);
   };
 
-  // Handle File Upload to S3/Cloudinary/Local API
+  // Handle File Upload to S3/Cloudinary/Local API with resilient fallback
   const handleFileUpload = async (file: File) => {
     setIsUploadingFile(true);
     setUploadError(null);
 
+    // Sanitize filename to avoid character encoding issues
+    const safeBaseName = file.name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9.-]/g, '_');
+    const safeName = safeBaseName || `creative_${Date.now()}`;
+
+    let uploadedUrl = '';
+
+    // Strategy 1: Direct Vercel Blob client-side upload (supports up to 150MB)
     try {
-      // Use direct client-side upload to bypass Vercel's 4.5MB server limit
-      const newBlob = await upload(file.name, file, {
+      const newBlob = await upload(safeName, file, {
         access: 'public',
         handleUploadUrl: '/api/admin/upload-client',
       });
-
-      if (newBlob.url) {
-        setFormMediaUrl(newBlob.url);
-        const isVid = file.type.startsWith('video/');
-        setFormMediaType(isVid ? 'VIDEO' : 'IMAGE');
-        if (!formTitle) {
-          setFormTitle(file.name.replace(/\.[^/.]+$/, ''));
-        }
-      } else {
-        setUploadError('Échec du téléversement du fichier.');
+      if (newBlob && newBlob.url) {
+        uploadedUrl = newBlob.url;
       }
-    } catch (err: any) {
-      console.error('[Upload Error]:', err);
-      setUploadError('Erreur réseau lors du téléversement: Le fichier est trop volumineux ou la connexion a été interrompue.');
-    } finally {
-      setIsUploadingFile(false);
+    } catch (clientErr: any) {
+      console.warn('[Direct Blob Upload Warning, trying server upload fallback]:', clientErr?.message || clientErr);
     }
+
+    // Strategy 2: Server-side FormData fallback
+    if (!uploadedUrl) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.url) {
+            uploadedUrl = data.url;
+          }
+        }
+      } catch (serverErr: any) {
+        console.warn('[Server Upload Fallback Failed]:', serverErr?.message || serverErr);
+      }
+    }
+
+    if (uploadedUrl) {
+      setFormMediaUrl(uploadedUrl);
+      const isVid = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v)$/i.test(file.name);
+      setFormMediaType(isVid ? 'VIDEO' : 'IMAGE');
+      if (!formTitle) {
+        setFormTitle(file.name.replace(/\.[^/.]+$/, ''));
+      }
+    } else {
+      setUploadError('Échec du téléversement : vérifiez votre connexion ou réduisez la taille du fichier.');
+    }
+
+    setIsUploadingFile(false);
   };
 
   // Save Creative (Create or Update)

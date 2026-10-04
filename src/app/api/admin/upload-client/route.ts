@@ -1,6 +1,8 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
   
@@ -16,23 +18,21 @@ export async function POST(request: Request): Promise<NextResponse> {
       onBeforeGenerateToken: async (pathname) => {
         return {
           allowedContentTypes: [
-            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-            'video/mp4', 'video/quicktime', 'video/x-m4v'
+            'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif', 'image/heic', 'image/heif',
+            'video/mp4', 'video/quicktime', 'video/x-m4v', 'video/webm', 'video/ogg', 'video/3gpp', 'video/mov'
           ],
-          maximumSizeInBytes: 104857600, // 100MB
+          maximumSizeInBytes: 157286400, // 150MB
           tokenPayload: JSON.stringify({}),
         };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        console.log('Upload completed', blob.url);
       },
     });
 
     return NextResponse.json(jsonResponse);
-  } catch (error) {
+  } catch (error: any) {
+    console.error('[Upload-Client API Error]:', error?.message || error);
     return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 } // The webhook will retry 5 times waiting for a 200
+      { error: error?.message || 'Erreur lors de la génération du jeton de téléversement' },
+      { status: 400 }
     );
   }
 }

@@ -62,10 +62,20 @@ export async function POST(request: Request) {
     if (originalName.toLowerCase().endsWith('.pdf') || mimeType.includes('pdf')) {
       ext = 'pdf';
       mimeType = 'application/pdf';
+    } else if (originalName.toLowerCase().endsWith('.mp4') || mimeType.includes('mp4')) {
+      ext = 'mp4';
+      mimeType = 'video/mp4';
+    } else if (originalName.toLowerCase().endsWith('.mov') || mimeType.includes('quicktime')) {
+      ext = 'mov';
+      mimeType = 'video/quicktime';
+    } else if (originalName.toLowerCase().endsWith('.webm') || mimeType.includes('webm')) {
+      ext = 'webm';
+      mimeType = 'video/webm';
     } else if (!ext || ext.length > 5) {
       if (mimeType.includes('png')) ext = 'png';
       else if (mimeType.includes('webp')) ext = 'webp';
       else if (mimeType.includes('svg')) ext = 'svg';
+      else if (mimeType.includes('gif')) ext = 'gif';
       else ext = 'jpg';
     }
 
