@@ -40,6 +40,21 @@ const nextConfig: NextConfig = {
         destination: '/fr/parfums-originaux',
         permanent: true,
       },
+      {
+        source: '/suivi-commande',
+        destination: '/fr/suivi-commande',
+        permanent: false,
+      },
+      {
+        source: '/suivi',
+        destination: '/fr/suivi-commande',
+        permanent: false,
+      },
+      {
+        source: '/track',
+        destination: '/fr/suivi-commande',
+        permanent: false,
+      },
     ];
   },
   async headers() {

@@ -8,9 +8,11 @@ import {
   ArrowLeft,
   CheckCircle2,
   Check,
-  Copy
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
+import { generateQrCodeSvg } from '@/lib/qrCodeSvg';
 
 interface OrderItem {
   id?: string | number;
@@ -47,7 +49,19 @@ export default function InvoiceClient({ order }: { order: any }) {
     ? window.location.href
     : `https://nayparfum.ma/invoice/${order.orderNumber}`;
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=0f172a&data=${encodeURIComponent(invoiceUrl)}`;
+  const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const trackingPath = `/fr/suivi-commande?order=${order.orderNumber}`;
+  const trackingScannableUrl = (!isLocalhost && typeof window !== 'undefined')
+    ? `${window.location.origin}${trackingPath}`
+    : `https://nayparfum.ma${trackingPath}`;
+
+  const qrSvg = React.useMemo(() => {
+    try {
+      return generateQrCodeSvg(trackingScannableUrl, 120);
+    } catch {
+      return '';
+    }
+  }, [trackingScannableUrl]);
 
   const handleCopyLink = () => {
     if (typeof navigator !== 'undefined') {
@@ -227,27 +241,33 @@ export default function InvoiceClient({ order }: { order: any }) {
 
         {/* FINANCIAL SUMMARY & COMPACT QR */}
         <div className="pt-3 border-t border-slate-200 flex flex-row justify-between items-start gap-4">
-          {/* Left: Payment Mode & Compact QR */}
+          {/* Left: Payment Mode & Scannable/Clickable Vector QR */}
           <div className="flex items-center gap-3">
-            <div className="relative w-12 h-12 shrink-0 bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs">
-              <Image
-                src={qrCodeUrl}
-                alt="QR Suivi"
-                width={48}
-                height={48}
-                className="w-full h-full object-contain"
-                unoptimized
+            <a
+              href={trackingPath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-2.5 p-2 rounded-xl border border-slate-200/90 bg-slate-50/70 hover:bg-sky-50/60 hover:border-[#1D9BF0]/40 transition-all cursor-pointer no-underline text-inherit"
+              title="Scanner ou cliquer pour suivre votre commande"
+            >
+              <div
+                className="w-13 h-13 bg-white p-1 rounded-lg border border-slate-200 shadow-2xs shrink-0 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+                dangerouslySetInnerHTML={{ __html: qrSvg }}
               />
-            </div>
-            <div className="text-[11px] space-y-0.5">
-              <div className="inline-flex items-center gap-1 font-semibold text-slate-800">
-                <CheckCircle2 size={13} className="text-emerald-500" />
-                <span>{isCOD ? 'Paiement à la livraison' : 'Paiement sécurisé par carte'}</span>
+              <div className="text-[11px] space-y-0.5 pr-1">
+                <div className="inline-flex items-center gap-1 font-bold text-slate-800 group-hover:text-[#1D9BF0] transition-colors">
+                  <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                  <span>{isCOD ? 'Paiement à la livraison' : 'Paiement sécurisé par carte'}</span>
+                </div>
+                <div className="text-[10px] font-semibold text-slate-600 flex items-center gap-1">
+                  <span>📱 Scannez pour suivre le colis</span>
+                  <ExternalLink size={10} className="text-slate-400 group-hover:text-[#1D9BF0] transition-colors print:hidden shrink-0" />
+                </div>
+                <p className="text-[9px] text-slate-400">
+                  Accès sécurisé par N° de téléphone
+                </p>
               </div>
-              <p className="text-[10px] text-slate-400">
-                Scannez pour suivre la commande
-              </p>
-            </div>
+            </a>
           </div>
 
           {/* Right: Totals */}
