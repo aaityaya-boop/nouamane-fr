@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { createAdminNotification } from '@/lib/notificationService';
 
 export async function GET() {
   try {
@@ -63,6 +64,24 @@ export async function PUT(request: Request) {
         inStock: Number(stock) > 0 
       },
     });
+
+    if (Number(stock) <= 0) {
+      createAdminNotification({
+        type: 'STOCK',
+        title: `Rupture de Stock : ${updated.name}`,
+        message: `Le produit "${updated.name}" est désormais épuisé.`,
+        link: '/admin/inventory',
+        metadata: { productId: updated.id, stock: 0 },
+      }).catch(() => {});
+    } else if (Number(stock) <= 3) {
+      createAdminNotification({
+        type: 'STOCK',
+        title: `Stock Faible : ${updated.name} ⚠️`,
+        message: `Attention, il ne reste que ${updated.stock} unité(s) pour "${updated.name}".`,
+        link: '/admin/inventory',
+        metadata: { productId: updated.id, stock: updated.stock },
+      }).catch(() => {});
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

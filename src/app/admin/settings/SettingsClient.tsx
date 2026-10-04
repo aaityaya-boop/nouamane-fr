@@ -29,9 +29,12 @@ import {
   ArrowRight,
   TrendingUp,
   Store,
-  BadgeCheck
+  BadgeCheck,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AdminPushNotificationSettings from '@/components/admin/AdminPushNotificationSettings';
+
 
 // Custom SVG Icons for Social Networks
 const InstagramIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
@@ -93,7 +96,7 @@ interface SettingsClientProps {
   } | null;
 }
 
-type TabKey = 'general' | 'shipping' | 'hero' | 'contact' | 'security';
+type TabKey = 'general' | 'shipping' | 'hero' | 'contact' | 'security' | 'notifications';
 
 export default function SettingsClient({ initialConfig, adminUser }: SettingsClientProps) {
   const [config, setConfig] = useState<SiteConfigData>(initialConfig);
@@ -217,6 +220,7 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
     { key: 'hero', label: 'Vitrine & Bannière Hero', icon: LayoutTemplate },
     { key: 'contact', label: 'Contact & Réseaux Sociaux', icon: Phone },
     { key: 'security', label: 'Sécurité & Accès', icon: Lock },
+    { key: 'notifications', label: 'Notifications Push PWA', icon: Bell },
   ];
 
   return (
@@ -1177,6 +1181,20 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
                 </div>
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 6: NOTIFICATIONS PUSH PWA */}
+        {/* ========================================================================= */}
+        {activeTab === 'notifications' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            <AdminPushNotificationSettings />
           </motion.div>
         )}
       </div>

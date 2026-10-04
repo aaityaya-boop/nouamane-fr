@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
 import { recordStatusTransition, generateFallbackTimeline } from '@/lib/orders/timeline';
+import { createAdminNotification } from '@/lib/notificationService';
 
 export async function GET(request: Request) {
   try {
@@ -127,6 +128,16 @@ export async function PUT(request: Request) {
         },
       },
     });
+
+    if (status && (status.toLowerCase().includes('cancel') || status.toLowerCase().includes('annul'))) {
+      createAdminNotification({
+        type: 'ORDER',
+        title: `Commande Annulée #${updated.orderNumber} ❌`,
+        message: `La commande #${updated.orderNumber} (${updated.customerName}) a été annulée.`,
+        link: '/admin/orders',
+        metadata: { orderId: updated.id, orderNumber: updated.orderNumber },
+      }).catch(() => {});
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

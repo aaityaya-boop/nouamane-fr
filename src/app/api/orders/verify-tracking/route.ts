@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 /**
  * Normalizes phone numbers (handles Moroccan format variations: +212, 00212, 06, spaces, dashes)
  */
-export function normalizeMoroccanPhone(phone: string): string {
+function normalizeMoroccanPhone(phone: string): string {
   if (!phone) return '';
   // Strip non-digits
   let cleaned = phone.replace(/\D/g, '');
@@ -18,7 +18,7 @@ export function normalizeMoroccanPhone(phone: string): string {
   return cleaned;
 }
 
-export function arePhonesMatching(phoneA: string, phoneB: string): boolean {
+function arePhonesMatching(phoneA: string, phoneB: string): boolean {
   const normA = normalizeMoroccanPhone(phoneA);
   const normB = normalizeMoroccanPhone(phoneB);
   if (!normA || !normB) return false;

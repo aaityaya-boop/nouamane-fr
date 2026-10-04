@@ -11,6 +11,7 @@ import {
   BillMetadata,
 } from '@/lib/billsHelper';
 import { syncPurchaseOrderExpense } from '@/lib/syncSupplierExpenses';
+import { createAdminNotification } from '@/lib/notificationService';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -335,6 +336,14 @@ export async function POST(req: Request) {
         invoiceUrl,
       },
     });
+
+    createAdminNotification({
+      type: 'FINANCE',
+      title: 'Facture à valider 💳',
+      message: `${cleanVendor || title} : ${parsedAmount} DH déposé par ${currentAdmin.name}`,
+      link: '/admin/bills',
+      metadata: { billId: createdExpense.id, amount: parsedAmount, vendor: cleanVendor },
+    }).catch(() => {});
 
     const isOverdue = checkIsOverdue(dueDate, 'PENDING');
     const daysRemaining = getDaysRemaining(dueDate);

@@ -976,6 +976,8 @@ model AdminUser {
   employeeSuggestions EmployeeSuggestion[] @relation("EmployeeSuggestions")
   employeeReclamations EmployeeReclamation[] @relation("EmployeeReclamations")
   assignedReclamations EmployeeReclamation[] @relation("AssignedReclamations")
+  pushSubscriptions    AdminPushSubscription[]
+  notificationPreferences AdminNotificationPreference?
 
   @@index([email])
   @@index([role])
@@ -1071,6 +1073,43 @@ model AdminNotification {
   @@index([type])
   @@index([isRead])
   @@index([createdAt])
+}
+
+// ==========================================
+// PWA WEB PUSH NOTIFICATIONS & PREFERENCES
+// ==========================================
+
+model AdminPushSubscription {
+  id          String     @id @default(cuid())
+  userId      String
+  endpoint    String     @unique
+  p256dh      String
+  auth        String
+  userAgent   String?
+  deviceName  String?
+  isActive    Boolean    @default(true)
+  lastUsedAt  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        AdminUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model AdminNotificationPreference {
+  id          String     @id @default(cuid())
+  userId      String     @unique
+  orders      Boolean    @default(true)
+  stock       Boolean    @default(true)
+  finance     Boolean    @default(true)
+  security    Boolean    @default(true)
+  system      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        AdminUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // ==========================================

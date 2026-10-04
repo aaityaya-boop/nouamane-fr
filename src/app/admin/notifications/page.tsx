@@ -22,6 +22,8 @@ import {
   Package,
   ArrowRight
 } from 'lucide-react';
+import AdminPushNotificationSettings from '@/components/admin/AdminPushNotificationSettings';
+
 
 interface NotificationItem {
   id: string;
@@ -41,6 +43,16 @@ export default function AdminNotificationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [mainTab, setMainTab] = useState<'feed' | 'push'>('feed');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'push') {
+        setMainTab('push');
+      }
+    }
+  }, []);
 
   const fetchNotifications = useCallback(async () => {
     setIsLoading(true);
@@ -290,9 +302,40 @@ export default function AdminNotificationsPage() {
         </div>
       </div>
 
-      {/* Tabs & Filter Bar */}
-      <div className="space-y-3">
-        {/* Category Tabs */}
+      {/* Main View Switcher: Live Feed vs Push & Devices */}
+      <div className="flex items-center gap-2 border-b border-neutral-200 pb-3">
+        <button
+          onClick={() => setMainTab('feed')}
+          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all ${
+            mainTab === 'feed'
+              ? 'bg-neutral-900 text-white shadow-xs'
+              : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+          }`}
+        >
+          <Bell size={16} />
+          <span>Flux d&apos;alertes en direct</span>
+        </button>
+
+        <button
+          onClick={() => setMainTab('push')}
+          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all ${
+            mainTab === 'push'
+              ? 'bg-[#0ea5e9] text-white shadow-md shadow-sky-500/20'
+              : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+          }`}
+        >
+          <Sparkles size={16} />
+          <span>Notifications Push & Appareils PWA</span>
+        </button>
+      </div>
+
+      {mainTab === 'push' ? (
+        <AdminPushNotificationSettings />
+      ) : (
+        <>
+          {/* Tabs & Filter Bar */}
+          <div className="space-y-3">
+            {/* Category Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           {[
             { id: 'ALL', label: 'Toutes', count: notifications.length },
@@ -440,6 +483,8 @@ export default function AdminNotificationsPage() {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }

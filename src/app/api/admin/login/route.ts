@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyPassword, createAdminToken, seedDefaultOwnersIfEmpty } from '@/lib/auth/adminAuth';
 import { logAdminActivity } from '@/lib/activityLogger';
+import { createAdminNotification } from '@/lib/notificationService';
 
 export async function POST(request: Request) {
   try {
@@ -117,6 +118,18 @@ export async function POST(request: Request) {
         entityType: 'AUTH',
         entityId: user.id,
         description: `${user.name} s'est connecté à son compte administrateur personnel.`,
+      }).catch(() => {});
+    } catch {}
+
+    // 5b. Security alert for new login
+    try {
+      createAdminNotification({
+        userId: user.id,
+        type: 'SECURITY',
+        title: 'Nouvelle connexion 🛡️',
+        message: `Connexion réussie à votre espace administrateur (${user.name})`,
+        link: '/admin',
+        metadata: { userId: user.id, email: user.email },
       }).catch(() => {});
     } catch {}
 
