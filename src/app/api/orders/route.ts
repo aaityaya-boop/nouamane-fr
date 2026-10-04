@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
 import { createAdminNotification } from '@/lib/notificationService';
 
@@ -136,14 +139,92 @@ export async function POST(request: Request) {
       });
     }
 
+    // ── Automatic Customer Creation & Linking ──────────────────────────────
+    let customerId: string | null = null;
+    const cleanEmail = customerEmail.trim().toLowerCase();
+
+    try {
+      // 1. Check if logged-in customer session exists
+      const cookieStore = await cookies();
+      const customerToken = cookieStore.get('customer_token')?.value;
+      if (customerToken) {
+        try {
+          const JWT_SECRET = new TextEncoder().encode(
+            process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
+          );
+          const { payload } = await jwtVerify(customerToken, JWT_SECRET);
+          if (payload?.id) {
+            const loggedInCustomer = await prisma.customer.findUnique({
+              where: { id: payload.id as string }
+            });
+            if (loggedInCustomer) {
+              customerId = loggedInCustomer.id;
+            }
+          }
+        } catch {
+          // Token invalid or expired, continue to lookup
+        }
+      }
+
+      // 2. If not logged in, search existing customer by email or phone
+      let targetCustomer = customerId 
+        ? await prisma.customer.findUnique({ where: { id: customerId } })
+        : await prisma.customer.findUnique({ where: { email: cleanEmail } });
+
+      if (!targetCustomer && normalizedPhone) {
+        targetCustomer = await prisma.customer.findFirst({
+          where: { phone: normalizedPhone }
+        });
+      }
+
+      if (targetCustomer) {
+        customerId = targetCustomer.id;
+        // Update contact & address if missing or newer
+        await prisma.customer.update({
+          where: { id: targetCustomer.id },
+          data: {
+            name: customerName.trim() || targetCustomer.name,
+            phone: normalizedPhone || targetCustomer.phone,
+            address: shippingAddress.trim() || targetCustomer.address,
+            city: shippingCity.trim() || targetCustomer.city,
+            postalCode: shippingPostalCode?.trim() || targetCustomer.postalCode,
+          }
+        });
+      } else {
+        // 3. New visitor/guest order: AUTOMATICALLY create real Customer record in DB!
+        const randomPassword = crypto.randomBytes(16).toString('hex');
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+        const newCustomer = await prisma.customer.create({
+          data: {
+            name: customerName.trim(),
+            email: cleanEmail,
+            phone: normalizedPhone,
+            address: shippingAddress.trim(),
+            city: shippingCity.trim(),
+            postalCode: shippingPostalCode?.trim() || '',
+            password: hashedPassword,
+            tags: {
+              create: [
+                { tag: 'Commande Directe' }
+              ]
+            }
+          }
+        });
+        customerId = newCustomer.id;
+      }
+    } catch (custError) {
+      console.error('[Automatic Customer] Error creating or linking customer:', custError);
+    }
+
     const created = await prisma.order.create({
       data: {
         orderNumber,
-        customerName,
-        customerEmail,
+        customerName: customerName.trim(),
+        customerEmail: cleanEmail,
         customerPhone: normalizedPhone,
-        shippingAddress,
-        shippingCity,
+        shippingAddress: shippingAddress.trim(),
+        shippingCity: shippingCity.trim(),
         shippingPostalCode: shippingPostalCode || '',
         paymentMethod,
         items: JSON.stringify(finalItemsWithSKU),
@@ -154,6 +235,7 @@ export async function POST(request: Request) {
         discount: discount ? Number(discount) : null,
         status: 'pending',
         affiliateCode: affiliate ? affiliate.code : null,
+        customerId: customerId || null,
       }
     });
 

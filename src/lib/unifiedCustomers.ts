@@ -45,7 +45,10 @@ export async function getUnifiedCustomers(): Promise<UnifiedCustomer[]> {
       orderBy: { createdAt: 'desc' },
     }),
     prisma.customer.findMany({
-      include: { orders: { orderBy: { createdAt: 'desc' } } },
+      include: { 
+        orders: { orderBy: { createdAt: 'desc' } },
+        tags: true,
+      },
       orderBy: { createdAt: 'desc' },
     }),
   ]);
@@ -167,11 +170,14 @@ export async function getUnifiedCustomers(): Promise<UnifiedCustomer[]> {
 
     const isVip = tier !== 'STANDARD';
 
+    const isDirectOrder = c?.tags?.some((t) => t.tag === 'Commande Directe');
     let source: 'COMMANDE' | 'COMPTE' | 'COMMANDE_ET_COMPTE' = 'COMMANDE';
-    if (c && orders.length > 0) {
+    if (c && orders.length > 0 && !isDirectOrder) {
       source = 'COMMANDE_ET_COMPTE';
-    } else if (c) {
+    } else if (c && orders.length === 0) {
       source = 'COMPTE';
+    } else {
+      source = 'COMMANDE';
     }
 
     unified.push({
