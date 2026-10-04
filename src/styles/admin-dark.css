@@ -45,28 +45,42 @@ html.dark .admin-shell-bg {
   background-repeat: no-repeat !important;
 }
 
+/* ── Header & Sidebar: Always iOS Liquid Glass / Clean White (Zero Black) ─── */
+aside,
+.admin-sidebar,
+aside.bg-white,
 html.dark aside,
 html.dark .admin-sidebar,
 html.dark aside.bg-white {
-  background-color: #09090b !important;
-  border-color: #1a1a1f !important;
-  color: #a1a1aa !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-color: rgba(226, 232, 240, 0.8) !important;
+  color: #334155 !important;
 }
 
+header,
+.admin-header,
+header.bg-white,
 html.dark header,
 html.dark .admin-header,
 html.dark header.bg-white {
-  background-color: #0c0c0e !important;
-  border-color: #1a1a1f !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 4px 20px -2px rgba(14, 165, 233, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  color: #0f172a !important;
 }
 
-/* Mobile Top Bar */
+.lg\:hidden.bg-white,
 html.dark .lg\:hidden.bg-white,
 html.dark .lg\:hidden.bg-white\/90 {
-  background-color: #09090b !important;
-  border-color: #1a1a1f !important;
-  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-color: rgba(226, 232, 240, 0.8) !important;
+  color: #0f172a !important;
 }
 
 /* Sub-containers inside dark mode */
