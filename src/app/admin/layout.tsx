@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import AdminLayoutShell from "@/components/AdminLayoutShell";
@@ -11,6 +11,17 @@ const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0ea5e9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c1424" },
+  ],
+};
 
 export const metadata: Metadata = {
   title: "Admin | NAY Parfums",
@@ -33,6 +44,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr" className={plusJakarta.variable} suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="format-detection" content="telephone=no" />
         <link rel="icon" href="/admin-favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/admin-favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/admin-favicon-16x16.png" />

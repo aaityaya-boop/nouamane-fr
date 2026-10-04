@@ -284,14 +284,14 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="admin-header w-full bg-white/80 dark:bg-[#0c1424]/85 backdrop-blur-xl border border-white/80 dark:border-sky-500/20 shadow-[0_4px_20px_-2px_rgba(14,165,233,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_12px_36px_-4px_rgba(0,0,0,0.7),0_0_18px_rgba(14,165,233,0.08)] px-4 lg:px-8 py-3 mb-6 rounded-2xl flex items-center justify-between transition-all">
+    <header className="admin-header w-full bg-white/80 dark:bg-[#0c1424]/85 backdrop-blur-xl border border-white/80 dark:border-sky-500/20 shadow-[0_4px_20px_-2px_rgba(14,165,233,0.06),0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-[0_12px_36px_-4px_rgba(0,0,0,0.7),0_0_18px_rgba(14,165,233,0.08)] px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 mb-4 sm:mb-6 rounded-xl sm:rounded-2xl flex items-center justify-between transition-all">
       {/* Left: Breadcrumb / Active Route Context */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden md:inline">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden md:inline shrink-0">
             Admin /
           </span>
-          <span className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <span className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight truncate max-w-[130px] sm:max-w-xs md:max-w-none">
             {getPageContextLabel(pathname)}
           </span>
         </div>
@@ -324,41 +324,41 @@ export default function AdminHeader() {
       </div>
 
       {/* Right Controls: Theme Switcher, Chat, Notifications, Profile */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto">
+      <div className="flex items-center gap-1 sm:gap-2.5 ml-auto shrink-0">
         {/* DARK / LIGHT THEME TOGGLE BUTTON */}
         <button
           onClick={toggleTheme}
           type="button"
-          className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-all relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10"
+          className="p-1.5 sm:p-2 min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-all relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10 active:scale-95"
           title={isDark ? "Basculer en Mode Clair (☀️)" : "Basculer en Mode Sombre (🌙)"}
           aria-label="Changer de thème d'affichage"
         >
           {isDark ? (
-            <Sun size={18} className="text-amber-400" />
+            <Sun size={17} className="text-amber-400" />
           ) : (
-            <Moon size={18} className="text-slate-600 hover:text-indigo-600 transition-colors" />
+            <Moon size={17} className="text-slate-600 hover:text-indigo-600 transition-colors" />
           )}
         </button>
 
         {/* TEAM CHAT QUICK BUTTON */}
         <Link
           href="/admin/chat"
-          className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#0ea5e9] dark:hover:text-sky-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10"
+          className="p-1.5 sm:p-2 min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#0ea5e9] dark:hover:text-sky-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10 active:scale-95"
           title="Messagerie d'équipe (NAY Chat)"
         >
-          <MessageSquare size={18} />
+          <MessageSquare size={17} />
         </Link>
 
         {/* NOTIFICATIONS BELL & FLYOUT */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#0ea5e9] dark:hover:text-sky-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10"
+            className="p-1.5 sm:p-2 min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#0ea5e9] dark:hover:text-sky-400 hover:bg-slate-100/80 dark:hover:bg-white/10 transition-colors relative flex items-center justify-center cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-white/10 active:scale-95"
             aria-label="Centre de notifications"
           >
-            <Bell size={18} />
+            <Bell size={17} />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+              <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 min-w-[16px] h-[16px] sm:min-w-[18px] sm:h-[18px] bg-red-500 text-white text-[9px] sm:text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -366,7 +366,7 @@ export default function AdminHeader() {
 
           {/* NOTIFICATION FLYOUT DROPDOWN */}
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white/95 dark:bg-[#0c1424]/95 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-28px)] max-w-sm sm:w-96 bg-white/95 dark:bg-[#0c1424]/95 backdrop-blur-2xl rounded-3xl shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
               {/* Flyout Header */}
               <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/60">
                 <div className="flex items-center gap-2">
@@ -488,7 +488,7 @@ export default function AdminHeader() {
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-[#0c1424]/95 backdrop-blur-2xl rounded-2xl shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-28px)] max-w-[270px] sm:w-64 bg-white/95 dark:bg-[#0c1424]/95 backdrop-blur-2xl rounded-2xl shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               {/* Profile Card Header */}
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3">

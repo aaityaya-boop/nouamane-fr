@@ -136,6 +136,38 @@ export default function AdminSidebar() {
   const [user, setUser] = useState<AdminUser | null>(null);
   const { theme, toggleTheme, isDark } = useAdminTheme();
 
+  // Auto-close drawer on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isOpen]);
+
+  // Listen for global drawer open/close events (from mobile bottom bar or header)
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    const handleClose = () => setIsOpen(false);
+    window.addEventListener('nay_open_admin_drawer', handleOpen);
+    window.addEventListener('nay_close_admin_drawer', handleClose);
+    return () => {
+      window.removeEventListener('nay_open_admin_drawer', handleOpen);
+      window.removeEventListener('nay_close_admin_drawer', handleClose);
+    };
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     async function loadUser() {
@@ -231,7 +263,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-[#090e1a]/95 backdrop-blur-xl text-slate-900 dark:text-white flex items-center justify-between px-4 z-40 border-b border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 sm:h-16 bg-white/95 dark:bg-[#090e1a]/95 backdrop-blur-xl text-slate-900 dark:text-white flex items-center justify-between px-3.5 sm:px-4 z-40 border-b border-slate-200/80 dark:border-slate-800 shadow-xs">
         <Link href="/admin" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-sky-200 dark:border-sky-500/30 p-1 flex items-center justify-center shadow-2xs">
             <Image 
@@ -249,7 +281,7 @@ export default function AdminSidebar() {
         </Link>
         <button 
           onClick={() => setIsOpen(true)} 
-          className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white rounded-xl bg-slate-100/80 dark:bg-slate-800/80 active:scale-95 transition-all cursor-pointer"
           aria-label="Ouvrir le menu"
         >
           <Menu size={20} />
@@ -259,13 +291,13 @@ export default function AdminSidebar() {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-slate-900/30 dark:bg-black/60 z-40 backdrop-blur-xs" 
+          className="lg:hidden fixed inset-0 bg-black/50 dark:bg-black/70 z-50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200" 
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar Desktop & Mobile Drawer */}
-      <aside className={`admin-sidebar w-[260px] bg-white/95 dark:bg-[#090e1a]/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-800/80 h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 dark:text-slate-300 transition-transform duration-200 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0 shadow-[2px_0_24px_-4px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_32px_rgba(0,0,0,0.6)]`}>
+      <aside className={`admin-sidebar w-[285px] sm:w-[260px] max-w-[85vw] bg-white/95 dark:bg-[#090e1a]/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-800/80 h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 dark:text-slate-300 transition-transform duration-200 overscroll-contain ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0 shadow-[2px_0_24px_-4px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_32px_rgba(0,0,0,0.6)]`}>
         
         {/* Brand Top Header */}
         <div className="p-4 pb-3 flex justify-between items-center border-b border-sky-100/80 dark:border-slate-800/80 bg-gradient-to-b from-sky-100/40 dark:from-sky-950/20 to-transparent">
@@ -293,9 +325,10 @@ export default function AdminSidebar() {
           {isOpen && (
             <button 
               onClick={() => setIsOpen(false)} 
-              className="lg:hidden text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="lg:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Fermer le menu"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           )}
         </div>
