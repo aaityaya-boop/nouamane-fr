@@ -231,7 +231,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white text-slate-900 flex items-center justify-between px-4 z-40 border-b border-slate-200/80 shadow-xs">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-[#0b172a]/90 backdrop-blur-xl text-slate-900 dark:text-white flex items-center justify-between px-4 z-40 border-b border-sky-200/60 dark:border-blue-900/50 shadow-xs">
         <Link href="/admin" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-white border border-sky-200 p-1 flex items-center justify-center shadow-2xs">
             <Image 
@@ -243,13 +243,13 @@ export default function AdminSidebar() {
             />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-900 tracking-wider">NAY PARFUMS</div>
-            <div className="text-[10px] text-slate-400 font-medium">Administration</div>
+            <div className="text-xs font-bold text-slate-900 dark:text-white tracking-wider">NAY PARFUMS</div>
+            <div className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">Administration</div>
           </div>
         </Link>
         <button 
           onClick={() => setIsOpen(true)} 
-          className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100"
+          className="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-sky-50 dark:hover:bg-blue-950/60"
           aria-label="Ouvrir le menu"
         >
           <Menu size={20} />
@@ -259,16 +259,16 @@ export default function AdminSidebar() {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-slate-900/30 z-40 backdrop-blur-xs" 
+          className="lg:hidden fixed inset-0 bg-slate-900/40 z-40 backdrop-blur-xs" 
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar Desktop & Mobile Drawer */}
-      <aside className={`w-[260px] bg-white border-r border-slate-200/80 h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 transition-transform duration-200 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0`}>
+      <aside className={`admin-sidebar w-[260px] bg-white/95 dark:bg-[#080d1a]/95 backdrop-blur-md border-r border-sky-100/80 dark:border-blue-950/70 h-screen flex flex-col fixed left-0 top-0 z-50 text-slate-700 dark:text-slate-300 transition-transform duration-200 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} lg:translate-x-0`}>
         
         {/* Brand Top Header */}
-        <div className="p-4 pb-3 flex justify-between items-center border-b border-slate-100 bg-gradient-to-b from-sky-50/30 to-white">
+        <div className="p-4 pb-3 flex justify-between items-center border-b border-sky-100/70 dark:border-blue-950/60 bg-gradient-to-b from-sky-100/70 via-sky-50/30 to-transparent dark:from-blue-950/60 dark:via-blue-950/25 dark:to-transparent">
           <Link href="/admin" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-white border border-sky-200 p-1.5 flex items-center justify-center shadow-2xs group-hover:border-[#1D9BF0] transition-colors">
               <Image 
@@ -281,10 +281,10 @@ export default function AdminSidebar() {
               />
             </div>
             <div>
-              <div className="text-xs font-bold tracking-wider text-slate-900 group-hover:text-[#1D9BF0] transition-colors">
+              <div className="text-xs font-bold tracking-wider text-slate-900 dark:text-white group-hover:text-[#1D9BF0] transition-colors">
                 NAY PARFUMS
               </div>
-              <div className="text-[10px] text-slate-600 font-medium">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                 Maison de Luxe
               </div>
             </div>

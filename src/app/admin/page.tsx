@@ -253,24 +253,24 @@ export default async function AdminDashboard() {
   const adminFirstName = adminName.split(' ')[0];
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 dark:text-slate-100">
       
       {/* ── 1. REFINED EXECUTIVE HEADER ───────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-blue-900/40">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-400">
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-400">
               NAY Parfums • Boutique en Ligne
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/40">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               Boutique en direct
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             {canViewRevenue ? `Bonjour, ${adminFirstName}` : `Espace Confirmation & Suivi • ${adminFirstName}`}
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {canViewRevenue 
               ? 'Pilotage exécutif, indicateurs de ventes et performance logistique en temps réel.'
               : 'Validation téléphonique des commandes, suivi des livraisons et satisfaction client.'}
@@ -281,26 +281,26 @@ export default async function AdminDashboard() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/admin/orders"
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
           >
-            <ShoppingBag size={14} className="text-slate-300" />
+            <ShoppingBag size={14} className="text-slate-300 dark:text-sky-100" />
             <span>Commandes ({pendingOrders + unconfirmedCount} à traiter)</span>
           </Link>
           <Link
             href="/admin/tasks"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#0e1726] dark:hover:bg-[#131f33] border border-slate-200 dark:border-blue-900/50 text-xs font-medium text-slate-700 dark:text-slate-200 shadow-xs transition-all cursor-pointer"
           >
-            <CheckSquare size={13} className="text-slate-500" />
+            <CheckSquare size={13} className="text-slate-500 dark:text-slate-400" />
             <span>Missions</span>
           </Link>
           <Link
             href="/"
             target="_blank"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-600 hover:text-slate-900 shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#0e1726] dark:hover:bg-[#131f33] border border-slate-200 dark:border-blue-900/50 text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white shadow-xs transition-all cursor-pointer"
             title="Voir la vitrine publique"
           >
             <span>Vitrine</span>
-            <ExternalLink size={12} className="text-slate-400" />
+            <ExternalLink size={12} className="text-slate-400 dark:text-slate-400" />
           </Link>
         </div>
       </div>
