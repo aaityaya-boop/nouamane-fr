@@ -251,6 +251,15 @@ export async function POST(request: Request) {
       });
     }
 
+    // Mark the live cart session as COMPLETED so it doesn't show in abandoned carts
+    const sessionCookie = cookieStore.get('nouamaneSession')?.value || body.sessionId;
+    if (sessionCookie) {
+      await prisma.liveCartSession.updateMany({
+        where: { sessionId: sessionCookie },
+        data: { status: 'COMPLETED' }
+      }).catch(() => {});
+    }
+
     // Record Initial Order Timeline Event
     try {
       await prisma.orderTimelineEvent.create({

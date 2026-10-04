@@ -93,7 +93,7 @@ export default async function LiveCartsPage() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/admin/abandoned-checkouts"
+              href="/admin/marketing/abandoned-carts"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-md border border-white/15 transition-all shadow-sm"
             >
               <span>Paniers Abandonnés</span>

@@ -41,7 +41,7 @@ export default function AbandonedCartsView({
 }: { 
   initialCarts: AbandonedCartItem[] 
 }) {
-  const [filter, setFilter] = useState<'ALL' | 'HOT' | 'ABANDONED' | 'ACTIVE'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'HOT' | 'WITH_CONTACT' | 'ABANDONED' | 'ACTIVE'>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -54,6 +54,12 @@ export default function AbandonedCartsView({
     const hours = (now - new Date(c.lastActivity).getTime()) / (1000 * 3600);
     return hours <= 24;
   }).length;
+  const withContactCarts = initialCarts.filter(c => Boolean(c.customer.phone && c.customer.phone.trim().length >= 8)).length;
+  const abandonedCount = initialCarts.filter(c => {
+    const minutesSince = Math.floor((now - new Date(c.lastActivity).getTime()) / 60000);
+    return minutesSince > 60;
+  }).length;
+  const activeCount = initialCarts.length - abandonedCount;
   const avgValue = totalCarts > 0 ? Math.round(totalValue / totalCarts) : 0;
 
   const filteredCarts = initialCarts.filter(c => {
@@ -61,6 +67,7 @@ export default function AbandonedCartsView({
     const isAbandoned = minutesSince > 60;
     
     if (filter === 'HOT') return minutesSince <= 1440;
+    if (filter === 'WITH_CONTACT') return Boolean(c.customer.phone && c.customer.phone.trim().length >= 8);
     if (filter === 'ABANDONED') return isAbandoned;
     if (filter === 'ACTIVE') return !isAbandoned;
     return true;
@@ -140,6 +147,16 @@ export default function AbandonedCartsView({
             Tous ({totalCarts})
           </button>
           <button
+            onClick={() => setFilter('WITH_CONTACT')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              filter === 'WITH_CONTACT'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/80'
+            }`}
+          >
+            📱 Avec Contact WhatsApp ({withContactCarts})
+          </button>
+          <button
             onClick={() => setFilter('HOT')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               filter === 'HOT'
@@ -157,17 +174,17 @@ export default function AbandonedCartsView({
                 : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'
             }`}
           >
-            Abandonnés &gt;1h
+            ⏳ Abandonnés &gt;1h ({abandonedCount})
           </button>
           <button
             onClick={() => setFilter('ACTIVE')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               filter === 'ACTIVE'
-                ? 'bg-emerald-700 text-white shadow-xs'
+                ? 'bg-sky-600 text-white shadow-xs'
                 : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'
             }`}
           >
-            En Session Active
+            🟢 En Session Active ({activeCount})
           </button>
         </div>
 
@@ -235,27 +252,40 @@ export default function AbandonedCartsView({
                       <tr className="hover:bg-neutral-50/50 transition-colors">
                         {/* Customer Info */}
                         <td className="py-3 px-4 sm:px-5">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-800 font-semibold flex items-center justify-center text-xs shrink-0 border border-neutral-200">
-                              {cart.customer.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <Link 
-                                href={`/admin/customers/${cart.customer.id}`}
-                                className="font-semibold text-neutral-900 hover:text-neutral-700 transition-colors inline-flex items-center gap-1"
-                              >
-                                {cart.customer.name}
-                                <ExternalLink size={11} className="text-neutral-400" />
-                              </Link>
-                              <div className="text-[11px] text-neutral-500 mt-0.5 space-x-1">
-                                {cart.customer.phone && (
-                                  <span className="font-mono">{cart.customer.phone}</span>
-                                )}
-                                {cart.customer.phone && cart.customer.city && <span>•</span>}
-                                {cart.customer.city && <span>{cart.customer.city}</span>}
+                          {cart.customer.phone ? (
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center text-xs shrink-0 border border-emerald-200">
+                                {cart.customer.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-semibold text-neutral-900 flex items-center gap-1.5">
+                                  <span>{cart.customer.name}</span>
+                                  <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded font-bold">
+                                    WhatsApp
+                                  </span>
+                                </div>
+                                <div className="text-[11px] text-neutral-500 mt-0.5 space-x-1">
+                                  <span className="font-mono font-medium text-neutral-700">{cart.customer.phone}</span>
+                                  {cart.customer.city && <span>•</span>}
+                                  {cart.customer.city && <span>{cart.customer.city}</span>}
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-600 font-semibold flex items-center justify-center text-xs shrink-0 border border-neutral-200">
+                                <ShoppingCart size={14} />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-neutral-800">
+                                  Visiteur Boutique
+                                </div>
+                                <div className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                                  Session #{cart.id.slice(-6)} {cart.customer.city ? `• ${cart.customer.city}` : ''}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </td>
 
                         {/* Items Preview */}
@@ -311,27 +341,33 @@ export default function AbandonedCartsView({
                         {/* Actions */}
                         <td className="py-3 px-4 sm:px-5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            {whatsappUrl && (
+                            {whatsappUrl ? (
                               <a
                                 href={whatsappUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title="Relancer directement sur WhatsApp avec message pré-rempli"
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-2xs transition-all active:scale-95"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition-all active:scale-95"
                               >
-                                <MessageSquare size={12} />
+                                <MessageSquare size={13} />
                                 <span>WhatsApp</span>
                               </a>
+                            ) : (
+                              <span className="text-[10px] font-medium text-neutral-400 bg-neutral-100 px-2 py-1 rounded-md border border-neutral-200">
+                                Sans contact
+                              </span>
                             )}
 
-                            <a
-                              href={mailtoUrl}
-                              title="Envoyer un e-mail de relance"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 font-medium text-xs transition-colors shadow-2xs"
-                            >
-                              <Mail size={12} />
-                              <span className="hidden sm:inline">Email</span>
-                            </a>
+                            {cart.customer.email ? (
+                              <a
+                                href={mailtoUrl}
+                                title="Envoyer un e-mail de relance"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 font-medium text-xs transition-colors shadow-2xs"
+                              >
+                                <Mail size={12} />
+                                <span className="hidden sm:inline">Email</span>
+                              </a>
+                            ) : null}
 
                             <button
                               onClick={() => copyToClipboard(recoveryMsg, cart.id)}

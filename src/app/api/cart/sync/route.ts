@@ -4,27 +4,48 @@ import prisma from '@/lib/prisma';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { sessionId, items, totalValue, customerId } = body;
+    const {
+      sessionId,
+      items,
+      totalValue,
+      customerId,
+      customerName,
+      customerPhone,
+      customerEmail,
+      customerCity,
+      status
+    } = body;
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
     }
 
-    if (items.length === 0) {
-      // If cart is cleared, we update it to empty
+    const contactData = {
+      ...(customerName ? { customerName: String(customerName).trim() } : {}),
+      ...(customerPhone ? { customerPhone: String(customerPhone).trim() } : {}),
+      ...(customerEmail ? { customerEmail: String(customerEmail).trim().toLowerCase() } : {}),
+      ...(customerCity ? { customerCity: String(customerCity).trim() } : {}),
+      ...(status ? { status } : {}),
+      ...(customerId ? { customerId } : {})
+    };
+
+    if (!Array.isArray(items) || items.length === 0) {
+      // If cart is cleared or empty
       await prisma.liveCartSession.upsert({
         where: { sessionId },
         update: {
           items: '[]',
           totalValue: 0,
           lastActivity: new Date(),
-          ...(customerId ? { customerId } : {})
+          status: status || 'ACTIVE',
+          ...contactData
         },
         create: {
           sessionId,
           items: '[]',
           totalValue: 0,
-          ...(customerId ? { customerId } : {})
+          status: status || 'ACTIVE',
+          ...contactData
         }
       });
       return NextResponse.json({ success: true });
@@ -36,15 +57,17 @@ export async function POST(request: Request) {
       where: { sessionId },
       update: {
         items: itemsJson,
-        totalValue: totalValue || 0,
+        totalValue: Number(totalValue) || 0,
         lastActivity: new Date(),
-        ...(customerId ? { customerId } : {})
+        status: status || 'ACTIVE',
+        ...contactData
       },
       create: {
         sessionId,
         items: itemsJson,
-        totalValue: totalValue || 0,
-        ...(customerId ? { customerId } : {})
+        totalValue: Number(totalValue) || 0,
+        status: status || 'ACTIVE',
+        ...contactData
       }
     });
 

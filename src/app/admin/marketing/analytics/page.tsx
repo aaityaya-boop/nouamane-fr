@@ -18,17 +18,18 @@ import {
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 import { getUnifiedCustomers } from '@/lib/unifiedCustomers';
+import { getAbandonedCartsStats } from '@/lib/abandonedCartsService';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MarketingAnalyticsPage() {
-  const [allCustomers, deliveredOrders, abandonedCarts, campaigns] = await Promise.all([
+  const [allCustomers, deliveredOrders, abandonedStats, campaigns] = await Promise.all([
     getUnifiedCustomers(),
     prisma.order.findMany({
       where: { status: 'delivered' },
       orderBy: { createdAt: 'desc' }
     }),
-    prisma.abandonedCart.findMany(),
+    getAbandonedCartsStats(),
     prisma.marketingCampaign.findMany()
   ]);
 
@@ -74,13 +75,8 @@ export default async function MarketingAnalyticsPage() {
   const repeatRate = allCustomers.length > 0 ? ((returningCustomerCount / allCustomers.length) * 100).toFixed(1) : '0';
   const repeatRevShare = totalRevenue > 0 ? ((repeatRevenue / totalRevenue) * 100).toFixed(1) : '0';
 
-  const abandonedValue = abandonedCarts
-    .filter(c => c.status === 'ABANDONED')
-    .reduce((sum, c) => sum + c.cartValue, 0);
-
-  const recoveredValue = abandonedCarts
-    .filter(c => c.status === 'RECOVERED')
-    .reduce((sum, c) => sum + c.cartValue, 0);
+  const abandonedValue = abandonedStats.totalValue;
+  const recoveredValue = 0;
 
   return (
     <div className="space-y-5">

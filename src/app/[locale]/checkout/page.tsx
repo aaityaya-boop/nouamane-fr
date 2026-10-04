@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useCart, calculatePromoDiscount } from '@/context/CartContext';
 import { formatMAD, MOROCCAN_CITIES } from '@/lib/products';
+import Cookies from 'js-cookie';
 import {
   Lock,
   Truck,
@@ -72,6 +73,38 @@ export default function CheckoutPage() {
       });
     }
   }, [cart.length, subtotal]);
+
+  // Real-time abandoned checkout lead capture (captures contact info in background)
+  useEffect(() => {
+    if (!cart || cart.length === 0) return;
+    const hasContact = Boolean(form.phone.trim() || form.email.trim() || form.firstName.trim());
+    if (!hasContact) return;
+
+    const timer = setTimeout(() => {
+      let sessionId = Cookies.get('nouamaneSession');
+      if (!sessionId) {
+        sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        Cookies.set('nouamaneSession', sessionId, { expires: 365, path: '/' });
+      }
+
+      fetch('/api/cart/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          items: cart,
+          totalValue: subtotal,
+          customerName: `${form.firstName} ${form.lastName}`.trim(),
+          customerPhone: form.phone.trim(),
+          customerEmail: form.email.trim(),
+          customerCity: form.city,
+          status: 'ACTIVE'
+        })
+      }).catch(() => {});
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [form.phone, form.firstName, form.lastName, form.email, form.city, cart, subtotal]);
 
   const update = (field: keyof typeof form, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -157,6 +190,7 @@ export default function CheckoutPage() {
           promoCode: appliedPromo?.code || (appliedDeal ? `OFFRE:${appliedDeal.badgeText || appliedDeal.title}` : null),
           discount: totalDiscount > 0 ? totalDiscount : null,
           selectedFreeGift: selectedFreeGift || null,
+          sessionId: Cookies.get('nouamaneSession') || null,
         }),
       });
 
@@ -165,6 +199,9 @@ export default function CheckoutPage() {
       }
 
       const { orderNumber } = await res.json();
+
+      // Clear the live cart session cookie now that order is confirmed
+      Cookies.remove('nouamaneSession');
 
       // Persist order info for confirmation page
       const confirmationData = {

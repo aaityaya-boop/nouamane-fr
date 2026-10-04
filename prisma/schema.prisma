@@ -53,6 +53,7 @@ model Customer {
   tags             CustomerTag[]
   marketingConsent MarketingConsent?
   abandonedCarts   AbandonedCart[]
+  liveCartSessions LiveCartSession[]
   campaigns        MarketingRecipient[]
 }
 
@@ -855,14 +856,20 @@ model MarketingCampaign {
 }
 
 model LiveCartSession {
-  id           String   @id @default(cuid())
-  sessionId    String   @unique
-  customerId   String?
-  items        String   @db.Text
-  totalValue   Float    @default(0)
-  lastActivity DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String    @id @default(cuid())
+  sessionId     String    @unique
+  customerId    String?
+  customerName  String?
+  customerPhone String?
+  customerEmail String?
+  customerCity  String?
+  status        String    @default("ACTIVE") // ACTIVE, ABANDONED, COMPLETED
+  items         String    @db.Text
+  totalValue    Float     @default(0)
+  lastActivity  DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 }
 
 model MarketingRecipient {

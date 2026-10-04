@@ -1,30 +1,12 @@
 import React from 'react';
-import prisma from '@/lib/prisma';
 import AbandonedCartsView from './AbandonedCartsView';
+import { getUnifiedAbandonedCarts } from '@/lib/abandonedCartsService';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function AbandonedCartsPage() {
-  const abandonedCarts = await prisma.abandonedCart.findMany({
-    where: { status: { in: ['ABANDONED', 'ACTIVE'] } },
-    include: { customer: true },
-    orderBy: { lastActivity: 'desc' }
-  });
-
-  const serializedCarts = abandonedCarts.map(cart => ({
-    id: cart.id,
-    cartValue: cart.cartValue,
-    status: cart.status,
-    lastActivity: cart.lastActivity.toISOString(),
-    cartItems: cart.cartItems,
-    customer: {
-      id: cart.customer.id,
-      name: cart.customer.name,
-      email: cart.customer.email,
-      phone: cart.customer.phone,
-      city: cart.customer.city
-    }
-  }));
+  const serializedCarts = await getUnifiedAbandonedCarts(200);
 
   return (
     <div className="space-y-6">

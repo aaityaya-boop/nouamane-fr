@@ -26,18 +26,15 @@ import {
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 import { getUnifiedCustomers } from '@/lib/unifiedCustomers';
+import { getUnifiedAbandonedCarts, getAbandonedCartsStats } from '@/lib/abandonedCartsService';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MarketingDashboardPage() {
-  const [allCustomers, recentAbandonedCarts, campaigns, liveSessions] = await Promise.all([
+  const [allCustomers, abandonedStats, allUnifiedCarts, campaigns, liveSessions] = await Promise.all([
     getUnifiedCustomers(),
-    prisma.abandonedCart.findMany({
-      where: { status: { in: ['ABANDONED', 'ACTIVE'] } },
-      include: { customer: true },
-      orderBy: { lastActivity: 'desc' },
-      take: 6
-    }),
+    getAbandonedCartsStats(),
+    getUnifiedAbandonedCarts(10),
     prisma.marketingCampaign.findMany({
       orderBy: { createdAt: 'desc' },
       take: 4
@@ -49,6 +46,8 @@ export default async function MarketingDashboardPage() {
       }
     })
   ]);
+
+  const recentAbandonedCarts = allUnifiedCarts.slice(0, 6);
 
   let totalRevenue = 0;
   let repeatRevenue = 0;
@@ -90,16 +89,8 @@ export default async function MarketingDashboardPage() {
   const cltv = allCustomers.length > 0 ? Math.round(totalRevenue / allCustomers.length) : 0;
   const repeatRate = allCustomers.length > 0 ? ((returningCustomers / allCustomers.length) * 100).toFixed(1) : '0';
 
-  const abandonedCartsCount = await prisma.abandonedCart.count({
-    where: { status: 'ABANDONED' }
-  });
-
-  const abandonedCartsRevenue = await prisma.abandonedCart.aggregate({
-    where: { status: 'ABANDONED' },
-    _sum: { cartValue: true }
-  });
-
-  const recoverableMAD = abandonedCartsRevenue._sum.cartValue || 0;
+  const abandonedCartsCount = abandonedStats.abandonedCarts;
+  const recoverableMAD = abandonedStats.totalValue;
   const liveCartsValue = liveSessions.reduce((acc, s) => acc + s.totalValue, 0);
 
   return (
@@ -411,17 +402,25 @@ export default async function MarketingDashboardPage() {
                     ? `https://wa.me/${formattedPhone}?text=${encodeURIComponent(whatsappMsg)}`
                     : null;
 
+                  const isNamedCustomer = cart.customer.name && cart.customer.name !== 'Visiteur Boutique';
+
                   return (
                     <div key={cart.id} className="p-5 hover:bg-neutral-50/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-start gap-4">
                         <div className="w-10 h-10 rounded-xl bg-[#0A0A0A] text-[#0ea5e9] font-black flex items-center justify-center text-xs shrink-0 shadow-sm border border-white/10">
-                          {cart.customer.name.charAt(0).toUpperCase()}
+                          {isNamedCustomer ? cart.customer.name.charAt(0).toUpperCase() : <ShoppingCart size={15} className="text-[#0ea5e9]" />}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <Link href={`/admin/customers/${cart.customer.id}`} className="font-bold text-neutral-900 text-sm hover:underline hover:text-[#0ea5e9]">
-                              {cart.customer.name}
-                            </Link>
+                            {isNamedCustomer ? (
+                              <span className="font-bold text-neutral-900 text-sm">
+                                {cart.customer.name}
+                              </span>
+                            ) : (
+                              <span className="font-bold text-neutral-800 text-sm">
+                                Visiteur Boutique <span className="text-xs font-mono font-normal text-neutral-400">#{cart.id.slice(-6)}</span>
+                              </span>
+                            )}
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                               isAbandoned 
                                 ? 'bg-red-50 text-red-700 border border-red-200' 
@@ -431,7 +430,7 @@ export default async function MarketingDashboardPage() {
                             </span>
                           </div>
                           <div className="text-xs text-neutral-500 mt-0.5 flex items-center gap-3">
-                            <span>{cart.customer.phone || cart.customer.email}</span>
+                            <span>{cart.customer.phone || (cart.customer.email || 'Session anonyme')}</span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
                               <Clock size={11} className="text-neutral-400" />
@@ -469,13 +468,17 @@ export default async function MarketingDashboardPage() {
                             <MessageSquare size={14} />
                             <span>1-Click WhatsApp</span>
                           </a>
-                        ) : (
+                        ) : isNamedCustomer ? (
                           <Link
                             href={`/admin/customers/${cart.customer.id}`}
                             className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold"
                           >
                             <span>Voir Fiche</span>
                           </Link>
+                        ) : (
+                          <span className="text-[11px] font-medium text-neutral-400 bg-neutral-100 px-3 py-1.5 rounded-lg border border-neutral-200">
+                            Sans contact
+                          </span>
                         )}
                       </div>
                     </div>
