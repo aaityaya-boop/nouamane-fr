@@ -1,4 +1,5 @@
 'use client';
+import { upload } from '@vercel/blob/client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
@@ -198,27 +199,25 @@ export default function AdminCreativesPage() {
     setUploadError(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        body: formData,
+      // Use direct client-side upload to bypass Vercel's 4.5MB server limit
+      const newBlob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/admin/upload-client',
       });
 
-      const data = await res.json();
-      if (res.ok && data.url) {
-        setFormMediaUrl(data.url);
+      if (newBlob.url) {
+        setFormMediaUrl(newBlob.url);
         const isVid = file.type.startsWith('video/');
         setFormMediaType(isVid ? 'VIDEO' : 'IMAGE');
         if (!formTitle) {
           setFormTitle(file.name.replace(/\.[^/.]+$/, ''));
         }
       } else {
-        setUploadError(data.error || 'Échec du téléversement du fichier.');
+        setUploadError('Échec du téléversement du fichier.');
       }
-    } catch (err) {
-      setUploadError('Erreur réseau lors du téléversement.');
+    } catch (err: any) {
+      console.error('[Upload Error]:', err);
+      setUploadError('Erreur réseau lors du téléversement: Le fichier est trop volumineux ou la connexion a été interrompue.');
     } finally {
       setIsUploadingFile(false);
     }
