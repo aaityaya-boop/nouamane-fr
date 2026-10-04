@@ -44,7 +44,7 @@ export default async function proxy(request: NextRequest) {
   const isAdminApiRoute = pathname.startsWith('/api/admin') && pathname !== '/api/admin/login';
 
   if (isLoginPage) {
-    const token = request.cookies.get('admin_token')?.value;
+    const token = request.cookies.get('admin_token')?.value || request.cookies.get('admin_session')?.value;
     if (token) {
       try {
         await jwtVerify(token, JWT_SECRET);
@@ -56,7 +56,7 @@ export default async function proxy(request: NextRequest) {
   }
 
   if (isAdminRoute || isAdminApiRoute) {
-    const token = request.cookies.get('admin_token')?.value;
+    const token = request.cookies.get('admin_token')?.value || request.cookies.get('admin_session')?.value;
 
     let isValid = false;
     if (token) {

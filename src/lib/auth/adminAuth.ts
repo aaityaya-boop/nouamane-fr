@@ -95,7 +95,7 @@ export async function getAuthenticatedAdmin(req?: Request): Promise<AdminUserSaf
       const nextHeaders = await import('next/headers');
       if (nextHeaders && typeof nextHeaders.cookies === 'function') {
         const cookieStore = await nextHeaders.cookies();
-        token = cookieStore.get('admin_token')?.value;
+        token = cookieStore.get('admin_token')?.value || cookieStore.get('admin_session')?.value;
       }
     } catch {
       // Ignore if called outside Server Component/Route handler context
@@ -109,7 +109,7 @@ export async function getAuthenticatedAdmin(req?: Request): Promise<AdminUserSaf
       }
       if (!token) {
         const cookieHeader = req.headers.get('cookie') || '';
-        const match = cookieHeader.match(/admin_token=([^;]+)/);
+        const match = cookieHeader.match(/(?:admin_token|admin_session)=([^;]+)/);
         if (match) token = match[1];
       }
     }

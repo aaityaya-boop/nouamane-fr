@@ -32,6 +32,16 @@ export async function POST(request: Request) {
     path: '/',
     maxAge: 0,
   });
+
+  response.cookies.set({
+    name: 'admin_session',
+    value: '',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  });
   
   return response;
 }

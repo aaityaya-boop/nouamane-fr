@@ -199,6 +199,7 @@ export default function AdminSidebar() {
       console.error('Logout error:', e);
     } finally {
       document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       window.location.href = '/admin/login';
     }
   };

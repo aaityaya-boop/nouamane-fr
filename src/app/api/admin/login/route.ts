@@ -146,6 +146,16 @@ export async function POST(request: Request) {
       maxAge: maxAgeSeconds,
     });
 
+    response.cookies.set({
+      name: 'admin_session',
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: maxAgeSeconds,
+    });
+
     return response;
   } catch (error) {
     console.error('Admin login error:', error);

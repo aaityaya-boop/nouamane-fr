@@ -38,6 +38,18 @@ export default function AdminLogin() {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
+  // Auto-redirect if session is already active
+  useEffect(() => {
+    fetch('/api/admin/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data?.user) {
+          window.location.replace('/admin');
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (cooldownSeconds > 0) {
@@ -86,10 +98,10 @@ export default function AdminLogin() {
       if (res.ok && data?.success) {
         setLoginSuccess(true);
         setFailedAttempts(0);
+        // Direct browser navigation guarantees cookies are committed and bypasses client router cache
         setTimeout(() => {
-          router.push('/admin');
-          router.refresh();
-        }, 500);
+          window.location.replace('/admin');
+        }, 200);
       } else {
         const attempts = failedAttempts + 1;
         setFailedAttempts(attempts);
@@ -154,12 +166,12 @@ export default function AdminLogin() {
         </div>
       </header>
 
-      {/* Main Centered Compact Luxury Card (No awkward empty spaces) */}
-      <main className="w-full max-w-4xl my-auto py-4 sm:py-6 z-10">
-        <div className="bg-white border border-slate-200/90 rounded-3xl shadow-[0_10px_35px_rgba(0,0,0,0.04)] overflow-hidden grid grid-cols-1 md:grid-cols-12">
+      {/* Main Centered Compact Luxury Card (Clean on Mobile & Desktop) */}
+      <main className="w-full max-w-4xl my-auto py-4 sm:py-6 z-10 px-2 sm:px-0">
+        <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl shadow-[0_10px_35px_rgba(0,0,0,0.04)] overflow-hidden grid grid-cols-1 md:grid-cols-12 max-w-md md:max-w-none mx-auto w-full">
           
-          {/* Left Column: Brand Context (5 cols) */}
-          <div className="md:col-span-5 bg-gradient-to-br from-sky-50/60 via-slate-50 to-white p-6 sm:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100">
+          {/* Left Column: Brand Context (Hidden on mobile phones, shown on tablet/desktop) */}
+          <div className="hidden md:flex md:col-span-5 bg-gradient-to-br from-sky-50/60 via-slate-50 to-white p-6 sm:p-8 flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100">
             <div>
               {/* Brand Tag */}
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-100/70 border border-sky-200 text-[#0284c7] text-[11px] font-semibold mb-4">
@@ -232,12 +244,24 @@ export default function AdminLogin() {
 
             {/* Success Notification */}
             {loginSuccess && (
-              <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2.5 animate-in fade-in">
-                <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
-                <div>
-                  <p className="font-semibold text-emerald-900">Connexion réussie</p>
-                  <p className="text-[11px] text-emerald-700">Redirection vers le tableau de bord...</p>
+              <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between gap-2.5 animate-in fade-in">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+                  <div>
+                    <p className="font-semibold text-emerald-900">Connexion réussie</p>
+                    <p className="text-[11px] text-emerald-700">Redirection vers le tableau de bord...</p>
+                  </div>
                 </div>
+                <a
+                  href="/admin"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.replace('/admin');
+                  }}
+                  className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[11px] font-bold hover:bg-emerald-700 transition-colors shadow-2xs shrink-0 cursor-pointer"
+                >
+                  Accéder →
+                </a>
               </div>
             )}
 
@@ -337,19 +361,24 @@ export default function AdminLogin() {
 
               {/* Submit CTA Button in Twitter Sky Blue */}
               <button
-                type="submit"
-                disabled={isLoading || loginSuccess || cooldownSeconds > 0}
+                type={loginSuccess ? 'button' : 'submit'}
+                disabled={(isLoading && !loginSuccess) || cooldownSeconds > 0}
+                onClick={() => {
+                  if (loginSuccess) {
+                    window.location.replace('/admin');
+                  }
+                }}
                 className="w-full mt-2 py-3 px-4 bg-[#1D9BF0] hover:bg-[#1a8cd8] active:bg-[#177cc0] text-white rounded-xl text-xs font-bold tracking-wide shadow-md shadow-sky-500/20 hover:shadow-sky-500/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isLoading ? (
+                {loginSuccess ? (
+                  <>
+                    <CheckCircle2 size={15} className="text-white" />
+                    <span>Accès Autorisé — Accéder au Dashboard →</span>
+                  </>
+                ) : isLoading ? (
                   <>
                     <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     <span>Authentification...</span>
-                  </>
-                ) : loginSuccess ? (
-                  <>
-                    <CheckCircle2 size={15} className="text-white" />
-                    <span>Accès Autorisé</span>
                   </>
                 ) : (
                   <>
