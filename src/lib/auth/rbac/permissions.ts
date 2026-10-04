@@ -303,6 +303,18 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     module: 'suppliers',
     isSensitive: true,
   },
+  {
+    key: 'bills.view',
+    label: 'Consulter les Factures à Payer',
+    description: 'Consulter l\'échéancier des factures reçues et encours de paiement',
+    module: 'suppliers',
+  },
+  {
+    key: 'bills.submit',
+    label: 'Déposer une Facture à Payer',
+    description: 'Permettre à tout employé de déposer et joindre une facture reçue pour règlement',
+    module: 'suppliers',
+  },
 
   // --- CUSTOMERS ---
   {

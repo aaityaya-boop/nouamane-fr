@@ -46,7 +46,9 @@ import {
   Lightbulb,
   AlertCircle,
   Sun,
-  Moon
+  Moon,
+  Receipt,
+  FileText
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 
@@ -68,6 +70,7 @@ const MENU_ITEMS: MenuItem[] = [
   { href: '/admin/master-copier', label: 'Master Copy', icon: <Sparkles size={16} />, permission: 'products.edit' },
   { href: '/admin/inventory', label: 'Inventaire & Stock', icon: <Archive size={16} />, permission: 'inventory.view' },
   { href: '/admin/suppliers', label: 'Fournisseurs & Achats', icon: <Truck size={16} />, permission: 'inventory.view' },
+  { href: '/admin/bills', label: 'Factures à Payer', icon: <Receipt size={16} /> },
   { href: '/admin/brands', label: 'Marques de Luxe', icon: <Bookmark size={16} />, permission: 'products.view' },
   { href: '/admin/finance', label: 'Finance & CA Net', icon: <TrendingUp size={16} />, permission: 'finance.view_revenue' },
   { href: '/admin/finance?tab=EXPENSES', label: 'Charges & Dépenses', icon: <Banknote size={16} />, permission: 'finance.view_costs' },

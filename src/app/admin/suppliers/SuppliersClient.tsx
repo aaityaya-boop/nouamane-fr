@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -14,9 +14,10 @@ import {
   BarChart3, PieChart, Percent, ArrowUpRight, Scale,
   FileCheck, Shield, ChevronRight, Copy, Hash, Globe,
   Briefcase, Boxes, Gauge, Landmark, BadgePercent, Upload,
-  Image as ImageIcon, ZoomIn, CreditCard, Wallet, Paperclip
+  Image as ImageIcon, ZoomIn, CreditCard, Wallet, Paperclip, Receipt, User
 } from 'lucide-react';
 import { formatDateGMT, formatTimeGMT } from '@/lib/dateUtils';
+import { UnifiedBillItem, checkIsOverdue, getDaysRemaining } from '@/lib/billsHelper';
 
 export const isPdfUrl = (url?: string | null): boolean => {
   if (!url) return false;
@@ -173,23 +174,65 @@ const PO_STATUS_CONFIG: Record<string, { label: string; bg: string; text: string
 export default function SuppliersClient({
   initialSuppliers = [],
   initialPurchaseOrders = [],
-  dbProducts = []
+  dbProducts = [],
+  initialBills = [],
+  currentUser
 }: {
   initialSuppliers: SupplierItem[];
   initialPurchaseOrders: PurchaseOrderItem[];
   dbProducts: any[];
+  initialBills?: UnifiedBillItem[];
+  currentUser?: { id: string; name: string; role: string };
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const invoiceFileInputRef = useRef<HTMLInputElement | null>(null);
   const receiptFileInputRef = useRef<HTMLInputElement | null>(null);
   const orderDocFileInputRef = useRef<HTMLInputElement | null>(null);
+  const billDropzoneRef = useRef<HTMLInputElement | null>(null);
+  const billPaymentVoucherRef = useRef<HTMLInputElement | null>(null);
 
   const [suppliers, setSuppliers] = useState<SupplierItem[]>(initialSuppliers);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderItem[]>(initialPurchaseOrders);
+  const [bills, setBills] = useState<UnifiedBillItem[]>(initialBills);
 
   // Tabs
-  const [activeTab, setActiveTab] = useState<'orders' | 'suppliers' | 'cockpit' | 'cogs'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'bills' | 'suppliers' | 'cockpit' | 'cogs'>('orders');
+
+  // Sync tab with URL parameter (?tab=bills / ?tab=unpaid_bills)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search);
+      const t = p.get('tab');
+      if (t === 'bills' || t === 'unpaid_bills' || t === 'factures') {
+        setActiveTab('bills');
+      }
+    }
+  }, []);
+
+  // Employee Bill Deposit State
+  const [isBillDepositModalOpen, setIsBillDepositModalOpen] = useState(false);
+  const [billFormData, setBillFormData] = useState({
+    vendor: '',
+    invoiceNumber: '',
+    amount: '',
+    dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    invoiceDate: new Date().toISOString().slice(0, 10),
+    category: 'SUPPLIES',
+    invoiceUrl: '',
+    notes: '',
+  });
+
+  // Bill Payment State
+  const [isBillPayModalOpen, setIsBillPayModalOpen] = useState(false);
+  const [activeBillToPay, setActiveBillToPay] = useState<UnifiedBillItem | null>(null);
+  const [billPayFormData, setBillPayFormData] = useState({
+    paymentMethod: 'VIREMENT',
+    paidAt: new Date().toISOString().slice(0, 10),
+    paymentVoucherUrl: '',
+    notes: '',
+  });
+  const [billStatusFilter, setBillStatusFilter] = useState<'ALL' | 'PENDING' | 'OVERDUE' | 'PAID'>('PENDING');
 
   // Filters
   const [search, setSearch] = useState('');
@@ -593,7 +636,7 @@ export default function SuppliersClient({
   // Handle Multi-Format Document Upload (PDF, JPG, PNG, WEBP)
   const handleUploadDocument = async (
     file: File,
-    target: 'orderInvoice' | 'orderReceipt' | 'chargeInvoice' | 'chargeReceipt'
+    target: 'orderInvoice' | 'orderReceipt' | 'chargeInvoice' | 'chargeReceipt' | 'billInvoice' | 'billVoucher'
   ) => {
     if (!file) return;
 
@@ -616,6 +659,10 @@ export default function SuppliersClient({
           setChargeFormData(prev => ({ ...prev, invoiceUrl: data.url }));
         } else if (target === 'chargeReceipt') {
           setChargeFormData(prev => ({ ...prev, receiptUrl: data.url }));
+        } else if (target === 'billInvoice') {
+          setBillFormData(prev => ({ ...prev, invoiceUrl: data.url }));
+        } else if (target === 'billVoucher') {
+          setBillPayFormData(prev => ({ ...prev, paymentVoucherUrl: data.url }));
         }
       } else {
         alert(data.error || 'Erreur lors du téléchargement');
@@ -625,6 +672,123 @@ export default function SuppliersClient({
       alert('Erreur lors du téléchargement du document (PDF ou Image)');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // Deposit Employee Bill
+  const handleDepositBill = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!billFormData.vendor.trim()) {
+      alert('Veuillez saisir le nom du fournisseur ou prestataire.');
+      return;
+    }
+    const amt = Number(billFormData.amount);
+    if (isNaN(amt) || amt <= 0) {
+      alert('Veuillez saisir un montant supérieur à 0 MAD.');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/admin/bills', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendor: billFormData.vendor,
+          invoiceNumber: billFormData.invoiceNumber,
+          amount: amt,
+          dueDate: billFormData.dueDate,
+          invoiceDate: billFormData.invoiceDate,
+          category: billFormData.category,
+          invoiceUrl: billFormData.invoiceUrl,
+          notes: billFormData.notes,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur lors du dépôt');
+
+      setBills(prev => [json.bill, ...prev]);
+      setIsBillDepositModalOpen(false);
+      setBillFormData({
+        vendor: '',
+        invoiceNumber: '',
+        amount: '',
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+        invoiceDate: new Date().toISOString().slice(0, 10),
+        category: 'SUPPLIES',
+        invoiceUrl: '',
+        notes: '',
+      });
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || 'Erreur lors du dépôt de la facture');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Confirm Mark Bill as Paid
+  const handleConfirmBillPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeBillToPay) return;
+
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/admin/bills', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: activeBillToPay.id,
+          source: activeBillToPay.source,
+          action: 'MARK_PAID',
+          paymentMethod: billPayFormData.paymentMethod,
+          paidAt: billPayFormData.paidAt,
+          paymentVoucherUrl: billPayFormData.paymentVoucherUrl,
+          notes: billPayFormData.notes,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur lors du règlement');
+
+      if (activeBillToPay.source === 'PURCHASE_ORDER') {
+        setPurchaseOrders(prev => prev.map(p => p.id === activeBillToPay.id ? { ...p, paymentStatus: 'PAID', paidAt: billPayFormData.paidAt } : p));
+      }
+      setBills(prev => prev.map(b => b.id === activeBillToPay.id ? {
+        ...b,
+        status: 'PAID',
+        isOverdue: false,
+        daysRemaining: null,
+        paymentMethod: billPayFormData.paymentMethod,
+        paidAt: billPayFormData.paidAt,
+        receiptUrl: billPayFormData.paymentVoucherUrl || b.receiptUrl
+      } : b));
+
+      setIsBillPayModalOpen(false);
+      setActiveBillToPay(null);
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || 'Erreur lors du règlement de la facture');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Delete Bill
+  const handleDeleteBill = async (billId: string) => {
+    if (!confirm('Supprimer définitivement cette facture à payer ?')) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/admin/bills?id=${billId}&source=EMPLOYEE_BILL`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Erreur lors de la suppression');
+      setBills(prev => prev.filter(b => b.id !== billId));
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || 'Erreur lors de la suppression');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1009,6 +1173,24 @@ export default function SuppliersClient({
         >
           <Package size={15} />
           <span>Bons de Commande, Charges & Reçus ({purchaseOrders.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('bills')}
+          className={`py-2.5 px-5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+            activeTab === 'bills'
+              ? 'bg-rose-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Receipt size={15} />
+          <span>Factures à Payer & Dépôt ({kpis.unpaidCount + bills.filter(b => b.status === 'PENDING').length})</span>
+          {kpis.unpaidCount + bills.filter(b => b.status === 'PENDING').length > 0 && (
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${activeTab === 'bills' ? 'bg-white text-rose-600' : 'bg-rose-100 text-rose-700'}`}>
+              À régler
+            </span>
+          )}
         </button>
 
         <button
@@ -2260,6 +2442,845 @@ export default function SuppliersClient({
               </span>
               <span className="text-[10px] text-slate-400 font-medium">Maison NAY Parfums • Archivage Sécurisé</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* 🧾 TAB: FACTURES À PAYER & DÉPÔT EMPLOYÉS */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {activeTab === 'bills' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Header Card */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1 max-w-xl">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200">
+                <Receipt size={12} />
+                <span>Gestion des Factures à Payer & Dépôt Équipe</span>
+              </div>
+              <h2 className="text-xl font-extrabold text-slate-900">
+                Factures à Payer & Échéancier des Règlements
+              </h2>
+              <p className="text-xs text-slate-500 leading-relaxed font-light">
+                Tous les collaborateurs ont accès à cet espace pour déposer les factures reçues des fournisseurs et prestataires.
+                Chaque facture déposée est tracée, horodatée et archivée pour validation de paiement.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsBillDepositModalOpen(true)}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-bold text-xs shadow-md shadow-rose-500/20 transition-all flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
+              >
+                <Plus size={16} />
+                <span>Déposer une Facture à Payer</span>
+              </button>
+
+              <a
+                href="/admin/bills"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all flex items-center gap-1.5"
+              >
+                <span>Vue Dédiée</span>
+                <ArrowUpRight size={14} />
+              </a>
+            </div>
+          </div>
+
+          {/* Bento KPIs for Bills */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+              <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                <span>Total En Attente</span>
+                <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                  <DollarSign size={14} />
+                </div>
+              </div>
+              <div className="text-xl font-extrabold text-rose-600 font-mono mt-2">
+                {formatMAD(
+                  purchaseOrders.filter(po => po.paymentStatus !== 'PAID').reduce((sum, po) => sum + (po.chargeAmountMAD || po.totalAmount || 0), 0) +
+                  bills.filter(b => b.status === 'PENDING').reduce((sum, b) => sum + b.amountMAD, 0)
+                )}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">
+                {purchaseOrders.filter(po => po.paymentStatus !== 'PAID').length + bills.filter(b => b.status === 'PENDING').length} factures à acquitter
+              </div>
+            </div>
+
+            <div className="bg-white border border-amber-200/90 rounded-2xl p-4 shadow-xs bg-gradient-to-br from-white to-amber-50/20">
+              <div className="flex items-center justify-between text-amber-800 text-xs font-semibold">
+                <span>Factures En Retard</span>
+                <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                  <AlertTriangle size={14} />
+                </div>
+              </div>
+              <div className="text-xl font-extrabold text-amber-700 font-mono mt-2">
+                {
+                  purchaseOrders.filter(po => po.paymentStatus !== 'PAID' && checkIsOverdue(po.paymentDueDate, 'PENDING')).length +
+                  bills.filter(b => b.status === 'PENDING' && b.isOverdue).length
+                }
+              </div>
+              <div className="text-[10px] text-amber-600 font-semibold mt-0.5">
+                Échéance dépassée
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+              <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                <span>Dépôts Équipe</span>
+                <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                  <User size={14} />
+                </div>
+              </div>
+              <div className="text-xl font-extrabold text-sky-700 font-mono mt-2">
+                {bills.length}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">
+                Factures transmises par l'équipe
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+              <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                <span>Factures Réglées</span>
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                  <CheckCircle2 size={14} />
+                </div>
+              </div>
+              <div className="text-xl font-extrabold text-emerald-600 font-mono mt-2">
+                {
+                  purchaseOrders.filter(po => po.paymentStatus === 'PAID').length +
+                  bills.filter(b => b.status === 'PAID').length
+                }
+              </div>
+              <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">
+                Règlements archivés
+              </div>
+            </div>
+          </div>
+
+          {/* Filters Bar */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setBillStatusFilter('PENDING')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  billStatusFilter === 'PENDING' ? 'bg-rose-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                À Payer ({purchaseOrders.filter(po => po.paymentStatus !== 'PAID').length + bills.filter(b => b.status === 'PENDING').length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillStatusFilter('OVERDUE')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  billStatusFilter === 'OVERDUE' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                En Retard
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillStatusFilter('PAID')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  billStatusFilter === 'PAID' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Réglées
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillStatusFilter('ALL')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  billStatusFilter === 'ALL' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Toutes
+              </button>
+            </div>
+
+            <div className="relative w-full sm:w-64">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Filtrer les factures..."
+                className="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3.5 px-4">Statut & Échéance</th>
+                    <th className="py-3.5 px-4">Fournisseur / Prestataire</th>
+                    <th className="py-3.5 px-4">Document / Facture</th>
+                    <th className="py-3.5 px-4">Montant TTC</th>
+                    <th className="py-3.5 px-4">Déposé par</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {/* Map combined bills */}
+                  {[
+                    // Employee bills
+                    ...bills.map(b => ({
+                      id: b.id,
+                      source: 'EMPLOYEE_BILL' as const,
+                      vendor: b.vendor,
+                      invoiceNumber: b.invoiceNumber,
+                      amountMAD: b.amountMAD,
+                      dueDate: b.dueDate,
+                      status: b.status,
+                      isOverdue: b.isOverdue,
+                      daysRemaining: b.daysRemaining,
+                      invoiceUrl: b.invoiceUrl,
+                      receiptUrl: b.receiptUrl,
+                      paymentMethod: b.paymentMethod,
+                      creatorName: b.creatorName,
+                      creatorRole: b.creatorRole,
+                      notes: b.notes,
+                    })),
+                    // Purchase orders
+                    ...purchaseOrders.map(po => {
+                      const isPaid = po.paymentStatus === 'PAID';
+                      const dueDateStr = po.paymentDueDate ? new Date(po.paymentDueDate).toISOString().slice(0, 10) : null;
+                      const isOverdue = checkIsOverdue(dueDateStr, isPaid ? 'PAID' : 'PENDING');
+                      const daysRemaining = getDaysRemaining(dueDateStr);
+                      return {
+                        id: po.id,
+                        source: 'PURCHASE_ORDER' as const,
+                        vendor: po.supplier?.name || 'Fournisseur',
+                        invoiceNumber: po.invoiceNumber || po.orderNumber,
+                        amountMAD: Number(po.chargeAmountMAD) || Number(po.totalAmount) || 0,
+                        dueDate: dueDateStr,
+                        status: isPaid ? ('PAID' as const) : ('PENDING' as const),
+                        isOverdue,
+                        daysRemaining,
+                        invoiceUrl: po.invoiceUrl || null,
+                        receiptUrl: po.receiptUrl || null,
+                        paymentMethod: po.paymentMethod || null,
+                        creatorName: 'Direction Achats',
+                        creatorRole: 'Achats & Logistique',
+                        notes: po.notes || null,
+                      };
+                    })
+                  ]
+                    .filter(item => {
+                      if (billStatusFilter === 'PENDING' && item.status !== 'PENDING') return false;
+                      if (billStatusFilter === 'OVERDUE' && (!item.isOverdue || item.status !== 'PENDING')) return false;
+                      if (billStatusFilter === 'PAID' && item.status !== 'PAID') return false;
+                      if (search.trim()) {
+                        const q = search.toLowerCase();
+                        return (
+                          item.vendor.toLowerCase().includes(q) ||
+                          item.invoiceNumber.toLowerCase().includes(q) ||
+                          item.creatorName.toLowerCase().includes(q)
+                        );
+                      }
+                      return true;
+                    })
+                    .map((item, idx) => (
+                      <tr key={`${item.source}-${item.id}-${idx}`} className="hover:bg-slate-50/60 transition-colors">
+                        {/* Statut & Échéance */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <div className="space-y-1">
+                            {item.status === 'PAID' ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 size={11} />
+                                <span>RÉGLÉ</span>
+                              </span>
+                            ) : item.isOverdue ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse">
+                                <AlertCircle size={11} />
+                                <span>EN RETARD</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <Clock size={11} />
+                                <span>À PAYER</span>
+                              </span>
+                            )}
+                            <div className="text-[11px] text-slate-500 font-medium">
+                              {item.dueDate ? (
+                                <span>Échéance: {item.dueDate}</span>
+                              ) : (
+                                <span className="text-slate-400">Sans échéance fixée</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Fournisseur & N° Facture */}
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-slate-900 flex items-center gap-2">
+                            <span>{item.vendor}</span>
+                            {item.source === 'PURCHASE_ORDER' && (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                Bon de Commande
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-mono">
+                            {item.invoiceNumber || 'Facture sans N°'}
+                          </div>
+                          {item.notes && (
+                            <div className="text-[10px] text-slate-400 line-clamp-1 italic">
+                              « {item.notes} »
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Document / Facture attachée */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {item.invoiceUrl ? (
+                            <div className="flex items-center gap-2">
+                              {isPdfUrl(item.invoiceUrl) ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setActiveDocument({
+                                      url: item.invoiceUrl!,
+                                      title: `Facture ${item.vendor}`,
+                                      subtitle: item.invoiceNumber ? `Réf: ${item.invoiceNumber}` : 'Document joint',
+                                      orderNumber: item.invoiceNumber || 'FAC',
+                                      supplierName: item.vendor,
+                                      typeLabel: 'Facture PDF'
+                                    })
+                                  }
+                                  className="px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                                >
+                                  <span className="w-5 h-5 rounded-md bg-rose-600 text-white text-[10px] font-black flex items-center justify-center">
+                                    PDF
+                                  </span>
+                                  <span>Voir Facture</span>
+                                  <Eye size={12} />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setActiveDocument({
+                                      url: item.invoiceUrl!,
+                                      title: `Facture ${item.vendor}`,
+                                      subtitle: item.invoiceNumber ? `Réf: ${item.invoiceNumber}` : 'Scan Reçu',
+                                      orderNumber: item.invoiceNumber || 'FAC',
+                                      supplierName: item.vendor,
+                                      typeLabel: 'Facture Image'
+                                    })
+                                  }
+                                  className="flex items-center gap-2 p-1 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-all cursor-pointer"
+                                >
+                                  <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-slate-200 shrink-0">
+                                    <Image src={item.invoiceUrl} alt="Facture" fill className="object-cover" />
+                                  </div>
+                                  <div className="text-left pr-2">
+                                    <div className="text-[11px] font-bold text-slate-800">Scan Facture</div>
+                                    <div className="text-[9px] text-slate-400">Photo / Reçu</div>
+                                  </div>
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">Aucun document joint</span>
+                          )}
+                        </td>
+
+                        {/* Montant TTC */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <div className="font-extrabold text-sm text-slate-900 font-mono">
+                            {formatMAD(item.amountMAD)}
+                          </div>
+                          {item.status === 'PAID' && item.paymentMethod && (
+                            <div className="text-[10px] text-emerald-600">Réglé ({item.paymentMethod})</div>
+                          )}
+                        </td>
+
+                        {/* Déposé par */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <div className="text-[11px] font-bold text-slate-800">{item.creatorName}</div>
+                          <div className="text-[10px] text-slate-400">{item.creatorRole}</div>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {item.status === 'PENDING' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveBillToPay(item as any);
+                                  setBillPayFormData({
+                                    paymentMethod: 'VIREMENT',
+                                    paidAt: new Date().toISOString().slice(0, 10),
+                                    paymentVoucherUrl: '',
+                                    notes: `Règlement facture ${item.invoiceNumber || item.vendor}`,
+                                  });
+                                  setIsBillPayModalOpen(true);
+                                }}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <CheckCircle2 size={13} />
+                                <span>Régler</span>
+                              </button>
+                            )}
+
+                            {item.source === 'EMPLOYEE_BILL' && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteBill(item.id)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                title="Supprimer la facture"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🚀 MODAL: DÉPOSER UNE FACTURE À PAYER (ACCÈS TOUS COLLABORATEURS) */}
+      {isBillDepositModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 my-8 space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200">
+                  <Receipt size={12} />
+                  <span>Dépôt Universel Facture à Payer</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                  Déposer une Facture Fournisseur / Prestataire
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBillDepositModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleDepositBill} className="space-y-4">
+              {/* Depositor Identity Banner */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">
+                    {(currentUser?.name || 'Admin').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Collaborateur : </span>
+                    <strong className="text-slate-900">{currentUser?.name || 'Collaborateur NAY'}</strong>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 text-[10px] font-semibold">
+                  {currentUser?.role || 'Équipe'}
+                </span>
+              </div>
+
+              {/* 📂 DRAG & DROP DOCUMENT UPLOAD ZONE */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">
+                  Document de la Facture (PDF, Photo, Scan) <span className="text-rose-500">*</span>
+                </label>
+
+                <input
+                  type="file"
+                  ref={billDropzoneRef}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleUploadDocument(f, 'billInvoice');
+                  }}
+                  accept=".pdf,image/png,image/jpeg,image/jpg,image/webp"
+                  className="hidden"
+                />
+
+                {billFormData.invoiceUrl ? (
+                  <div className="p-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50/50 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {isPdfUrl(billFormData.invoiceUrl) ? (
+                        <div className="w-10 h-10 rounded-xl bg-rose-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
+                          PDF
+                        </div>
+                      ) : (
+                        <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-slate-200 shrink-0">
+                          <Image src={billFormData.invoiceUrl} alt="Preview" fill className="object-cover" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-slate-900 truncate">
+                          {getDocumentName(billFormData.invoiceUrl, 'Facture chargée')}
+                        </div>
+                        <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                          <Check size={12} />
+                          <span>Fichier prêt et enregistré</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveDocument({
+                            url: billFormData.invoiceUrl,
+                            title: 'Prévisualisation de la Facture',
+                            subtitle: billFormData.vendor || 'Document joint',
+                            orderNumber: billFormData.invoiceNumber || 'FAC',
+                            supplierName: billFormData.vendor || 'Fournisseur',
+                            typeLabel: 'Facture'
+                          })
+                        }
+                        className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer flex items-center gap-1"
+                      >
+                        <Eye size={13} />
+                        <span>Voir</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => billDropzoneRef.current?.click()}
+                        className="px-2.5 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 cursor-pointer"
+                      >
+                        Remplacer
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => billDropzoneRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const f = e.dataTransfer.files?.[0];
+                      if (f) handleUploadDocument(f, 'billInvoice');
+                    }}
+                    className="border-2 border-dashed border-slate-300 hover:border-rose-400 bg-slate-50/70 hover:bg-rose-50/30 rounded-2xl p-6 text-center transition-all cursor-pointer space-y-2 group"
+                  >
+                    <div className="w-12 h-12 mx-auto rounded-xl bg-white border border-slate-200 group-hover:border-rose-200 flex items-center justify-center text-slate-400 group-hover:text-rose-500 shadow-2xs transition-colors">
+                      {isUploading ? (
+                        <RefreshCw size={22} className="animate-spin text-rose-500" />
+                      ) : (
+                        <Upload size={22} />
+                      )}
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-bold text-slate-800">
+                        {isUploading ? 'Téléchargement en cours...' : 'Glissez-déposez la facture ici ou cliquez'}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        Fichiers acceptés : PDF (.pdf) ou Images (.jpg, .png, .webp) • Max 20 Mo
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Fournisseur & N° Facture */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Fournisseur / Prestataire <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={billFormData.vendor}
+                    onChange={(e) => setBillFormData({ ...billFormData, vendor: e.target.value })}
+                    placeholder="ex: Argeville, Cartonnerie Atlas, CTM..."
+                    list="suppliers-list-tab"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all"
+                  />
+                  <datalist id="suppliers-list-tab">
+                    {suppliers.map((s) => (
+                      <option key={s.id} value={s.name} />
+                    ))}
+                    <option value="CTM Messagerie" />
+                    <option value="Amana Express" />
+                    <option value="Cartonnerie Casablanca" />
+                    <option value="Imprimerie Offset Maroc" />
+                  </datalist>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    N° Facture / Référence
+                  </label>
+                  <input
+                    type="text"
+                    value={billFormData.invoiceNumber}
+                    onChange={(e) => setBillFormData({ ...billFormData, invoiceNumber: e.target.value })}
+                    placeholder="ex: FAC-2026-904"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Montant & Catégorie */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Montant TTC (MAD) <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      step="any"
+                      value={billFormData.amount}
+                      onChange={(e) => setBillFormData({ ...billFormData, amount: e.target.value })}
+                      placeholder="ex: 4500"
+                      className="w-full pl-3.5 pr-14 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden font-mono font-bold transition-all"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                      MAD
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Catégorie de Charge
+                  </label>
+                  <select
+                    value={billFormData.category}
+                    onChange={(e) => setBillFormData({ ...billFormData, category: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all text-slate-800"
+                  >
+                    <option value="SUPPLIES">Stock & Matières Premières</option>
+                    <option value="PACKAGING">Packaging, Boîtes & Sacs</option>
+                    <option value="LOGISTICS">Transport, Fret & Livraison</option>
+                    <option value="OFFICE">Charges d'Exploitation & Atelier</option>
+                    <option value="ADS">Marketing & Publicité</option>
+                    <option value="OTHER">Autre Dépense</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Dates : Émission & Échéance */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Date de la Facture
+                  </label>
+                  <input
+                    type="date"
+                    value={billFormData.invoiceDate}
+                    onChange={(e) => setBillFormData({ ...billFormData, invoiceDate: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Date d'Échéance (À payer avant le)
+                  </label>
+                  <input
+                    type="date"
+                    value={billFormData.dueDate}
+                    onChange={(e) => setBillFormData({ ...billFormData, dueDate: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all font-semibold"
+                  />
+                </div>
+              </div>
+
+              {/* Remarques & Notes */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">
+                  Commentaires / Notes pour la compta
+                </label>
+                <textarea
+                  rows={2}
+                  value={billFormData.notes}
+                  onChange={(e) => setBillFormData({ ...billFormData, notes: e.target.value })}
+                  placeholder="Détails sur la marchandise reçue ou modalité convenue..."
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsBillDepositModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving || isUploading}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white text-xs font-bold shadow-md shadow-rose-500/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSaving ? <RefreshCw size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
+                  <span>Enregistrer & Déposer la Facture</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 💳 MODAL: VALIDER RÈGLEMENT FACTURE DANS ONGLET */}
+      {isBillPayModalOpen && activeBillToPay && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 my-8 space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                  <CreditCard size={12} />
+                  <span>Validation du Règlement</span>
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  Marquer la Facture comme Réglée
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBillPayModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-500">Fournisseur :</span>
+                <strong className="text-xs text-slate-900">{activeBillToPay.vendor}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-500">N° Facture :</span>
+                <span className="text-xs font-mono text-slate-700">{activeBillToPay.invoiceNumber || 'N/A'}</span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                <span className="text-xs font-bold text-slate-700">Montant Total à Régler :</span>
+                <span className="text-base font-extrabold text-slate-900 font-mono">
+                  {formatMAD(activeBillToPay.amountMAD)}
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmBillPayment} className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">
+                  Mode de Paiement <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={billPayFormData.paymentMethod}
+                  onChange={(e) => setBillPayFormData({ ...billPayFormData, paymentMethod: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all text-slate-800"
+                >
+                  <option value="VIREMENT">Virement Bancaire (Recommandé)</option>
+                  <option value="CHEQUE">Chèque Bancaire</option>
+                  <option value="ESPECES">Espèces (Caisse / Cash)</option>
+                  <option value="CARTE">Carte Bancaire Professionnelle</option>
+                  <option value="EFFET">Effet de Commerce / Traite</option>
+                  <option value="AUTRE">Autre Moyen</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">
+                  Date Effective du Paiement <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={billPayFormData.paidAt}
+                  onChange={(e) => setBillPayFormData({ ...billPayFormData, paidAt: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all font-semibold"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">
+                  Reçu de Virement / Justificatif Bancaire (Optionnel)
+                </label>
+
+                <input
+                  type="file"
+                  ref={billPaymentVoucherRef}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleUploadDocument(f, 'billVoucher');
+                  }}
+                  accept=".pdf,image/png,image/jpeg,image/jpg,image/webp"
+                  className="hidden"
+                />
+
+                {billPayFormData.paymentVoucherUrl ? (
+                  <div className="p-3 rounded-xl border border-emerald-300 bg-emerald-50 flex items-center justify-between text-xs">
+                    <span className="font-bold text-emerald-800 flex items-center gap-1.5">
+                      <Check size={14} />
+                      <span>Reçu de virement attaché</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => billPaymentVoucherRef.current?.click()}
+                      className="text-xs text-emerald-700 underline font-semibold"
+                    >
+                      Changer
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => billPaymentVoucherRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-emerald-400 bg-slate-50 text-xs font-semibold text-slate-600 hover:text-emerald-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Upload size={14} />
+                    <span>{isUploading ? 'Téléchargement...' : 'Joindre le reçu de virement (PDF ou Photo)'}</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">
+                  Notes de Règlement
+                </label>
+                <input
+                  type="text"
+                  value={billPayFormData.notes}
+                  onChange={(e) => setBillPayFormData({ ...billPayFormData, notes: e.target.value })}
+                  placeholder="N° d'ordre de virement ou observation..."
+                  className="w-full px-3.5 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-900 focus:outline-hidden transition-all"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsBillPayModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                  <span>Confirmer le Règlement</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
