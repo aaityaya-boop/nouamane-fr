@@ -2,12 +2,11 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 import { put } from '@vercel/blob';
+import { getBlobReadWriteToken } from '@/lib/blob';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
-
-const DEFAULT_BLOB_TOKEN = "vercel_blob_rw_l3qgCdAjFT9wDKXz_xmbnlKdFScoUNvmLxeDQ7FELLtjtDo";
 
 export async function POST(request: Request) {
   try {
@@ -85,7 +84,7 @@ export async function POST(request: Request) {
       .slice(0, 30);
     
     const savedName = `nay_${Date.now()}_${cleanBaseName}.${ext}`;
-    const token = process.env.BLOB_READ_WRITE_TOKEN || DEFAULT_BLOB_TOKEN;
+    const token = getBlobReadWriteToken();
 
     // ── TIER 1: Vercel Blob Storage ───────────────────────────────────────
     if (token) {

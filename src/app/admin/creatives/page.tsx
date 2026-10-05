@@ -210,11 +210,12 @@ export default function AdminCreativesPage() {
     let uploadedUrl = '';
     let lastErrorMessage = '';
 
-    // Strategy 1: Direct Vercel Blob client-side upload (supports up to 150MB)
+    // Strategy 1: Direct Vercel Blob client-side upload (supports up to 150MB with parallel multipart)
     try {
       const newBlob = await upload(safeName, file, {
         access: 'public',
         handleUploadUrl: '/api/admin/upload-client',
+        multipart: file.size > 5 * 1024 * 1024,
         onUploadProgress: ({ percentage }) => {
           setUploadProgress(Math.round(percentage));
         },
@@ -223,12 +224,12 @@ export default function AdminCreativesPage() {
         uploadedUrl = newBlob.url;
       }
     } catch (clientErr: any) {
-      console.warn('[Direct Blob Upload Warning, trying server upload fallback]:', clientErr?.message || clientErr);
-      lastErrorMessage = clientErr?.message || '';
+      console.warn('[Direct Blob Upload Warning]:', clientErr?.message || clientErr);
+      lastErrorMessage = clientErr?.message || 'Erreur lors du téléversement direct';
     }
 
-    // Strategy 2: Server-side FormData fallback
-    if (!uploadedUrl) {
+    // Strategy 2: Server-side FormData fallback (only for files <= 4.5MB to respect Vercel serverless limit)
+    if (!uploadedUrl && file.size <= 4.5 * 1024 * 1024) {
       try {
         const formData = new FormData();
         formData.append('file', file);

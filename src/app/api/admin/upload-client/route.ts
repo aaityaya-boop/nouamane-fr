@@ -1,6 +1,7 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
 import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { getBlobReadWriteToken } from '@/lib/blob';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,9 +22,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
   
-  // Use a fallback token for local dev if not present in env
-  const DEFAULT_BLOB_TOKEN = "vercel_blob_rw_l3qgCdAjFT9wDKXz_xmbnlKdFScoUNvmLxeDQ7FELLtjtDo";
-  const token = process.env.BLOB_READ_WRITE_TOKEN || DEFAULT_BLOB_TOKEN;
+  const token = getBlobReadWriteToken();
 
   try {
     const jsonResponse = await handleUpload({
@@ -32,10 +31,6 @@ export async function POST(request: Request): Promise<NextResponse> {
       token,
       onBeforeGenerateToken: async (pathname) => {
         return {
-          allowedContentTypes: [
-            'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif', 'image/heic', 'image/heif',
-            'video/mp4', 'video/quicktime', 'video/x-m4v', 'video/webm', 'video/ogg', 'video/3gpp', 'video/mov'
-          ],
           maximumSizeInBytes: 157286400, // 150MB
           validUntil: Date.now() + 24 * 60 * 60 * 1000, // 24 hours (prevents token expired error caused by clock drift)
           tokenPayload: JSON.stringify({ userId: admin.id, email: admin.email }),
