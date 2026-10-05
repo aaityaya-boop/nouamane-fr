@@ -115,7 +115,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 2. Dynamic Product Pages
   const productUrls: MetadataRoute.Sitemap = products.map((product) => ({
-    url: `${baseUrl}/fr/product/${product.slug}`,
+    url: `${baseUrl}/fr/product/${encodeURIComponent(product.slug)}`,
     lastModified: product.updatedAt || now,
     changeFrequency: 'weekly',
     priority: 0.85,
@@ -123,7 +123,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 3. Dynamic Brand Pages
   const brandUrls: MetadataRoute.Sitemap = brands.map((brand) => ({
-    url: `${baseUrl}/fr/brands/${brand.slug}`,
+    url: `${baseUrl}/fr/brands/${encodeURIComponent(brand.slug)}`,
     lastModified: brand.updatedAt || now,
     changeFrequency: 'weekly',
     priority: 0.75,
@@ -131,7 +131,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 4. Dynamic Published Blog Post Pages
   const blogUrls: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${baseUrl}/fr/blog/${post.slug}`,
+    url: `${baseUrl}/fr/blog/${encodeURIComponent(post.slug)}`,
     lastModified: post.updatedAt || now,
     changeFrequency: 'weekly',
     priority: 0.8,
