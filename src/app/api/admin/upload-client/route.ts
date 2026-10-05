@@ -1,10 +1,25 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
+  const admin = await getAuthenticatedAdmin(request);
+  if (!admin) {
+    return NextResponse.json(
+      { error: 'Non autorisé : session administrateur requise' },
+      { status: 401 }
+    );
+  }
+
+  const body = (await request.json().catch(() => ({}))) as HandleUploadBody;
+  if (!body || !body.type) {
+    return NextResponse.json(
+      { error: 'Payload de requête invalide' },
+      { status: 400 }
+    );
+  }
   
   // Use a fallback token for local dev if not present in env
   const DEFAULT_BLOB_TOKEN = "vercel_blob_rw_l3qgCdAjFT9wDKXz_xmbnlKdFScoUNvmLxeDQ7FELLtjtDo";
@@ -22,7 +37,8 @@ export async function POST(request: Request): Promise<NextResponse> {
             'video/mp4', 'video/quicktime', 'video/x-m4v', 'video/webm', 'video/ogg', 'video/3gpp', 'video/mov'
           ],
           maximumSizeInBytes: 157286400, // 150MB
-          tokenPayload: JSON.stringify({}),
+          validUntil: Date.now() + 24 * 60 * 60 * 1000, // 24 hours (prevents token expired error caused by clock drift)
+          tokenPayload: JSON.stringify({ userId: admin.id, email: admin.email }),
         };
       },
     });

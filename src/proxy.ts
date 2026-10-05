@@ -56,7 +56,9 @@ export default async function proxy(request: NextRequest) {
   }
 
   if (isAdminRoute || isAdminApiRoute) {
-    const token = request.cookies.get('admin_token')?.value || request.cookies.get('admin_session')?.value;
+    const authHeader = request.headers.get('authorization');
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    const token = bearerToken || request.cookies.get('admin_token')?.value || request.cookies.get('admin_session')?.value;
 
     let isValid = false;
     if (token) {

@@ -121,6 +121,7 @@ export default function AdminCreativesPage() {
   const [formProductName, setFormProductName] = useState('');
   const [formTags, setFormTags] = useState('');
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -196,6 +197,7 @@ export default function AdminCreativesPage() {
   // Handle File Upload to S3/Cloudinary/Local API with resilient fallback
   const handleFileUpload = async (file: File) => {
     setIsUploadingFile(true);
+    setUploadProgress(0);
     setUploadError(null);
 
     // Sanitize filename to avoid character encoding issues
@@ -206,18 +208,23 @@ export default function AdminCreativesPage() {
     const safeName = safeBaseName || `creative_${Date.now()}`;
 
     let uploadedUrl = '';
+    let lastErrorMessage = '';
 
     // Strategy 1: Direct Vercel Blob client-side upload (supports up to 150MB)
     try {
       const newBlob = await upload(safeName, file, {
         access: 'public',
         handleUploadUrl: '/api/admin/upload-client',
+        onUploadProgress: ({ percentage }) => {
+          setUploadProgress(Math.round(percentage));
+        },
       });
       if (newBlob && newBlob.url) {
         uploadedUrl = newBlob.url;
       }
     } catch (clientErr: any) {
       console.warn('[Direct Blob Upload Warning, trying server upload fallback]:', clientErr?.message || clientErr);
+      lastErrorMessage = clientErr?.message || '';
     }
 
     // Strategy 2: Server-side FormData fallback
@@ -233,10 +240,18 @@ export default function AdminCreativesPage() {
           const data = await res.json();
           if (data && data.url) {
             uploadedUrl = data.url;
+          } else if (data?.error) {
+            lastErrorMessage = data.error;
           }
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          lastErrorMessage = errData?.error || `Erreur serveur (${res.status})`;
         }
       } catch (serverErr: any) {
         console.warn('[Server Upload Fallback Failed]:', serverErr?.message || serverErr);
+        if (!lastErrorMessage) {
+          lastErrorMessage = serverErr?.message || '';
+        }
       }
     }
 
@@ -248,7 +263,7 @@ export default function AdminCreativesPage() {
         setFormTitle(file.name.replace(/\.[^/.]+$/, ''));
       }
     } else {
-      setUploadError('Échec du téléversement : vérifiez votre connexion ou réduisez la taille du fichier.');
+      setUploadError(lastErrorMessage || 'Échec du téléversement : vérifiez votre connexion ou réduisez la taille du fichier.');
     }
 
     setIsUploadingFile(false);
@@ -688,11 +703,12 @@ export default function AdminCreativesPage() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="video/mp4,video/webm,video/quicktime,image/png,image/jpeg,image/webp"
+                  accept="video/mp4,video/webm,video/quicktime,video/x-m4v,video/*,image/png,image/jpeg,image/webp,image/*"
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleFileUpload(file);
+                    e.target.value = '';
                   }}
                 />
 
@@ -727,15 +743,23 @@ export default function AdminCreativesPage() {
                   </div>
                 ) : (
                   <div
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => !isUploadingFile && fileInputRef.current?.click()}
                     className="p-6 rounded-xl border border-dashed border-neutral-300 hover:border-neutral-400 bg-neutral-50/50 hover:bg-neutral-50 transition-colors flex flex-col items-center justify-center text-center cursor-pointer group"
                   >
                     {isUploadingFile ? (
-                      <div className="flex flex-col items-center gap-2 py-3">
+                      <div className="flex flex-col items-center gap-2 py-3 w-full max-w-xs mx-auto">
                         <Loader2 size={24} className="animate-spin text-neutral-900" />
                         <span className="text-xs font-medium text-neutral-700">
-                          Téléversement du média en cours...
+                          Téléversement du média en cours... {uploadProgress > 0 ? `${uploadProgress}%` : ''}
                         </span>
+                        {uploadProgress > 0 && (
+                          <div className="w-full bg-neutral-200 rounded-full h-1.5 mt-1 overflow-hidden">
+                            <div
+                              className="bg-neutral-900 h-1.5 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <>
@@ -746,7 +770,7 @@ export default function AdminCreativesPage() {
                           Cliquez pour téléverser votre vidéo ou photo
                         </h4>
                         <p className="text-[11px] text-neutral-500 mt-0.5 max-w-sm">
-                          Vidéos MP4, MOV ou Images PNG, JPG jusqu&apos;à 100 Mo.
+                          Vidéos MP4, MOV ou Images PNG, JPG jusqu&apos;à 150 Mo.
                         </p>
                       </>
                     )}
