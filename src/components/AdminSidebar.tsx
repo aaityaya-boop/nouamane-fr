@@ -21,6 +21,7 @@ import {
   BookOpen, 
   UserCheck, 
   TrendingUp, 
+  BarChart3,
   Sparkles, 
   Gift, 
   Menu, 
@@ -62,6 +63,7 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   { href: '/admin', label: 'Tableau de bord', icon: <LayoutDashboard size={16} />, permission: 'dashboard.view' },
+  { href: '/admin/analytics', label: 'Analytics & Performance', icon: <BarChart3 size={16} />, permission: 'dashboard.view' },
   { href: '/admin/orders', label: 'Commandes', icon: <ShoppingBag size={16} />, permission: 'orders.view' },
   { href: '/admin/sav', label: 'SAV & Réclamations', icon: <RotateCcw size={16} />, permission: 'orders.view' },
   { href: '/admin/products', label: 'Testeurs', icon: <PackageSearch size={16} />, permission: 'products.view' },
