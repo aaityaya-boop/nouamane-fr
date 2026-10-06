@@ -54,6 +54,18 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
+    // Check minimum quantity / item count if required (e.g. more than 2 perfumes = min 3)
+    const totalQuantity = Array.isArray(items)
+      ? items.reduce((sum: number, it: any) => sum + (Number(it.quantity) || 1), 0)
+      : 0;
+
+    if (promo.minQuantity && promo.minQuantity > 0 && totalQuantity < promo.minQuantity) {
+      const requiredMore = promo.minQuantity - 1;
+      return NextResponse.json({
+        error: `Ce code promo est valable uniquement si vous commandez plus de ${requiredMore} parfum${requiredMore > 1 ? 's' : ''} (minimum ${promo.minQuantity} flacons requis, actuel : ${totalQuantity}).`
+      }, { status: 400 });
+    }
+
     // Check category eligibility if applicable
     if (promo.applicableScope === 'CATEGORIES' && parsedCategories.length > 0) {
       const allProducts = await prisma.product.findMany({
@@ -112,6 +124,7 @@ export async function POST(request: Request) {
       categories: parsedCategories,
       productIds: parsedProductIds,
       minOrderAmount: promo.minOrderAmount,
+      minQuantity: promo.minQuantity || 0,
       description: promo.description,
     });
   } catch (error) {

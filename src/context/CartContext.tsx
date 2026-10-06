@@ -29,11 +29,18 @@ export type AppliedPromo = {
   categories?: string[];
   productIds?: number[];
   minOrderAmount?: number | null;
+  minQuantity?: number | null;
   description?: string | null;
 };
 
 export function calculatePromoDiscount(cart: CartItem[], appliedPromo: AppliedPromo | null): number {
   if (!appliedPromo || !cart || cart.length === 0) return 0;
+
+  // Check minimum required item count (e.g. more than 2 perfumes = min 3)
+  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+  if (appliedPromo.minQuantity && appliedPromo.minQuantity > 0 && totalQuantity < appliedPromo.minQuantity) {
+    return 0;
+  }
 
   let eligibleSubtotal = 0;
   if (
@@ -169,6 +176,11 @@ export function evaluateActiveDeals(
         if (originalBundleSum > targetBundleSum) {
           currentDiscount = originalBundleSum - targetBundleSum;
         }
+      }
+    } else if (deal.dealType === 'PERCENTAGE_DISCOUNT' || deal.dealType === 'TIERED_QUANTITY') {
+      if (units.length >= deal.buyQuantity) {
+        const totalEligibleSum = units.reduce((sum, u) => sum + u.price, 0);
+        currentDiscount = totalEligibleSum * (deal.discountPercent / 100);
       }
     }
 

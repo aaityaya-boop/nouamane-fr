@@ -60,6 +60,7 @@ interface PromoCodeItem {
   categories?: string[];
   productIds: number[];
   minOrderAmount?: number | null;
+  minQuantity?: number | null;
   maxUses?: number | null;
   usageCount?: number;
   expiresAt?: string | null;
@@ -73,7 +74,7 @@ interface SpecialDealItem {
   title: string;
   subtitle?: string | null;
   badgeText?: string | null;
-  dealType: 'BUY_X_GET_Y_FREE' | 'SECOND_AT_DISCOUNT' | 'BUNDLE_FIXED_PRICE';
+  dealType: 'BUY_X_GET_Y_FREE' | 'SECOND_AT_DISCOUNT' | 'BUNDLE_FIXED_PRICE' | 'PERCENTAGE_DISCOUNT' | 'TIERED_QUANTITY';
   buyQuantity: number;
   getQuantity: number;
   discountPercent: number;
@@ -120,7 +121,7 @@ export default function AdminPromos() {
   const [dealTitle, setDealTitle] = useState('Achetez 2, le 3ème OFFERT');
   const [dealSubtitle, setDealSubtitle] = useState('Ajoutez 3 parfums au panier, le 3ème flacon est 100% gratuit !');
   const [dealBadgeText, setDealBadgeText] = useState('2+1 OFFERT');
-  const [dealType, setDealType] = useState<'BUY_X_GET_Y_FREE' | 'SECOND_AT_DISCOUNT' | 'BUNDLE_FIXED_PRICE'>('BUY_X_GET_Y_FREE');
+  const [dealType, setDealType] = useState<'BUY_X_GET_Y_FREE' | 'SECOND_AT_DISCOUNT' | 'BUNDLE_FIXED_PRICE' | 'PERCENTAGE_DISCOUNT'>('BUY_X_GET_Y_FREE');
   const [buyQuantity, setBuyQuantity] = useState(2);
   const [getQuantity, setGetQuantity] = useState(1);
   const [dealDiscountPercent, setDealDiscountPercent] = useState(100);
@@ -158,6 +159,7 @@ export default function AdminPromos() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
   const [minOrderAmount, setMinOrderAmount] = useState('');
+  const [minQuantity, setMinQuantity] = useState('3');
   const [maxUses, setMaxUses] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [description, setDescription] = useState('');
@@ -298,6 +300,20 @@ export default function AdminPromos() {
   // ==========================================
   const applyDealTemplate = (templateKey: string) => {
     switch (templateKey) {
+      case 'moreThan2Get10':
+        setDealTitle('Plus de 2 Parfums = -10% Immédiat');
+        setDealSubtitle('Achetez plus de 2 parfums (3 flacons ou plus) et profitez automatiquement de -10% sur toute votre sélection !');
+        setDealBadgeText('-10% DÈS 3 PARFUMS');
+        setDealType('PERCENTAGE_DISCOUNT');
+        setBuyQuantity(3);
+        setGetQuantity(0);
+        setDealDiscountPercent(10);
+        setDealScope('ALL');
+        setDealIsAutomatic(true);
+        setDealFreeShipping(false);
+        setDealFreeGiftName('');
+        break;
+
       case 'buy2get1':
         setDealTitle('Achetez 2, le 3ème OFFERT');
         setDealSubtitle('Ajoutez 3 parfums au panier, le 3ème flacon est 100% gratuit !');
@@ -515,6 +531,14 @@ export default function AdminPromos() {
       } else {
         explanation = `Ajoutez encore ${buyQuantity - (simCartCount % buyQuantity)} parfum(s) pour débloquer le pack à ${bundlePrice} DH`;
       }
+    } else if (dealType === 'PERCENTAGE_DISCOUNT') {
+      if (simCartCount >= buyQuantity) {
+        discount = rawTotal * (dealDiscountPercent / 100);
+        explanation = `Offre débloquée : -${dealDiscountPercent}% immédiat sur l'ensemble du panier (${simCartCount} flacons)`;
+      } else {
+        const remaining = buyQuantity - simCartCount;
+        explanation = `Ajoutez encore ${remaining} parfum${remaining > 1 ? 's' : ''} (min. ${buyQuantity} flacons) pour débloquer les -${dealDiscountPercent}%`;
+      }
     }
 
     const finalTotal = Math.max(0, rawTotal - discount);
@@ -551,6 +575,7 @@ export default function AdminPromos() {
           categories: applicableScope === 'CATEGORIES' ? selectedCategories : [],
           productIds: applicableScope === 'SPECIFIC_PRODUCTS' ? selectedProductIds : [],
           minOrderAmount: minOrderAmount ? parseFloat(minOrderAmount) : null,
+          minQuantity: minQuantity ? parseInt(minQuantity, 10) : 0,
           maxUses: maxUses ? parseInt(maxUses, 10) : null,
           expiresAt: expiresAt || null,
           description: description || null,
@@ -562,6 +587,7 @@ export default function AdminPromos() {
         setCode('');
         setValue('');
         setMinOrderAmount('');
+        setMinQuantity('');
         setMaxUses('');
         setExpiresAt('');
         setDescription('');
@@ -735,6 +761,26 @@ export default function AdminPromos() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Template: Plus de 2 Parfums = -10% */}
+              <button
+                type="button"
+                onClick={() => applyDealTemplate('moreThan2Get10')}
+                className="flex items-start gap-3 p-3.5 bg-sky-50/60 hover:bg-sky-100/60 border border-sky-300 rounded-xl text-left transition-all hover:shadow-xs cursor-pointer group ring-1 ring-sky-300"
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#0ea5e9] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <Percent size={15} />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-neutral-900 group-hover:text-[#0ea5e9] transition-colors flex items-center gap-1.5">
+                    <span>Plus de 2 Parfums = -10%</span>
+                    <span className="px-1.5 py-0.5 bg-[#0ea5e9] text-white text-[9px] font-black rounded uppercase">NOUVEAU</span>
+                  </div>
+                  <div className="text-[11px] text-neutral-600 leading-tight mt-0.5">
+                    Dès 3 flacons au panier, -10% de réduction immédiate sur la sélection.
+                  </div>
+                </div>
+              </button>
+
               {/* Template 1 */}
               <button
                 type="button"
@@ -906,7 +952,23 @@ export default function AdminPromos() {
                 {/* Deal Mechanism Selection */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-neutral-700">Type de Remise</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDealType('PERCENTAGE_DISCOUNT')}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        dealType === 'PERCENTAGE_DISCOUNT'
+                          ? 'bg-sky-50/70 border-[#0ea5e9] ring-1 ring-[#0ea5e9]'
+                          : 'bg-white border-neutral-200 hover:bg-neutral-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-bold text-neutral-900">Remise % dès X</span>
+                        <Check size={13} className={dealType === 'PERCENTAGE_DISCOUNT' ? 'text-[#0ea5e9]' : 'opacity-0'} />
+                      </div>
+                      <p className="text-[10px] text-neutral-500">Ex: -10% dès 3 parfums</p>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => setDealType('BUY_X_GET_Y_FREE')}
@@ -959,6 +1021,34 @@ export default function AdminPromos() {
 
                 {/* Deal Parameters */}
                 <div className="bg-neutral-50/80 border border-neutral-200/80 rounded-xl p-3.5 space-y-3">
+                  {dealType === 'PERCENTAGE_DISCOUNT' && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-bold text-neutral-700">Quantité min. requise (flacons)</label>
+                        <input
+                          type="number"
+                          min="2"
+                          max="20"
+                          value={buyQuantity}
+                          onChange={(e) => setBuyQuantity(parseInt(e.target.value, 10) || 3)}
+                          className="w-full mt-1 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold text-neutral-900"
+                        />
+                        <span className="text-[10px] text-neutral-400">ex: 3 flacons (plus de 2 parfums)</span>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-neutral-700">Pourcentage de remise (%)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={dealDiscountPercent}
+                          onChange={(e) => setDealDiscountPercent(parseFloat(e.target.value) || 10)}
+                          className="w-full mt-1 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold text-[#0ea5e9]"
+                        />
+                        <span className="text-[10px] text-neutral-400">ex: 10 pour -10% immédiat</span>
+                      </div>
+                    </div>
+                  )}
                   {dealType === 'BUY_X_GET_Y_FREE' && (
                     <div className="grid grid-cols-3 gap-3">
                       <div>
@@ -1569,6 +1659,7 @@ export default function AdminPromos() {
                             {/* Tags */}
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="px-2 py-0.5 bg-white border border-neutral-200 text-neutral-600 text-[10px] font-semibold rounded-md">
+                                {deal.dealType === 'PERCENTAGE_DISCOUNT' && `-${deal.discountPercent}% dès ${deal.buyQuantity} flacons`}
                                 {deal.dealType === 'BUY_X_GET_Y_FREE' && `Achetez ${deal.buyQuantity}, Obtenez ${deal.getQuantity}`}
                                 {deal.dealType === 'SECOND_AT_DISCOUNT' && `2ème à -${deal.discountPercent}%`}
                                 {deal.dealType === 'BUNDLE_FIXED_PRICE' && `Pack ${deal.buyQuantity} = ${deal.bundlePrice} DH`}
@@ -1826,6 +1917,76 @@ export default function AdminPromos() {
                 )}
               </div>
 
+              {/* Advanced Conditions: Min Quantity & Min Order Amount */}
+              <div className="bg-neutral-50/70 border border-neutral-200/80 rounded-xl p-3.5 space-y-3">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-neutral-700">
+                      Quantité min. de parfums requise
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setMinQuantity(minQuantity === '3' ? '' : '3')}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all cursor-pointer ${
+                        minQuantity === '3'
+                          ? 'bg-sky-100 text-[#0ea5e9] border border-sky-300'
+                          : 'bg-neutral-200/70 text-neutral-600 hover:bg-neutral-200'
+                      }`}
+                    >
+                      ⚡ Plus de 2 parfums (min. 3)
+                    </button>
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    value={minQuantity}
+                    onChange={(e) => setMinQuantity(e.target.value)}
+                    placeholder="ex: 3 (le code marchera uniquement si le client commande > 2 parfums)"
+                    className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-bold text-neutral-900 focus:outline-none focus:border-[#0ea5e9]"
+                  />
+                  <p className="text-[10px] text-neutral-400">
+                    Laissez vide pour autoriser dès 1 parfum, ou saisissez 3 pour exiger plus de 2 flacons.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-neutral-200">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-neutral-700">Panier min. (DH)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={minOrderAmount}
+                      onChange={(e) => setMinOrderAmount(e.target.value)}
+                      placeholder="Optionnel"
+                      className="w-full px-2.5 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-neutral-700">Max Utilisations</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={maxUses}
+                      onChange={(e) => setMaxUses(e.target.value)}
+                      placeholder="Illimité"
+                      className="w-full px-2.5 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1 pt-1 border-t border-neutral-200">
+                  <label className="text-[11px] font-bold text-neutral-700">Description ou note (Optionnel)</label>
+                  <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="ex: -10% dès 3 parfums achetés"
+                    className="w-full px-2.5 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
               {/* Submit Promo */}
               <button
                 type="submit"
@@ -1880,7 +2041,7 @@ export default function AdminPromos() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-black text-sm bg-white px-2.5 py-1 rounded-lg border border-neutral-200 select-all text-neutral-900">
                           {promo.code}
                         </span>
@@ -1895,6 +2056,18 @@ export default function AdminPromos() {
                         <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-sky-50 text-[#0ea5e9] border border-sky-200">
                           {promo.type === 'percentage' ? `-${promo.value}%` : `-${promo.value} DH`}
                         </span>
+                        {promo.minQuantity && promo.minQuantity > 0 ? (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            {promo.minQuantity > 2
+                              ? `⚡ > ${promo.minQuantity - 1} parfums (min. ${promo.minQuantity} flacons)`
+                              : `⚡ Dès ${promo.minQuantity} parfum${promo.minQuantity > 1 ? 's' : ''}`}
+                          </span>
+                        ) : null}
+                        {promo.minOrderAmount && promo.minOrderAmount > 0 ? (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-100 text-neutral-600 border border-neutral-200">
+                            Min. {promo.minOrderAmount} DH
+                          </span>
+                        ) : null}
                       </div>
 
                       <div className="flex items-center gap-1.5">
@@ -1920,6 +2093,11 @@ export default function AdminPromos() {
                         </button>
                       </div>
                     </div>
+                    {promo.description && (
+                      <div className="text-[11px] text-neutral-500 mt-1 pl-1">
+                        {promo.description}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

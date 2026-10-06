@@ -212,6 +212,7 @@ model PromoCode {
   categories      String?   // JSON array of category keys/names e.g. '["men", "oriental"]'
   productIds      String?   // JSON array of product IDs e.g. '[1, 2, 5]'
   minOrderAmount  Float?
+  minQuantity     Int?      @default(0)
   maxUses         Int?
   usageCount      Int       @default(0)
   expiresAt       DateTime?

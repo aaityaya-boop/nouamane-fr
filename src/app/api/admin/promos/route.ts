@@ -29,6 +29,7 @@ export async function GET() {
         ...p,
         productIds: parsedProductIds,
         categories: parsedCategories,
+        minQuantity: p.minQuantity || 0,
       };
     });
 
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
       categories = [],
       productIds = [],
       minOrderAmount,
+      minQuantity = 0,
       maxUses,
       expiresAt,
       description,
@@ -92,6 +94,7 @@ export async function POST(request: Request) {
         categories: normalizedScope === 'CATEGORIES' ? JSON.stringify(cleanCategories) : null,
         productIds: normalizedScope === 'SPECIFIC_PRODUCTS' ? JSON.stringify(cleanProductIds) : null,
         minOrderAmount: minOrderAmount ? parseFloat(minOrderAmount) : null,
+        minQuantity: minQuantity ? parseInt(String(minQuantity), 10) : 0,
         maxUses: maxUses ? parseInt(maxUses, 10) : null,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         description: description ? description.trim() : null,
@@ -103,6 +106,7 @@ export async function POST(request: Request) {
       ...newPromo,
       categories: cleanCategories,
       productIds: cleanProductIds,
+      minQuantity: newPromo.minQuantity || 0,
     });
   } catch (error: any) {
     console.error('Error creating promo:', error);
@@ -116,7 +120,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, isActive, applicableScope, categories, productIds, value, type, minOrderAmount } = body;
+    const { id, isActive, applicableScope, categories, productIds, value, type, minOrderAmount, minQuantity } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
@@ -130,6 +134,7 @@ export async function PATCH(request: Request) {
     if (value !== undefined) updateData.value = parseFloat(value);
     if (type) updateData.type = type;
     if (minOrderAmount !== undefined) updateData.minOrderAmount = minOrderAmount ? parseFloat(minOrderAmount) : null;
+    if (minQuantity !== undefined) updateData.minQuantity = minQuantity ? parseInt(String(minQuantity), 10) : 0;
 
     const updated = await prisma.promoCode.update({
       where: { id },

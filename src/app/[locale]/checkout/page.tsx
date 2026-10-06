@@ -137,6 +137,7 @@ export default function CheckoutPage() {
           categories: data.categories,
           productIds: data.productIds,
           minOrderAmount: data.minOrderAmount,
+          minQuantity: data.minQuantity || 0,
           description: data.description,
         });
         const scopeNotice =
