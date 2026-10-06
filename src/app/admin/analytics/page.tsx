@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import AnalyticsDashboardClient from './AnalyticsDashboardClient';
 
 export const metadata: Metadata = {
-  title: 'Analytics & Performance | NAY Parfum Admin',
-  description: 'Tableau de bord analytique complet de NAY Parfum : ventes de parfums, clients, trafic web et logistique.',
+  title: 'Audience & Trafic | NAY Parfum Admin',
+  description: 'Plateforme d\'intelligence d\'audience, acquisition multicanale et suivi en direct de NAY Parfum.',
 };
 
 export const dynamic = 'force-dynamic';
