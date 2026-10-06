@@ -90,9 +90,10 @@ function OrdersPageContent() {
   const [cityFilter, setCityFilter] = useState<string>('ALL');
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
 
-  // 5-second Target Highlight state
+  // Target Highlight state (Spotlight)
   const [highlightedOrderId, setHighlightedOrderId] = useState<string | null>(null);
   const [highlightCountdown, setHighlightCountdown] = useState<number>(0);
+  const [highlightedOrder, setHighlightedOrder] = useState<any | null>(null);
 
   const fetchCurrentUser = async () => {
     try {
@@ -130,7 +131,7 @@ function OrdersPageContent() {
     fetchCurrentUser();
   }, []);
 
-  // Detect and Highlight Target Order for 5 seconds
+  // Detect and Highlight Target Order for 12 seconds with Spotlight
   useEffect(() => {
     const targetKey = highlightParam || orderIdParam || orderNumberParam;
     if (!targetKey || orders.length === 0) return;
@@ -148,7 +149,8 @@ function OrdersPageContent() {
       setActiveTab('ALL');
       setCityFilter('ALL');
       setHighlightedOrderId(matched.id);
-      setHighlightCountdown(5);
+      setHighlightedOrder(matched);
+      setHighlightCountdown(12);
 
       // Smooth scroll to the targeted row
       const scrollTimer = setTimeout(() => {
@@ -158,14 +160,15 @@ function OrdersPageContent() {
         }
       }, 200);
 
-      // 5-second countdown timer
-      let remaining = 5;
+      // 12-second countdown timer
+      let remaining = 12;
       const interval = setInterval(() => {
         remaining -= 1;
         setHighlightCountdown(remaining);
         if (remaining <= 0) {
           clearInterval(interval);
           setHighlightedOrderId(null);
+          setHighlightedOrder(null);
         }
       }, 1000);
 
@@ -881,29 +884,90 @@ function OrdersPageContent() {
 
       </div>
 
-      {/* Active Target Order Banner */}
+      {/* Active Target Order Luxury Spotlight Banner */}
       {highlightedOrderId && (
-        <div className="bg-red-50 border-2 border-red-500/80 rounded-2xl p-4 flex items-center justify-between text-xs text-red-900 shadow-lg shadow-red-500/10 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex items-center gap-3 font-bold">
-            <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <Target size={18} className="animate-spin" style={{ animationDuration: '3s' }} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-red-950 font-extrabold text-sm">🎯 Commande Ciblée</span>
-                <span className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-black uppercase">
-                  Mise en avant
-                </span>
+        <div className="relative overflow-hidden rounded-2xl border border-sky-400/50 dark:border-sky-500/40 bg-gradient-to-r from-slate-900/95 via-sky-950/95 to-slate-900/95 text-white p-4 sm:p-4.5 shadow-2xl shadow-sky-500/15 backdrop-blur-2xl animate-in fade-in slide-in-from-top-3 duration-300 ring-1 ring-sky-400/25">
+          {/* Subtle Ambient Decorative Glows */}
+          <div className="pointer-events-none absolute -top-12 -left-12 w-48 h-48 bg-[#0ea5e9]/20 rounded-full blur-3xl animate-pulse" />
+          <div className="pointer-events-none absolute -bottom-12 -right-12 w-48 h-48 bg-blue-500/15 rounded-full blur-3xl" />
+          
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* Left: Creative Radar Icon & Live Summary */}
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="relative flex items-center justify-center shrink-0">
+                <span className="absolute inline-flex h-10 w-10 rounded-2xl bg-sky-400/40 animate-ping" />
+                <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0ea5e9] via-sky-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-sky-500/35 border border-sky-200/40">
+                  <Target size={19} className="animate-spin" style={{ animationDuration: '8s' }} />
+                </div>
               </div>
-              <p className="text-[11px] text-red-700 font-medium mt-0.5">
-                La commande demandée est illuminée en <strong className="text-red-950 font-bold">rouge</strong> dans la liste ci-dessous.
-              </p>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black tracking-wider bg-sky-400/20 text-sky-300 border border-sky-400/30 flex items-center gap-1 shadow-2xs">
+                    <Sparkles size={10} />
+                    <span>Focus Commande</span>
+                  </span>
+                  {highlightedOrder ? (
+                    <>
+                      <span className="font-mono font-black text-sm text-white tracking-wide bg-white/10 px-2 py-0.5 rounded-lg border border-white/10">
+                        {highlightedOrder.orderNumber}
+                      </span>
+                      <span className="text-xs text-slate-200 font-semibold truncate">
+                        • {highlightedOrder.customerName}
+                      </span>
+                      {highlightedOrder.shippingCity && (
+                        <span className="text-[11px] text-sky-300 font-medium">
+                          ({highlightedOrder.shippingCity})
+                        </span>
+                      )}
+                      <span className="text-xs font-black text-emerald-400 ml-1">
+                        {formatMAD(highlightedOrder.total)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="font-mono font-bold text-xs text-white">
+                      Localisation de la commande...
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-300 font-medium mt-1 flex items-center gap-1.5 flex-wrap">
+                  <span>Ligne mise en valeur avec illumination saphir dans la liste ci-dessous.</span>
+                  <span className="text-slate-500">•</span>
+                  <span className="text-sky-300 font-semibold">Centrage automatique</span>
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="px-3 py-1.5 rounded-xl bg-red-600 text-white font-mono font-bold text-xs shadow-xs animate-pulse">
-              {highlightCountdown}s restantes
-            </span>
+
+            {/* Right: Quick Action, Timer & Dismiss */}
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              {highlightedOrder && (
+                <button
+                  type="button"
+                  onClick={() => setEditingOrder(highlightedOrder)}
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:from-[#0284c7] hover:to-blue-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                >
+                  <Eye size={13} />
+                  <span>Ouvrir la fiche</span>
+                </button>
+              )}
+
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/15 font-mono font-bold text-xs text-sky-200 shadow-2xs">
+                <Clock size={12} className="text-sky-400 animate-pulse" />
+                <span>{highlightCountdown}s</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setHighlightedOrderId(null);
+                  setHighlightedOrder(null);
+                }}
+                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                title="Fermer le focus"
+              >
+                <X size={15} />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -972,23 +1036,26 @@ function OrdersPageContent() {
                       onClick={() => setEditingOrder(order)}
                       className={`transition-all duration-500 cursor-pointer group relative ${
                         isTargetHighlighted
-                          ? 'bg-rose-50/95 ring-2 ring-red-500 border-l-4 border-l-red-600 shadow-md shadow-red-500/20'
-                          : 'hover:bg-slate-50/80'
+                          ? 'bg-gradient-to-r from-sky-500/20 via-sky-500/10 to-transparent dark:from-sky-500/25 dark:via-sky-500/10 dark:to-transparent ring-2 ring-[#0ea5e9] dark:ring-sky-400 border-l-[5px] border-l-[#0ea5e9] shadow-[0_0_30px_rgba(14,165,233,0.3)] z-10'
+                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
                       }`}
                     >
                       
                       {/* Ref & Date */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <span className={`font-mono font-bold transition-colors ${
-                            isTargetHighlighted ? 'text-red-700 text-sm font-black scale-105 inline-block' : 'text-slate-900 group-hover:text-[#1D9BF0]'
+                          <span className={`font-mono font-bold transition-all ${
+                            isTargetHighlighted
+                              ? 'text-[#0ea5e9] dark:text-sky-300 text-sm font-black scale-105 inline-block drop-shadow-[0_0_10px_rgba(14,165,233,0.6)]'
+                              : 'text-slate-900 dark:text-white group-hover:text-[#1D9BF0]'
                           }`}>
                             {order.orderNumber}
                           </span>
                           {isTargetHighlighted && (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-red-600 text-white font-black text-[10px] uppercase tracking-wider animate-pulse shadow-xs">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gradient-to-r from-[#0ea5e9] to-blue-600 text-white font-black text-[10px] uppercase tracking-wider shadow-md shadow-sky-500/30 animate-pulse border border-sky-300/40">
                               <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                              <span>Cible ({highlightCountdown}s)</span>
+                              <Target size={11} />
+                              <span>FOCUS ({highlightCountdown}s)</span>
                             </span>
                           )}
                           <button
@@ -999,7 +1066,7 @@ function OrdersPageContent() {
                             {copiedRef === order.orderNumber ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                           </button>
                         </div>
-                        <div className={`text-[11px] font-mono mt-0.5 ${isTargetHighlighted ? 'text-red-600 font-semibold' : 'text-slate-400'}`}>
+                        <div className={`text-[11px] font-mono mt-0.5 ${isTargetHighlighted ? 'text-sky-600 dark:text-sky-300 font-semibold' : 'text-slate-400'}`}>
                           {formattedDate}
                         </div>
                       </td>
