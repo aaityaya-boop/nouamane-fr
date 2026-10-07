@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       })
     );
 
-    // 3. Default Channels overview (GENERAL, STOCK, ORDERS)
+    // 3. Default Channels overview (GENERAL, STOCK, ORDERS, MARKETING, LOGISTICS)
     const defaultChannels = [
       {
         id: 'GENERAL',
@@ -86,6 +86,26 @@ export async function GET(request: Request) {
         description: 'Suivi des grosses commandes et clients VIP',
         type: 'CHANNEL',
         color: 'indigo',
+        isDefault: true,
+        memberIds: JSON.stringify(allUsers.map(u => u.id)),
+      },
+      {
+        id: 'MARKETING',
+        slug: 'MARKETING',
+        name: 'Canal Marketing & Pubs',
+        description: 'Campagnes Meta Ads, TikTok, influenceurs et ROAS',
+        type: 'CHANNEL',
+        color: 'purple',
+        isDefault: true,
+        memberIds: JSON.stringify(allUsers.map(u => u.id)),
+      },
+      {
+        id: 'LOGISTICS',
+        slug: 'LOGISTICS',
+        name: 'Canal Logistique & Livraisons',
+        description: 'Confirmations téléphoniques COD et suivi des coursiers',
+        type: 'CHANNEL',
+        color: 'amber',
         isDefault: true,
         memberIds: JSON.stringify(allUsers.map(u => u.id)),
       },
