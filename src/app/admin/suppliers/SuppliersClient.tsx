@@ -997,28 +997,28 @@ export default function SuppliersClient({
   };
 
   return (
-    <div className="space-y-8 pb-24 text-slate-900">
-      {/* 👑 LUXURY EXECUTIVE HERO BANNER */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white p-6 sm:p-8 shadow-2xl border border-slate-800/80">
-        <div className="absolute -right-12 -top-12 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-1/3 -bottom-16 w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2.5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-amber-300 text-xs font-bold tracking-wide">
-              <Sparkles size={14} className="text-amber-400" />
+    <div className="space-y-6 pb-24 text-slate-900">
+      {/* 💎 EXECUTIVE HEADER BANNER */}
+      <div className="bg-white dark:bg-[#111c2e] rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-neutral-800 p-6 sm:p-7 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950/50 border border-sky-200/80 dark:border-sky-800/60 text-sky-700 dark:text-sky-300 text-xs font-bold tracking-wide">
+              <Sparkles size={13} className="text-sky-600 dark:text-sky-400" />
               <span>Maison NAY Parfums • Cockpit Achats & Approvisionnements</span>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
-              Bons de Commande, Charges & Fournisseurs
+            
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+              <Truck size={26} className="text-sky-600 dark:text-sky-400" />
+              <span>Bons de Commande, Charges & Fournisseurs</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-light leading-relaxed">
-              Créez vos bons de commande en sélectionnant directement vos parfums, joignez tous vos bons (PDF, JPG, PNG), et retrouvez vos charges d'approvisionnement déduites en temps réel dans votre Chiffre d'Affaires Net.
+
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl font-normal leading-relaxed">
+              Créez vos bons de commande en sélectionnant directement vos parfums, joignez tous vos justificatifs (PDF, JPG, PNG) et retrouvez vos charges d'approvisionnement déduites en temps réel dans votre Chiffre d'Affaires Net.
             </p>
 
             {syncNotice && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold animate-fadeIn">
-                <CheckCircle size={14} className="text-emerald-400" />
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold animate-fadeIn">
+                <CheckCircle size={14} className="text-emerald-600 dark:text-emerald-400" />
                 <span>{syncNotice}</span>
               </div>
             )}
@@ -1028,37 +1028,37 @@ export default function SuppliersClient({
             <button
               type="button"
               onClick={() => handleOpenOrderModal()}
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-xs hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Package size={15} />
               <span>+ Nouveau Bon</span>
             </button>
             <button
               type="button"
-              onClick={handleSyncWithFinance}
-              disabled={isSyncingFinance}
-              className="px-3.5 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 text-xs font-bold backdrop-blur-md border border-cyan-400/30 transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
-              title="Synchroniser automatiquement toutes les charges avec Finance & CA Net"
-            >
-              <RefreshCw size={14} className={isSyncingFinance ? 'animate-spin text-cyan-300' : 'text-cyan-300'} />
-              <span>{isSyncingFinance ? 'Synchronisation...' : 'Synchroniser Finance & CA Net'}</span>
-            </button>
-            <a
-              href="/admin/finance?tab=EXPENSES"
-              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold backdrop-blur-md border border-white/15 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
-              title="Consulter le compte de résultat et charges dans le cockpit Finance"
-            >
-              <BarChart3 size={14} className="text-amber-300" />
-              <span>Finance & CA Net ↗</span>
-            </a>
-            <button
-              type="button"
               onClick={() => handleOpenSupplierModal()}
-              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold backdrop-blur-md border border-white/15 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Building2 size={14} />
               <span>+ Fournisseur</span>
             </button>
+            <button
+              type="button"
+              onClick={handleSyncWithFinance}
+              disabled={isSyncingFinance}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200/80 dark:border-slate-700 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              title="Synchroniser automatiquement toutes les charges avec Finance & CA Net"
+            >
+              <RefreshCw size={14} className={isSyncingFinance ? 'animate-spin text-sky-600' : 'text-slate-500 dark:text-slate-400'} />
+              <span>{isSyncingFinance ? 'Synchronisation...' : 'Synchroniser Finance'}</span>
+            </button>
+            <a
+              href="/admin/finance?tab=EXPENSES"
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              title="Consulter le compte de résultat et charges dans le cockpit Finance"
+            >
+              <BarChart3 size={14} className="text-sky-600 dark:text-sky-400" />
+              <span>Finance & CA Net ↗</span>
+            </a>
           </div>
         </div>
       </div>
@@ -1066,38 +1066,38 @@ export default function SuppliersClient({
       {/* 📊 EXECUTIVE BENTO KPI METRICS */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {/* Total Charges Fournisseurs */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+        <div className="bg-white dark:bg-[#111c2e] border border-slate-200/90 dark:border-neutral-800 rounded-2xl p-4.5 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
             <span>Charges Facturées</span>
-            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center font-bold">
               <Banknote size={15} />
             </div>
           </div>
           <div className="mt-2.5">
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono">
               {formatMAD(kpis.totalSpend)}
             </div>
-            <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
               Sur {kpis.totalOrders} commandes
             </div>
           </div>
         </div>
 
         {/* Impact sur CA Net */}
-        <div className="bg-white border border-cyan-200/70 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-cyan-300 transition-all bg-gradient-to-br from-white to-cyan-50/30">
-          <div className="flex items-center justify-between text-cyan-800 text-xs font-semibold">
+        <div className="bg-white dark:bg-[#111c2e] border border-sky-200/70 dark:border-sky-900/60 rounded-2xl p-4.5 shadow-2xs flex flex-col justify-between hover:border-sky-300 transition-all bg-gradient-to-br from-white to-sky-50/30 dark:from-[#111c2e] dark:to-sky-950/20">
+          <div className="flex items-center justify-between text-sky-800 dark:text-sky-300 text-xs font-semibold">
             <span>Déduit du CA Net</span>
-            <div className="w-7 h-7 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center font-bold">
               <TrendingUp size={15} />
             </div>
           </div>
           <div className="mt-2.5">
-            <div className="text-xl sm:text-2xl font-extrabold text-cyan-700 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-sky-700 dark:text-sky-400 font-mono">
               -{formatMAD(kpis.totalSpend)}
             </div>
             <a
               href="/admin/finance?tab=EXPENSES"
-              className="text-[10px] text-cyan-600 font-bold hover:underline flex items-center gap-1 mt-0.5"
+              className="text-[11px] text-sky-600 dark:text-sky-400 font-bold hover:underline flex items-center gap-1 mt-0.5"
             >
               <span>Vérifier dans Finance</span>
               <ArrowUpRight size={11} />
@@ -1106,54 +1106,54 @@ export default function SuppliersClient({
         </div>
 
         {/* Total Payé */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+        <div className="bg-white dark:bg-[#111c2e] border border-slate-200/90 dark:border-neutral-800 rounded-2xl p-4.5 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
             <span>Charges Payées</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/60 flex items-center justify-center">
               <CheckCircle2 size={15} />
             </div>
           </div>
           <div className="mt-2.5">
-            <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
               {formatMAD(kpis.totalPaidMAD)}
             </div>
-            <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">
+            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
               {kpis.paidCount} réglées
             </div>
           </div>
         </div>
 
         {/* Total Non Payé / En attente */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+        <div className="bg-white dark:bg-[#111c2e] border border-slate-200/90 dark:border-neutral-800 rounded-2xl p-4.5 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
             <span>Soldes À Régler</span>
-            <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/60 flex items-center justify-center">
               <AlertCircle size={15} />
             </div>
           </div>
           <div className="mt-2.5">
-            <div className="text-xl sm:text-2xl font-extrabold text-rose-600 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
               {formatMAD(kpis.totalUnpaidMAD)}
             </div>
-            <div className="text-[10px] text-rose-600 font-semibold mt-0.5">
+            <div className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-0.5">
               {kpis.unpaidCount} en attente
             </div>
           </div>
         </div>
 
         {/* Bons & Documents Archivés */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+        <div className="bg-white dark:bg-[#111c2e] border border-slate-200/90 dark:border-neutral-800 rounded-2xl p-4.5 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
             <span>Bons & Justificatifs</span>
-            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/60 flex items-center justify-center">
               <Paperclip size={15} />
             </div>
           </div>
           <div className="mt-2.5">
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono">
               {kpis.ordersWithDocumentsCount}/{kpis.totalOrders}
             </div>
-            <div className="text-[10px] text-indigo-600 font-semibold mt-0.5">
+            <div className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">
               {kpis.coveragePercent}% couverture PDF/Reçus
             </div>
           </div>
@@ -1161,74 +1161,78 @@ export default function SuppliersClient({
       </div>
 
       {/* 🧭 NAVIGATION TABS */}
-      <div className="flex items-center gap-2 border-b border-slate-200 bg-white p-1.5 rounded-2xl shadow-xs overflow-x-auto">
+      <div className="flex items-center gap-1.5 bg-slate-100/80 dark:bg-[#0f1728] p-1.5 rounded-2xl border border-slate-200/70 dark:border-neutral-800 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('orders')}
-          className={`py-2.5 px-5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+          className={`py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
             activeTab === 'orders'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              ? 'bg-white dark:bg-[#1a263d] text-slate-900 dark:text-white shadow-2xs border border-slate-200/80 dark:border-slate-700/80'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/40'
           }`}
         >
-          <Package size={15} />
-          <span>Bons de Commande, Charges & Reçus ({purchaseOrders.length})</span>
+          <Package size={14} className={activeTab === 'orders' ? 'text-sky-600' : 'text-slate-400'} />
+          <span>Bons de Commande, Charges & Reçus</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${activeTab === 'orders' ? 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300' : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
+            {purchaseOrders.length}
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('bills')}
-          className={`py-2.5 px-5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+          className={`py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
             activeTab === 'bills'
-              ? 'bg-rose-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              ? 'bg-white dark:bg-[#1a263d] text-slate-900 dark:text-white shadow-2xs border border-slate-200/80 dark:border-slate-700/80'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/40'
           }`}
         >
-          <Receipt size={15} />
-          <span>Factures à Payer & Dépôt ({kpis.unpaidCount + bills.filter(b => b.status === 'PENDING').length})</span>
-          {kpis.unpaidCount + bills.filter(b => b.status === 'PENDING').length > 0 && (
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${activeTab === 'bills' ? 'bg-white text-rose-600' : 'bg-rose-100 text-rose-700'}`}>
-              À régler
-            </span>
-          )}
+          <Receipt size={14} className={activeTab === 'bills' ? 'text-rose-600' : 'text-slate-400'} />
+          <span>Factures à Payer & Dépôt</span>
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+            {kpis.unpaidCount + bills.filter(b => b.status === 'PENDING').length}
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('suppliers')}
-          className={`py-2.5 px-5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+          className={`py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
             activeTab === 'suppliers'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              ? 'bg-white dark:bg-[#1a263d] text-slate-900 dark:text-white shadow-2xs border border-slate-200/80 dark:border-slate-700/80'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/40'
           }`}
         >
-          <Building2 size={15} />
-          <span>Annuaire des Fournisseurs ({suppliers.length})</span>
+          <Building2 size={14} className={activeTab === 'suppliers' ? 'text-sky-600' : 'text-slate-400'} />
+          <span>Annuaire des Fournisseurs</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${activeTab === 'suppliers' ? 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300' : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
+            {suppliers.length}
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('cockpit')}
-          className={`py-2.5 px-5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+          className={`py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
             activeTab === 'cockpit'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              ? 'bg-white dark:bg-[#1a263d] text-slate-900 dark:text-white shadow-2xs border border-slate-200/80 dark:border-slate-700/80'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/40'
           }`}
         >
-          <BarChart3 size={15} />
+          <BarChart3 size={14} className={activeTab === 'cockpit' ? 'text-sky-600' : 'text-slate-400'} />
           <span>Cockpit Achats & Synthèse</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('cogs')}
-          className={`py-2.5 px-5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+          className={`py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
             activeTab === 'cogs'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              ? 'bg-white dark:bg-[#1a263d] text-slate-900 dark:text-white shadow-2xs border border-slate-200/80 dark:border-slate-700/80'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/40'
           }`}
         >
-          <Scale size={15} />
+          <Scale size={14} className={activeTab === 'cogs' ? 'text-sky-600' : 'text-slate-400'} />
           <span>Simulateur COGS & Marges</span>
         </button>
       </div>
@@ -1237,7 +1241,7 @@ export default function SuppliersClient({
       {/* 📜 TAB 1: BONS DE COMMANDE, CHARGES & REÇUS (MAIN VIEW) */}
       {/* ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'orders' && (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden space-y-6 p-6">
+        <div className="bg-white dark:bg-[#111c2e] rounded-3xl border border-slate-200/90 dark:border-neutral-800 shadow-xs overflow-hidden space-y-6 p-6">
           {/* Top Actions & Filters */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
@@ -1247,7 +1251,7 @@ export default function SuppliersClient({
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Rechercher par N° Bon, fournisseur, transporteur..."
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                className="w-full text-xs bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-neutral-800 rounded-xl pl-9 pr-3 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white"
               />
             </div>
 
@@ -1260,7 +1264,7 @@ export default function SuppliersClient({
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   paymentFilter === 'ALL'
                     ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
                 }`}
               >
                 Tous ({purchaseOrders.length})
@@ -1271,7 +1275,7 @@ export default function SuppliersClient({
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   paymentFilter === 'UNPAID'
                     ? 'bg-rose-600 text-white'
-                    : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                    : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-300'
                 }`}
               >
                 Non Payés ({purchaseOrders.filter(p => p.paymentStatus === 'UNPAID').length})
@@ -1282,7 +1286,7 @@ export default function SuppliersClient({
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   paymentFilter === 'PAID'
                     ? 'bg-emerald-600 text-white'
-                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900 dark:text-emerald-300'
                 }`}
               >
                 Payés ({purchaseOrders.filter(p => p.paymentStatus === 'PAID').length})
@@ -1293,13 +1297,13 @@ export default function SuppliersClient({
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   paymentFilter === 'PARTIAL'
                     ? 'bg-sky-600 text-white'
-                    : 'bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100'
+                    : 'bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 dark:bg-sky-950/40 dark:border-sky-900 dark:text-sky-300'
                 }`}
               >
                 Acomptes ({purchaseOrders.filter(p => p.paymentStatus === 'PARTIAL').length})
               </button>
 
-              <span className="text-slate-300 mx-1 hidden md:inline">|</span>
+              <span className="text-slate-300 dark:text-slate-700 mx-1 hidden md:inline">|</span>
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Bons :</span>
 
               <button
@@ -1307,8 +1311,8 @@ export default function SuppliersClient({
                 onClick={() => setDocumentFilter(prev => prev === 'WITH_DOCS' ? 'ALL' : 'WITH_DOCS')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   documentFilter === 'WITH_DOCS'
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
+                    ? 'bg-sky-600 text-white shadow-2xs'
+                    : 'bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 dark:bg-sky-950/40 dark:border-sky-900 dark:text-sky-300'
                 }`}
                 title="Filtrer les commandes ayant au moins un bon joint (PDF ou image)"
               >
@@ -1321,8 +1325,8 @@ export default function SuppliersClient({
                 onClick={() => setDocumentFilter(prev => prev === 'WITHOUT_DOCS' ? 'ALL' : 'WITHOUT_DOCS')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   documentFilter === 'WITHOUT_DOCS'
-                    ? 'bg-amber-600 text-white shadow-xs'
-                    : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+                    ? 'bg-amber-600 text-white shadow-2xs'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 dark:bg-amber-950/40 dark:border-amber-900 dark:text-amber-300'
                 }`}
                 title="Filtrer les commandes nécessitant l'ajout d'un bon ou d'un reçu"
               >
@@ -1334,16 +1338,21 @@ export default function SuppliersClient({
 
           {/* Orders Table */}
           {filteredPurchaseOrders.length === 0 ? (
-            <div className="p-16 text-center text-slate-400 border border-dashed border-slate-200 rounded-2xl">
-              <Package size={40} className="mx-auto text-slate-300 mb-2" />
-              <h3 className="text-sm font-bold text-slate-800">Aucun bon de commande trouvé</h3>
-              <p className="text-xs text-slate-500 mt-1">Créez votre premier bon de commande avec sélection directe des parfums.</p>
+            <div className="py-16 px-6 text-center border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl bg-slate-50/50 dark:bg-slate-900/20">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-sky-50 dark:bg-sky-950/50 border border-sky-100 dark:border-sky-900/60 flex items-center justify-center text-sky-600 dark:text-sky-400 mb-3.5 shadow-2xs">
+                <Package size={28} />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Aucun bon de commande trouvé</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                Créez votre premier bon de commande avec sélection directe de vos parfums pour alimenter vos stocks et suivre vos coûts d'achats.
+              </p>
               <button
                 type="button"
                 onClick={() => handleOpenOrderModal()}
-                className="mt-4 px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl cursor-pointer"
+                className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl cursor-pointer shadow-xs transition-all"
               >
-                + Créer un Bon de Commande
+                <Package size={15} />
+                <span>+ Créer un Bon de Commande</span>
               </button>
             </div>
           ) : (
@@ -3517,12 +3526,12 @@ export default function SuppliersClient({
           <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between space-y-6">
             <div>
               <span className="text-[10px] uppercase font-bold text-amber-400">Rentabilité NAY</span>
-              <h3 className="text-xl font-bold mt-1">Marge Brute Estimée</h3>
+              <h3 className="text-xl font-bold mt-1 text-white">Marge Brute Estimée</h3>
             </div>
             <div className="text-3xl font-extrabold text-emerald-400 font-mono">
               +{formatMAD(Math.max(0, cogsRetailPrice - (cogsJusCost + cogsBottleCost + cogsPackagingCost + cogsLaborCost + cogsLogisticsCost)))}
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-300">
               Coût total unitaire : {formatMAD(cogsJusCost + cogsBottleCost + cogsPackagingCost + cogsLaborCost + cogsLogisticsCost)}
             </p>
           </div>

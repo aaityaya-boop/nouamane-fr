@@ -79,26 +79,33 @@ html:not(.dark) .lg\:hidden.bg-white\/95 {
 }
 
 /* ── Claire Mode: Ultra High-Contrast Readable Typography ─────────────────── */
-html:not(.dark) h1,
-html:not(.dark) h2,
-html:not(.dark) h3,
-html:not(.dark) h4,
+html:not(.dark) .text-white {
+  color: #ffffff !important;
+}
+
+html:not(.dark) h1:not([class*="text-"]),
+html:not(.dark) h2:not([class*="text-"]),
+html:not(.dark) h3:not([class*="text-"]),
+html:not(.dark) h4:not([class*="text-"]) {
+  color: #0f172a;
+}
+
 html:not(.dark) .text-slate-900,
 html:not(.dark) .text-slate-950 {
-  color: #0f172a !important;
+  color: #0f172a;
 }
 
 html:not(.dark) .text-slate-700,
 html:not(.dark) .text-slate-600 {
-  color: #334155 !important;
+  color: #334155;
 }
 
 html:not(.dark) .text-slate-500 {
-  color: #64748b !important;
+  color: #64748b;
 }
 
 html:not(.dark) .text-slate-400 {
-  color: #64748b !important;
+  color: #64748b;
 }
 
 /* ── Dark Mode: Distinct Premium iOS Liquid Glass / Dark Midnight Obsidian Style ── */
