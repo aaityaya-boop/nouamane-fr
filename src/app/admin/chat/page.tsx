@@ -132,12 +132,12 @@ const QUICK_REACTION_EMOJIS = ['❤️', '🔥', '👍', '👏', '😂', '🎉',
 const EXTENDED_EMOJIS = ['👍', '🔥', '✅', '❤️', '📦', '🚀', '⏳', '👏', '✨', '👌', '💎', '🎉', '😂', '😍', '🙏', '💯'];
 
 const QUICK_TEMPLATES = [
-  { icon: '✅', label: 'Commande Validée', text: '✅ Commande validée par téléphone et transmise au livreur pour expédition.' },
+  { icon: '✅', label: 'Commande Validée', text: '✅ Commande validée par téléphone et transmise au coursier pour expédition.' },
   { icon: '📦', label: 'Contrôle Stock', text: '📦 Contrôle des stocks terminé : prévoir un réassort sur cette référence.' },
   { icon: '🚨', label: 'Alerte Rupture', text: '🚨 Attention : stock critique signalé sur ce parfum.' },
   { icon: '🎯', label: 'Objectif Atteint', text: '🎯 Objectif quotidien de commandes dépassé ! Félicitations à toute l\'équipe.' },
   { icon: '📞', label: 'Confirmation Client', text: '📞 Client joint par téléphone : adresse confirmée, livraison programmée.' },
-  { icon: '💎', label: 'Cadeau VIP', text: '💎 Client VIP récurrent : insérer un échantillon 5ml de prestige dans le colis.' },
+  { icon: '💎', label: 'Cadeau VIP', text: '💎 Client VIP récurrent : insérer un flacon testeur 5ml de prestige dans le colis.' },
 ];
 
 function parseAttachments(raw: string | null | undefined): ChatAttachment[] {
@@ -202,7 +202,7 @@ export default function AdminTeamChatPage() {
   // Sidebar Filter (Tous / Salons / Directs)
   const [sidebarTab, setSidebarTab] = useState<'ALL' | 'CHANNELS' | 'DIRECT'>('ALL');
 
-  // WhatsApp Business Catalog Modal
+  // NAY Connect Product Catalog Modal (199 Products)
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState('');
 
@@ -466,7 +466,6 @@ export default function AdminTeamChatPage() {
   const handleToggleReaction = async (messageId: string, emoji: string) => {
     if (!currentUser) return;
 
-    // Optimistic Update
     setMessages((prev) =>
       prev.map((msg) => {
         if (msg.id !== messageId) return msg;
@@ -628,7 +627,7 @@ export default function AdminTeamChatPage() {
         body: JSON.stringify({
           name: newGroupName.trim(),
           description: newGroupDesc.trim(),
-          color: 'teal',
+          color: 'sky',
           memberIds: selectedMemberIds,
         }),
       });
@@ -757,15 +756,15 @@ export default function AdminTeamChatPage() {
     });
   }, [messages, inChatSearchQuery, chatFilter]);
 
-  // WhatsApp-style Double Blue Tick Checkmarks
-  const renderWhatsAppTicks = (msg: ChatMessage, isMe: boolean) => {
+  // Sky Blue Double Tick Checkmarks
+  const renderSkyTicks = (msg: ChatMessage, isMe: boolean) => {
     if (!isMe) return null;
     const isRead = msg.isRead || (activeChatType === 'CHANNEL' && msg.readBy && msg.readBy !== '[]');
 
     return (
       <span className="inline-flex items-center ml-1 text-[11px]" title={isRead ? 'Vu' : 'Envoyé'}>
         {isRead ? (
-          <CheckCheck size={14} className="text-[#53bdeb] stroke-[2.5]" />
+          <CheckCheck size={14} className="text-sky-500 stroke-[2.5]" />
         ) : (
           <Check size={13} className="text-slate-400 stroke-[2]" />
         )}
@@ -774,15 +773,15 @@ export default function AdminTeamChatPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-125px)] flex font-sans text-slate-900 dark:text-slate-100 bg-[#f0f2f5] dark:bg-[#111b21] rounded-2xl border border-slate-200 dark:border-neutral-800 shadow-md overflow-hidden">
+    <div className="h-[calc(100vh-125px)] flex font-sans text-slate-900 dark:text-slate-100 bg-white dark:bg-[#0c121e] rounded-2xl border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
       
-      {/* ── 1. LEFT SIDEBAR: WHATSAPP BUSINESS CONVERSATIONS LIST ─── */}
-      <aside className="w-80 sm:w-88 border-r border-slate-200 dark:border-neutral-800 bg-white dark:bg-[#111b21] flex flex-col shrink-0">
+      {/* ── 1. LEFT SIDEBAR: NAY CONNECT WITH SKY BLUE ACCENTS ─────── */}
+      <aside className="w-80 sm:w-84 border-r border-slate-200 dark:border-neutral-800 bg-slate-50/60 dark:bg-[#0e1626] flex flex-col shrink-0">
         
-        {/* WhatsApp Top Header */}
-        <div className="p-3 bg-[#f0f2f5] dark:bg-[#202c33] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between">
+        {/* NAY Connect Header */}
+        <div className="p-3.5 bg-white dark:bg-[#111c2e] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+            <div className="w-9 h-9 rounded-full bg-sky-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
               {currentUser?.avatar ? (
                 <img src={currentUser.avatar} alt="Me" className="w-full h-full object-cover rounded-full" />
               ) : (
@@ -790,19 +789,19 @@ export default function AdminTeamChatPage() {
               )}
             </div>
             <div>
-              <h2 className="text-xs font-bold text-[#111b21] dark:text-[#e9edef] leading-tight flex items-center gap-1.5">
-                <span>NAY WhatsApp</span>
-                <span className="px-1.5 py-0.2 bg-emerald-500/10 text-[#00a884] dark:text-emerald-400 font-extrabold text-[9px] rounded">PRO</span>
+              <h2 className="text-xs font-bold text-slate-900 dark:text-white leading-tight flex items-center gap-1.5">
+                <span>NAY Connect</span>
+                <span className="px-1.5 py-0.2 bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 font-extrabold text-[9px] rounded border border-sky-200/50">PRO</span>
               </h2>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">Hub Équipe & Salons</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">Équipe & Canaux Directs</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+          <div className="flex items-center gap-1 text-slate-500">
             {/* Catalog Button in Header */}
             <button
               onClick={() => setShowCatalogModal(true)}
-              className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-[#00a884] transition-colors cursor-pointer"
+              className="p-1.5 rounded-full hover:bg-sky-50 dark:hover:bg-slate-800 text-sky-500 transition-colors cursor-pointer"
               title="Catalogue Parfums (199 références)"
             >
               <Store size={18} />
@@ -814,7 +813,7 @@ export default function AdminTeamChatPage() {
                 setSelectedMemberIds(allTeamMembers.map(u => u.id));
                 setShowCreateGroupModal(true);
               }}
-              className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
               title="Nouveau salon"
             >
               <Plus size={18} />
@@ -822,16 +821,16 @@ export default function AdminTeamChatPage() {
           </div>
         </div>
 
-        {/* WhatsApp Search Bar */}
-        <div className="p-2 border-b border-slate-100 dark:border-neutral-800 space-y-2 bg-white dark:bg-[#111b21]">
+        {/* Search Bar */}
+        <div className="p-2.5 border-b border-slate-200/70 dark:border-neutral-800 space-y-2 bg-white dark:bg-[#111c2e]">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Rechercher ou démarrer une discussion..."
+              placeholder="Rechercher salon, associé..."
               value={searchContact}
               onChange={(e) => setSearchContact(e.target.value)}
-              className="w-full pl-9 pr-7 py-1.5 bg-[#f0f2f5] dark:bg-[#202c33] border-0 rounded-lg text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none"
+              className="w-full pl-9 pr-7 py-1.5 bg-slate-100 dark:bg-[#182438] border-0 rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-400"
             />
             {searchContact && (
               <button onClick={() => setSearchContact('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
@@ -840,12 +839,12 @@ export default function AdminTeamChatPage() {
             )}
           </div>
 
-          {/* Quick Segment Tabs */}
+          {/* Sky Blue Segment Tabs */}
           <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
             <button
               onClick={() => setSidebarTab('ALL')}
               className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                sidebarTab === 'ALL' ? 'bg-[#e7fce8] text-[#00a884] font-bold' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                sidebarTab === 'ALL' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 font-bold border border-sky-200/50' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               Toutes
@@ -853,7 +852,7 @@ export default function AdminTeamChatPage() {
             <button
               onClick={() => setSidebarTab('CHANNELS')}
               className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                sidebarTab === 'CHANNELS' ? 'bg-[#e7fce8] text-[#00a884] font-bold' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                sidebarTab === 'CHANNELS' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 font-bold border border-sky-200/50' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               Salons ({channels.length})
@@ -861,7 +860,7 @@ export default function AdminTeamChatPage() {
             <button
               onClick={() => setSidebarTab('DIRECT')}
               className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                sidebarTab === 'DIRECT' ? 'bg-[#e7fce8] text-[#00a884] font-bold' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                sidebarTab === 'DIRECT' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 font-bold border border-sky-200/50' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               Directs ({contacts.length})
@@ -869,7 +868,7 @@ export default function AdminTeamChatPage() {
           </div>
         </div>
 
-        {/* WhatsApp Conversations Feed */}
+        {/* Conversations Feed */}
         <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-neutral-800/60 custom-scrollbar">
           
           {/* 1. CHANNELS */}
@@ -889,17 +888,17 @@ export default function AdminTeamChatPage() {
                     }}
                     className={`w-full flex items-center gap-3 p-3 text-left transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-[#f0f2f5] dark:bg-[#2a3942]'
-                        : 'hover:bg-slate-50 dark:hover:bg-[#202c33]'
+                        ? 'bg-sky-50/70 dark:bg-sky-950/40 border-l-3 border-sky-500'
+                        : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/50'
                     }`}
                   >
-                    <div className="w-11 h-11 rounded-full bg-emerald-700/10 dark:bg-emerald-500/20 text-[#00a884] font-black text-sm flex items-center justify-center shrink-0 border border-emerald-500/20">
+                    <div className="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 font-black text-sm flex items-center justify-center shrink-0 border border-sky-500/20">
                       #
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-[#111b21] dark:text-[#e9edef] truncate">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                           {channel.name}
                         </p>
                         <span className="text-[10px] text-slate-400 shrink-0 font-mono">
@@ -934,29 +933,29 @@ export default function AdminTeamChatPage() {
                     }}
                     className={`w-full flex items-center gap-3 p-3 text-left transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-[#f0f2f5] dark:bg-[#2a3942]'
-                        : 'hover:bg-slate-50 dark:hover:bg-[#202c33]'
+                        ? 'bg-sky-50/70 dark:bg-sky-950/40 border-l-3 border-sky-500'
+                        : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/50'
                     }`}
                   >
                     <div className="relative shrink-0">
-                      <div className="w-11 h-11 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center justify-center overflow-hidden">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center justify-center overflow-hidden">
                         {contact.avatar ? (
                           <img src={contact.avatar} alt={contact.name} className="w-full h-full object-cover" />
                         ) : (
                           <span>{contact.name.slice(0, 2).toUpperCase()}</span>
                         )}
                       </div>
-                      <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-[#111b21] ${
-                        online ? 'bg-[#25d366]' : 'bg-slate-300'
+                      <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#0e1626] ${
+                        online ? 'bg-sky-500' : 'bg-slate-300'
                       }`} />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-[#111b21] dark:text-[#e9edef] truncate">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                           {contact.name}
                         </p>
-                        <span className="text-[10px] text-slate-400 shrink-0">
+                        <span className="text-[10px] text-sky-500 shrink-0 font-medium">
                           {online ? 'en ligne' : ''}
                         </span>
                       </div>
@@ -965,7 +964,7 @@ export default function AdminTeamChatPage() {
                           {contact.jobTitle || contact.role}
                         </p>
                         {(contact.unreadCount || 0) > 0 && (
-                          <span className="w-4 h-4 rounded-full bg-[#25d366] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                          <span className="w-4 h-4 rounded-full bg-sky-500 text-white text-[9px] font-bold flex items-center justify-center shrink-0">
                             {contact.unreadCount}
                           </span>
                         )}
@@ -980,21 +979,13 @@ export default function AdminTeamChatPage() {
         </div>
       </aside>
 
-      {/* ── 2. MAIN ACTIVE WINDOW: WHATSAPP BUSINESS WEB LAYOUT ────── */}
-      <main className="flex-1 flex flex-col bg-[#efeae2] dark:bg-[#0b141a] overflow-hidden relative">
+      {/* ── 2. MAIN ACTIVE WINDOW: SKY BLUE PROFESSIONAL CANVAS ─────── */}
+      <main className="flex-1 flex flex-col bg-slate-50/70 dark:bg-[#0c121e] overflow-hidden relative">
         
-        {/* Subtle WhatsApp doodle background watermark */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-[0.035] dark:opacity-[0.025]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-
-        {/* WhatsApp Top Chat Header */}
-        <div className="px-4 py-2.5 bg-[#f0f2f5] dark:bg-[#202c33] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between z-10 shrink-0">
+        {/* Clean Sky Blue Top Header */}
+        <div className="px-5 py-3 bg-white dark:bg-[#111c2e] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between z-10 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+            <div className="w-10 h-10 rounded-2xl bg-sky-500 text-white font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
               {activeChatType === 'CHANNEL' ? (
                 <span>#</span>
               ) : activeContact?.avatar ? (
@@ -1005,35 +996,35 @@ export default function AdminTeamChatPage() {
             </div>
 
             <div className="min-w-0">
-              <h3 className="text-sm font-bold text-[#111b21] dark:text-[#e9edef] truncate">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
                 {activeChatType === 'CHANNEL' ? activeChannel?.name : activeContact?.name}
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                 {activeChatType === 'CHANNEL' 
                   ? activeChannel?.description
-                  : (isUserOnline(activeContact?.lastActivityAt) ? <span className="text-[#00a884] font-semibold">en ligne</span> : formatLastSeen(activeContact?.lastActivityAt).text)}
+                  : (isUserOnline(activeContact?.lastActivityAt) ? <span className="text-sky-500 font-semibold">en ligne</span> : formatLastSeen(activeContact?.lastActivityAt).text)}
               </p>
             </div>
           </div>
 
-          {/* Right Header Tools (WhatsApp Business Catalogue Signature Button) */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          {/* Right Header Tools (Sky Blue Signature Actions) */}
+          <div className="flex items-center gap-2 shrink-0">
             
-            {/* Open Catalog Button (199 Products) */}
+            {/* Open Catalog Button (199 Products) in Sky Blue */}
             <button
               onClick={() => setShowCatalogModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e7fce8] text-[#00a884] dark:bg-emerald-950/60 dark:text-emerald-400 font-bold text-xs hover:bg-[#d0fad2] transition-colors shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300 font-bold text-xs hover:bg-sky-100 border border-sky-200/60 transition-colors shadow-2xs cursor-pointer"
               title="Catalogue Parfums (199 références)"
             >
-              <Store size={14} />
+              <Store size={14} className="text-sky-500" />
               <span>Catalogue (199)</span>
             </button>
 
             {/* In-chat search */}
             <button
               onClick={() => setShowInChatSearch(!showInChatSearch)}
-              className={`p-2 rounded-full transition-colors cursor-pointer ${
-                showInChatSearch ? 'bg-slate-200 dark:bg-slate-700 text-slate-900' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              className={`p-2 rounded-xl transition-colors cursor-pointer ${
+                showInChatSearch ? 'bg-sky-100 text-sky-700 dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
               title="Rechercher"
             >
@@ -1043,17 +1034,17 @@ export default function AdminTeamChatPage() {
             {/* Refresh */}
             <button
               onClick={() => fetchMessages(false)}
-              className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Actualiser"
             >
-              <RefreshCw size={15} className={isLoadingMessages ? 'animate-spin text-[#00a884]' : ''} />
+              <RefreshCw size={15} className={isLoadingMessages ? 'animate-spin text-sky-500' : ''} />
             </button>
           </div>
         </div>
 
         {/* In-Chat Search Bar */}
         {showInChatSearch && (
-          <div className="px-4 py-2 bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between gap-2 text-xs z-10 animate-fadeIn">
+          <div className="px-4 py-2 bg-white dark:bg-[#111c2e] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between gap-2 text-xs z-10 animate-fadeIn">
             <div className="flex-1 relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -1061,7 +1052,7 @@ export default function AdminTeamChatPage() {
                 placeholder="Rechercher dans cette discussion..."
                 value={inChatSearchQuery}
                 onChange={(e) => setInChatSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-7 py-1 bg-[#f0f2f5] dark:bg-[#202c33] border-0 rounded-lg text-xs"
+                className="w-full pl-9 pr-7 py-1.5 bg-slate-100 dark:bg-[#182438] border-0 rounded-xl text-xs"
               />
               {inChatSearchQuery && (
                 <button onClick={() => setInChatSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
@@ -1073,19 +1064,19 @@ export default function AdminTeamChatPage() {
             <div className="flex items-center gap-1 text-[11px]">
               <button
                 onClick={() => setChatFilter('ALL')}
-                className={`px-2 py-0.5 rounded ${chatFilter === 'ALL' ? 'bg-[#00a884] text-white font-bold' : 'text-slate-500'}`}
+                className={`px-2.5 py-1 rounded-lg ${chatFilter === 'ALL' ? 'bg-sky-500 text-white font-bold' : 'text-slate-500'}`}
               >
                 Tous
               </button>
               <button
                 onClick={() => setChatFilter('PRODUCTS')}
-                className={`px-2 py-0.5 rounded ${chatFilter === 'PRODUCTS' ? 'bg-[#00a884] text-white font-bold' : 'text-slate-500'}`}
+                className={`px-2.5 py-1 rounded-lg ${chatFilter === 'PRODUCTS' ? 'bg-sky-500 text-white font-bold' : 'text-slate-500'}`}
               >
                 Parfums
               </button>
               <button
                 onClick={() => setChatFilter('ORDERS')}
-                className={`px-2 py-0.5 rounded ${chatFilter === 'ORDERS' ? 'bg-[#00a884] text-white font-bold' : 'text-slate-500'}`}
+                className={`px-2.5 py-1 rounded-lg ${chatFilter === 'ORDERS' ? 'bg-sky-500 text-white font-bold' : 'text-slate-500'}`}
               >
                 Commandes
               </button>
@@ -1097,37 +1088,37 @@ export default function AdminTeamChatPage() {
           </div>
         )}
 
-        {/* ── 2.1 MESSAGES FEED STREAM (WHATSAPP WEB CHAT STYLE) ────── */}
+        {/* ── 2.1 MESSAGES FEED STREAM ─────────────────────────────── */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2.5 z-0 custom-scrollbar">
           
-          {/* Centered WhatsApp Date Pill */}
-          <div className="flex justify-center my-1">
-            <span className="bg-white/90 dark:bg-[#182229] text-[#54656f] dark:text-[#8696a0] text-[11px] px-3 py-1 rounded-lg uppercase tracking-wider font-semibold shadow-2xs">
-              Aujourd&apos;hui • Discussion Sécurisée
+          {/* Centered Date Pill */}
+          <div className="flex justify-center my-1.5">
+            <span className="bg-white dark:bg-[#182438] border border-slate-200/80 dark:border-neutral-700 text-slate-500 dark:text-slate-400 text-[11px] px-3 py-1 rounded-full uppercase tracking-wider font-semibold shadow-2xs">
+              Aujourd&apos;hui • Échanges Sécurisés
             </span>
           </div>
 
           {isLoadingMessages && messages.length === 0 ? (
             <div className="h-full flex items-center justify-center text-slate-400 text-xs gap-2">
-              <RefreshCw size={16} className="animate-spin text-[#00a884]" />
+              <RefreshCw size={16} className="animate-spin text-sky-500" />
               <span>Chargement des messages...</span>
             </div>
           ) : displayedMessages.length === 0 ? (
             
-            /* Start of WhatsApp Conversation */
-            <div className="py-8 max-w-sm mx-auto text-center space-y-2.5">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#00a884] flex items-center justify-center mx-auto shadow-2xs">
-                <Store size={22} />
+            /* Start of Conversation */
+            <div className="py-12 max-w-sm mx-auto text-center space-y-3">
+              <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-500 dark:bg-sky-950/60 dark:text-sky-300 flex items-center justify-center mx-auto shadow-xs border border-sky-200/60">
+                <Store size={26} />
               </div>
-              <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                Discussion avec #{activeChatType === 'CHANNEL' ? activeChannel?.name : activeContact?.name}
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                Discussion #{activeChatType === 'CHANNEL' ? activeChannel?.name : activeContact?.name}
               </h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Les messages et appels sont chiffrés. Mentionnez un parfum (#) ou ouvrez le catalogue de 199 références pour partager une fiche.
+                Les échanges sont chiffrés. Tapez # ou ouvrez le catalogue des 199 parfums pour partager une fiche produit en 1 clic.
               </p>
               <button
                 onClick={() => setShowCatalogModal(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#00a884] hover:bg-[#06cf9c] text-white text-xs font-bold transition-all shadow-xs cursor-pointer mt-2"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition-all shadow-xs cursor-pointer mt-2"
               >
                 <Store size={14} />
                 <span>Ouvrir le Catalogue (199 Parfums)</span>
@@ -1135,7 +1126,7 @@ export default function AdminTeamChatPage() {
             </div>
           ) : (
             
-            /* WhatsApp Messages List */
+            /* Messages List with Sky Blue Accents */
             displayedMessages.map((msg) => {
               const isMe = msg.senderId === currentUser?.id;
               const attachments = parseAttachments(msg.attachments);
@@ -1144,16 +1135,16 @@ export default function AdminTeamChatPage() {
               return (
                 <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group/msg my-1`}>
                   
-                  {/* WhatsApp Message Bubble */}
-                  <div className={`relative max-w-md sm:max-w-lg p-2.5 rounded-2xl shadow-[0_1px_0.5px_rgba(11,20,26,0.13)] ${
+                  {/* Sky Blue Message Bubble */}
+                  <div className={`relative max-w-md sm:max-w-lg p-3 rounded-2xl shadow-xs ${
                     isMe 
-                      ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-xs' 
-                      : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-xs'
+                      ? 'bg-[#e0f2fe] dark:bg-[#075985] text-slate-900 dark:text-white rounded-tr-xs border border-sky-200 dark:border-sky-700/60' 
+                      : 'bg-white dark:bg-[#162232] text-slate-900 dark:text-white rounded-tl-xs border border-slate-200/90 dark:border-neutral-700/80'
                   }`}>
                     
-                    {/* Sender name for channel group messages */}
+                    {/* Sender name in group */}
                     {!isMe && activeChatType === 'CHANNEL' && (
-                      <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 mb-0.5">
+                      <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400 mb-0.5">
                         {msg.senderName}
                       </p>
                     )}
@@ -1196,7 +1187,7 @@ export default function AdminTeamChatPage() {
                             );
                           }
                           return (
-                            <div key={i} className="rounded-xl overflow-hidden max-h-72">
+                            <div key={i} className="rounded-xl overflow-hidden max-h-72 border border-slate-200/80 dark:border-neutral-700">
                               <img src={att.url} alt={att.name || 'Photo'} className="w-full h-full object-cover" />
                             </div>
                           );
@@ -1204,14 +1195,14 @@ export default function AdminTeamChatPage() {
                       </div>
                     )}
 
-                    {/* WhatsApp Timestamp & Blue Double Ticks inside bubble bottom right */}
-                    <div className="flex items-center justify-end gap-1 text-[10px] text-slate-500 dark:text-slate-400 mt-1 select-none font-mono">
+                    {/* Sky Blue Timestamp & Double Ticks */}
+                    <div className="flex items-center justify-end gap-1 text-[10px] text-slate-500 dark:text-slate-300 mt-1 select-none font-mono">
                       <span>{new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
-                      {renderWhatsAppTicks(msg, isMe)}
+                      {renderSkyTicks(msg, isMe)}
                     </div>
 
                     {/* Hover Reaction Toolbar */}
-                    <div className={`absolute top-0 -translate-y-1/2 hidden group-hover/msg:flex items-center gap-0.5 p-1 bg-white dark:bg-[#202c33] rounded-full shadow-md border border-slate-200 dark:border-neutral-700 z-10 ${
+                    <div className={`absolute top-0 -translate-y-1/2 hidden group-hover/msg:flex items-center gap-0.5 p-1 bg-white dark:bg-[#162232] rounded-full shadow-md border border-slate-200 dark:border-neutral-700 z-10 ${
                       isMe ? 'right-0' : 'left-0'
                     }`}>
                       {QUICK_REACTION_EMOJIS.slice(0, 4).map((emoji) => (
@@ -1228,7 +1219,7 @@ export default function AdminTeamChatPage() {
                         className="p-1 text-slate-400 hover:text-slate-700"
                         title="Copier"
                       >
-                        {copiedMessageId === msg.id ? <Check size={11} className="text-[#00a884]" /> : <Copy size={11} />}
+                        {copiedMessageId === msg.id ? <Check size={11} className="text-sky-500" /> : <Copy size={11} />}
                       </button>
                     </div>
 
@@ -1246,13 +1237,13 @@ export default function AdminTeamChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* ── 3. COMPOSER: WHATSAPP WEB STYLE ───────────────────────── */}
-        <div className="p-2 sm:p-3 bg-[#f0f2f5] dark:bg-[#202c33] border-t border-slate-200 dark:border-neutral-800 z-10 shrink-0">
+        {/* ── 3. COMPOSER: SKY BLUE LUXURY ACTIONS ─────────────────── */}
+        <div className="p-3 bg-white dark:bg-[#111c2e] border-t border-slate-200 dark:border-neutral-800 z-10 shrink-0">
           
           {/* Inline Autocomplete (Mentions, Perfumes, Orders) */}
           {mentionMenu.type && (
-            <div className="mb-2 bg-white dark:bg-[#111827] rounded-xl shadow-xl border border-slate-200 dark:border-neutral-700 overflow-hidden max-h-60 overflow-y-auto animate-in fade-in slide-in-from-bottom-2">
-              <div className="p-2 bg-slate-50 dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
+            <div className="mb-2 bg-white dark:bg-[#162232] rounded-2xl shadow-xl border border-slate-200 dark:border-neutral-700 overflow-hidden max-h-60 overflow-y-auto animate-in fade-in slide-in-from-bottom-2">
+              <div className="p-2.5 bg-sky-50 dark:bg-[#1b2a3e] text-[11px] font-bold text-sky-900 dark:text-sky-200 flex items-center justify-between border-b border-sky-100 dark:border-neutral-700">
                 <span>
                   {mentionMenu.type === 'MEMBER' && 'Mentionner un collaborateur (@)'}
                   {mentionMenu.type === 'PRODUCT' && `💎 Parfums (${allProducts.length} disponibles) - Tapez pour filtrer`}
@@ -1271,7 +1262,7 @@ export default function AdminTeamChatPage() {
                       <button
                         key={m.id}
                         onClick={() => insertMemberMention(m)}
-                        className="w-full p-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left"
+                        className="w-full p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left"
                       >
                         <span className="font-semibold text-slate-800 dark:text-slate-200">@{m.name}</span>
                         <span className="text-[10px] text-slate-400">{m.jobTitle || m.role}</span>
@@ -1287,7 +1278,7 @@ export default function AdminTeamChatPage() {
                       <button
                         key={p.id}
                         onClick={() => insertProductMention(p)}
-                        className="w-full p-2.5 hover:bg-emerald-50/50 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left transition-colors cursor-pointer"
+                        className="w-full p-2.5 hover:bg-sky-50/60 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left transition-colors cursor-pointer"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="w-8 h-8 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center p-0.5">
@@ -1295,10 +1286,10 @@ export default function AdminTeamChatPage() {
                           </div>
                           <div className="min-w-0">
                             <p className="font-bold text-slate-900 dark:text-white truncate">{p.name}</p>
-                            <p className="text-[10px] text-slate-500">{p.brand} • <strong className="text-emerald-600 font-bold">{p.price} MAD</strong></p>
+                            <p className="text-[10px] text-slate-500">{p.brand} • <strong className="text-sky-600 font-bold">{p.price} MAD</strong></p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-bold text-[#00a884] bg-emerald-50 px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full shrink-0 border border-sky-200/60">
                           Insérer
                         </span>
                       </button>
@@ -1312,13 +1303,13 @@ export default function AdminTeamChatPage() {
                       <button
                         key={o.id}
                         onClick={() => insertOrderMention(o)}
-                        className="w-full p-2 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left"
+                        className="w-full p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left"
                       >
                         <div>
                           <span className="font-bold text-slate-900 dark:text-white">#{o.orderNumber}</span>
                           <span className="text-[10px] text-slate-400 ml-2">{o.customerName}</span>
                         </div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white">{o.total} MAD</span>
+                        <span className="text-xs font-bold text-sky-600 dark:text-sky-400">{o.total} MAD</span>
                       </button>
                     ))
                 )}
@@ -1330,10 +1321,10 @@ export default function AdminTeamChatPage() {
           {pendingAttachments.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mb-2">
               {pendingAttachments.map((att, idx) => (
-                <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800 rounded-lg text-xs shadow-2xs">
+                <div key={idx} className="flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-slate-800 rounded-xl text-xs border border-sky-200/60 shadow-2xs">
                   {att.type === 'PDF' && <FileText size={13} className="text-rose-500" />}
                   {att.type === 'VIDEO' && <Film size={13} className="text-purple-500" />}
-                  {att.type === 'AUDIO' && <Mic size={13} className="text-amber-500" />}
+                  {att.type === 'AUDIO' && <Mic size={13} className="text-sky-500" />}
                   {att.type === 'IMAGE' && <ImageIcon size={13} className="text-sky-500" />}
                   <span className="truncate max-w-[140px] text-[11px] font-medium">{att.name || att.type}</span>
                   <button
@@ -1349,10 +1340,10 @@ export default function AdminTeamChatPage() {
 
           {/* Voice Recording Active Bar */}
           {isRecordingAudio ? (
-            <div className="flex items-center justify-between p-2.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                <span className="text-xs font-semibold text-rose-700 dark:text-rose-300">
+            <div className="flex items-center justify-between p-2.5 bg-sky-50 dark:bg-sky-950/40 border border-sky-300 dark:border-sky-800 rounded-2xl">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse" />
+                <span className="text-xs font-semibold text-sky-700 dark:text-sky-300">
                   Enregistrement vocal : {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
                 </span>
               </div>
@@ -1361,14 +1352,14 @@ export default function AdminTeamChatPage() {
                 <button
                   type="button"
                   onClick={cancelAudioRecording}
-                  className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-white"
+                  className="px-3 py-1 rounded-xl text-xs font-medium text-slate-600 hover:bg-white"
                 >
                   Annuler
                 </button>
                 <button
                   type="button"
                   onClick={stopAudioRecording}
-                  className="px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-bold hover:bg-rose-700 cursor-pointer"
+                  className="px-3.5 py-1 bg-sky-500 text-white rounded-xl text-xs font-bold hover:bg-sky-600 cursor-pointer shadow-xs"
                 >
                   Terminer
                 </button>
@@ -1376,7 +1367,7 @@ export default function AdminTeamChatPage() {
             </div>
           ) : (
             
-            /* WhatsApp Input Bar */
+            /* Sky Blue Input Bar */
             <div className="flex items-center gap-2">
               
               {/* Left Emojis Trigger */}
@@ -1384,14 +1375,14 @@ export default function AdminTeamChatPage() {
                 <button
                   type="button"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                  className="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   title="Emojis"
                 >
                   <Smile size={20} />
                 </button>
 
                 {showEmojiPicker && (
-                  <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-1 p-2.5 bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 w-64 z-30">
+                  <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-1 p-2.5 bg-white dark:bg-[#162232] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 w-64 z-30">
                     {EXTENDED_EMOJIS.map((emoji) => (
                       <button
                         key={emoji}
@@ -1409,19 +1400,19 @@ export default function AdminTeamChatPage() {
                 )}
               </div>
 
-              {/* WhatsApp Plus / Attach Dropdown */}
+              {/* Attach Dropdown */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setShowAttachMenu(!showAttachMenu)}
-                  className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                  className="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   title="Joindre un élément"
                 >
                   <Paperclip size={20} />
                 </button>
 
                 {showAttachMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-56 bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 p-2 space-y-1 text-xs z-30 animate-in fade-in zoom-in-95">
+                  <div className="absolute bottom-full left-0 mb-2 w-56 bg-white dark:bg-[#162232] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 p-2 space-y-1 text-xs z-30 animate-in fade-in zoom-in-95">
                     
                     {/* Catalog item */}
                     <button
@@ -1430,7 +1421,7 @@ export default function AdminTeamChatPage() {
                         setShowAttachMenu(false);
                         setShowCatalogModal(true);
                       }}
-                      className="w-full p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-slate-800 flex items-center gap-2.5 text-left font-bold text-emerald-700 dark:text-emerald-400"
+                      className="w-full p-2 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center gap-2.5 text-left font-bold text-sky-600 dark:text-sky-400"
                     >
                       <Store size={16} />
                       <span>Catalogue (199 Parfums)</span>
@@ -1497,9 +1488,9 @@ export default function AdminTeamChatPage() {
 
               {/* Quick Template Popover */}
               {showTemplatesMenu && (
-                <div className="absolute bottom-full left-12 mb-2 w-72 bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 p-2 space-y-1 text-xs z-30 animate-in fade-in zoom-in-95">
+                <div className="absolute bottom-full left-12 mb-2 w-72 bg-white dark:bg-[#162232] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 p-2 space-y-1 text-xs z-30 animate-in fade-in zoom-in-95">
                   <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase">
-                    Réponses Rapides Officielles
+                    Réponses Rapides
                   </div>
                   {QUICK_TEMPLATES.map((tmpl, idx) => (
                     <button
@@ -1510,7 +1501,7 @@ export default function AdminTeamChatPage() {
                         setShowTemplatesMenu(false);
                         inputRef.current?.focus();
                       }}
-                      className="w-full text-left p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800"
+                      className="w-full text-left p-2 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800"
                     >
                       <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                         <span>{tmpl.icon}</span>
@@ -1522,7 +1513,7 @@ export default function AdminTeamChatPage() {
                 </div>
               )}
 
-              {/* Main Pill Input Field */}
+              {/* Main Rounded Input Field */}
               <div className="flex-1 relative">
                 <input
                   ref={inputRef}
@@ -1540,7 +1531,7 @@ export default function AdminTeamChatPage() {
                       handleSendMessage();
                     }
                   }}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#2a3942] text-xs font-normal text-[#111b21] dark:text-[#e9edef] placeholder:text-slate-500 border-0 focus:outline-none shadow-2xs"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-[#182438] text-xs font-normal text-slate-900 dark:text-white placeholder:text-slate-400 border-0 focus:outline-none focus:ring-1 focus:ring-sky-400"
                 />
               </div>
 
@@ -1552,13 +1543,13 @@ export default function AdminTeamChatPage() {
                 className="hidden"
               />
 
-              {/* Right Action: Send Button (WhatsApp Circular Green Button) or Mic */}
+              {/* Right Action: Sky Blue Send Button or Mic */}
               {messageInput.trim() || pendingAttachments.length > 0 ? (
                 <button
                   type="button"
                   onClick={() => handleSendMessage()}
                   disabled={isSending}
-                  className="w-10 h-10 rounded-full bg-[#00a884] hover:bg-[#06cf9c] text-white flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer shrink-0"
+                  className="w-10 h-10 rounded-full bg-sky-500 hover:bg-sky-600 text-white flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer shrink-0"
                   title="Envoyer"
                 >
                   {isSending ? (
@@ -1571,7 +1562,7 @@ export default function AdminTeamChatPage() {
                 <button
                   type="button"
                   onClick={startAudioRecording}
-                  className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-[#00a884] hover:text-white text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                  className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-sky-500 hover:text-white text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer shrink-0"
                   title="Enregistrer un vocal"
                 >
                   <Mic size={17} />
@@ -1585,19 +1576,19 @@ export default function AdminTeamChatPage() {
 
       </main>
 
-      {/* ── 4. WHATSAPP BUSINESS FULL CATALOG MODAL (ALL 199 PERFUMES) ── */}
+      {/* ── 4. PRODUCT CATALOG MODAL (ALL 199 PERFUMES) IN SKY BLUE ─ */}
       {showCatalogModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white dark:bg-[#111827] rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 dark:border-neutral-800 overflow-hidden animate-in zoom-in-95">
+          <div className="bg-white dark:bg-[#111c2e] rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 dark:border-neutral-800 overflow-hidden animate-in zoom-in-95">
             
             {/* Modal Header */}
-            <div className="p-4 bg-[#00a884] text-white flex items-center justify-between">
+            <div className="p-4 bg-gradient-to-r from-sky-500 to-sky-600 text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Store size={20} />
                 <div>
-                  <h3 className="text-sm font-bold">Catalogue Produits NAY</h3>
-                  <p className="text-[11px] text-emerald-100">
-                    {allProducts.length} parfums disponibles • Cliquez pour partager dans la discussion
+                  <h3 className="text-sm font-bold">Catalogue Produits NAY Connect</h3>
+                  <p className="text-[11px] text-sky-100">
+                    {allProducts.length} parfums disponibles • Cliquez pour partager instantanément
                   </p>
                 </div>
               </div>
@@ -1607,7 +1598,7 @@ export default function AdminTeamChatPage() {
             </div>
 
             {/* Search Bar in Catalog */}
-            <div className="p-3 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-slate-900">
+            <div className="p-3 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#182438]">
               <div className="relative">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -1615,7 +1606,7 @@ export default function AdminTeamChatPage() {
                   placeholder="Rechercher par nom de parfum, marque ou prix..."
                   value={catalogSearch}
                   onChange={(e) => setCatalogSearch(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#111c2e] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/30"
                   autoFocus
                 />
                 {catalogSearch && (
@@ -1636,7 +1627,7 @@ export default function AdminTeamChatPage() {
                 catalogFilteredProducts.map((p) => (
                   <div
                     key={p.id}
-                    className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 rounded-xl flex items-center justify-between gap-3 transition-colors group"
+                    className="p-3 hover:bg-sky-50/50 dark:hover:bg-slate-800/60 rounded-xl flex items-center justify-between gap-3 transition-colors group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-neutral-700 flex items-center justify-center p-1">
@@ -1649,13 +1640,13 @@ export default function AdminTeamChatPage() {
                       <div className="min-w-0">
                         <p className="font-bold text-xs text-slate-900 dark:text-white truncate">{p.name}</p>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.brand}</p>
-                        <p className="text-xs font-bold text-[#00a884]">{p.price} MAD</p>
+                        <p className="text-xs font-bold text-sky-600 dark:text-sky-400">{p.price} MAD</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        p.stock > 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-50 text-rose-700'
+                        p.stock > 0 ? 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300' : 'bg-rose-50 text-rose-700'
                       }`}>
                         {p.stock > 0 ? `${p.stock} en stock` : 'Rupture'}
                       </span>
@@ -1663,7 +1654,7 @@ export default function AdminTeamChatPage() {
                       <button
                         type="button"
                         onClick={() => insertProductMention(p)}
-                        className="px-3 py-1.5 rounded-xl bg-[#00a884] hover:bg-[#06cf9c] text-white font-bold text-xs shadow-xs transition-transform hover:scale-105 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-xs transition-transform hover:scale-105 cursor-pointer"
                       >
                         Partager
                       </button>
@@ -1674,7 +1665,7 @@ export default function AdminTeamChatPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-neutral-800 text-right">
+            <div className="p-3 bg-slate-50 dark:bg-[#182438] border-t border-slate-200 dark:border-neutral-800 text-right">
               <button
                 type="button"
                 onClick={() => setShowCatalogModal(false)}
@@ -1690,7 +1681,7 @@ export default function AdminTeamChatPage() {
       {/* ── 5. CREATE GROUP MODAL ────────────────────────────────────── */}
       {showCreateGroupModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-[#111827] rounded-2xl p-5 w-full max-w-md shadow-xl border border-slate-200 dark:border-neutral-800 space-y-4">
+          <div className="bg-white dark:bg-[#111c2e] rounded-2xl p-5 w-full max-w-md shadow-xl border border-slate-200 dark:border-neutral-800 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-2.5">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Créer un salon d&apos;équipe</h3>
               <button onClick={() => setShowCreateGroupModal(false)} className="text-slate-400 hover:text-slate-700">
@@ -1737,11 +1728,11 @@ export default function AdminTeamChatPage() {
                           else setSelectedMemberIds([...selectedMemberIds, member.id]);
                         }}
                         className={`flex items-center justify-between p-1.5 rounded-md cursor-pointer text-xs ${
-                          isSelected ? 'bg-emerald-50 dark:bg-slate-700 font-semibold' : 'hover:bg-slate-100'
+                          isSelected ? 'bg-sky-50 dark:bg-slate-700 font-semibold' : 'hover:bg-slate-100'
                         }`}
                       >
                         <span>{member.name}</span>
-                        {isSelected && <Check size={12} className="text-[#00a884]" />}
+                        {isSelected && <Check size={12} className="text-sky-500" />}
                       </div>
                     );
                   })}
@@ -1759,7 +1750,7 @@ export default function AdminTeamChatPage() {
                 <button
                   type="submit"
                   disabled={!newGroupName.trim() || isSavingGroup}
-                  className="px-4 py-1.5 bg-[#00a884] text-white text-xs font-bold rounded-lg hover:bg-[#06cf9c]"
+                  className="px-4 py-1.5 bg-sky-500 text-white text-xs font-bold rounded-lg hover:bg-sky-600"
                 >
                   {isSavingGroup ? 'Création...' : 'Créer'}
                 </button>
@@ -1772,7 +1763,7 @@ export default function AdminTeamChatPage() {
       {/* ── 6. MANAGE GROUP MEMBERS MODAL ──────────────────────────── */}
       {showManageMembersModal && activeChannel && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-[#111827] rounded-2xl p-5 w-full max-w-md shadow-xl border border-slate-200 dark:border-neutral-800 space-y-4">
+          <div className="bg-white dark:bg-[#111c2e] rounded-2xl p-5 w-full max-w-md shadow-xl border border-slate-200 dark:border-neutral-800 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-2.5">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Membres : #{activeChannel.name}</h3>
               <button onClick={() => setShowManageMembersModal(false)} className="text-slate-400 hover:text-slate-700">
@@ -1796,11 +1787,11 @@ export default function AdminTeamChatPage() {
                         else setSelectedMemberIds([...selectedMemberIds, member.id]);
                       }}
                       className={`flex items-center justify-between p-1.5 rounded-md cursor-pointer text-xs ${
-                        isSelected ? 'bg-emerald-50 dark:bg-slate-700 font-semibold' : 'hover:bg-slate-100'
+                        isSelected ? 'bg-sky-50 dark:bg-slate-700 font-semibold' : 'hover:bg-slate-100'
                       }`}
                     >
                       <span>{member.name}</span>
-                      {isSelected && <Check size={12} className="text-[#00a884]" />}
+                      {isSelected && <Check size={12} className="text-sky-500" />}
                     </div>
                   );
                 })}
@@ -1829,7 +1820,7 @@ export default function AdminTeamChatPage() {
                   type="button"
                   onClick={handleUpdateGroupMembers}
                   disabled={isSavingGroup}
-                  className="px-4 py-1.5 bg-[#00a884] text-white text-xs font-bold rounded-lg hover:bg-[#06cf9c]"
+                  className="px-4 py-1.5 bg-sky-500 text-white text-xs font-bold rounded-lg hover:bg-sky-600"
                 >
                   {isSavingGroup ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
@@ -1843,7 +1834,7 @@ export default function AdminTeamChatPage() {
   );
 }
 
-// ── CUSTOM WHATSAPP AUDIO VOICE NOTE PLAYER ──────────────────────────
+// ── CUSTOM AUDIO VOICE NOTE PLAYER (SKY BLUE) ────────────────────────
 function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: number; isMe: boolean }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -1907,7 +1898,7 @@ function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: numb
     }`}>
       <button
         onClick={togglePlay}
-        className="w-8 h-8 rounded-full bg-[#00a884] text-white flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
+        className="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
       >
         {isPlaying ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
       </button>
@@ -1922,7 +1913,7 @@ function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: numb
                 key={i}
                 style={{ height: `${h}%` }}
                 className={`w-1 rounded-full ${
-                  isFilled ? 'bg-[#00a884]' : 'bg-slate-300 dark:bg-slate-600'
+                  isFilled ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
                 }`}
               />
             );
@@ -1991,7 +1982,7 @@ function ChatPdfViewer({ url, name, size, isMe }: { url: string; name?: string; 
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-2 py-1 rounded-md bg-emerald-600 text-white font-medium text-[10px]"
+          className="px-2.5 py-1 rounded-md bg-sky-500 text-white font-medium text-[10px] shadow-2xs hover:bg-sky-600"
         >
           Ouvrir
         </a>
@@ -2040,7 +2031,7 @@ function MessageReactionsRow({
           onClick={() => onToggleReaction(emoji)}
           className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[10px] font-medium border shadow-2xs transition-colors cursor-pointer ${
             data.hasReacted
-              ? 'bg-[#e7fce8] border-emerald-300 text-emerald-900'
+              ? 'bg-sky-50 border-sky-300 text-sky-900 dark:bg-sky-950/60 dark:text-sky-200'
               : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300'
           }`}
           title={data.users.join(', ')}
@@ -2053,7 +2044,7 @@ function MessageReactionsRow({
   );
 }
 
-// ── RICH MESSAGE CONTENT PARSER (WHATSAPP BUSINESS CATALOG CARDS) ───
+// ── RICH MESSAGE CONTENT PARSER (PRODUCT CATALOG CARDS) ─────────────
 function RenderMessageContent({ content, isMe }: { content: string; isMe: boolean }) {
   if (!content) return null;
 
@@ -2063,7 +2054,7 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
     <div className="whitespace-pre-wrap leading-relaxed">
       {tokens.map((token, idx) => {
         
-        // PRODUCT CARD (WHATSAPP BUSINESS PRODUCT CARD)
+        // PRODUCT CARD
         if (token.startsWith('#[product:')) {
           const match = token.match(/#\[product:(\d+):([^:]+):([^:]+):([^:]+):([^\]]+)\]/);
           if (match) {
@@ -2071,22 +2062,22 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
             return (
               <div 
                 key={idx} 
-                className="my-2 p-2.5 rounded-xl bg-white dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 shadow-xs flex items-center justify-between gap-3 text-slate-900 dark:text-white"
+                className="my-2 p-2.5 rounded-2xl bg-white dark:bg-[#162232] border border-slate-200 dark:border-neutral-700 shadow-2xs flex items-center justify-between gap-3 text-slate-900 dark:text-white"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center p-0.5">
-                    <Sparkles size={16} className="text-[#00a884]" />
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-neutral-700 flex items-center justify-center p-0.5">
+                    <Sparkles size={16} className="text-sky-500" />
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-xs truncate leading-tight text-slate-900 dark:text-white">{name}</p>
-                    <p className="text-[10px] text-slate-500">{brand} • <strong className="text-[#00a884] font-bold">{price} MAD</strong></p>
+                    <p className="text-[10px] text-slate-500">{brand} • <strong className="text-sky-600 dark:text-sky-400 font-bold">{price} MAD</strong></p>
                   </div>
                 </div>
                 
                 <Link
                   href={`/products/${slug}`}
                   target="_blank"
-                  className="px-2.5 py-1 rounded-lg bg-[#00a884] hover:bg-[#06cf9c] text-white text-[10px] font-bold shrink-0 shadow-2xs"
+                  className="px-2.5 py-1 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-[10px] font-bold shrink-0 shadow-2xs transition-colors"
                 >
                   Voir fiche
                 </Link>
@@ -2095,7 +2086,7 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
           }
         }
 
-        // ORDER CARD (WHATSAPP BUSINESS ORDER SUMMARY)
+        // ORDER CARD
         if (token.startsWith('#[order:')) {
           const match = token.match(/#\[order:([^:]+):([^:]+):([^:]+):([^:]+):([^\]]+)\]/);
           if (match) {
@@ -2103,10 +2094,10 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
             return (
               <div 
                 key={idx} 
-                className="my-2 p-2.5 rounded-xl bg-white dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 shadow-xs flex items-center justify-between gap-3 text-slate-900 dark:text-white"
+                className="my-2 p-2.5 rounded-2xl bg-white dark:bg-[#162232] border border-slate-200 dark:border-neutral-700 shadow-2xs flex items-center justify-between gap-3 text-slate-900 dark:text-white"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center font-bold shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center font-bold shrink-0">
                     <ShoppingBag size={16} />
                   </div>
                   <div className="min-w-0">
@@ -2122,7 +2113,7 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
                 
                 <Link
                   href={`/admin/orders?highlight=${id}&orderNumber=${encodeURIComponent(number)}`}
-                  className="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-[10px] font-bold shrink-0 shadow-2xs hover:bg-indigo-700"
+                  className="px-2.5 py-1 rounded-xl bg-indigo-600 text-white text-[10px] font-bold shrink-0 shadow-2xs hover:bg-indigo-700"
                 >
                   Gérer
                 </Link>
@@ -2138,7 +2129,7 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
             <span 
               key={idx} 
               className={`font-semibold px-1 py-0.2 rounded ${
-                isMe ? 'bg-black/10 text-emerald-900 dark:bg-white/20 dark:text-white' : 'bg-emerald-100 dark:bg-emerald-950/60 text-[#00a884]'
+                isMe ? 'bg-sky-500/20 text-sky-900 dark:text-sky-200' : 'bg-sky-100 dark:bg-sky-950/60 text-sky-600'
               }`}
             >
               @{clean}
