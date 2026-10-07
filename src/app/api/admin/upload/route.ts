@@ -69,7 +69,19 @@ export async function POST(request: Request) {
       mimeType = 'video/quicktime';
     } else if (originalName.toLowerCase().endsWith('.webm') || mimeType.includes('webm')) {
       ext = 'webm';
-      mimeType = 'video/webm';
+      mimeType = mimeType.includes('audio') ? 'audio/webm' : 'video/webm';
+    } else if (originalName.toLowerCase().endsWith('.mp3') || mimeType.includes('mpeg') || mimeType.includes('mp3')) {
+      ext = 'mp3';
+      mimeType = 'audio/mpeg';
+    } else if (originalName.toLowerCase().endsWith('.wav') || mimeType.includes('wav')) {
+      ext = 'wav';
+      mimeType = 'audio/wav';
+    } else if (originalName.toLowerCase().endsWith('.m4a') || mimeType.includes('m4a') || mimeType.includes('mp4a')) {
+      ext = 'm4a';
+      mimeType = 'audio/mp4';
+    } else if (mimeType.startsWith('audio/')) {
+      ext = 'webm';
+      mimeType = 'audio/webm';
     } else if (!ext || ext.length > 5) {
       if (mimeType.includes('png')) ext = 'png';
       else if (mimeType.includes('webp')) ext = 'webp';

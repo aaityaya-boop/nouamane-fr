@@ -168,3 +168,73 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Erreur lors de l\'envoi du message' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const admin = await getAuthenticatedAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { messageId, emoji } = body;
+
+    if (!messageId || !emoji) {
+      return NextResponse.json({ error: 'messageId et emoji requis' }, { status: 400 });
+    }
+
+    const message = await prisma.adminChatMessage.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      return NextResponse.json({ error: 'Message non trouvé' }, { status: 404 });
+    }
+
+    let reactions: Array<{ emoji: string; userId: string; userName: string }> = [];
+    try {
+      if (message.reactions) {
+        reactions = JSON.parse(message.reactions);
+      }
+    } catch {
+      reactions = [];
+    }
+
+    const existingIdx = reactions.findIndex(
+      (r) => r.userId === admin.id && r.emoji === emoji
+    );
+
+    if (existingIdx !== -1) {
+      // Toggle off
+      reactions.splice(existingIdx, 1);
+    } else {
+      // Toggle on
+      reactions.push({
+        emoji,
+        userId: admin.id,
+        userName: admin.name,
+      });
+    }
+
+    const updated = await prisma.adminChatMessage.update({
+      where: { id: messageId },
+      data: {
+        reactions: JSON.stringify(reactions),
+      },
+      include: {
+        sender: {
+          select: { id: true, name: true, email: true, avatar: true },
+        },
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: updated,
+      reactions,
+    });
+  } catch (error) {
+    console.error('Error updating reaction:', error);
+    return NextResponse.json({ error: 'Erreur lors de la réaction' }, { status: 500 });
+  }
+}

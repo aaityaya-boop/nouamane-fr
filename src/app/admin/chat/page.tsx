@@ -49,7 +49,17 @@ import {
   Layers,
   Copy,
   ExternalLink,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Mic,
+  MicOff,
+  Play,
+  Pause,
+  Volume2,
+  FileText,
+  Download,
+  Film,
+  Heart,
+  ThumbsUp
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -66,6 +76,20 @@ interface AdminUser {
   lastLoginAt?: string | null;
 }
 
+export interface ChatAttachment {
+  url: string;
+  type: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF';
+  name?: string;
+  size?: number; // bytes
+  duration?: number; // seconds
+}
+
+export interface ChatReaction {
+  emoji: string;
+  userId: string;
+  userName: string;
+}
+
 interface ChatMessage {
   id: string;
   senderId: string;
@@ -74,7 +98,8 @@ interface ChatMessage {
   recipientId?: string | null;
   channel: string;
   content: string;
-  attachments?: string | null;
+  attachments?: string | null; // JSON string of (string | ChatAttachment)[]
+  reactions?: string | null;   // JSON string of ChatReaction[]
   isRead: boolean;
   readAt?: string | null;
   readBy?: string | null;
@@ -127,7 +152,8 @@ interface OrderMentionItem {
   createdAt: string;
 }
 
-const QUICK_EMOJIS = ['👍', '🔥', '✅', '❤️', '📦', '🚀', '⏳', '👏', '✨', '👌', '💎', '🎉'];
+const QUICK_REACTION_EMOJIS = ['❤️', '🔥', '👍', '👏', '😂', '🎉', '💎', '📦'];
+const EXTENDED_EMOJIS = ['👍', '🔥', '✅', '❤️', '📦', '🚀', '⏳', '👏', '✨', '👌', '💎', '🎉', '😂', '😍', '🙏', '💯'];
 
 // Preset definitions for executive default channels
 const CHANNEL_PRESETS: Record<string, {
@@ -136,7 +162,6 @@ const CHANNEL_PRESETS: Record<string, {
   color: string;
   badgeBg: string;
   badgeText: string;
-  glowColor: string;
   mission: string;
   pinnedAnnouncement: string;
 }> = {
@@ -146,9 +171,8 @@ const CHANNEL_PRESETS: Record<string, {
     color: 'amber',
     badgeBg: 'bg-amber-500/10 dark:bg-amber-500/20',
     badgeText: 'text-amber-700 dark:text-amber-400 border-amber-300/40 dark:border-amber-500/30',
-    glowColor: 'from-amber-500 to-yellow-600',
     mission: 'Coordination générale & vision Maison NAY Parfums',
-    pinnedAnnouncement: '📢 Note de Direction : Priorité absolue à l\'excellence du service client et au suivi en temps réel des commandes VIP. Pour toute décision stratégique, taguez @Nouamane ou liez directement le parfum concerné.',
+    pinnedAnnouncement: 'Note de Direction : Priorité absolue à l\'excellence du service client et au suivi en temps réel des commandes VIP. N\'hésitez pas à taguer vos associés (@) ou à lier directement un parfum (#).',
   },
   STOCK: {
     tag: 'INVENTAIRE',
@@ -156,9 +180,8 @@ const CHANNEL_PRESETS: Record<string, {
     color: 'emerald',
     badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
     badgeText: 'text-emerald-700 dark:text-emerald-400 border-emerald-300/40 dark:border-emerald-500/30',
-    glowColor: 'from-emerald-500 to-teal-600',
     mission: 'Suivi des niveaux de flacons, concentrés et packagings de luxe',
-    pinnedAnnouncement: '📦 Protocole Stock : Vérification biquotidienne des niveaux de flacons 50ml/100ml. Signalez immédiatement toute référence dont le stock physique passe sous le seuil d\'alerte.',
+    pinnedAnnouncement: 'Protocole Stock : Contrôle biquotidien des niveaux de flacons 50ml/100ml. Signalez immédiatement toute référence dont le stock passe sous le seuil d\'alerte.',
   },
   ORDERS: {
     tag: 'VIP SUIVI',
@@ -166,9 +189,8 @@ const CHANNEL_PRESETS: Record<string, {
     color: 'indigo',
     badgeBg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
     badgeText: 'text-indigo-700 dark:text-indigo-400 border-indigo-300/40 dark:border-indigo-500/30',
-    glowColor: 'from-indigo-500 to-blue-600',
-    mission: 'Surveillance des paniers à haute valeur et clients fidèles',
-    pinnedAnnouncement: '💎 Protocole VIP : Pour toute commande supérieure à 2 parfums (-10% automatique) ou montant > 800 MAD, joindre un vaporisateur testeur offert et vérifier les coordonnées avant expédition.',
+    mission: 'Surveillance des commandes prioritaires et clients fidèles',
+    pinnedAnnouncement: 'Protocole VIP : Dès 2 parfums achetés (-10% automatique) ou pour toute commande > 800 MAD, joindre systématiquement un flacon testeur 5ml de prestige.',
   },
   MARKETING: {
     tag: 'ACQUISITION',
@@ -176,9 +198,8 @@ const CHANNEL_PRESETS: Record<string, {
     color: 'purple',
     badgeBg: 'bg-purple-500/10 dark:bg-purple-500/20',
     badgeText: 'text-purple-700 dark:text-purple-400 border-purple-300/40 dark:border-purple-500/30',
-    glowColor: 'from-purple-500 to-pink-600',
     mission: 'Optimisation de l\'acquisition, campagnes Ads et ROAS',
-    pinnedAnnouncement: '🎯 Performance Ads : Offre Duo (-10% dès 2 parfums) active sur Meta et TikTok Ads. Surveiller les taux d\'abandon panier et les retours d\'audience quotidiens.',
+    pinnedAnnouncement: 'Performance Ads : Offre Duo (-10% dès 2 parfums) active sur Meta et TikTok Ads. Surveiller les taux de conversion et les retours clients quotidiens.',
   },
   LOGISTICS: {
     tag: 'LIVRAISONS',
@@ -186,9 +207,8 @@ const CHANNEL_PRESETS: Record<string, {
     color: 'sky',
     badgeBg: 'bg-sky-500/10 dark:bg-sky-500/20',
     badgeText: 'text-sky-700 dark:text-sky-400 border-sky-300/40 dark:border-sky-500/30',
-    glowColor: 'from-sky-500 to-cyan-600',
-    mission: 'Confirmations téléphoniques COD et suivi des coursiers express',
-    pinnedAnnouncement: '🚚 Procédure Enlèvements : Tous les colis validés avant 15h30 partent le jour même. Mentionnez impérativement le numéro de bordereau transporteur pour chaque client.',
+    mission: 'Confirmations téléphoniques COD et suivi des transporteurs express',
+    pinnedAnnouncement: 'Procédure Enlèvements : Tous les colis confirmés avant 15h30 sont expédiés le jour même. Mentionnez impérativement le numéro de bordereau dans le suivi.',
   },
 };
 
@@ -225,13 +245,50 @@ const QUICK_TEMPLATES = [
   },
 ];
 
+// ── ATTACHMENT PARSER HELPER ─────────────────────────────────────────
+function parseAttachments(raw: string | null | undefined): ChatAttachment[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item: any) => {
+      if (typeof item === 'string') {
+        const lower = item.toLowerCase();
+        let type: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF' = 'IMAGE';
+        if (lower.endsWith('.pdf') || item.startsWith('data:application/pdf')) type = 'PDF';
+        else if (lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.mov') || item.startsWith('data:video/')) type = 'VIDEO';
+        else if (lower.endsWith('.mp3') || lower.endsWith('.wav') || lower.endsWith('.ogg') || lower.endsWith('.m4a') || item.startsWith('data:audio/')) type = 'AUDIO';
+        return { 
+          url: item, 
+          type, 
+          name: type === 'PDF' ? 'Document_NAY.pdf' : type === 'AUDIO' ? 'Note_vocale.webm' : type === 'VIDEO' ? 'Vidéo.mp4' : 'Photo' 
+        };
+      }
+      return item as ChatAttachment;
+    });
+  } catch {
+    return [];
+  }
+}
+
+// ── REACTIONS PARSER HELPER ──────────────────────────────────────────
+function parseReactions(raw: string | null | undefined): ChatReaction[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function AdminTeamChatPage() {
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [contacts, setContacts] = useState<ConversationContact[]>([]);
   const [channels, setChannels] = useState<ConversationChannel[]>([]);
   const [allTeamMembers, setAllTeamMembers] = useState<AdminUser[]>([]);
   const [activeChatType, setActiveChatType] = useState<'CHANNEL' | 'DIRECT'>('CHANNEL');
-  const [activeId, setActiveId] = useState<string>('GENERAL'); // channel slug or contact ID
+  const [activeId, setActiveId] = useState<string>('GENERAL');
 
   // Messages State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -269,10 +326,19 @@ export default function AdminTeamChatPage() {
     query: string;
   }>({ type: null, query: '' });
 
-  // File Upload State
+  // ── ATTACHMENTS STATE (Audio, Video, PDF, Image) ────────────────────
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
-  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeUploadCategory, setActiveUploadCategory] = useState<'ALL' | 'PDF' | 'VIDEO' | 'AUDIO' | 'IMAGE'>('ALL');
+
+  // ── AUDIO VOICE NOTE RECORDING STATE ────────────────────────────────
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -357,6 +423,199 @@ export default function AdminTeamChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Clean up recording timer on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    };
+  }, []);
+
+  // ── VOICE RECORDER CONTROLS ──────────────────────────────────────────
+  const startAudioRecording = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('L\'enregistrement audio n\'est pas supporté par votre navigateur.');
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        stream.getTracks().forEach((track) => track.stop());
+
+        const audioFile = new File([audioBlob], `vocal_${Date.now()}.webm`, { type: 'audio/webm' });
+        await handleUploadFile(audioFile, 'AUDIO');
+      };
+
+      mediaRecorder.start();
+      setIsRecordingAudio(true);
+      setRecordingDuration(0);
+
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Microphone access denied:', err);
+      alert('Veuillez autoriser l\'accès au microphone pour enregistrer une note vocale.');
+    }
+  };
+
+  const stopAudioRecording = () => {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    if (mediaRecorderRef.current && isRecordingAudio) {
+      mediaRecorderRef.current.stop();
+      setIsRecordingAudio(false);
+    }
+  };
+
+  const cancelAudioRecording = () => {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    if (mediaRecorderRef.current && isRecordingAudio) {
+      mediaRecorderRef.current.onstop = null;
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream?.getTracks().forEach((t) => t.stop());
+      setIsRecordingAudio(false);
+      setRecordingDuration(0);
+    }
+  };
+
+  // ── FILE UPLOAD (PDF, Video, Audio, Photo) ───────────────────────────
+  const handleUploadFile = async (file: File, forceType?: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF') => {
+    setIsUploadingAttachment(true);
+    try {
+      let type: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF' = forceType || 'IMAGE';
+      const name = file.name.toLowerCase();
+      const mime = file.type.toLowerCase();
+
+      if (!forceType) {
+        if (mime.includes('pdf') || name.endsWith('.pdf')) {
+          type = 'PDF';
+        } else if (mime.startsWith('video/') || name.endsWith('.mp4') || name.endsWith('.webm') || name.endsWith('.mov')) {
+          type = 'VIDEO';
+        } else if (mime.startsWith('audio/') || name.endsWith('.mp3') || name.endsWith('.wav') || name.endsWith('.m4a') || name.endsWith('.ogg')) {
+          type = 'AUDIO';
+        } else {
+          type = 'IMAGE';
+        }
+      }
+
+      // 1. Try uploading to /api/admin/upload for a permanent URL
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          const newAtt: ChatAttachment = {
+            url: data.url,
+            type,
+            name: file.name,
+            size: file.size,
+            duration: type === 'AUDIO' ? recordingDuration || undefined : undefined,
+          };
+          setPendingAttachments((prev) => [...prev, newAtt]);
+          return;
+        }
+      }
+
+      // 2. Fallback to base64 DataURL if needed
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newAtt: ChatAttachment = {
+          url: e.target?.result as string,
+          type,
+          name: file.name,
+          size: file.size,
+          duration: type === 'AUDIO' ? recordingDuration || undefined : undefined,
+        };
+        setPendingAttachments((prev) => [...prev, newAtt]);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('File upload error:', err);
+    } finally {
+      setIsUploadingAttachment(false);
+      setRecordingDuration(0);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    handleUploadFile(file);
+    e.target.value = '';
+  };
+
+  const openFilePicker = (category: 'ALL' | 'PDF' | 'VIDEO' | 'AUDIO' | 'IMAGE') => {
+    setActiveUploadCategory(category);
+    if (!fileInputRef.current) return;
+
+    if (category === 'PDF') fileInputRef.current.accept = '.pdf,application/pdf';
+    else if (category === 'VIDEO') fileInputRef.current.accept = 'video/*,.mp4,.webm,.mov';
+    else if (category === 'AUDIO') fileInputRef.current.accept = 'audio/*,.mp3,.wav,.m4a,.ogg';
+    else if (category === 'IMAGE') fileInputRef.current.accept = 'image/*';
+    else fileInputRef.current.accept = 'image/*,video/*,audio/*,.pdf';
+
+    fileInputRef.current.click();
+  };
+
+  // ── TOGGLE EMOJI REACTION ───────────────────────────────────────────
+  const handleToggleReaction = async (messageId: string, emoji: string) => {
+    if (!currentUser) return;
+
+    // 1. Optimistic Update
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id !== messageId) return msg;
+        const current = parseReactions(msg.reactions);
+        const existingIdx = current.findIndex(
+          (r) => r.userId === currentUser.id && r.emoji === emoji
+        );
+        let updated: ChatReaction[];
+        if (existingIdx !== -1) {
+          updated = current.filter((_, i) => i !== existingIdx);
+        } else {
+          updated = [...current, { emoji, userId: currentUser.id, userName: currentUser.name }];
+        }
+        return {
+          ...msg,
+          reactions: JSON.stringify(updated),
+        };
+      })
+    );
+
+    // 2. Server PATCH Request
+    try {
+      await fetch('/api/admin/chat/messages', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, emoji }),
+      });
+    } catch (err) {
+      console.error('Failed to update reaction:', err);
+    }
+  };
+
   // Handle Input Changes & Mention Autocomplete Detection
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -420,13 +679,13 @@ export default function AdminTeamChatPage() {
   // Send Message
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if ((!messageInput.trim() && !attachmentPreview) || isSending) return;
+    if ((!messageInput.trim() && pendingAttachments.length === 0) || isSending) return;
 
     const textToSend = messageInput.trim();
-    const attachmentToSend = attachmentPreview;
+    const attachmentsToSend = [...pendingAttachments];
 
     setMessageInput('');
-    setAttachmentPreview(null);
+    setPendingAttachments([]);
     setShowEmojiPicker(false);
     setShowTemplatesMenu(false);
     setMentionMenu({ type: null, query: '' });
@@ -441,7 +700,8 @@ export default function AdminTeamChatPage() {
       recipientId: activeChatType === 'DIRECT' ? activeId : null,
       channel: activeChatType === 'DIRECT' ? 'DIRECT' : activeId,
       content: textToSend,
-      attachments: attachmentToSend ? JSON.stringify([attachmentToSend]) : null,
+      attachments: attachmentsToSend.length > 0 ? JSON.stringify(attachmentsToSend) : null,
+      reactions: '[]',
       isRead: false,
       createdAt: new Date().toISOString(),
     };
@@ -457,7 +717,7 @@ export default function AdminTeamChatPage() {
           content: textToSend,
           channel: activeChatType === 'DIRECT' ? 'DIRECT' : activeId,
           recipientId: activeChatType === 'DIRECT' ? activeId : null,
-          attachments: attachmentToSend ? [attachmentToSend] : undefined,
+          attachments: attachmentsToSend.length > 0 ? attachmentsToSend : undefined,
         }),
       });
 
@@ -541,7 +801,7 @@ export default function AdminTeamChatPage() {
 
   // Delete Group
   const handleDeleteGroup = async (dbId: string) => {
-    if (!confirm('Voulez-vous vraiment supprimer ce groupe de discussion ?')) return;
+    if (!confirm('Voulez-vous vraiment supprimer ce salon de discussion ?')) return;
 
     try {
       const res = await fetch(`/api/admin/chat/groups?id=${dbId}`, { method: 'DELETE' });
@@ -554,20 +814,6 @@ export default function AdminTeamChatPage() {
     } catch (err) {
       console.error('Failed to delete group:', err);
     }
-  };
-
-  // Handle Photo Upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploadingAttachment(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setAttachmentPreview(event.target?.result as string);
-      setIsUploadingAttachment(false);
-    };
-    reader.readAsDataURL(file);
   };
 
   // Copy Message to clipboard
@@ -618,7 +864,8 @@ export default function AdminTeamChatPage() {
 
       // 2. Chat type filter (ALL, MEDIA, PRODUCTS, ORDERS)
       if (chatFilter === 'MEDIA') {
-        return !!msg.attachments && msg.attachments !== '[]';
+        const atts = parseAttachments(msg.attachments);
+        return atts.length > 0;
       }
       if (chatFilter === 'PRODUCTS') {
         return msg.content.includes('#[product:');
@@ -660,7 +907,7 @@ export default function AdminTeamChatPage() {
       );
     }
 
-    // CHANNEL / GROUP CHAT
+    // Channel Read By Parsing
     let readers: Array<{ userId: string; userName: string; readAt?: string }> = [];
     try {
       if (msg.readBy) {
@@ -678,7 +925,7 @@ export default function AdminTeamChatPage() {
         return (
           <div
             className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 justify-end"
-            title="Message envoyé au groupe, en attente de lecture"
+            title="Message envoyé au salon"
           >
             <Check size={12} className="stroke-[2]" />
             <span>Envoyé</span>
@@ -695,61 +942,10 @@ export default function AdminTeamChatPage() {
       return (
         <div
           className="flex items-center gap-1 text-[10px] text-sky-600 dark:text-sky-400 font-semibold mt-0.5 justify-end group/read cursor-help relative"
-          title={`Lu par :\n${readers.map(r => `• ${r.userName} (${r.readAt ? new Date(r.readAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'récemment'})`).join('\n')}`}
-        >
-          <CheckCheck size={13} className="text-sky-500 dark:text-sky-400 stroke-[2.5]" />
-          <span>
-            Lu par : <strong className="font-bold text-sky-700 dark:text-sky-300">{displayText}</strong>
-          </span>
-
-          <div className="absolute right-0 bottom-full mb-1 hidden group-hover/read:flex flex-col gap-1 p-2.5 bg-slate-900 dark:bg-black text-white rounded-xl shadow-xl z-30 min-w-[200px] text-[10px] font-normal animate-in fade-in zoom-in-95 pointer-events-none border border-slate-800">
-            <div className="font-bold text-[10px] text-slate-300 border-b border-slate-800 pb-1 flex items-center justify-between">
-              <span>Membres ayant lu ({readers.length})</span>
-              <CheckCheck size={11} className="text-sky-400" />
-            </div>
-            {readers.map((r, i) => (
-              <div key={i} className="flex items-center justify-between gap-2 text-slate-200">
-                <span className="font-semibold text-white truncate max-w-[120px]">{r.userName}</span>
-                <span className="text-[9px] text-slate-400 font-mono">
-                  {r.readAt ? new Date(r.readAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Vu'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    if (readers.length > 0) {
-      const namesList = readers.map((r) => r.userName);
-      const displayText =
-        namesList.length <= 2
-          ? namesList.join(', ')
-          : `${namesList.slice(0, 2).join(', ')} +${namesList.length - 2}`;
-
-      return (
-        <div
-          className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 justify-start group/read cursor-help relative"
           title={`Lu par :\n${readers.map(r => `• ${r.userName}`).join('\n')}`}
         >
-          <CheckCheck size={12} className="text-sky-500" />
-          <span>
-            Lu par : <strong className="text-slate-600 dark:text-slate-300 font-semibold">{displayText}</strong>
-          </span>
-
-          <div className="absolute left-0 bottom-full mb-1 hidden group-hover/read:flex flex-col gap-1 p-2.5 bg-slate-900 dark:bg-black text-white rounded-xl shadow-xl z-30 min-w-[200px] text-[10px] font-normal animate-in fade-in zoom-in-95 pointer-events-none border border-slate-800">
-            <div className="font-bold text-[10px] text-slate-300 border-b border-slate-800 pb-1">
-              <span>Lu par ({readers.length})</span>
-            </div>
-            {readers.map((r, i) => (
-              <div key={i} className="flex items-center justify-between gap-2 text-slate-200">
-                <span className="font-semibold text-white truncate max-w-[120px]">{r.userName}</span>
-                <span className="text-[9px] text-slate-400 font-mono">
-                  {r.readAt ? new Date(r.readAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Vu'}
-                </span>
-              </div>
-            ))}
-          </div>
+          <CheckCheck size={13} className="text-sky-500 dark:text-sky-400 stroke-[2.5]" />
+          <span>Lu par : <strong className="font-bold text-sky-700 dark:text-sky-300">{displayText}</strong></span>
         </div>
       );
     }
@@ -760,30 +956,24 @@ export default function AdminTeamChatPage() {
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col font-sans text-slate-900 dark:text-slate-100 bg-white dark:bg-[#0c1017] rounded-3xl border border-slate-200/90 dark:border-neutral-800/80 shadow-md overflow-hidden animate-fadeIn">
       
-      {/* ── TOP LUXURY EXECUTIVE STATUS BAR ────────────────────────── */}
-      <div className="px-5 py-2.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 text-xs shrink-0 select-none">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-bold tracking-wider text-[11px] uppercase text-amber-300">
-              NAY HQ • Centre de Coordination Interne
-            </span>
-          </div>
-          <span className="hidden md:inline-block text-slate-400 text-[11px]">•</span>
-          <span className="hidden md:inline-flex items-center gap-1.5 text-slate-300 text-[11px]">
-            <Lock size={11} className="text-emerald-400" />
-            Chiffrement SSL Interne
+      {/* ── TOP SLIM LUXURY STATUS BAR ────────────────────────────── */}
+      <div className="px-5 py-2 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 text-xs shrink-0 select-none">
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-bold tracking-wider text-[11px] uppercase text-amber-300">
+            NAY Parfums • Hub Studio & Collaboration
+          </span>
+          <span className="hidden md:inline-block text-slate-500 text-[10px]">•</span>
+          <span className="hidden md:inline-flex items-center gap-1 text-slate-300 text-[11px]">
+            <Lock size={10} className="text-emerald-400" />
+            Canal Sécurisé Interne
           </span>
         </div>
 
-        <div className="flex items-center gap-4 text-[11px] text-slate-300">
+        <div className="flex items-center gap-3 text-[11px] text-slate-300">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span><strong>{onlineCount}</strong> associé(s) en ligne</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-1 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
-            <Sparkles size={11} className="text-amber-400" />
-            <span className="font-medium text-slate-200">Haute Parfumerie</span>
+            <span><strong>{onlineCount}</strong> en ligne</span>
           </div>
         </div>
       </div>
@@ -791,21 +981,21 @@ export default function AdminTeamChatPage() {
       <div className="flex-1 flex overflow-hidden">
         
         {/* ── 1. LEFT SIDEBAR: HUBS, SALONS & ASSOCIÉS ──────────────── */}
-        <aside className="w-80 sm:w-88 border-r border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-[#0e1420] flex flex-col shrink-0">
+        <aside className="w-80 sm:w-84 border-r border-slate-200/80 dark:border-neutral-800/80 bg-slate-50/70 dark:bg-[#0e1420] flex flex-col shrink-0">
           
           {/* Header & Quick Action */}
-          <div className="p-4 border-b border-slate-200/70 dark:border-neutral-800/70 space-y-3 bg-white dark:bg-[#0c1017]">
+          <div className="p-3.5 border-b border-slate-200/70 dark:border-neutral-800/70 space-y-2.5 bg-white dark:bg-[#0c1017]">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center font-bold shadow-xs">
-                  <Crown size={18} />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center font-bold shadow-xs">
+                  <Crown size={15} />
                 </div>
                 <div>
                   <h2 className="text-xs font-black text-slate-900 dark:text-white tracking-wider uppercase">
                     Salons & Équipe
                   </h2>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-                    {channels.length} canaux • {contacts.length + 1} collaborateurs
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {channels.length} canaux • {contacts.length + 1} associés
                   </p>
                 </div>
               </div>
@@ -816,36 +1006,36 @@ export default function AdminTeamChatPage() {
                   setSelectedMemberIds(allTeamMembers.map(u => u.id));
                   setShowCreateGroupModal(true);
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-black dark:hover:bg-slate-100 text-[11px] font-bold transition-all shadow-xs cursor-pointer"
-                title="Créer un groupe thématique"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-black dark:hover:bg-slate-100 text-[11px] font-bold transition-all shadow-xs cursor-pointer"
+                title="Créer un salon thématique"
               >
-                <Plus size={12} />
+                <Plus size={11} />
                 <span>Nouveau</span>
               </button>
             </div>
 
             {/* Search Input */}
             <div className="relative">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Rechercher salon, associé, fonction..."
+                placeholder="Rechercher salon, associé..."
                 value={searchContact}
                 onChange={(e) => setSearchContact(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 bg-slate-100/80 dark:bg-[#141b29] border border-slate-200/80 dark:border-neutral-700/80 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
+                className="w-full pl-8 pr-7 py-1.5 bg-slate-100/80 dark:bg-[#141b29] border border-slate-200/80 dark:border-neutral-700/80 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
               />
               {searchContact && (
                 <button
                   onClick={() => setSearchContact('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600"
                 >
-                  <X size={12} />
+                  <X size={11} />
                 </button>
               )}
             </div>
 
             {/* Filter Tabs (Tous / Salons / Directs) */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-[#141b29] rounded-xl text-[11px] font-bold">
+            <div className="flex items-center gap-1 p-0.5 bg-slate-100 dark:bg-[#141b29] rounded-xl text-[10px] font-bold">
               <button
                 onClick={() => setSidebarTab('ALL')}
                 className={`flex-1 py-1 rounded-lg transition-all ${
@@ -880,25 +1070,15 @@ export default function AdminTeamChatPage() {
           </div>
 
           {/* Navigation List */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-2.5 space-y-3 custom-scrollbar">
             
-            {/* 1.1 GROUPES & SALONS STRATÉGIQUES */}
+            {/* SALONS STRATÉGIQUES */}
             {(sidebarTab === 'ALL' || sidebarTab === 'CHANNELS') && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between px-2 mb-1.5">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    <Layers size={11} /> Salons Stratégiques ({filteredChannels.length})
+              <div className="space-y-1">
+                <div className="flex items-center justify-between px-2 mb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                    <Layers size={11} /> Salons Métier ({filteredChannels.length})
                   </span>
-                  <button
-                    onClick={() => {
-                      setSelectedMemberIds(allTeamMembers.map(u => u.id));
-                      setShowCreateGroupModal(true);
-                    }}
-                    className="text-slate-400 hover:text-slate-900 dark:hover:text-white p-0.5"
-                    title="Ajouter un salon"
-                  >
-                    <Plus size={13} />
-                  </button>
                 </div>
 
                 {filteredChannels.map((channel) => {
@@ -915,39 +1095,36 @@ export default function AdminTeamChatPage() {
                         setInChatSearchQuery('');
                         setShowInChatSearch(false);
                       }}
-                      className={`w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all cursor-pointer group ${
+                      className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-left transition-all cursor-pointer group ${
                         isActive
-                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md scale-[1.01]'
-                          : 'hover:bg-white dark:hover:bg-[#151c28] text-slate-700 dark:text-slate-300 hover:shadow-2xs'
+                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
+                          : 'hover:bg-white dark:hover:bg-[#151c28] text-slate-700 dark:text-slate-300'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        {/* Channel Emblem */}
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-transform group-hover:scale-105 ${
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-transform group-hover:scale-105 ${
                           isActive
                             ? 'bg-amber-400 text-slate-950 font-black'
                             : preset
                               ? `bg-slate-100 dark:bg-[#182234] text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-neutral-700/80`
                               : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                         }`}>
-                          <IconComp size={16} />
+                          <IconComp size={15} />
                         </div>
 
                         <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <p className={`text-xs font-bold truncate ${isActive ? 'text-white dark:text-slate-900' : 'text-slate-900 dark:text-white'}`}>
-                              {channel.name}
-                            </p>
-                          </div>
+                          <p className={`text-xs font-bold truncate ${isActive ? 'text-white dark:text-slate-900' : 'text-slate-900 dark:text-white'}`}>
+                            {channel.name}
+                          </p>
                           <p className={`text-[10px] truncate ${isActive ? 'text-slate-300 dark:text-slate-600' : 'text-slate-400 dark:text-slate-500'}`}>
                             {channel.description}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
                         {preset ? (
-                          <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border tracking-wider uppercase ${
+                          <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase tracking-wider ${
                             isActive
                               ? 'bg-white/20 text-white dark:bg-slate-900 dark:text-amber-300 border-transparent'
                               : `${preset.badgeBg} ${preset.badgeText}`
@@ -958,7 +1135,7 @@ export default function AdminTeamChatPage() {
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
                             isActive ? 'bg-white/20 text-white' : 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'
                           }`}>
-                            Groupe
+                            Pôle
                           </span>
                         )}
                       </div>
@@ -968,12 +1145,12 @@ export default function AdminTeamChatPage() {
               </div>
             )}
 
-            {/* 1.2 COLLABORATEURS DIRECTS (MESSAGERIE PRIVÉE) */}
+            {/* COLLABORATEURS DIRECTS */}
             {(sidebarTab === 'ALL' || sidebarTab === 'DIRECT') && (
-              <div className="space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-neutral-800/60">
-                <div className="px-2 mb-1.5">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    <UserPlus size={11} /> Associés & Équipe ({filteredContacts.length})
+              <div className="space-y-1 pt-2 border-t border-slate-200/60 dark:border-neutral-800/60">
+                <div className="px-2 mb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                    <UserPlus size={11} /> Associés ({filteredContacts.length})
                   </span>
                 </div>
 
@@ -990,15 +1167,15 @@ export default function AdminTeamChatPage() {
                         setInChatSearchQuery('');
                         setShowInChatSearch(false);
                       }}
-                      className={`w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all cursor-pointer ${
+                      className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-left transition-all cursor-pointer ${
                         isActive
-                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md scale-[1.01]'
-                          : 'hover:bg-white dark:hover:bg-[#151c28] text-slate-700 dark:text-slate-300 hover:shadow-2xs'
+                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
+                          : 'hover:bg-white dark:hover:bg-[#151c28] text-slate-700 dark:text-slate-300'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div className="relative shrink-0">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold ${
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                             isActive
                               ? 'bg-white/20 text-white dark:bg-slate-900 dark:text-white'
                               : 'bg-gradient-to-br from-sky-400 to-indigo-600 text-white shadow-2xs'
@@ -1009,7 +1186,7 @@ export default function AdminTeamChatPage() {
                               <span>{contact.name.slice(0, 2).toUpperCase()}</span>
                             )}
                           </div>
-                          <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 ${
+                          <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 ${
                             isActive ? 'border-slate-900 dark:border-white' : 'border-white dark:border-[#0c1017]'
                           } ${online ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`} />
                         </div>
@@ -1024,7 +1201,7 @@ export default function AdminTeamChatPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
                         {online && (
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                             isActive ? 'bg-emerald-400/20 text-emerald-300' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50'
@@ -1034,7 +1211,7 @@ export default function AdminTeamChatPage() {
                         )}
 
                         {(contact.unreadCount || 0) > 0 && (
-                          <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-xs animate-bounce">
+                          <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center shrink-0">
                             {contact.unreadCount}
                           </span>
                         )}
@@ -1051,11 +1228,10 @@ export default function AdminTeamChatPage() {
         {/* ── 2. MAIN ACTIVE CONVERSATION WINDOW ──────────────────────── */}
         <main className="flex-1 flex flex-col bg-white dark:bg-[#0c1017] overflow-hidden">
           
-          {/* 2.1 Top Luxury Chat Header */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-neutral-800/80 flex items-center justify-between bg-white dark:bg-[#0c1017] shadow-2xs z-10">
-            <div className="flex items-center gap-3.5 min-w-0">
-              {/* Channel / Contact Emblem */}
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 shadow-xs ${
+          {/* 2.1 Top Clean Chat Header */}
+          <div className="p-3.5 border-b border-slate-200/80 dark:border-neutral-800/80 flex items-center justify-between bg-white dark:bg-[#0c1017] shadow-2xs z-10">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 shadow-xs ${
                 activeChatType === 'CHANNEL'
                   ? currentPreset
                     ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-amber-300 border border-amber-500/30'
@@ -1063,7 +1239,7 @@ export default function AdminTeamChatPage() {
                   : 'bg-gradient-to-br from-indigo-600 to-sky-500 text-white'
               }`}>
                 {activeChatType === 'CHANNEL' ? (
-                  currentPreset?.icon ? <currentPreset.icon size={20} /> : <Hash size={20} />
+                  currentPreset?.icon ? <currentPreset.icon size={18} /> : <Hash size={18} />
                 ) : (
                   <span>{(activeContact?.name || '@').slice(0, 2).toUpperCase()}</span>
                 )}
@@ -1076,14 +1252,8 @@ export default function AdminTeamChatPage() {
                   </h3>
                   
                   {activeChatType === 'CHANNEL' && currentPreset && (
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border uppercase tracking-wider ${currentPreset.badgeBg} ${currentPreset.badgeText}`}>
+                    <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border uppercase tracking-wider ${currentPreset.badgeBg} ${currentPreset.badgeText}`}>
                       {currentPreset.tag}
-                    </span>
-                  )}
-
-                  {activeChatType === 'CHANNEL' && activeChannel?.memberCount && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                      {activeChannel.memberCount} membres
                     </span>
                   )}
                 </div>
@@ -1091,43 +1261,28 @@ export default function AdminTeamChatPage() {
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                   {activeChatType === 'CHANNEL' 
                     ? (currentPreset?.mission || activeChannel?.description)
-                    : (isUserOnline(activeContact?.lastActivityAt) ? '🟢 En ligne actuellement' : formatLastSeen(activeContact?.lastActivityAt).text)}
+                    : (isUserOnline(activeContact?.lastActivityAt) ? '🟢 En ligne' : formatLastSeen(activeContact?.lastActivityAt).text)}
                 </p>
               </div>
             </div>
 
             {/* Header Right Tools */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               
-              {/* Search Toggle in Active Chat */}
+              {/* Search Toggle */}
               <button
                 onClick={() => setShowInChatSearch(!showInChatSearch)}
                 className={`p-2 rounded-xl transition-all cursor-pointer ${
                   showInChatSearch || inChatSearchQuery
-                    ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold'
+                    ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'
                     : 'text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
-                title="Rechercher dans cette discussion"
+                title="Rechercher"
               >
-                <Search size={16} />
+                <Search size={15} />
               </button>
 
-              {/* Pinned Announcement Toggle */}
-              {activeChatType === 'CHANNEL' && currentPreset && (
-                <button
-                  onClick={() => setShowPinnedBanner(!showPinnedBanner)}
-                  className={`p-2 rounded-xl transition-all cursor-pointer ${
-                    showPinnedBanner
-                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400'
-                      : 'text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                  title="Afficher/Masquer la note de direction"
-                >
-                  <Pin size={16} />
-                </button>
-              )}
-
-              {/* Members Manager Modal Trigger */}
+              {/* Members Manager */}
               {activeChatType === 'CHANNEL' && (
                 <button
                   onClick={() => {
@@ -1140,10 +1295,10 @@ export default function AdminTeamChatPage() {
                     setSelectedMemberIds(currentMemberIds);
                     setShowManageMembersModal(true);
                   }}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer"
+                  className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer"
                 >
-                  <Users size={13} />
-                  <span>Membres ({activeChannel?.memberCount || activeChannel?.members?.length || 0})</span>
+                  <Users size={12} />
+                  <span>Membres</span>
                 </button>
               )}
 
@@ -1151,31 +1306,31 @@ export default function AdminTeamChatPage() {
               <button
                 onClick={() => fetchMessages(false)}
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Actualiser la conversation"
+                title="Actualiser"
               >
-                <RefreshCw size={15} className={isLoadingMessages ? 'animate-spin text-amber-500' : ''} />
+                <RefreshCw size={14} className={isLoadingMessages ? 'animate-spin text-amber-500' : ''} />
               </button>
             </div>
           </div>
 
-          {/* 2.2 Collapsible Search & Filter Bar inside Active Chat */}
+          {/* 2.2 Collapsible Search & Filter Bar */}
           {showInChatSearch && (
-            <div className="p-3 bg-slate-50 dark:bg-[#101726] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between gap-3 animate-fadeIn">
+            <div className="p-2.5 bg-slate-50 dark:bg-[#101726] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between gap-2.5 animate-fadeIn">
               <div className="flex-1 relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher des messages, mentions, mots clés..."
+                  placeholder="Rechercher messages, fichiers, notes..."
                   value={inChatSearchQuery}
                   onChange={(e) => setInChatSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-8 py-1.5 bg-white dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  className="w-full pl-8 pr-7 py-1.5 bg-white dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                 />
                 {inChatSearchQuery && (
                   <button
                     onClick={() => setInChatSearchQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600"
                   >
-                    <X size={12} />
+                    <X size={11} />
                   </button>
                 )}
               </div>
@@ -1184,27 +1339,27 @@ export default function AdminTeamChatPage() {
               <div className="flex items-center gap-1 text-[10px] font-bold">
                 <button
                   onClick={() => setChatFilter('ALL')}
-                  className={`px-2 py-1 rounded-lg transition-all ${chatFilter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-white dark:bg-slate-800 text-slate-600'}`}
+                  className={`px-2 py-1 rounded-lg transition-all ${chatFilter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
                 >
                   Tous
                 </button>
                 <button
+                  onClick={() => setChatFilter('MEDIA')}
+                  className={`px-2 py-1 rounded-lg transition-all ${chatFilter === 'MEDIA' ? 'bg-sky-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                >
+                  📎 Fichiers
+                </button>
+                <button
                   onClick={() => setChatFilter('PRODUCTS')}
-                  className={`px-2 py-1 rounded-lg transition-all ${chatFilter === 'PRODUCTS' ? 'bg-amber-500 text-white' : 'bg-white dark:bg-slate-800 text-slate-600'}`}
+                  className={`px-2 py-1 rounded-lg transition-all ${chatFilter === 'PRODUCTS' ? 'bg-amber-500 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
                 >
                   💎 Parfums
                 </button>
                 <button
                   onClick={() => setChatFilter('ORDERS')}
-                  className={`px-2 py-1 rounded-lg transition-all ${chatFilter === 'ORDERS' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600'}`}
+                  className={`px-2 py-1 rounded-lg transition-all ${chatFilter === 'ORDERS' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
                 >
                   📦 Commandes
-                </button>
-                <button
-                  onClick={() => setChatFilter('MEDIA')}
-                  className={`px-2 py-1 rounded-lg transition-all ${chatFilter === 'MEDIA' ? 'bg-sky-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600'}`}
-                >
-                  📷 Médias
                 </button>
               </div>
 
@@ -1214,210 +1369,128 @@ export default function AdminTeamChatPage() {
                   setInChatSearchQuery('');
                   setChatFilter('ALL');
                 }}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="p-1 text-slate-400 hover:text-slate-600"
               >
-                <X size={15} />
+                <X size={14} />
               </button>
             </div>
           )}
 
-          {/* 2.3 Pinned Executive Note / Channel Guidelines Banner */}
+          {/* 2.3 Pinned Note (Clean & Compact) */}
           {activeChatType === 'CHANNEL' && currentPreset && showPinnedBanner && (
-            <div className="px-4 py-2.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-500/15 dark:via-amber-500/5 border-b border-amber-200/60 dark:border-amber-500/20 flex items-center justify-between gap-3 text-xs animate-fadeIn">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
-                  <Pin size={13} />
-                </div>
-                <p className="text-[11px] font-medium text-slate-800 dark:text-slate-200 leading-relaxed truncate sm:whitespace-normal">
+            <div className="px-4 py-2 bg-amber-500/10 dark:bg-amber-500/15 border-b border-amber-300/40 dark:border-amber-500/20 flex items-center justify-between gap-3 text-xs animate-fadeIn">
+              <div className="flex items-center gap-2 min-w-0">
+                <Pin size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                <p className="text-[11px] font-medium text-amber-950 dark:text-amber-200 leading-normal truncate sm:whitespace-normal">
                   {currentPreset.pinnedAnnouncement}
                 </p>
               </div>
-
               <button
                 onClick={() => setShowPinnedBanner(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 shrink-0"
-                title="Masquer la note"
+                className="text-amber-700/60 dark:text-amber-400/60 hover:text-amber-900 p-0.5 shrink-0"
+                title="Masquer"
               >
-                <X size={13} />
+                <X size={12} />
               </button>
             </div>
           )}
 
-          {/* 2.4 Messages Stream & Luxury Showcase for Empty State */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-slate-50/50 dark:bg-[#0a0e17] custom-scrollbar">
+          {/* 2.4 Messages Stream & Simple Creative Empty State */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 bg-slate-50/50 dark:bg-[#0a0e17] custom-scrollbar">
             {isLoadingMessages && messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs gap-3">
-                <RefreshCw size={24} className="animate-spin text-amber-500" />
-                <span className="font-semibold text-slate-600 dark:text-slate-300">Synchronisation des messages du salon...</span>
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs gap-2">
+                <RefreshCw size={20} className="animate-spin text-amber-500" />
+                <span>Chargement du salon...</span>
               </div>
             ) : displayedMessages.length === 0 ? (
               
-              /* ── LUXURY SHOWCASE / EMPTY STATE HUB ── */
-              <div className="h-full flex flex-col items-center justify-center p-4 sm:p-8 max-w-2xl mx-auto animate-fadeIn">
-                <div className="w-full bg-white dark:bg-[#111827] rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-neutral-800 shadow-xl text-center space-y-6 relative overflow-hidden">
+              /* ── SIMPLE & CREATIVE SHOWCASE ── */
+              <div className="h-full flex flex-col items-center justify-center p-4 max-w-lg mx-auto animate-fadeIn">
+                <div className="w-full bg-white/80 dark:bg-[#111827]/80 backdrop-blur-md rounded-3xl p-6 border border-slate-200/80 dark:border-neutral-800 shadow-lg text-center space-y-4">
                   
-                  {/* Decorative glowing background */}
-                  <div className="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                  {/* Emblem */}
+                  {/* Creative Monogram Emblem */}
                   <div className="relative inline-block">
-                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-500 via-amber-600 to-yellow-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 mx-auto">
-                      {activeChatType === 'CHANNEL' ? (
-                        currentPreset?.icon ? <currentPreset.icon size={30} /> : <Crown size={30} />
-                      ) : (
-                        <Users size={30} />
-                      )}
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-500/20 mx-auto">
+                      <Sparkles size={24} />
                     </div>
-                    <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#111827] flex items-center justify-center text-[10px] text-white">
-                      ✓
-                    </span>
                   </div>
 
-                  {/* Title & Mission Statement */}
-                  <div className="space-y-2">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-300/40 dark:border-amber-500/30 text-[10px] font-extrabold uppercase tracking-widest">
-                      <Sparkles size={11} />
-                      {activeChatType === 'CHANNEL' ? (currentPreset?.tag || 'CANAL OFFICIEL') : 'CONVERSATION DIRECTE'}
-                    </div>
-
-                    <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-                      {activeChatType === 'CHANNEL' ? `Salon #${activeChannel?.name}` : `Échange avec ${activeContact?.name}`}
+                  {/* Title & Mission */}
+                  <div className="space-y-1">
+                    <h3 className="text-base font-black text-slate-900 dark:text-white">
+                      #{activeChatType === 'CHANNEL' ? activeChannel?.name : activeContact?.name}
                     </h3>
-
-                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                      {activeChatType === 'CHANNEL' 
-                        ? (currentPreset?.mission || activeChannel?.description)
-                        : `Canal privé de synchronisation et de décision avec ${activeContact?.jobTitle || activeContact?.role}.`}
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                      {activeChatType === 'CHANNEL' ? currentPreset?.mission : `Canal direct et partages privés`}
                     </p>
                   </div>
 
-                  {/* Trust & Security Badges */}
-                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-slate-100 dark:border-neutral-800">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80">
-                      <Lock size={10} className="text-emerald-500" />
-                      Chiffré SSL
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80">
-                      <Zap size={10} className="text-amber-500" />
-                      Temps Réel 4s
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80">
-                      <ShieldCheck size={10} className="text-sky-500" />
-                      Accès Restreint Admin
-                    </span>
-                  </div>
-
-                  {/* 4 Interactive Quick Action Starters */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left pt-2">
-                    
-                    {/* Starter 1: Share Perfume */}
+                  {/* 4 Creative Quick Action Chips */}
+                  <div className="grid grid-cols-2 gap-2 pt-2">
                     <button
                       onClick={() => {
-                        if (allProducts.length > 0) {
-                          insertProductMention(allProducts[0]);
-                        } else {
+                        if (allProducts.length > 0) insertProductMention(allProducts[0]);
+                        else {
                           setMessageInput('# ');
                           inputRef.current?.focus();
                         }
                       }}
-                      className="p-3 rounded-2xl border border-slate-200 dark:border-neutral-700 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all text-left cursor-pointer group"
+                      className="p-2.5 rounded-xl border border-slate-200 dark:border-neutral-700 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all text-left flex items-center gap-2 cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 mb-1">
-                        <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold">
-                          <Sparkles size={14} />
-                        </div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors">
-                          Fiche Parfum Express
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        Partager la fiche d&apos;un parfum vedette pour décision ou réassort.
-                      </p>
+                      <Sparkles size={14} className="text-amber-500" />
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 truncate">
+                        Fiche Parfum
+                      </span>
                     </button>
 
-                    {/* Starter 2: Link Order */}
                     <button
                       onClick={() => {
-                        if (allOrders.length > 0) {
-                          insertOrderMention(allOrders[0]);
-                        } else {
+                        if (allOrders.length > 0) insertOrderMention(allOrders[0]);
+                        else {
                           setMessageInput('$ ');
                           inputRef.current?.focus();
                         }
                       }}
-                      className="p-3 rounded-2xl border border-slate-200 dark:border-neutral-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition-all text-left cursor-pointer group"
+                      className="p-2.5 rounded-xl border border-slate-200 dark:border-neutral-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition-all text-left flex items-center gap-2 cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 mb-1">
-                        <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold">
-                          <ShoppingBag size={14} />
-                        </div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
-                          Lier une Commande VIP
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        Insérer la dernière commande passée pour validation ou suivi transporteur.
-                      </p>
+                      <ShoppingBag size={14} className="text-indigo-500" />
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 truncate">
+                        Commande VIP
+                      </span>
                     </button>
 
-                    {/* Starter 3: Official Announcement */}
                     <button
-                      onClick={() => {
-                        setMessageInput('📢 [ANNONCE NAY] : ');
-                        inputRef.current?.focus();
-                      }}
-                      className="p-3 rounded-2xl border border-slate-200 dark:border-neutral-700 hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all text-left cursor-pointer group"
+                      onClick={startAudioRecording}
+                      className="p-2.5 rounded-xl border border-slate-200 dark:border-neutral-700 hover:border-rose-400 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all text-left flex items-center gap-2 cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 mb-1">
-                        <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold">
-                          <Megaphone size={14} />
-                        </div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 transition-colors">
-                          Annonce Équipe
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        Diffuser une consigne ou un nouveau palier d&apos;objectifs à l&apos;équipe.
-                      </p>
+                      <Mic size={14} className="text-rose-500" />
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-rose-600 truncate">
+                        Note Vocale
+                      </span>
                     </button>
 
-                    {/* Starter 4: Daily Check-in */}
                     <button
-                      onClick={() => {
-                        setMessageInput('🎯 [POINT DU JOUR] : Commandes traitées =  | Expéditions =  | Objectif = ');
-                        inputRef.current?.focus();
-                      }}
-                      className="p-3 rounded-2xl border border-slate-200 dark:border-neutral-700 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all text-left cursor-pointer group"
+                      onClick={() => openFilePicker('PDF')}
+                      className="p-2.5 rounded-xl border border-slate-200 dark:border-neutral-700 hover:border-sky-400 hover:bg-sky-50/50 dark:hover:bg-sky-950/20 transition-all text-left flex items-center gap-2 cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 mb-1">
-                        <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold">
-                          <Zap size={14} />
-                        </div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
-                          Point Opérationnel
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        Partager le statut des expéditions et des conversions de la journée.
-                      </p>
+                      <FileText size={14} className="text-sky-500" />
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-sky-600 truncate">
+                        Document PDF
+                      </span>
                     </button>
-
                   </div>
                 </div>
               </div>
             ) : (
               
-              /* ── 2.5 MESSAGES FEED STREAM ── */
-              displayedMessages.map((msg, index) => {
+              /* ── MESSAGES FEED WITH AUDIOS, VIDEOS, PDFS, REACTIONS ── */
+              displayedMessages.map((msg) => {
                 const isMe = msg.senderId === currentUser?.id;
-                let attachmentsArr: string[] = [];
-                try {
-                  if (msg.attachments) attachmentsArr = JSON.parse(msg.attachments);
-                } catch {}
+                const attachments = parseAttachments(msg.attachments);
+                const reactions = parseReactions(msg.reactions);
 
                 return (
-                  <div key={msg.id} className={`flex gap-3 group/msg ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div key={msg.id} className={`flex gap-2.5 group/msg ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                     
                     {/* User Avatar */}
                     <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] flex items-center justify-center shrink-0 overflow-hidden border border-slate-300 dark:border-neutral-700 shadow-2xs">
@@ -1431,11 +1504,11 @@ export default function AdminTeamChatPage() {
                     {/* Message Bubble Column */}
                     <div className={`max-w-lg lg:max-w-xl space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
                       
-                      {/* Sender Meta Info */}
+                      {/* Sender Meta */}
                       <div className={`flex items-center gap-2 px-1 text-[11px] ${isMe ? 'justify-end' : 'justify-start'}`}>
                         <span className="font-bold text-slate-800 dark:text-slate-200">{msg.senderName}</span>
                         {isMe && (
-                          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded">
+                          <span className="text-[9px] font-extrabold uppercase px-1 py-0.2 bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded">
                             Moi
                           </span>
                         )}
@@ -1444,50 +1517,92 @@ export default function AdminTeamChatPage() {
                         </span>
                       </div>
 
-                      {/* Bubble Container */}
+                      {/* Bubble with Embedded Rich Content */}
                       <div className="relative group/bubble">
-                        <div className={`p-4 rounded-3xl text-xs leading-relaxed shadow-xs transition-all ${
+                        <div className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-xs transition-all ${
                           isMe 
                             ? 'bg-slate-900 dark:bg-slate-800 text-white rounded-tr-xs border border-slate-800 dark:border-slate-700' 
                             : 'bg-white dark:bg-[#151c28] text-slate-900 dark:text-slate-100 border border-slate-200/90 dark:border-neutral-700/80 rounded-tl-xs shadow-2xs'
                         }`}>
-                          <RenderMessageContent content={msg.content} isMe={isMe} />
+                          
+                          {/* Text Content */}
+                          {msg.content && <RenderMessageContent content={msg.content} isMe={isMe} />}
 
-                          {/* Image Attachments */}
-                          {attachmentsArr.length > 0 && (
-                            <div className="mt-3 grid grid-cols-1 gap-2">
-                              {attachmentsArr.map((url, i) => (
-                                <div key={i} className="rounded-2xl overflow-hidden border border-slate-200/80 dark:border-neutral-700 max-h-72 shadow-2xs">
-                                  <img src={url} alt="Pièce jointe" className="w-full h-full object-cover" />
-                                </div>
-                              ))}
+                          {/* ── ATTACHMENTS (Images, Videos, Audios, PDFs) ── */}
+                          {attachments.length > 0 && (
+                            <div className="mt-2.5 space-y-2">
+                              {attachments.map((att, i) => {
+                                if (att.type === 'AUDIO') {
+                                  return (
+                                    <ChatAudioPlayer
+                                      key={i}
+                                      src={att.url}
+                                      duration={att.duration}
+                                      isMe={isMe}
+                                    />
+                                  );
+                                }
+                                if (att.type === 'VIDEO') {
+                                  return (
+                                    <ChatVideoPlayer
+                                      key={i}
+                                      src={att.url}
+                                      name={att.name}
+                                    />
+                                  );
+                                }
+                                if (att.type === 'PDF') {
+                                  return (
+                                    <ChatPdfViewer
+                                      key={i}
+                                      url={att.url}
+                                      name={att.name}
+                                      size={att.size}
+                                      isMe={isMe}
+                                    />
+                                  );
+                                }
+                                // IMAGE
+                                return (
+                                  <div key={i} className="rounded-2xl overflow-hidden border border-slate-200/80 dark:border-neutral-700 max-h-72 shadow-2xs">
+                                    <img src={att.url} alt={att.name || 'Photo'} className="w-full h-full object-cover" />
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
 
-                        {/* Hover Quick Action Pill (Copy & Reaction) */}
-                        <div className={`absolute top-1/2 -translate-y-1/2 hidden group-hover/bubble:flex items-center gap-1 p-1 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-neutral-700 z-10 ${
+                        {/* Hover Emoji Reaction Bar */}
+                        <div className={`absolute top-1/2 -translate-y-1/2 hidden group-hover/bubble:flex items-center gap-0.5 p-1 bg-white dark:bg-slate-900 rounded-full shadow-xl border border-slate-200 dark:border-neutral-700 z-20 ${
                           isMe ? 'right-full mr-2' : 'left-full ml-2'
                         }`}>
+                          {QUICK_REACTION_EMOJIS.slice(0, 5).map((emoji) => (
+                            <button
+                              key={emoji}
+                              onClick={() => handleToggleReaction(msg.id, emoji)}
+                              className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition-transform hover:scale-125 cursor-pointer"
+                              title={`Réagir avec ${emoji}`}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
                           <button
                             onClick={() => handleCopyMessage(msg.id, msg.content)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-800 transition-colors"
                             title="Copier le texte"
                           >
-                            {copiedMessageId === msg.id ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setMessageInput((prev) => `${prev} 👍`);
-                              inputRef.current?.focus();
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-xs transition-transform hover:scale-110"
-                            title="Réagir 👍"
-                          >
-                            👍
+                            {copiedMessageId === msg.id ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
                           </button>
                         </div>
                       </div>
+
+                      {/* Displayed Emoji Reactions on Message */}
+                      <MessageReactionsRow
+                        reactions={reactions}
+                        currentUserId={currentUser?.id}
+                        onToggleReaction={(emoji) => handleToggleReaction(msg.id, emoji)}
+                      />
 
                       {/* Read Receipts */}
                       {renderReadReceipt(msg, isMe)}
@@ -1499,25 +1614,24 @@ export default function AdminTeamChatPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* ── 3. COMPOSER & MENTION AUTOCOMPLETE OVERLAY ────────────── */}
-          <div className="p-3.5 sm:p-4 border-t border-slate-200/90 dark:border-neutral-800/90 bg-white dark:bg-[#0c1017] relative">
+          {/* ── 3. RICH COMPOSER WITH AUDIO, VIDEO, PDF & TEMPLATES ───── */}
+          <div className="p-3 border-t border-slate-200/90 dark:border-neutral-800/90 bg-white dark:bg-[#0c1017] relative">
             
             {/* 3.1 Mention Autocomplete Dropdown */}
             {mentionMenu.type && (
-              <div className="absolute bottom-full left-4 right-4 mb-2 bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 overflow-hidden z-30 max-h-64 overflow-y-auto animate-in fade-in slide-in-from-bottom-2">
+              <div className="absolute bottom-full left-4 right-4 mb-2 bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 overflow-hidden z-30 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-bottom-2">
                 <div className="p-2.5 bg-slate-50 dark:bg-[#151c28] border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                  <span className="flex items-center gap-1.5">
+                  <span>
                     {mentionMenu.type === 'MEMBER' && '👥 Mentionner un Associé (@)'}
-                    {mentionMenu.type === 'PRODUCT' && '💎 Lier la fiche d\'un Parfum (#)'}
-                    {mentionMenu.type === 'ORDER' && '📦 Lier une Commande Boutique ($)'}
+                    {mentionMenu.type === 'PRODUCT' && '💎 Lier un Parfum (#)'}
+                    {mentionMenu.type === 'ORDER' && '📦 Lier une Commande ($)'}
                   </span>
                   <button onClick={() => setMentionMenu({ type: null, query: '' })} className="p-0.5 text-slate-400 hover:text-slate-600">
-                    <X size={13} />
+                    <X size={12} />
                   </button>
                 </div>
 
                 <div className="divide-y divide-slate-100 dark:divide-neutral-800">
-                  {/* Member Suggestions */}
                   {mentionMenu.type === 'MEMBER' && (
                     allTeamMembers
                       .filter(m => m.name.toLowerCase().includes(mentionMenu.query))
@@ -1541,11 +1655,10 @@ export default function AdminTeamChatPage() {
                       ))
                   )}
 
-                  {/* Product Suggestions */}
                   {mentionMenu.type === 'PRODUCT' && (
                     allProducts
                       .filter(p => p.name.toLowerCase().includes(mentionMenu.query) || p.brand.toLowerCase().includes(mentionMenu.query))
-                      .slice(0, 10)
+                      .slice(0, 8)
                       .map(p => (
                         <button
                           key={p.id}
@@ -1561,14 +1674,13 @@ export default function AdminTeamChatPage() {
                               <p className="text-[10px] text-slate-400">{p.brand} • <strong className="text-amber-600 dark:text-amber-400">{p.price} MAD</strong></p>
                             </div>
                           </div>
-                          <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-lg shrink-0 border border-amber-200/50">
+                          <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-lg border border-amber-200/50">
                             Insérer Fiche
                           </span>
                         </button>
                       ))
                   )}
 
-                  {/* Order Suggestions */}
                   {mentionMenu.type === 'ORDER' && (
                     allOrders
                       .filter(o => o.orderNumber.toLowerCase().includes(mentionMenu.query) || o.customerName.toLowerCase().includes(mentionMenu.query))
@@ -1581,10 +1693,10 @@ export default function AdminTeamChatPage() {
                         >
                           <div>
                             <p className="font-bold text-slate-900 dark:text-white">#{o.orderNumber} • {o.customerName}</p>
-                            <p className="text-[10px] text-slate-400">{o.shippingCity} • <strong className="text-indigo-600 dark:text-indigo-400">{o.total} MAD</strong> • Statut: {o.status}</p>
+                            <p className="text-[10px] text-slate-400">{o.shippingCity} • <strong className="text-indigo-600 dark:text-indigo-400">{o.total} MAD</strong></p>
                           </div>
-                          <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 rounded-lg border border-indigo-200/50">
-                            Lier Commande
+                          <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-lg border border-indigo-200/50">
+                            Lier
                           </span>
                         </button>
                       ))
@@ -1593,83 +1705,105 @@ export default function AdminTeamChatPage() {
               </div>
             )}
 
-            {/* 3.2 Quick Action Pills Toolbar */}
-            <div className="flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1 text-xs">
+            {/* 3.2 Action Toolbar */}
+            <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5 text-xs">
               
-              {/* @ Member */}
+              {/* @ Membre */}
               <button
                 type="button"
                 onClick={() => setMentionMenu({ type: 'MEMBER', query: '' })}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-all cursor-pointer"
               >
-                <AtSign size={12} className="text-sky-500" />
+                <AtSign size={11} className="text-sky-500" />
                 <span>Membre</span>
               </button>
 
-              {/* # Perfume */}
+              {/* 💎 Parfum */}
               <button
                 type="button"
                 onClick={() => setMentionMenu({ type: 'PRODUCT', query: '' })}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-[11px] border border-amber-300/40 dark:border-amber-500/30 transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-[11px] border border-amber-300/40 transition-all cursor-pointer"
               >
-                <Sparkles size={12} className="text-amber-500" />
-                <span>Parfum ({allProducts.length})</span>
+                <Sparkles size={11} className="text-amber-500" />
+                <span>Parfum</span>
               </button>
 
-              {/* $ Order */}
+              {/* 📦 Commande */}
               <button
                 type="button"
                 onClick={() => setMentionMenu({ type: 'ORDER', query: '' })}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold text-[11px] border border-indigo-200/60 dark:border-indigo-800/60 transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold text-[11px] border border-indigo-200/60 transition-all cursor-pointer"
               >
-                <ShoppingBag size={12} className="text-indigo-500" />
-                <span>Commande ({allOrders.length})</span>
+                <ShoppingBag size={11} className="text-indigo-500" />
+                <span>Commande</span>
               </button>
 
-              {/* Quick Template Popover Trigger */}
+              {/* 📄 PDF Document Upload */}
               <button
                 type="button"
-                onClick={() => setShowTemplatesMenu(!showTemplatesMenu)}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-all cursor-pointer shadow-2xs"
+                onClick={() => openFilePicker('PDF')}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-700 dark:text-rose-300 font-bold text-[11px] border border-rose-200/60 transition-all cursor-pointer"
+                title="Joindre un PDF"
               >
-                <Zap size={12} className="text-amber-500" />
-                <span>Modèles Rapides</span>
-                <ChevronDown size={11} />
+                <FileText size={11} className="text-rose-500" />
+                <span>PDF</span>
               </button>
 
-              {/* Quick Emoji Bar Trigger */}
+              {/* 🎬 Video Upload */}
               <button
                 type="button"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] transition-all cursor-pointer"
+                onClick={() => openFilePicker('VIDEO')}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 text-purple-700 dark:text-purple-300 font-bold text-[11px] border border-purple-200/60 transition-all cursor-pointer"
+                title="Joindre une vidéo"
               >
-                <Smile size={13} />
-                <span>Emoji</span>
+                <Film size={11} className="text-purple-500" />
+                <span>Vidéo</span>
               </button>
 
-              {/* Photo Upload Trigger */}
+              {/* 📷 Photo Upload */}
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] transition-all cursor-pointer"
+                onClick={() => openFilePicker('IMAGE')}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 text-[11px] transition-all cursor-pointer"
+                title="Joindre une photo"
               >
-                <Paperclip size={13} />
+                <Paperclip size={12} />
                 <span>Photo</span>
               </button>
 
+              {/* ⚡ Modèles Rapides */}
+              <button
+                type="button"
+                onClick={() => setShowTemplatesMenu(!showTemplatesMenu)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-all cursor-pointer"
+              >
+                <Zap size={11} className="text-amber-500" />
+                <span>Modèles</span>
+                <ChevronDown size={10} />
+              </button>
+
+              {/* 😊 Emojis */}
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 text-[11px] transition-all cursor-pointer"
+              >
+                <Smile size={12} />
+              </button>
+
+              {/* Hidden Unified File Input */}
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept="image/*"
+                onChange={handleFileInputChange}
                 className="hidden"
               />
             </div>
 
-            {/* 3.3 Quick Templates Dropdown Menu */}
+            {/* Quick Templates Menu */}
             {showTemplatesMenu && (
               <div className="absolute bottom-full left-4 mb-2 bg-white dark:bg-[#111827] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 p-2 z-30 w-80 space-y-1 animate-in fade-in zoom-in-95">
-                <div className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-neutral-800">
+                <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-neutral-800">
                   Modèles de Messages Officiels
                 </div>
                 {QUICK_TEMPLATES.map((tmpl, idx) => (
@@ -1695,10 +1829,10 @@ export default function AdminTeamChatPage() {
               </div>
             )}
 
-            {/* 3.4 Quick Emojis Bar */}
+            {/* Quick Emojis Bar */}
             {showEmojiPicker && (
               <div className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-50 dark:bg-[#131b2b] rounded-2xl mb-2 border border-slate-200 dark:border-neutral-700 animate-fadeIn">
-                {QUICK_EMOJIS.map((emoji) => (
+                {EXTENDED_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
                     onClick={() => {
@@ -1713,49 +1847,107 @@ export default function AdminTeamChatPage() {
               </div>
             )}
 
-            {/* 3.5 Attachment Preview Box */}
-            {attachmentPreview && (
-              <div className="relative inline-block mb-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-neutral-700">
-                <img src={attachmentPreview} alt="Preview" className="h-16 w-16 object-cover rounded-xl" />
-                <button
-                  onClick={() => setAttachmentPreview(null)}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-rose-600 transition-colors"
-                >
-                  <X size={13} />
-                </button>
+            {/* Pending Attachments Strip */}
+            {pendingAttachments.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-2 p-2 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-neutral-800 animate-fadeIn">
+                {pendingAttachments.map((att, idx) => (
+                  <div key={idx} className="relative flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-neutral-700 text-xs">
+                    {att.type === 'PDF' && <FileText size={14} className="text-rose-500" />}
+                    {att.type === 'VIDEO' && <Film size={14} className="text-purple-500" />}
+                    {att.type === 'AUDIO' && <Volume2 size={14} className="text-amber-500" />}
+                    {att.type === 'IMAGE' && <ImageIcon size={14} className="text-sky-500" />}
+                    
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 max-w-[120px] truncate">
+                      {att.name || att.type}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => setPendingAttachments(prev => prev.filter((_, i) => i !== idx))}
+                      className="ml-1 p-0.5 rounded-full text-slate-400 hover:text-rose-500"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* 3.6 Main Form Input & Send Button */}
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-              <div className="flex-1 relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder={
-                    activeChatType === 'CHANNEL'
-                      ? `Message dans #${activeChannel?.name || 'Canal'} (Tapez @ pour un membre, # pour un parfum)...`
-                      : `Message direct à ${activeContact?.name}...`
-                  }
-                  value={messageInput}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-[#141c2c] border border-slate-200 dark:border-neutral-700/80 rounded-2xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all shadow-inner"
-                />
-              </div>
+            {/* 3.3 Main Form Input OR Audio Recording State */}
+            {isRecordingAudio ? (
+              <div className="flex items-center justify-between p-2.5 bg-rose-500/10 border border-rose-300 dark:border-rose-500/30 rounded-2xl animate-fadeIn">
+                <div className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full bg-rose-500 animate-ping" />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                      Enregistrement vocal en cours...
+                    </span>
+                    <span className="text-xs font-mono font-extrabold text-slate-900 dark:text-white px-2 py-0.5 bg-white dark:bg-slate-800 rounded-lg shadow-2xs">
+                      {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+                    </span>
+                  </div>
+                </div>
 
-              <button
-                type="submit"
-                disabled={(!messageInput.trim() && !attachmentPreview) || isSending}
-                className="px-5 py-3 rounded-2xl bg-slate-900 hover:bg-black dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md flex items-center gap-2 cursor-pointer shrink-0"
-              >
-                {isSending ? (
-                  <RefreshCw size={14} className="animate-spin" />
-                ) : (
-                  <Send size={14} />
-                )}
-                <span className="hidden sm:inline">Envoyer</span>
-              </button>
-            </form>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={cancelAudioRecording}
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-xs"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stopAudioRecording}
+                    className="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Check size={13} />
+                    <span>Terminer & Joindre</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                <div className="flex-1 relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder={
+                      activeChatType === 'CHANNEL'
+                        ? `Message dans #${activeChannel?.name || 'Canal'} (Tapez @ pour un membre, # pour un parfum)...`
+                        : `Message direct à ${activeContact?.name}...`
+                    }
+                    value={messageInput}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-[#141c2c] border border-slate-200 dark:border-neutral-700/80 rounded-2xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all shadow-inner"
+                  />
+                </div>
+
+                {/* Voice Record Mic Trigger */}
+                <button
+                  type="button"
+                  onClick={startAudioRecording}
+                  className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 dark:text-slate-300 hover:text-rose-600 transition-colors shadow-2xs cursor-pointer shrink-0"
+                  title="Enregistrer un vocal"
+                >
+                  <Mic size={16} />
+                </button>
+
+                {/* Send Button */}
+                <button
+                  type="submit"
+                  disabled={(!messageInput.trim() && pendingAttachments.length === 0) || isSending}
+                  className="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-black dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  {isSending ? (
+                    <RefreshCw size={13} className="animate-spin" />
+                  ) : (
+                    <Send size={13} />
+                  )}
+                  <span className="hidden sm:inline">Envoyer</span>
+                </button>
+              </form>
+            )}
 
           </div>
 
@@ -1766,32 +1958,32 @@ export default function AdminTeamChatPage() {
       {/* ── 4. CREATE GROUP MODAL ────────────────────────────────────── */}
       {showCreateGroupModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-slate-100 dark:border-neutral-800 space-y-5 animate-in zoom-in-95">
+          <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-slate-100 dark:border-neutral-800 space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold">
-                  <Crown size={18} />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold">
+                  <Crown size={16} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Créer un Nouveau Salon Équipe</h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Rassemblez les associés autour d&apos;une mission précise</p>
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Créer un Nouveau Salon</h3>
+                  <p className="text-[11px] text-slate-500">Rassemblez l&apos;équipe autour d&apos;une mission</p>
                 </div>
               </div>
-              <button onClick={() => setShowCreateGroupModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
-                <X size={16} />
+              <button onClick={() => setShowCreateGroupModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+                <X size={15} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateGroup} className="space-y-4">
+            <form onSubmit={handleCreateGroup} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nom du Salon *</label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Équipe Influenceurs & RP, Suivi Frais..."
+                  placeholder="Ex: Équipe Influenceurs & RP..."
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                 />
               </div>
 
@@ -1799,19 +1991,18 @@ export default function AdminTeamChatPage() {
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Objectif & Consignes</label>
                 <input
                   type="text"
-                  placeholder="Ex: Coordination des campagnes influenceurs et suivi des envois coffrets"
+                  placeholder="Ex: Suivi des créatifs et validations"
                   value={newGroupDesc}
                   onChange={(e) => setNewGroupDesc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#161f30] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                 />
               </div>
 
-              {/* Members Selection Checklist */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Membres autorisés ({selectedMemberIds.length}/{allTeamMembers.length})
                 </label>
-                <div className="max-h-44 overflow-y-auto p-2 bg-slate-50 dark:bg-[#161f30] rounded-2xl border border-slate-200 dark:border-neutral-700 space-y-1.5 custom-scrollbar">
+                <div className="max-h-40 overflow-y-auto p-2 bg-slate-50 dark:bg-[#161f30] rounded-2xl border border-slate-200 dark:border-neutral-700 space-y-1.5 custom-scrollbar">
                   {allTeamMembers.map((member) => {
                     const isSelected = selectedMemberIds.includes(member.id);
                     return (
@@ -1827,23 +2018,17 @@ export default function AdminTeamChatPage() {
                         className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${
                           isSelected 
                             ? 'bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-500/40' 
-                            : 'bg-white dark:bg-[#1a2336] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-neutral-700/60'
+                            : 'bg-white dark:bg-[#1a2336] hover:bg-slate-100 border border-slate-200/60 dark:border-neutral-700/60'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center">
                             {member.name.slice(0, 2).toUpperCase()}
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
-                            <p className="text-[10px] text-slate-400">{member.jobTitle || member.role}</p>
-                          </div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
                         </div>
-
-                        <div className={`w-5 h-5 rounded-lg flex items-center justify-center ${
-                          isSelected ? 'bg-amber-500 text-white' : 'border border-slate-300 dark:border-neutral-600'
-                        }`}>
-                          {isSelected && <Check size={12} />}
+                        <div className={`w-4 h-4 rounded flex items-center justify-center ${isSelected ? 'bg-amber-500 text-white' : 'border border-slate-300'}`}>
+                          {isSelected && <Check size={10} />}
                         </div>
                       </div>
                     );
@@ -1855,16 +2040,16 @@ export default function AdminTeamChatPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateGroupModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={!newGroupName.trim() || isSavingGroup}
-                  className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-black dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 text-xs font-bold transition-all shadow-xs disabled:opacity-40"
+                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition-all disabled:opacity-40"
                 >
-                  {isSavingGroup ? 'Création...' : 'Créer le Salon'}
+                  {isSavingGroup ? 'Création...' : 'Créer'}
                 </button>
               </div>
             </form>
@@ -1875,18 +2060,16 @@ export default function AdminTeamChatPage() {
       {/* ── 5. MANAGE GROUP MEMBERS MODAL ──────────────────────────── */}
       {showManageMembersModal && activeChannel && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-slate-100 dark:border-neutral-800 space-y-5 animate-in zoom-in-95">
+          <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-slate-100 dark:border-neutral-800 space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
                   Membres du salon : #{activeChannel.name}
                 </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Gérer les accès des associés à cette discussion
-                </p>
+                <p className="text-[11px] text-slate-500">Gérer les accès des associés</p>
               </div>
-              <button onClick={() => setShowManageMembersModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
-                <X size={16} />
+              <button onClick={() => setShowManageMembersModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+                <X size={15} />
               </button>
             </div>
 
@@ -1895,7 +2078,7 @@ export default function AdminTeamChatPage() {
                 Membres actifs ({selectedMemberIds.length} autorisés)
               </label>
 
-              <div className="max-h-56 overflow-y-auto p-2 bg-slate-50 dark:bg-[#161f30] rounded-2xl border border-slate-200 dark:border-neutral-700 space-y-1.5 custom-scrollbar">
+              <div className="max-h-52 overflow-y-auto p-2 bg-slate-50 dark:bg-[#161f30] rounded-2xl border border-slate-200 dark:border-neutral-700 space-y-1.5 custom-scrollbar">
                 {allTeamMembers.map((member) => {
                   const isSelected = selectedMemberIds.includes(member.id);
                   return (
@@ -1911,23 +2094,18 @@ export default function AdminTeamChatPage() {
                       className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${
                         isSelected 
                           ? 'bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-500/40' 
-                          : 'bg-white dark:bg-[#1a2336] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-neutral-700/60'
+                          : 'bg-white dark:bg-[#1a2336] hover:bg-slate-100 border border-slate-200/60 dark:border-neutral-700/60'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center">
                           {member.name.slice(0, 2).toUpperCase()}
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
-                          <p className="text-[10px] text-slate-400">{member.jobTitle || member.role}</p>
-                        </div>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
                       </div>
 
-                      <div className={`w-5 h-5 rounded-lg flex items-center justify-center ${
-                        isSelected ? 'bg-amber-500 text-white' : 'border border-slate-300 dark:border-neutral-600'
-                      }`}>
-                        {isSelected && <Check size={12} />}
+                      <div className={`w-4 h-4 rounded flex items-center justify-center ${isSelected ? 'bg-amber-500 text-white' : 'border border-slate-300'}`}>
+                        {isSelected && <Check size={10} />}
                       </div>
                     </div>
                   );
@@ -1939,10 +2117,10 @@ export default function AdminTeamChatPage() {
               {!activeChannel.isDefault && activeChannel.dbId ? (
                 <button
                   onClick={() => handleDeleteGroup(activeChannel.dbId!)}
-                  className="px-3 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <Trash2 size={13} />
-                  <span>Supprimer le salon</span>
+                  <Trash2 size={12} />
+                  <span>Supprimer</span>
                 </button>
               ) : <div />}
 
@@ -1950,7 +2128,7 @@ export default function AdminTeamChatPage() {
                 <button
                   type="button"
                   onClick={() => setShowManageMembersModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
                 >
                   Fermer
                 </button>
@@ -1958,9 +2136,9 @@ export default function AdminTeamChatPage() {
                   type="button"
                   onClick={handleUpdateGroupMembers}
                   disabled={isSavingGroup}
-                  className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-black dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 text-xs font-bold transition-all shadow-xs"
+                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition-all shadow-xs"
                 >
-                  {isSavingGroup ? 'Enregistrement...' : 'Enregistrer les Accès'}
+                  {isSavingGroup ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
               </div>
             </div>
@@ -1972,6 +2150,228 @@ export default function AdminTeamChatPage() {
   );
 }
 
+// ── CUSTOM LUXURY AUDIO VOICE NOTE PLAYER ────────────────────────────
+function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: number; isMe: boolean }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [totalDuration, setTotalDuration] = useState(duration || 0);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio(src);
+    audioRef.current = audio;
+
+    audio.onloadedmetadata = () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setTotalDuration(Math.round(audio.duration));
+      }
+    };
+
+    audio.ontimeupdate = () => {
+      setCurrentTime(Math.round(audio.currentTime));
+    };
+
+    audio.onended = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+
+    return () => {
+      audio.pause();
+      audio.src = '';
+    };
+  }, [src]);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  };
+
+  const cyclePlaybackRate = () => {
+    if (!audioRef.current) return;
+    const nextRate = playbackRate === 1 ? 1.5 : playbackRate === 1.5 ? 2 : 1;
+    audioRef.current.playbackRate = nextRate;
+    setPlaybackRate(nextRate);
+  };
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  const progressPct = totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0;
+
+  return (
+    <div className={`p-3 rounded-2xl flex items-center gap-3 my-2 max-w-sm ${
+      isMe ? 'bg-white/10 text-white' : 'bg-slate-100 dark:bg-[#182234] text-slate-900 dark:text-white'
+    }`}>
+      <button
+        onClick={togglePlay}
+        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-transform hover:scale-105 cursor-pointer ${
+          isMe ? 'bg-amber-400 text-slate-950 font-bold' : 'bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950'
+        }`}
+      >
+        {isPlaying ? <Pause size={15} /> : <Play size={15} className="ml-0.5" />}
+      </button>
+
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex items-center gap-1 h-5 overflow-hidden">
+          {[40, 75, 55, 90, 60, 85, 45, 95, 70, 50, 80, 65, 90, 75, 40, 85, 60, 95, 55, 70].map((h, i) => {
+            const barProgress = (i / 20) * 100;
+            const isFilled = progressPct >= barProgress;
+            return (
+              <span
+                key={i}
+                style={{ height: `${h}%` }}
+                className={`w-1 rounded-full transition-all ${
+                  isFilled
+                    ? isMe ? 'bg-amber-400' : 'bg-amber-500 dark:bg-amber-400'
+                    : isMe ? 'bg-white/20' : 'bg-slate-300 dark:bg-slate-700'
+                } ${isPlaying ? 'animate-pulse' : ''}`}
+              />
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(totalDuration)}</span>
+        </div>
+      </div>
+
+      <button
+        onClick={cyclePlaybackRate}
+        className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
+          isMe ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-neutral-700 text-slate-700 dark:text-slate-300'
+        }`}
+        title="Vitesse de lecture"
+      >
+        {playbackRate}x
+      </button>
+    </div>
+  );
+}
+
+// ── CUSTOM VIDEO PLAYER ──────────────────────────────────────────────
+function ChatVideoPlayer({ src, name }: { src: string; name?: string }) {
+  return (
+    <div className="my-2 rounded-2xl overflow-hidden border border-slate-200/90 dark:border-neutral-700 bg-black shadow-sm max-w-md">
+      <video
+        src={src}
+        controls
+        playsInline
+        className="w-full max-h-80 object-contain rounded-2xl bg-black"
+      />
+      {name && (
+        <div className="p-2 bg-slate-900/90 text-white text-[11px] flex items-center gap-1.5 truncate">
+          <Film size={13} className="text-amber-400 shrink-0" />
+          <span className="truncate">{name}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── CUSTOM PDF VIEWER / DOWNLOAD CARD ────────────────────────────────
+function ChatPdfViewer({ url, name, size, isMe }: { url: string; name?: string; size?: number; isMe: boolean }) {
+  const formattedSize = size ? (size > 1024 * 1024 ? `${(size / (1024 * 1024)).toFixed(1)} Mo` : `${Math.round(size / 1024)} Ko`) : '';
+
+  return (
+    <div className={`my-2 p-3 rounded-2xl border flex items-center justify-between gap-3 text-xs max-w-md shadow-2xs ${
+      isMe
+        ? 'bg-white/10 border-white/20 text-white'
+        : 'bg-white dark:bg-[#161f30] border-slate-200 dark:border-neutral-700 text-slate-900 dark:text-white'
+    }`}>
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-300/40 flex items-center justify-center font-bold shrink-0">
+          <FileText size={18} />
+        </div>
+        <div className="min-w-0">
+          <p className="font-bold text-xs truncate">{name || 'Document_NAY.pdf'}</p>
+          <div className="flex items-center gap-2 text-[10px] text-slate-400">
+            <span className="font-bold text-rose-500">PDF</span>
+            {formattedSize && <span>• {formattedSize}</span>}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1.5 shrink-0">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] shadow-2xs transition-transform hover:scale-105"
+        >
+          <Eye size={12} />
+          <span>Aperçu</span>
+        </a>
+        <a
+          href={url}
+          download={name || 'document.pdf'}
+          className={`p-1.5 rounded-xl border transition-colors ${
+            isMe ? 'border-white/20 hover:bg-white/10 text-white' : 'border-slate-200 dark:border-neutral-700 hover:bg-slate-100 text-slate-600 dark:text-slate-300'
+          }`}
+          title="Télécharger"
+        >
+          <Download size={13} />
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ── MESSAGE REACTIONS ROW ────────────────────────────────────────────
+function MessageReactionsRow({
+  reactions,
+  currentUserId,
+  onToggleReaction,
+}: {
+  reactions: ChatReaction[];
+  currentUserId?: string;
+  onToggleReaction: (emoji: string) => void;
+}) {
+  if (reactions.length === 0) return null;
+
+  const grouped: Record<string, { count: number; users: string[]; hasReacted: boolean }> = {};
+  reactions.forEach((r) => {
+    if (!grouped[r.emoji]) {
+      grouped[r.emoji] = { count: 0, users: [], hasReacted: false };
+    }
+    grouped[r.emoji].count += 1;
+    grouped[r.emoji].users.push(r.userName);
+    if (r.userId === currentUserId) {
+      grouped[r.emoji].hasReacted = true;
+    }
+  });
+
+  return (
+    <div className="flex flex-wrap items-center gap-1 mt-1">
+      {Object.entries(grouped).map(([emoji, data]) => (
+        <button
+          key={emoji}
+          onClick={() => onToggleReaction(emoji)}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border transition-all hover:scale-105 cursor-pointer ${
+            data.hasReacted
+              ? 'bg-amber-100 dark:bg-amber-950/70 border-amber-400 text-amber-900 dark:text-amber-200 shadow-2xs'
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+          }`}
+          title={`Réactions : ${data.users.join(', ')}`}
+        >
+          <span>{emoji}</span>
+          <span className="text-[10px]">{data.count}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── RICH MESSAGE CONTENT PARSER & RENDERER ──────────────────────────
 function RenderMessageContent({ content, isMe }: { content: string; isMe: boolean }) {
   if (!content) return null;
@@ -1979,11 +2379,11 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
   const tokens = content.split(/(#\[product:[^\]]+\]|#\[order:[^\]]+\]|@[a-zA-Z0-9_\u00C0-\u017F]+)/g);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <div className="whitespace-pre-wrap leading-relaxed">
         {tokens.map((token, idx) => {
           
-          // 1. PRODUCT CARD TOKEN
+          // PRODUCT CARD TOKEN
           if (token.startsWith('#[product:')) {
             const match = token.match(/#\[product:(\d+):([^:]+):([^:]+):([^:]+):([^\]]+)\]/);
             if (match) {
@@ -1991,11 +2391,11 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
               return (
                 <div 
                   key={idx} 
-                  className="my-2.5 p-3 rounded-2xl bg-white dark:bg-[#141d2c] border border-amber-300/60 dark:border-amber-500/40 shadow-sm flex items-center justify-between gap-3 text-slate-900 dark:text-white"
+                  className="my-2 p-2.5 rounded-2xl bg-white dark:bg-[#141d2c] border border-amber-300/60 dark:border-amber-500/40 shadow-xs flex items-center justify-between gap-3 text-slate-900 dark:text-white"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300/40 flex items-center justify-center font-bold shrink-0">
-                      <Sparkles size={18} />
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300/40 flex items-center justify-center font-bold shrink-0">
+                      <Sparkles size={16} />
                     </div>
                     <div className="min-w-0">
                       <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{name}</p>
@@ -2008,9 +2408,9 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
                   <Link
                     href={`/products/${slug}`}
                     target="_blank"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-[10px] shrink-0 shadow-xs transition-transform hover:scale-105"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-[10px] shrink-0 shadow-xs transition-transform hover:scale-105"
                   >
-                    <span>Fiche Produit</span>
+                    <span>Fiche</span>
                     <ArrowUpRight size={11} />
                   </Link>
                 </div>
@@ -2018,7 +2418,7 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
             }
           }
 
-          // 2. ORDER CARD TOKEN
+          // ORDER CARD TOKEN
           if (token.startsWith('#[order:')) {
             const match = token.match(/#\[order:([^:]+):([^:]+):([^:]+):([^:]+):([^\]]+)\]/);
             if (match) {
@@ -2026,38 +2426,38 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
               return (
                 <div 
                   key={idx} 
-                  className="my-2.5 p-3 rounded-2xl bg-white dark:bg-[#141d2c] border border-indigo-300/60 dark:border-indigo-500/40 shadow-sm flex items-center justify-between gap-3 text-slate-900 dark:text-white"
+                  className="my-2 p-2.5 rounded-2xl bg-white dark:bg-[#141d2c] border border-indigo-300/60 dark:border-indigo-500/40 shadow-xs flex items-center justify-between gap-3 text-slate-900 dark:text-white"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-300/40 flex items-center justify-center font-bold shrink-0">
-                      <ShoppingBag size={18} />
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-300/40 flex items-center justify-center font-bold shrink-0">
+                      <ShoppingBag size={16} />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">Commande #{number}</p>
+                        <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">#{number}</p>
                         <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
                           {status}
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        Client : {client} • <strong className="text-slate-900 dark:text-white font-bold">{total} MAD</strong>
+                        {client} • <strong className="text-slate-900 dark:text-white font-bold">{total} MAD</strong>
                       </p>
                     </div>
                   </div>
                   
                   <Link
                     href={`/admin/orders?highlight=${id}&orderNumber=${encodeURIComponent(number)}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] shrink-0 shadow-xs transition-transform hover:scale-105"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] shrink-0 shadow-xs transition-transform hover:scale-105"
                   >
                     <span>Gérer</span>
-                    <ChevronRight size={12} />
+                    <ChevronRight size={11} />
                   </Link>
                 </div>
               );
             }
           }
 
-          // 3. MEMBER MENTION TOKEN
+          // MEMBER MENTION TOKEN
           if (token.startsWith('@')) {
             const clean = token.slice(1).replace(/_/g, ' ');
             return (
