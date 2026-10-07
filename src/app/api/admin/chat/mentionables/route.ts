@@ -25,7 +25,7 @@ export async function GET(request: Request) {
           images: true,
         },
         orderBy: { name: 'asc' },
-        take: 200,
+        take: 500,
       }),
       prisma.order.findMany({
         select: {
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
           createdAt: true,
         },
         orderBy: { createdAt: 'desc' },
-        take: 30,
+        take: 100,
       }),
     ]);
 
