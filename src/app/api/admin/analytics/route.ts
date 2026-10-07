@@ -214,6 +214,7 @@ export async function GET(request: Request) {
       activeVisitorsCount,
       recentPageViewsWithVisitor,
       liveCartSessions,
+      recentEnteringVisitors,
       productPageViews,
       cartPageViews,
       checkoutPageViews,
@@ -261,7 +262,23 @@ export async function GET(request: Request) {
           totalValue: { gt: 0 },
         },
         orderBy: { lastActivity: 'desc' },
-        take: 15,
+        take: 20,
+      }),
+      prisma.visitor.findMany({
+        where: {
+          OR: [
+            { lastSeen: { gte: start, lte: end } },
+            { createdAt: { gte: start, lte: end } },
+          ],
+        },
+        orderBy: { lastSeen: 'desc' },
+        take: 120,
+        include: {
+          visits: {
+            orderBy: { createdAt: 'desc' },
+            take: 25,
+          },
+        },
       }),
       prisma.pageView.findMany({
         where: {
@@ -790,6 +807,201 @@ export async function GET(request: Request) {
       };
     });
 
+    // ── 9. ALL ENTERING CLIENTS & REAL-TIME VISITOR SESSIONS ────────────────
+    let finalVisitors = [...recentEnteringVisitors];
+    if (finalVisitors.length < 20) {
+      try {
+        const fallback = await prisma.visitor.findMany({
+          orderBy: { lastSeen: 'desc' },
+          take: 80,
+          include: {
+            visits: {
+              orderBy: { createdAt: 'desc' },
+              take: 25,
+            },
+          },
+        });
+        const existingIds = new Set(finalVisitors.map((v) => v.id));
+        for (const fb of fallback) {
+          if (!existingIds.has(fb.id)) {
+            finalVisitors.push(fb);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const detailedVisitorSessions = finalVisitors.slice(0, 120).map((v) => {
+      const visitsDesc = v.visits || [];
+      const visitsAsc = [...visitsDesc].reverse(); // chronological order
+      const firstVisit = visitsAsc[0];
+      const latestVisit = visitsDesc[0];
+
+      const cleanCity = normalizeCity(v.city);
+      const isMorocco = (v.country || 'MA').toUpperCase() === 'MA' || (v.country || '').toLowerCase() === 'morocco';
+
+      const rawRef = firstVisit?.referrer || latestVisit?.referrer || 'Direct';
+      const cleanRefLower = rawRef.toLowerCase();
+      let sourceCategory = 'Accès Direct';
+      let sourceLabel = rawRef;
+      if (cleanRefLower.includes('google')) {
+        sourceLabel = 'Google (SEO & Shopping)';
+        sourceCategory = 'Moteur de Recherche';
+      } else if (cleanRefLower.includes('instagram') || cleanRefLower.includes('ig')) {
+        sourceLabel = 'Instagram (Ads & Bio)';
+        sourceCategory = 'Réseau Social (Meta)';
+      } else if (cleanRefLower.includes('facebook') || cleanRefLower.includes('fb')) {
+        sourceLabel = 'Facebook (Ads & Feed)';
+        sourceCategory = 'Réseau Social (Meta)';
+      } else if (cleanRefLower.includes('tiktok')) {
+        sourceLabel = 'TikTok (Vidéos)';
+        sourceCategory = 'Réseau Social';
+      } else if (cleanRefLower.includes('whatsapp') || cleanRefLower.includes('wa.me')) {
+        sourceLabel = 'WhatsApp Business';
+        sourceCategory = 'Messagerie Directe';
+      } else if (cleanRefLower === 'direct') {
+        sourceLabel = 'Trafic Direct (Accès)';
+        sourceCategory = 'Accès Direct';
+      } else if (cleanRefLower === 'interne') {
+        sourceLabel = 'Navigation Interne';
+        sourceCategory = 'Site Web';
+      }
+
+      const device = latestVisit?.device || firstVisit?.device || 'Mobile';
+
+      const landingPath = firstVisit?.pathname || '/fr';
+      const currentPath = latestVisit?.pathname || '/fr';
+      const landingInfo = getPageFriendlyInfo(landingPath, productBySlug);
+      const currentInfo = getPageFriendlyInfo(currentPath, productBySlug);
+
+      const firstTime = new Date(v.createdAt).getTime();
+      const lastTime = new Date(v.lastSeen).getTime();
+      let durationSeconds = Math.max(0, Math.floor((lastTime - firstTime) / 1000));
+      if (durationSeconds === 0) {
+        durationSeconds = visitsDesc.length > 1 ? visitsDesc.length * 45 : 35;
+      }
+      const durationFormatted = durationSeconds >= 60
+        ? `${Math.floor(durationSeconds / 60)} min ${durationSeconds % 60} s`
+        : `${durationSeconds} s`;
+
+      const isOnline = lastTime >= (Date.now() - 15 * 60 * 1000);
+
+      // Intent analysis
+      const hasCart = visitsDesc.some((pv) => pv.pathname.toLowerCase().includes('/cart'));
+      const hasCheckout = visitsDesc.some((pv) => pv.pathname.toLowerCase().includes('/checkout'));
+      const hasPurchased = visitsDesc.some((pv) => pv.pathname.toLowerCase().includes('/order-confirmation') || pv.pathname.toLowerCase().includes('/merci'));
+
+      // Products viewed in session
+      const productsViewed: Array<{ name: string; slug: string; brand: string }> = [];
+      visitsDesc.forEach((pv) => {
+        const p = pv.pathname.toLowerCase();
+        if (p.includes('/product/') || p.includes('/parfum/')) {
+          const parts = pv.pathname.split('/');
+          const slug = parts[parts.length - 1]?.toLowerCase() || '';
+          const prod = productBySlug.get(slug);
+          if (prod && !productsViewed.some((it) => it.slug === slug)) {
+            productsViewed.push({
+              name: prod.name,
+              slug: prod.slug,
+              brand: prod.brandLabel || 'NAY Parfums',
+            });
+          }
+        }
+      });
+
+      // Match with liveCartSessions
+      const matchedCart = liveCartSessions.find((cs) => {
+        const csTime = new Date(cs.lastActivity).getTime();
+        return Math.abs(csTime - lastTime) < 25 * 60 * 1000 && cs.totalValue > 0;
+      });
+
+      let cartValue = 0;
+      let cartItems: any[] = [];
+      let identifiedCustomer: string | null = null;
+      let identifiedPhone: string | null = null;
+
+      if (matchedCart) {
+        cartValue = matchedCart.totalValue;
+        try {
+          cartItems = typeof matchedCart.items === 'string' ? JSON.parse(matchedCart.items) : (matchedCart.items || []);
+        } catch {
+          cartItems = [];
+        }
+        if (matchedCart.customerName) identifiedCustomer = matchedCart.customerName;
+        if (matchedCart.customerPhone) identifiedPhone = matchedCart.customerPhone;
+      }
+
+      // Match with orders
+      if (hasPurchased) {
+        const matchedOrder = currentOrders.find((ord) => {
+          const ordTime = new Date(ord.createdAt).getTime();
+          return Math.abs(ordTime - lastTime) < 15 * 60 * 1000;
+        });
+        if (matchedOrder) {
+          if (matchedOrder.customerName) identifiedCustomer = matchedOrder.customerName;
+          if (matchedOrder.customerPhone) identifiedPhone = matchedOrder.customerPhone;
+          if (matchedOrder.total) cartValue = matchedOrder.total;
+        }
+      }
+
+      let status: 'ONLINE' | 'PURCHASED' | 'CHECKOUT' | 'CART' | 'BROWSING' = 'BROWSING';
+      if (hasPurchased) status = 'PURCHASED';
+      else if (hasCheckout) status = 'CHECKOUT';
+      else if (hasCart || cartValue > 0) status = 'CART';
+      else if (isOnline) status = 'ONLINE';
+
+      return {
+        id: v.id,
+        ipHashShort: v.ipHash ? v.ipHash.slice(0, 10) : v.id.slice(0, 10),
+        city: cleanCity,
+        country: isMorocco ? 'Maroc' : (v.country || 'International'),
+        flag: isMorocco ? '🇲🇦' : '🌍',
+        device,
+        referrer: sourceLabel,
+        rawReferrer: rawRef,
+        sourceCategory,
+        landingPage: {
+          pathname: landingPath,
+          title: landingInfo.title,
+          category: landingInfo.category,
+        },
+        currentPage: {
+          pathname: currentPath,
+          title: currentInfo.title,
+          category: currentInfo.category,
+        },
+        firstSeen: v.createdAt.toISOString(),
+        lastSeen: v.lastSeen.toISOString(),
+        isOnline,
+        durationSeconds,
+        durationFormatted,
+        pageCount: visitsDesc.length,
+        journey: visitsAsc.map((pv, idx) => {
+          const pInfo = getPageFriendlyInfo(pv.pathname, productBySlug);
+          return {
+            step: idx + 1,
+            pathname: pv.pathname,
+            title: pInfo.title,
+            category: pInfo.category,
+            createdAt: pv.createdAt.toISOString(),
+            device: pv.device || 'Mobile',
+            referrer: pv.referrer || 'Direct',
+          };
+        }),
+        hasCart: hasCart || cartValue > 0,
+        hasCheckout,
+        hasPurchased,
+        cartValue,
+        cartItemsCount: cartItems.length,
+        cartItems,
+        productsViewed,
+        customerName: identifiedCustomer,
+        customerPhone: identifiedPhone ? `${identifiedPhone.slice(0, 4)}••••${identifiedPhone.slice(-2)}` : null,
+        status,
+      };
+    });
+
     // Evolution deltas
     const calcDelta = (curr: number, prev: number) => {
       if (prev === 0) return curr > 0 ? 100 : 0;
@@ -843,6 +1055,7 @@ export async function GET(request: Request) {
         hourlyHeatmap,
         peakDays,
         liveStream,
+        visitorSessions: detailedVisitorSessions,
       },
       perfumes: {
         bestSellers: Array.from(currentProductSalesMap.values()).sort((a, b) => b.revenue - a.revenue).slice(0, 15),

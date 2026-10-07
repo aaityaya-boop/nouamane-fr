@@ -19,101 +19,11 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatMAD } from '@/lib/products';
-
-type PeriodType = 'today' | 'yesterday' | '7d' | '30d' | 'this_month' | '90d' | 'year' | 'all' | 'custom';
-type TabType = 'sources' | 'geography' | 'devices' | 'pages' | 'livestream';
-
-interface TrafficSource {
-  rawName: string;
-  name: string;
-  category: string;
-  icon: string;
-  views: number;
-  visitors: number;
-  share: number;
-  orders: number;
-  revenue: number;
-  conversionRate: number;
-  bounceRate: number;
-}
-
-interface CityData {
-  city: string;
-  country: string;
-  flag: string;
-  visitors: number;
-  share: number;
-  orders: number;
-  revenue: number;
-}
-
-interface PageData {
-  pathname: string;
-  title: string;
-  category: string;
-  views: number;
-  share: number;
-}
-
-interface LiveEvent {
-  id: number;
-  createdAt: string;
-  device: string;
-  referrer: string;
-  city: string;
-  country: string;
-  pathname: string;
-  eventType: string;
-  title: string;
-  productName?: string;
-}
-
-interface AnalyticsData {
-  period: {
-    id: string;
-    label: string;
-    start: string;
-    end: string;
-  };
-  kpi: {
-    grossRevenue: number;
-    deliveredRevenue: number;
-    inTransitRevenue: number;
-    lostRevenue: number;
-    totalOrders: number;
-    deliveredOrders: number;
-    pendingOrders: number;
-    refusedOrReturnedOrders: number;
-    deliveryRate: number;
-    aov: number;
-    totalBottlesSold: number;
-    uniqueCustomers: number;
-    repeatCustomerRate: number;
-    visitorsCount: number;
-    pageViewsCount: number;
-    activeVisitorsCount: number;
-    conversionRate: number;
-    pagesPerVisitor: number;
-    avgDuration: string;
-    bounceRate: number;
-    deltas: {
-      revenue: number;
-      orders: number;
-      aov: number;
-      delivered: number;
-      visitors: number;
-    };
-  };
-  trafficAnalytics: {
-    sources: TrafficSource[];
-    cities: CityData[];
-    topPages: PageData[];
-    devices: Array<{ name: string; views: number; share: number }>;
-    hourlyHeatmap: Array<{ hour: string; hourNum: number; orders: number; estViews: number }>;
-    peakDays: Array<{ name: string; orders: number }>;
-    liveStream: LiveEvent[];
-  };
-}
+import VisitorsRegistrySection from './VisitorsRegistrySection';
+import {
+  PeriodType, TabType, AnalyticsData, TrafficSource, CityData,
+  PageData, LiveEvent, VisitorSession
+} from './types';
 
 const SOURCE_COLORS = [
   '#0ea5e9', '#6366f1', '#10b981', '#f59e0b', '#ec4899',
@@ -124,7 +34,7 @@ export default function AnalyticsDashboardClient() {
   const [period, setPeriod] = useState<PeriodType>('30d');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  const [activeTab, setActiveTab] = useState<TabType>('sources');
+  const [activeTab, setActiveTab] = useState<TabType>('visitors');
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -162,12 +72,12 @@ export default function AnalyticsDashboardClient() {
     fetchAnalytics(true);
   }, [fetchAnalytics]);
 
-  // Auto-refresh every 20 seconds on livestream tab
+  // Auto-refresh every 25 seconds on visitors or livestream tab
   useEffect(() => {
-    if (activeTab !== 'livestream') return;
+    if (activeTab !== 'livestream' && activeTab !== 'visitors') return;
     const interval = setInterval(() => {
       fetchAnalytics(false);
-    }, 20000);
+    }, 25000);
     return () => clearInterval(interval);
   }, [activeTab, fetchAnalytics]);
 
@@ -237,6 +147,27 @@ export default function AnalyticsDashboardClient() {
     document.body.removeChild(link);
   };
 
+  const handleExportVisitorsCSV = () => {
+    const list = data?.trafficAnalytics?.visitorSessions;
+    if (!list || !list.length) return;
+
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    csvContent += `REGISTRE DES VISITEURS & CLIENTS ENTRANTS - NAY PARFUMS (${data.period.label})\r\n\r\n`;
+    csvContent += 'ID Client,Ville,Pays,Appareil,Source Provenance,Date Premiere Entree,Derniere Activite,En Ligne,Pages Vues,Duree,Page Entree,Derniere Page,Panier (MAD),Statut\r\n';
+
+    list.forEach((v) => {
+      csvContent += `"${v.customerName || v.ipHashShort}","${v.city}","${v.country}","${v.device}","${v.referrer}","${v.firstSeen}","${v.lastSeen}",${v.isOnline ? 'OUI' : 'NON'},${v.pageCount},"${v.durationFormatted}","${v.landingPage.pathname}","${v.currentPage.pathname}",${v.cartValue},"${v.status}"\r\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `NAY_Clients_Visiteurs_${period}_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const formatRelativeTime = (isoString: string) => {
     const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
     if (diff < 60) return `Il y a ${Math.max(5, diff)}s`;
@@ -277,12 +208,12 @@ export default function AnalyticsDashboardClient() {
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-3xl">
-              Analyse exhaustive de l&apos;audience de NAY Parfum : toutes les sources d&apos;acquisition (Google, Meta, TikTok, Direct, WhatsApp), répartition géographique des villes du Maroc et comportement des visiteurs en temps réel.
+              Analyse exhaustive de l&apos;audience de NAY Parfum : registre individuel des clients entrants, provenance (Google, Meta, TikTok, Direct, WhatsApp), géographie marocaine et parcours d&apos;achat en temps réel.
             </p>
           </div>
 
           {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             <button
               onClick={() => fetchAnalytics(false)}
               disabled={isRefreshing}
@@ -293,12 +224,21 @@ export default function AnalyticsDashboardClient() {
             </button>
 
             <button
+              onClick={handleExportVisitorsCSV}
+              disabled={!data?.trafficAnalytics?.visitorSessions?.length}
+              className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+            >
+              <Users size={15} />
+              <span>Exporter Clients CSV</span>
+            </button>
+
+            <button
               onClick={handleExportCSV}
               disabled={!data}
-              className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-3.5 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
             >
               <Download size={15} />
-              <span>Exporter Données Trafic CSV</span>
+              <span>Rapport Global CSV</span>
             </button>
           </div>
         </div>
@@ -494,9 +434,16 @@ export default function AnalyticsDashboardClient() {
         </div>
       </div>
 
-      {/* ── 5 DEDICATED AUDIENCE TABS ──────────────────────────────────────── */}
+      {/* ── DEDICATED AUDIENCE & VISITOR TABS ─────────────────────────────── */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-neutral-200 dark:border-neutral-800" style={{ scrollbarWidth: 'none' }}>
         {[
+          {
+            id: 'visitors',
+            label: '👥 Visiteurs Entrants (En Direct)',
+            badge: data?.trafficAnalytics?.visitorSessions?.length ? `${data.trafficAnalytics.visitorSessions.length}` : undefined,
+            badgeColor: 'bg-emerald-500 text-white',
+            icon: <Users size={15} className="text-emerald-500" />,
+          },
           { id: 'sources', label: '🌐 Toutes les Sources de Trafic', icon: <Share2 size={15} /> },
           { id: 'geography', label: '🗺️ Villes du Maroc & Monde', icon: <MapPin size={15} /> },
           { id: 'devices', label: '📱 Appareils & Navigateurs', icon: <Smartphone size={15} /> },
@@ -514,9 +461,26 @@ export default function AnalyticsDashboardClient() {
           >
             {tab.icon}
             <span>{tab.label}</span>
+            {tab.badge && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${tab.badgeColor || 'bg-sky-500 text-white'}`}>
+                {tab.badge}
+              </span>
+            )}
           </button>
         ))}
       </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 0: VISITEURS ENTRANTS & SESSIONS EN DIRECT (NOUVEAU)              */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'visitors' && (
+        <VisitorsRegistrySection
+          visitors={data?.trafficAnalytics?.visitorSessions || []}
+          isRefreshing={isRefreshing}
+          onRefresh={() => fetchAnalytics(false)}
+          periodLabel={data?.period?.label || '30 derniers jours'}
+        />
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* TAB 1: TOUTES LES SOURCES DE TRAFIC (ACQUISITION & CONVERSION)         */}
