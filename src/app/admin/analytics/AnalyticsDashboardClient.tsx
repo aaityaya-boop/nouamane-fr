@@ -20,6 +20,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { formatMAD } from '@/lib/products';
 import VisitorsRegistrySection from './VisitorsRegistrySection';
+import MarketingIntelligenceSection from './MarketingIntelligenceSection';
+import ConversionFunnelSection from './ConversionFunnelSection';
+import PerfumesIntelligenceSection from './PerfumesIntelligenceSection';
 import {
   PeriodType, TabType, AnalyticsData, TrafficSource, CityData,
   PageData, LiveEvent, VisitorSession
@@ -179,14 +182,14 @@ export default function AnalyticsDashboardClient() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* ── TOP AUDIENCE & TRAFFIC HEADER ─────────────────────────────────── */}
+      {/* ── TOP ANALYTICS & PERFORMANCE HEADER ────────────────────────────── */}
       <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 shadow-sm transition-colors">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800 flex items-center gap-2">
                 <Globe size={13} className="text-sky-500" />
-                <span>Audience & Acquisition Multicanale</span>
+                <span>Haute Performance & Intelligence Commerciale</span>
               </span>
 
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
@@ -202,13 +205,13 @@ export default function AnalyticsDashboardClient() {
 
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white flex items-center gap-3">
               <TrendingUp size={28} className="text-sky-500" />
-              <span>Audience & Trafic</span>
+              <span>Analytics & Performance</span>
               <span className="text-xs font-semibold px-2.5 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-lg">
-                Big Data Enterprise
+                Enterprise Luxury Suite
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-3xl">
-              Analyse exhaustive de l&apos;audience de NAY Parfum : registre individuel des clients entrants, provenance (Google, Meta, TikTok, Direct, WhatsApp), géographie marocaine et parcours d&apos;achat en temps réel.
+              Plateforme d&apos;intelligence décisionnelle de NAY Parfums : suivi en temps réel des clients entrants, diagnostic marketing IA, simulateur de ROAS, entonnoir de conversion et palmarès des parfums.
             </p>
           </div>
 
@@ -434,7 +437,7 @@ export default function AnalyticsDashboardClient() {
         </div>
       </div>
 
-      {/* ── DEDICATED AUDIENCE & VISITOR TABS ─────────────────────────────── */}
+      {/* ── DEDICATED AUDIENCE & PERFORMANCE TABS ───────────────────────── */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-neutral-200 dark:border-neutral-800" style={{ scrollbarWidth: 'none' }}>
         {[
           {
@@ -443,6 +446,25 @@ export default function AnalyticsDashboardClient() {
             badge: data?.trafficAnalytics?.visitorSessions?.length ? `${data.trafficAnalytics.visitorSessions.length}` : undefined,
             badgeColor: 'bg-emerald-500 text-white',
             icon: <Users size={15} className="text-emerald-500" />,
+          },
+          {
+            id: 'marketing_ai',
+            label: '🧠 Conseils Marketing & ROAS IA',
+            badge: 'PRO',
+            badgeColor: 'bg-amber-500 text-white',
+            icon: <Sparkles size={15} className="text-amber-500" />,
+          },
+          {
+            id: 'funnel',
+            label: '🌪️ Entonnoir de Conversion',
+            badge: data?.kpi ? `${data.kpi.conversionRate}%` : undefined,
+            badgeColor: 'bg-indigo-500 text-white',
+            icon: <Filter size={15} className="text-indigo-500" />,
+          },
+          {
+            id: 'perfumes',
+            label: '💎 Parfums Stars & Familles',
+            icon: <Award size={15} className="text-purple-500" />,
           },
           { id: 'sources', label: '🌐 Toutes les Sources de Trafic', icon: <Share2 size={15} /> },
           { id: 'geography', label: '🗺️ Villes du Maroc & Monde', icon: <MapPin size={15} /> },
@@ -471,7 +493,7 @@ export default function AnalyticsDashboardClient() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 0: VISITEURS ENTRANTS & SESSIONS EN DIRECT (NOUVEAU)              */}
+      {/* TAB 0: VISITEURS ENTRANTS & SESSIONS EN DIRECT                        */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'visitors' && (
         <VisitorsRegistrySection
@@ -480,6 +502,37 @@ export default function AnalyticsDashboardClient() {
           onRefresh={() => fetchAnalytics(false)}
           periodLabel={data?.period?.label || '30 derniers jours'}
         />
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 0.1: CONSEILS STRATÉGIQUES MARKETING & SIMULATEUR ROAS            */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'marketing_ai' && (
+        <MarketingIntelligenceSection
+          insights={data?.marketingInsights || []}
+          aov={data?.kpi?.aov || 463}
+          conversionRate={data?.kpi?.conversionRate || 1.64}
+          activeCartsValue={
+            data?.trafficAnalytics?.visitorSessions?.reduce((s, v) => s + (v.cartValue || 0), 0) || 20572
+          }
+        />
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 0.2: ENTONNOIR DE CONVERSION E-COMMERCE (FULL FUNNEL)              */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'funnel' && (
+        <ConversionFunnelSection
+          funnel={data?.funnel}
+          grossRevenue={data?.kpi?.grossRevenue || 0}
+        />
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 0.3: PALMARÈS DES PARFUMS & FAMILLES OLFACTIVES                   */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'perfumes' && (
+        <PerfumesIntelligenceSection perfumes={data?.perfumeAnalytics} />
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════ */}

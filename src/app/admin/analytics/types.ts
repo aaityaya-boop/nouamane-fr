@@ -1,5 +1,14 @@
 export type PeriodType = 'today' | 'yesterday' | '7d' | '30d' | 'this_month' | '90d' | 'year' | 'all' | 'custom';
-export type TabType = 'visitors' | 'sources' | 'geography' | 'devices' | 'pages' | 'livestream';
+export type TabType =
+  | 'visitors'
+  | 'marketing_ai'
+  | 'funnel'
+  | 'sources'
+  | 'geography'
+  | 'perfumes'
+  | 'devices'
+  | 'pages'
+  | 'livestream';
 
 export interface TrafficSource {
   rawName: string;
@@ -95,6 +104,85 @@ export interface VisitorSession {
   status: 'ONLINE' | 'PURCHASED' | 'CHECKOUT' | 'CART' | 'BROWSING';
 }
 
+export interface ConversionFunnelStep {
+  name: string;
+  count: number;
+  rate: number;
+  dropOff: number;
+  label: string;
+  color: string;
+}
+
+export interface ConversionFunnelData {
+  steps: ConversionFunnelStep[];
+  cartAbandonmentRate: number;
+  checkoutConversionRate: number;
+}
+
+export interface MarketingInsight {
+  id: string;
+  category: string;
+  title: string;
+  impact: 'HIGH' | 'MEDIUM' | 'GROWTH';
+  description: string;
+  recommendation: string;
+  metric?: string;
+  metricLabel?: string;
+}
+
+export interface OlfactoryData {
+  name: string;
+  revenue: number;
+  units: number;
+  share: number;
+}
+
+export interface GenderData {
+  name: string;
+  revenue: number;
+  units: number;
+  aov: number;
+  orders: number;
+}
+
+export interface BottleSizeData {
+  size: string;
+  count: number;
+}
+
+export interface CrossSellingPair {
+  pairName: string;
+  itemA: string;
+  itemB: string;
+  count: number;
+  revenue: number;
+}
+
+export interface PerfumeProductSale {
+  slug: string;
+  name: string;
+  brandLabel: string;
+  category: string;
+  gender: string;
+  image: string;
+  unitsSold: number;
+  revenue: number;
+  orderCount: number;
+  stock: number;
+  inStock: boolean;
+  price: number;
+  viewsCount: number;
+}
+
+export interface PerfumeAnalytics {
+  bestSellers: PerfumeProductSale[];
+  olfactoryFamilies: OlfactoryData[];
+  genderBreakdown: GenderData[];
+  bottleSizes: BottleSizeData[];
+  crossSellingPairs: CrossSellingPair[];
+  lowStockAlerts: any[];
+}
+
 export interface AnalyticsData {
   period: {
     id: string;
@@ -141,4 +229,7 @@ export interface AnalyticsData {
     liveStream: LiveEvent[];
     visitorSessions?: VisitorSession[];
   };
+  funnel?: ConversionFunnelData;
+  marketingInsights?: MarketingInsight[];
+  perfumeAnalytics?: PerfumeAnalytics;
 }
