@@ -34,9 +34,10 @@ export default function CartPage() {
   const [showAuthModal, setShowAuthModal] = React.useState(false);
   const [pendingPromoCode, setPendingPromoCode] = React.useState('');
 
-  // Calculate discount using accurate scope and product targeting + active automatic deals
+  // Calculate discount using accurate scope and product targeting
+  // 🔒 When a promo code is active, DO NOT cumulate with other deals or free offers: give ONLY the promo code bonus!
   const promoDiscount = calculatePromoDiscount(cart, appliedPromo);
-  const totalDiscount = promoDiscount + dealDiscount;
+  const totalDiscount = appliedPromo ? promoDiscount : dealDiscount;
   const total = Math.max(0, subtotal - totalDiscount) + shipping;
 
   const handleApplyPromo = async (codeToOverride?: string) => {
@@ -287,9 +288,11 @@ export default function CartPage() {
                     Récapitulatif
                   </h3>
 
-                  <div className="mt-4">
-                    <FreeGiftSelector />
-                  </div>
+                  {!appliedPromo && (
+                    <div className="mt-4">
+                      <FreeGiftSelector />
+                    </div>
+                  )}
 
                   <div className="mt-5 space-y-3 pb-6 border-b border-[#e0ddd4]">
                     <div className="flex justify-between text-[14px]">
@@ -299,7 +302,7 @@ export default function CartPage() {
                       </span>
                     </div>
 
-                    {dealDiscount > 0 && appliedDeal && (
+                    {!appliedPromo && dealDiscount > 0 && appliedDeal && (
                       <div className="flex justify-between text-[14px] text-[#0ea5e9] bg-sky-50 p-2.5 rounded-xl border border-sky-200">
                         <div className="flex items-center gap-1.5 font-bold text-xs">
                           <span>🎉</span>

@@ -124,9 +124,9 @@ export async function POST(request: Request) {
       })
     );
 
-    // Append selected free sample if present
+    // Append selected free sample if present AND no promo code is applied (offers are non-cumulative)
     const finalItemsWithSKU = [...itemsWithSKU];
-    if (selectedFreeGift && selectedFreeGift.name) {
+    if (selectedFreeGift && selectedFreeGift.name && !promoCode) {
       finalItemsWithSKU.push({
         id: Number(selectedFreeGift.id) || 0,
         sku: 'GIFT-5ML',

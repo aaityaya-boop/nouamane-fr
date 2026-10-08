@@ -323,7 +323,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         Cookies.remove('nouamanePromo', { path: '/' });
       }
 
-      if (selectedFreeGift) {
+      if (selectedFreeGift && !appliedPromo) {
         Cookies.set('nouamaneFreeGift', JSON.stringify(selectedFreeGift), { expires: 30, path: '/' });
       } else {
         Cookies.remove('nouamaneFreeGift', { path: '/' });
@@ -423,14 +423,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const getItemCount = () =>
     cart.reduce((total, item) => total + item.quantity, 0);
 
-  const applyPromo = (promo: AppliedPromo) => setAppliedPromo(promo);
+  const applyPromo = (promo: AppliedPromo) => {
+    setAppliedPromo(promo);
+    setSelectedFreeGift(null);
+    Cookies.remove('nouamaneFreeGift', { path: '/' });
+  };
   const removePromo = () => setAppliedPromo(null);
 
   // Evaluate automatic deals for the current cart
-  const { bestDeal, dealDiscount, freeShippingUnlocked, freeGift } = evaluateActiveDeals(cart, activeDeals);
+  // 🔒 When a promo code is active, DO NOT cumulate deals or free offers: give ONLY the promo code bonus!
+  const hasPromo = Boolean(appliedPromo);
+  const { bestDeal, dealDiscount, freeShippingUnlocked, freeGift } = hasPromo
+    ? { bestDeal: null, dealDiscount: 0, freeShippingUnlocked: false, freeGift: null }
+    : evaluateActiveDeals(cart, activeDeals);
 
   // Available tester gifts from active deal
-  const availableTesterGifts = bestDeal?.availableGifts || [];
+  const availableTesterGifts = hasPromo ? [] : (bestDeal?.availableGifts || []);
 
   return (
     <CartContext.Provider
@@ -449,7 +457,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         activeDeals,
         appliedDeal: bestDeal,
         dealDiscount,
-        selectedFreeGift: freeGift ? selectedFreeGift : null,
+        selectedFreeGift: (hasPromo || !freeGift) ? null : selectedFreeGift,
         setSelectedFreeGift,
         availableTesterGifts,
       }}

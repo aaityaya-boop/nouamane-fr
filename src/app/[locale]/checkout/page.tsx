@@ -45,9 +45,10 @@ export default function CheckoutPage() {
   const subtotal = getSubtotal();
   const shipping = shippingFee || 0;
   
-  // Calculate discount using accurate scope and product targeting + active deals
+  // Calculate discount using accurate scope and product targeting
+  // 🔒 When a promo code is active, DO NOT cumulate with other deals or free offers: give ONLY the promo code bonus!
   const promoDiscount = calculatePromoDiscount(cart, appliedPromo);
-  const totalDiscount = promoDiscount + dealDiscount;
+  const totalDiscount = appliedPromo ? promoDiscount : dealDiscount;
   const total = Math.max(0, subtotal - totalDiscount) + shipping;
 
   // Form state
@@ -231,7 +232,7 @@ export default function CheckoutPage() {
           total,
           promoCode: appliedPromo?.code || (appliedDeal ? `OFFRE:${appliedDeal.badgeText || appliedDeal.title}` : null),
           discount: totalDiscount > 0 ? totalDiscount : null,
-          selectedFreeGift: selectedFreeGift || null,
+          selectedFreeGift: appliedPromo ? null : (selectedFreeGift || null),
           sessionId: Cookies.get('nouamaneSession') || null,
         }),
       });
@@ -261,7 +262,7 @@ export default function CheckoutPage() {
         total,
         promoCode: appliedPromo?.code || (appliedDeal ? `OFFRE:${appliedDeal.badgeText || appliedDeal.title}` : null),
         discount: totalDiscount > 0 ? totalDiscount : null,
-        selectedFreeGift: selectedFreeGift || null,
+        selectedFreeGift: appliedPromo ? null : (selectedFreeGift || null),
         createdAt: new Date().toISOString(),
       };
       localStorage.setItem('nouamaneLastOrder', JSON.stringify(confirmationData));
@@ -566,9 +567,11 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  <div className="mb-2">
-                    <FreeGiftSelector />
-                  </div>
+                  {!appliedPromo && (
+                    <div className="mb-2">
+                      <FreeGiftSelector />
+                    </div>
+                  )}
 
                   <div className="flex justify-between text-[13px]">
                     <span className="text-[#6B6B6B]">Sous-total</span>
@@ -577,7 +580,7 @@ export default function CheckoutPage() {
                     </span>
                   </div>
 
-                  {dealDiscount > 0 && appliedDeal && (
+                  {!appliedPromo && dealDiscount > 0 && appliedDeal && (
                     <div className="flex justify-between text-[13px] text-[#0ea5e9] bg-sky-50 p-2.5 rounded-xl border border-sky-200">
                       <span className="font-bold flex items-center gap-1">
                         <span>🎉</span>

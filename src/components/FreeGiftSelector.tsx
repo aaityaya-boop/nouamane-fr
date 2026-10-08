@@ -10,9 +10,12 @@ interface FreeGiftSelectorProps {
 }
 
 export default function FreeGiftSelector({ compact = false }: FreeGiftSelectorProps) {
-  const { appliedDeal, selectedFreeGift, setSelectedFreeGift, availableTesterGifts } = useCart();
+  const { appliedPromo, appliedDeal, selectedFreeGift, setSelectedFreeGift, availableTesterGifts } = useCart();
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState('');
+
+  // 🔒 Non-cumulative: If a promo code is applied, all free gift offers are disabled
+  if (appliedPromo) return null;
 
   // Check if deal includes a gift
   const hasGiftUnlocked = Boolean(appliedDeal?.freeGiftName || (appliedDeal?.availableGifts && appliedDeal.availableGifts.length > 0));

@@ -9,18 +9,20 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X, Plus, Minus, Trash2 } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
+import { useCart, calculatePromoDiscount } from '@/context/CartContext';
 import Image from 'next/image';
 import { formatMAD } from '@/lib/products';
 import FreeGiftSelector from '@/components/FreeGiftSelector';
 
 export default function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const { cart, removeFromCart, updateQuantity, getSubtotal, shippingFee, appliedDeal, dealDiscount } = useCart();
+  const { cart, removeFromCart, updateQuantity, getSubtotal, shippingFee, appliedPromo, appliedDeal, dealDiscount } = useCart();
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const subtotal = getSubtotal();
-  const totalAfterDiscount = Math.max(0, subtotal - dealDiscount);
+  const promoDiscount = calculatePromoDiscount(cart, appliedPromo);
+  const effectiveDiscount = appliedPromo ? promoDiscount : dealDiscount;
+  const totalAfterDiscount = Math.max(0, subtotal - effectiveDiscount);
 
   useEffect(() => {
     const handler = () => setIsOpen(true);
@@ -164,7 +166,18 @@ export default function CartDrawer() {
             </div>
 
             <div className="border-t border-[#e0ddd4] p-6 bg-[#fafaf7] space-y-3">
-              {appliedDeal && dealDiscount > 0 && (
+              {appliedPromo && promoDiscount > 0 ? (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">🏷️</span>
+                    <div>
+                      <div className="text-xs font-bold text-neutral-900">Code promo ({appliedPromo.code})</div>
+                      <div className="text-[10px] text-emerald-600">Remise appliquée</div>
+                    </div>
+                  </div>
+                  <div className="text-xs font-bold text-emerald-600">-{formatMAD(promoDiscount)}</div>
+                </div>
+              ) : !appliedPromo && appliedDeal && dealDiscount > 0 ? (
                 <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm">🎉</span>
@@ -175,21 +188,21 @@ export default function CartDrawer() {
                   </div>
                   <div className="text-xs font-bold text-[#0ea5e9]">-{formatMAD(dealDiscount)}</div>
                 </div>
-              )}
+              ) : null}
 
-              <FreeGiftSelector compact />
+              {!appliedPromo && <FreeGiftSelector compact />}
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-baseline">
                   <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
                     Sous-total
                   </span>
-                  <span className={`text-sm ${dealDiscount > 0 ? 'line-through text-neutral-400' : 'heading-font font-medium text-[#1A1A1A]'}`}>
+                  <span className={`text-sm ${effectiveDiscount > 0 ? 'line-through text-neutral-400' : 'heading-font font-medium text-[#1A1A1A]'}`}>
                     {formatMAD(subtotal)}
                   </span>
                 </div>
 
-                {dealDiscount > 0 && (
+                {effectiveDiscount > 0 && (
                   <div className="flex justify-between items-baseline">
                     <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-emerald-600">
                       Total avec remise
