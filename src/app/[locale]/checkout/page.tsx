@@ -20,6 +20,8 @@ import {
   XCircle
 } from 'lucide-react';
 import FreeGiftSelector from '@/components/FreeGiftSelector';
+import { useAuth } from '@/context/AuthContext';
+import PromoAuthModal from '@/components/PromoAuthModal';
 
 /* ============================================================
    ONE-PAGE CHECKOUT
@@ -28,6 +30,7 @@ import FreeGiftSelector from '@/components/FreeGiftSelector';
 
 export default function CheckoutPage() {
   const { cart, getSubtotal, clearCart, shippingFee, appliedPromo, applyPromo, removePromo, appliedDeal, dealDiscount, selectedFreeGift } = useCart();
+  const { customer } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,6 +39,8 @@ export default function CheckoutPage() {
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingPromoCode, setPendingPromoCode] = useState('');
 
   const subtotal = getSubtotal();
   const shipping = shippingFee || 0;
@@ -59,6 +64,22 @@ export default function CheckoutPage() {
     
     saveInfo: false,
   });
+
+  // Pre-fill form from authenticated customer if available
+  useEffect(() => {
+    if (customer) {
+      setForm((prev) => ({
+        ...prev,
+        firstName: prev.firstName || customer.name.split(' ')[0] || '',
+        lastName: prev.lastName || customer.name.split(' ').slice(1).join(' ') || '',
+        email: prev.email || customer.email || '',
+        phone: prev.phone || customer.phone || '',
+        address: prev.address || customer.address || '',
+        city: prev.city || customer.city || 'Casablanca',
+        postalCode: prev.postalCode || customer.postalCode || '',
+      }));
+    }
+  }, [customer]);
 
   // Redirect if cart empty (client-side check after mount)
   useEffect(() => {
@@ -110,8 +131,17 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleApplyPromo = async () => {
-    if (!promoInput.trim()) return;
+  const handleApplyPromo = async (codeToOverride?: string) => {
+    const code = (typeof codeToOverride === 'string' ? codeToOverride : promoInput).trim().toUpperCase();
+    if (!code) return;
+
+    // 🔒 If customer is not logged in / has no account, open obligatory account modal!
+    if (!customer) {
+      setPendingPromoCode(code);
+      setShowAuthModal(true);
+      return;
+    }
+
     setIsApplyingPromo(true);
     setPromoError('');
     setPromoSuccess('');
@@ -121,7 +151,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          code: promoInput.trim(),
+          code,
           items: cart,
           subtotal,
         })
@@ -148,11 +178,15 @@ export default function CheckoutPage() {
             : '';
         setPromoSuccess(`Code ${data.code} appliqué avec succès${scopeNotice} !`);
         setPromoInput('');
+        setPendingPromoCode('');
+      } else if (data.requiresAccount) {
+        setPendingPromoCode(code);
+        setShowAuthModal(true);
       } else {
         setPromoError(data.error || 'Code promo invalide');
         removePromo();
       }
-    } catch (err) {
+    } catch {
       setPromoError('Erreur de validation du code promo');
       removePromo();
     } finally {
@@ -169,6 +203,13 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+
+    // 🔒 If an active promo code is applied but the user is not logged in, require account first!
+    if (appliedPromo && !customer) {
+      setPendingPromoCode(appliedPromo.code);
+      setShowAuthModal(true);
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -473,6 +514,14 @@ export default function CheckoutPage() {
                 <div className="space-y-2.5 py-6 border-b border-[#e0ddd4]">
                   {/* Promo Code Input */}
                   <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
+                        Code promo
+                      </span>
+                      <span className="text-[10px] text-sky-600 font-medium normal-case flex items-center gap-1 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+                        <Lock size={10} /> Compte membre requis
+                      </span>
+                    </div>
                     <div className="flex gap-2">
                       <input 
                         type="text" 
@@ -483,7 +532,7 @@ export default function CheckoutPage() {
                       />
                       <button 
                         type="button" 
-                        onClick={handleApplyPromo}
+                        onClick={() => handleApplyPromo()}
                         disabled={isApplyingPromo || !promoInput.trim()}
                         className="bg-[#1A1A1A] text-white px-5 rounded-lg text-[11px] font-bold tracking-[0.1em] uppercase hover:bg-black transition-colors disabled:opacity-50"
                       >
@@ -592,6 +641,21 @@ export default function CheckoutPage() {
       </main>
 
       <Footer />
+
+      {/* Obligatory Account Modal to Unlock Promo Code */}
+      <PromoAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        promoCode={pendingPromoCode || promoInput}
+        onSuccess={() => {
+          const target = pendingPromoCode || promoInput;
+          if (target) {
+            setTimeout(() => {
+              handleApplyPromo(target);
+            }, 100);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -251,6 +251,14 @@ export async function POST(request: Request) {
       });
     }
 
+    // Update Promo Code Usage Count
+    if (promoCode && !promoCode.startsWith('OFFRE:')) {
+      await prisma.promoCode.update({
+        where: { code: promoCode.trim().toUpperCase() },
+        data: { usageCount: { increment: 1 } }
+      }).catch(() => {});
+    }
+
     // Mark the live cart session as COMPLETED so it doesn't show in abandoned carts
     const sessionCookie = cookieStore.get('nouamaneSession')?.value || body.sessionId;
     if (sessionCookie) {

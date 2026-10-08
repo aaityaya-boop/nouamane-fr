@@ -56,6 +56,7 @@ export async function POST(request: Request) {
       expiresAt,
       description,
       isActive = true,
+      requiresAccount = true,
     } = body;
 
     if (!code || !type || value === undefined) {
@@ -99,6 +100,7 @@ export async function POST(request: Request) {
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         description: description ? description.trim() : null,
         isActive: Boolean(isActive),
+        requiresAccount: requiresAccount !== undefined ? Boolean(requiresAccount) : true,
       }
     });
 
@@ -107,6 +109,7 @@ export async function POST(request: Request) {
       categories: cleanCategories,
       productIds: cleanProductIds,
       minQuantity: newPromo.minQuantity || 0,
+      requiresAccount: newPromo.requiresAccount ?? true,
     });
   } catch (error: any) {
     console.error('Error creating promo:', error);
@@ -120,7 +123,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, isActive, applicableScope, categories, productIds, value, type, minOrderAmount, minQuantity } = body;
+    const { id, isActive, applicableScope, categories, productIds, value, type, minOrderAmount, minQuantity, requiresAccount } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
@@ -128,6 +131,7 @@ export async function PATCH(request: Request) {
 
     const updateData: any = {};
     if (typeof isActive === 'boolean') updateData.isActive = isActive;
+    if (typeof requiresAccount === 'boolean') updateData.requiresAccount = requiresAccount;
     if (applicableScope) updateData.applicableScope = applicableScope;
     if (Array.isArray(categories)) updateData.categories = JSON.stringify(categories);
     if (Array.isArray(productIds)) updateData.productIds = JSON.stringify(productIds.map(Number));

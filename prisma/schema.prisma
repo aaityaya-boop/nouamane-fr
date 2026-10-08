@@ -218,6 +218,7 @@ model PromoCode {
   expiresAt       DateTime?
   description     String?
   isActive        Boolean   @default(true)
+  requiresAccount Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }

@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
+);
 
 export async function POST(request: Request) {
   try {
@@ -17,6 +23,41 @@ export async function POST(request: Request) {
 
     if (!promo || !promo.isActive) {
       return NextResponse.json({ error: 'Code promo invalide ou inactif' }, { status: 400 });
+    }
+
+    // 🔒 Check if account creation is obligatory for this promo code
+    const requiresAccount = promo.requiresAccount ?? true;
+    let authenticatedCustomer: any = null;
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get('customer_token')?.value;
+
+    if (token) {
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        if (payload?.id) {
+          authenticatedCustomer = await prisma.customer.findUnique({
+            where: { id: payload.id as string },
+            select: { id: true, name: true, email: true }
+          });
+        }
+      } catch {
+        authenticatedCustomer = null;
+      }
+    }
+
+    if (requiresAccount && !authenticatedCustomer) {
+      return NextResponse.json({
+        error: 'La création d\'un compte Maison NAY est obligatoire pour activer et utiliser ce code promo.',
+        requiresAccount: true,
+        code: promo.code,
+        promoPreview: {
+          code: promo.code,
+          type: promo.type,
+          value: promo.value,
+          description: promo.description,
+        }
+      }, { status: 403 });
     }
 
     // Check expiration
@@ -126,6 +167,7 @@ export async function POST(request: Request) {
       minOrderAmount: promo.minOrderAmount,
       minQuantity: promo.minQuantity || 0,
       description: promo.description,
+      requiresAccount: Boolean(promo.requiresAccount),
     });
   } catch (error) {
     console.error('Error validating promo code:', error);

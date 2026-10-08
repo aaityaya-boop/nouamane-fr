@@ -9,8 +9,10 @@ import CartDrawer from '@/components/CartDrawer';
 import { useCart, calculatePromoDiscount } from '@/context/CartContext';
 import { usePathname } from 'next/navigation';
 import { formatMAD } from '@/lib/products';
-import { Plus, Minus, Trash2, ArrowRight, ShoppingBag, Truck, ShieldCheck, Gift, Tag, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Minus, Trash2, ArrowRight, ShoppingBag, Truck, ShieldCheck, Gift, Tag, CheckCircle2, XCircle, Lock } from 'lucide-react';
 import FreeGiftSelector from '@/components/FreeGiftSelector';
+import { useAuth } from '@/context/AuthContext';
+import PromoAuthModal from '@/components/PromoAuthModal';
 
 /* ============================================================
    CART PAGE — Full-page cart with summary
@@ -18,6 +20,7 @@ import FreeGiftSelector from '@/components/FreeGiftSelector';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, getSubtotal, shippingFee, appliedPromo, applyPromo, removePromo, appliedDeal, dealDiscount } = useCart();
+  const { customer } = useAuth();
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const subtotal = getSubtotal();
@@ -28,14 +31,25 @@ export default function CartPage() {
   const [promoError, setPromoError] = React.useState('');
   const [promoSuccess, setPromoSuccess] = React.useState('');
   const [isApplyingPromo, setIsApplyingPromo] = React.useState(false);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
+  const [pendingPromoCode, setPendingPromoCode] = React.useState('');
 
   // Calculate discount using accurate scope and product targeting + active automatic deals
   const promoDiscount = calculatePromoDiscount(cart, appliedPromo);
   const totalDiscount = promoDiscount + dealDiscount;
   const total = Math.max(0, subtotal - totalDiscount) + shipping;
 
-  const handleApplyPromo = async () => {
-    if (!promoInput.trim()) return;
+  const handleApplyPromo = async (codeToOverride?: string) => {
+    const code = (typeof codeToOverride === 'string' ? codeToOverride : promoInput).trim().toUpperCase();
+    if (!code) return;
+
+    // 🔒 If customer has no account / is not logged in, prompt obligatory account creation!
+    if (!customer) {
+      setPendingPromoCode(code);
+      setShowAuthModal(true);
+      return;
+    }
+
     setIsApplyingPromo(true);
     setPromoError('');
     setPromoSuccess('');
@@ -45,7 +59,7 @@ export default function CartPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          code: promoInput.trim(),
+          code,
           items: cart,
           subtotal,
         })
@@ -72,11 +86,15 @@ export default function CartPage() {
             : '';
         setPromoSuccess(`Code ${data.code} appliqué avec succès${scopeNotice} !`);
         setPromoInput('');
+        setPendingPromoCode('');
+      } else if (data.requiresAccount) {
+        setPendingPromoCode(code);
+        setShowAuthModal(true);
       } else {
         setPromoError(data.error || 'Code promo invalide');
         removePromo();
       }
-    } catch (err) {
+    } catch {
       setPromoError('Erreur de validation du code promo');
       removePromo();
     } finally {
@@ -345,9 +363,14 @@ export default function CartPage() {
 
                   {/* Promo */}
                   <div className="mt-6 pt-6 border-t border-[#e0ddd4]">
-                    <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
-                      Code promo
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
+                        Code promo
+                      </label>
+                      <span className="text-[10px] text-sky-600 font-medium normal-case flex items-center gap-1 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+                        <Lock size={10} /> Compte membre requis
+                      </span>
+                    </div>
                     <div className="mt-2 flex gap-2">
                       <input
                         type="text"
@@ -357,7 +380,7 @@ export default function CartPage() {
                         className="flex-1 border border-[#e0ddd4] rounded-lg px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#0ea5e9] uppercase"
                       />
                       <button 
-                        onClick={handleApplyPromo}
+                        onClick={() => handleApplyPromo()}
                         disabled={isApplyingPromo || !promoInput.trim()}
                         className="btn-outline-blue px-5 py-2.5 text-[11px] rounded-lg disabled:opacity-50"
                       >
@@ -399,6 +422,21 @@ export default function CartPage() {
 
       <Footer />
       <CartDrawer />
+
+      {/* Obligatory Account Modal to Unlock Promo Code */}
+      <PromoAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        promoCode={pendingPromoCode || promoInput}
+        onSuccess={() => {
+          const target = pendingPromoCode || promoInput;
+          if (target) {
+            setTimeout(() => {
+              handleApplyPromo(target);
+            }, 100);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -35,7 +35,8 @@ import {
   BadgePercent,
   RefreshCw,
   Sliders,
-  CheckCheck
+  CheckCheck,
+  Lock
 } from 'lucide-react';
 
 interface ProductItem {
@@ -66,6 +67,7 @@ interface PromoCodeItem {
   expiresAt?: string | null;
   description?: string | null;
   isActive: boolean;
+  requiresAccount?: boolean;
   createdAt: string;
 }
 
@@ -163,6 +165,7 @@ export default function AdminPromos() {
   const [maxUses, setMaxUses] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [description, setDescription] = useState('');
+  const [requiresAccount, setRequiresAccount] = useState<boolean>(true);
   const [isSubmittingPromo, setIsSubmittingPromo] = useState(false);
   const [productSearch, setProductSearch] = useState('');
   const [categoryFilterTab, setCategoryFilterTab] = useState<string>('all');
@@ -580,6 +583,7 @@ export default function AdminPromos() {
           expiresAt: expiresAt || null,
           description: description || null,
           isActive: true,
+          requiresAccount,
         }),
       });
 
@@ -591,6 +595,7 @@ export default function AdminPromos() {
         setMaxUses('');
         setExpiresAt('');
         setDescription('');
+        setRequiresAccount(true);
         setSelectedCategories([]);
         setSelectedProductIds([]);
         setApplicableScope('ALL');
@@ -1985,6 +1990,25 @@ export default function AdminPromos() {
                     className="w-full px-2.5 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs"
                   />
                 </div>
+
+                {/* Compte client obligatoire toggle */}
+                <div className="p-3 bg-sky-50/70 border border-sky-200/80 rounded-xl space-y-1">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-[11px] font-bold text-sky-900 flex items-center gap-1.5">
+                      <Lock size={13} className="text-sky-600" />
+                      <span>Compte client obligatoire</span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={requiresAccount}
+                      onChange={(e) => setRequiresAccount(e.target.checked)}
+                      className="w-4 h-4 accent-sky-600 rounded cursor-pointer"
+                    />
+                  </label>
+                  <p className="text-[10px] text-sky-700 leading-tight">
+                    Exige que le client crée un compte ou soit connecté sur Maison NAY pour pouvoir appliquer ce code promo (Recommandé pour acquérir de nouveaux membres et emails).
+                  </p>
+                </div>
               </div>
 
               {/* Submit Promo */}
@@ -2066,6 +2090,11 @@ export default function AdminPromos() {
                         {promo.minOrderAmount && promo.minOrderAmount > 0 ? (
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-neutral-100 text-neutral-600 border border-neutral-200">
                             Min. {promo.minOrderAmount} DH
+                          </span>
+                        ) : null}
+                        {promo.requiresAccount !== false ? (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
+                            <Lock size={10} /> Compte Requis
                           </span>
                         ) : null}
                       </div>
