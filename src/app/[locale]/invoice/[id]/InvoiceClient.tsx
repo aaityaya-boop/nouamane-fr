@@ -12,8 +12,7 @@ import {
   ExternalLink,
   ShieldCheck,
   FileText,
-  Truck,
-  Sparkles
+  Truck
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 import { generateQrCodeSvg } from '@/lib/qrCodeSvg';
@@ -196,10 +195,10 @@ export default function InvoiceClient({ order }: { order: any }) {
                   />
                 </div>
                 <p className="text-[10px] tracking-widest text-[#1D9BF0] font-black uppercase">
-                  Haute Parfumerie • Casablanca
+                  Parfumerie en Ligne • Partout au Maroc
                 </p>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  Créations Olfactives & Parfums d'Exception
+                  Testeurs Authentiques de Grandes Marques • 100% Digital
                 </p>
               </div>
             </div>
@@ -211,7 +210,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                   FACTURE
                 </h1>
                 <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                  ORIGINALE
+                  EXEMPLAIRE CLIENT
                 </span>
               </div>
               
@@ -250,13 +249,12 @@ export default function InvoiceClient({ order }: { order: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-5 border-b border-slate-200 text-xs">
             {/* Vendeur */}
             <div className="bg-slate-50/70 rounded-lg p-3.5 border border-slate-100 space-y-1">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-[#1D9BF0]">
-                <Sparkles size={11} />
+              <div className="text-[10px] uppercase font-bold tracking-wider text-[#1D9BF0]">
                 <span>Boutique Vendeur</span>
               </div>
               <p className="font-bold text-slate-900 text-sm">NAY Parfums</p>
-              <p className="text-slate-600">Boutique en ligne & Parfumerie Fine</p>
-              <p className="text-slate-600">Casablanca, Maroc</p>
+              <p className="text-slate-600">Boutique en ligne 100% digitale</p>
+              <p className="text-slate-600">Livraison express partout au Maroc</p>
               <p className="text-slate-600">
                 WhatsApp & Service Client : <span className="font-semibold text-slate-900">+212 663-380011</span>
               </p>
@@ -379,7 +377,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                   <span>Garantie Authenticité & Qualité</span>
                 </div>
                 <p className="text-[10px] text-slate-500">
-                  • 100% Parfums d'origine garantis par NAY Parfums.
+                  • Testeurs de grandes marques 100% authentiques garantis par NAY Parfums.
                 </p>
                 <p className="text-[10px] text-slate-500">
                   • Mode de règlement :{' '}
@@ -388,7 +386,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                   </span>
                 </p>
                 <p className="text-[10px] text-slate-500">
-                  • Délai d'acheminement standard : 24h à 48h ouvrées au Maroc.
+                  • Livraison rapide partout au Maroc sous 24h à 48h ouvrées.
                 </p>
               </div>
             </div>
@@ -438,8 +436,8 @@ export default function InvoiceClient({ order }: { order: any }) {
           {/* 4. BRAND FOOTER (A4 STANDARD LETTERHEAD) */}
           <div className="mt-6 pt-4 border-t border-slate-200 text-[10px] text-slate-500 space-y-1">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left font-medium text-slate-600">
-              <span>NAY Parfums — Parfumerie Fine & Créations Olfactives de Luxe</span>
-              <span>Casablanca, Maroc • WhatsApp / Service Client : +212 663-380011</span>
+              <span>NAY Parfums — Testeurs de Parfums de Grandes Marques • Boutique 100% Digitale</span>
+              <span>Livraison partout au Maroc • WhatsApp : +212 663-380011</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left text-slate-400 text-[9px]">
