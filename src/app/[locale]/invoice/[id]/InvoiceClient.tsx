@@ -83,10 +83,6 @@ export default function InvoiceClient({ order }: { order: any }) {
   const shippingCost = Number(order.shippingCost) || 0;
   const discountAmount = Number(order.discount) || 0;
 
-  // TVA légale marocaine standard (20% TTC incluse)
-  const amountHT = totalAmount > 0 ? Math.round((totalAmount / 1.2) * 100) / 100 : 0;
-  const amountTVA = totalAmount > 0 ? Math.round((totalAmount - amountHT) * 100) / 100 : 0;
-
   return (
     <div className="bg-slate-200/75 min-h-screen text-slate-900 py-6 sm:py-10 px-3 sm:px-6 font-sans print:bg-white print:p-0 print:m-0 print:min-h-0 flex flex-col items-center">
       {/* 🖨️ Exact A4 Portrait Print Stylesheet (210mm x 297mm) */}
@@ -146,7 +142,7 @@ export default function InvoiceClient({ order }: { order: any }) {
 
           <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-100/70 border border-sky-200 text-[#0284c7] text-[11px] font-semibold">
             <FileText size={13} className="text-[#1D9BF0]" />
-            <span>Format A4 officiel (210 × 297 mm)</span>
+            <span>Format A4 standard (210 × 297 mm)</span>
           </div>
         </div>
 
@@ -176,14 +172,14 @@ export default function InvoiceClient({ order }: { order: any }) {
         
         {/* UPPER PORTION */}
         <div>
-          {/* 1. PRESTIGE HEADER */}
+          {/* 1. BRAND HEADER */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-5 border-b-2 border-slate-900">
             {/* Brand Identity */}
             <div className="flex items-start gap-3.5">
               <div className="relative w-14 h-14 shrink-0 bg-slate-50 rounded-lg p-1 border border-slate-100">
                 <Image
                   src="/images/nay/nay-emblem.png"
-                  alt="Maison NAY Emblem"
+                  alt="NAY Emblem"
                   fill
                   className="object-contain"
                   priority
@@ -250,24 +246,21 @@ export default function InvoiceClient({ order }: { order: any }) {
             </div>
           </div>
 
-          {/* 2. EMETTEUR & DESTINATAIRE BLOCKS */}
+          {/* 2. VENDEUR & CLIENT BLOCKS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-5 border-b border-slate-200 text-xs">
-            {/* Vendeur / Émetteur */}
+            {/* Vendeur */}
             <div className="bg-slate-50/70 rounded-lg p-3.5 border border-slate-100 space-y-1">
               <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-[#1D9BF0]">
                 <Sparkles size={11} />
-                <span>Émetteur (Vendeur)</span>
+                <span>Boutique Vendeur</span>
               </div>
-              <p className="font-bold text-slate-900 text-sm">Maison NAY Parfums SARL</p>
-              <p className="text-slate-600">Siège : Bd d'Anfa, Casablanca, Maroc</p>
-              <p className="text-slate-600">Service Commandes & Logistique</p>
+              <p className="font-bold text-slate-900 text-sm">NAY Parfums</p>
+              <p className="text-slate-600">Boutique en ligne & Parfumerie Fine</p>
+              <p className="text-slate-600">Casablanca, Maroc</p>
               <p className="text-slate-600">
-                Tél / WhatsApp : <span className="font-semibold text-slate-900">+212 663-380011</span>
+                WhatsApp & Service Client : <span className="font-semibold text-slate-900">+212 663-380011</span>
               </p>
               <p className="text-slate-500">contact@nayparfum.ma • www.nayparfum.ma</p>
-              <div className="pt-1 text-[10px] text-slate-400 font-mono">
-                ICE: 003291840000084 • RC: 542190 Casablanca • IF: 53920184
-              </div>
             </div>
 
             {/* Client / Destinataire */}
@@ -303,7 +296,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                     <th className="py-2.5 px-2 text-center">Format</th>
                     <th className="py-2.5 px-2 text-center">Quantité</th>
                     <th className="py-2.5 px-3 text-right">Prix Unitaire</th>
-                    <th className="py-2.5 px-3 text-right">Total TTC</th>
+                    <th className="py-2.5 px-3 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -383,10 +376,10 @@ export default function InvoiceClient({ order }: { order: any }) {
               <div className="p-3 rounded-xl bg-slate-50/60 border border-slate-100 text-[11px] text-slate-600 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-slate-800">
                   <ShieldCheck size={13} className="text-emerald-600 shrink-0" />
-                  <span>Garantie Authenticité & Conformité</span>
+                  <span>Garantie Authenticité & Qualité</span>
                 </div>
                 <p className="text-[10px] text-slate-500">
-                  • 100% Parfums d'origine garantis par la Maison NAY.
+                  • 100% Parfums d'origine garantis par NAY Parfums.
                 </p>
                 <p className="text-[10px] text-slate-500">
                   • Mode de règlement :{' '}
@@ -395,7 +388,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                   </span>
                 </p>
                 <p className="text-[10px] text-slate-500">
-                  • Délai d'acheminement standard : 24h à 48h ouvrées.
+                  • Délai d'acheminement standard : 24h à 48h ouvrées au Maroc.
                 </p>
               </div>
             </div>
@@ -403,13 +396,8 @@ export default function InvoiceClient({ order }: { order: any }) {
             {/* Right Box: Clean Totals Card */}
             <div className="bg-slate-50/70 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
               <div className="flex justify-between text-slate-600">
-                <span>Sous-total Net (HT)</span>
-                <span className="font-mono font-medium text-slate-800">{formatMAD(amountHT)}</span>
-              </div>
-
-              <div className="flex justify-between text-slate-600">
-                <span>TVA (20% incluse)</span>
-                <span className="font-mono font-medium text-slate-800">{formatMAD(amountTVA)}</span>
+                <span>Sous-total</span>
+                <span className="font-mono font-medium text-slate-800">{formatMAD(subtotalAmount)}</span>
               </div>
 
               <div className="flex justify-between text-slate-600">
@@ -433,7 +421,7 @@ export default function InvoiceClient({ order }: { order: any }) {
               <div className="pt-2.5 mt-1 border-t-2 border-slate-900 flex justify-between items-baseline">
                 <div>
                   <span className="text-xs uppercase font-black tracking-wider text-slate-900 block">
-                    TOTAL À PAYER TTC
+                    TOTAL À PAYER
                   </span>
                   <span className="text-[10px] text-slate-400 font-normal">
                     Montant net en Dirhams marocains
@@ -447,22 +435,20 @@ export default function InvoiceClient({ order }: { order: any }) {
 
           </div>
 
-          {/* 4. OFFICIAL LEGAL FOOTER (A4 STANDARD LETTERHEAD) */}
+          {/* 4. BRAND FOOTER (A4 STANDARD LETTERHEAD) */}
           <div className="mt-6 pt-4 border-t border-slate-200 text-[10px] text-slate-500 space-y-1">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left font-medium text-slate-600">
-              <span>NAY Parfums SARL — Parfumerie Fine & Créations Olfactives de Luxe</span>
-              <span>Casablanca, Maroc • Tél : +212 663-380011</span>
+              <span>NAY Parfums — Parfumerie Fine & Créations Olfactives de Luxe</span>
+              <span>Casablanca, Maroc • WhatsApp / Service Client : +212 663-380011</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left text-slate-400 text-[9px]">
-              <span>
-                RC : 542190 • IF : 53920184 • ICE : 003291840000084 • Patente : 37910421 • CNSS : 4192084
-              </span>
-              <span>Document officiel — Valable sans signature manuscrite</span>
+              <span>Merci pour votre commande et votre confiance !</span>
+              <span>Document justificatif d'achat • www.nayparfum.ma</span>
             </div>
 
             <div className="pt-1 text-center text-slate-400 text-[9px] flex items-center justify-between">
-              <span>www.nayparfum.ma • contact@nayparfum.ma</span>
+              <span>contact@nayparfum.ma</span>
               <span className="font-mono">Page 1 / 1</span>
             </div>
           </div>
