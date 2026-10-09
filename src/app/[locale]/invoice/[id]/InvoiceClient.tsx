@@ -241,7 +241,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                       {isFullyPaid
                         ? 'Facture Réglée'
                         : hasAdvance
-                        ? `Acompte Versé (${advancePercentage}%) • Solde : ${formatMAD(balanceDue)}`
+                        ? `Acompte Versé • Solde : ${formatMAD(balanceDue)}`
                         : isCOD
                         ? 'Règlement à la livraison'
                         : 'En attente'}
@@ -435,7 +435,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                 <div className="flex justify-between items-center text-emerald-700 font-semibold bg-emerald-50/90 px-2.5 py-1.5 rounded-lg border border-emerald-200">
                   <div className="flex flex-col">
                     <span className="text-[11px]">
-                      - Acompte versé ({advancePercentage}%)
+                      - Acompte versé d'avance
                     </span>
                     {order.advancePaymentMethod && (
                       <span className="text-[9.5px] text-emerald-600 font-normal">
@@ -453,7 +453,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                     {isFullyPaid ? 'TOTAL RÉGLÉ' : 'RESTE À PAYER (LIVRAISON)'}
                   </span>
                   <span className="text-[10px] text-slate-500 font-normal">
-                    {isFullyPaid ? 'Commande 100% soldée' : 'Montant net à régler au livreur'}
+                    {isFullyPaid ? 'Commande intégralement réglée' : 'Montant net à régler au livreur'}
                   </span>
                 </div>
                 <span className={`text-xl sm:text-2xl font-black font-mono ${isFullyPaid ? 'text-emerald-600' : 'text-[#1D9BF0]'}`}>

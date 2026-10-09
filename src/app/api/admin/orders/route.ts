@@ -132,19 +132,22 @@ export async function PUT(request: Request) {
 
       // Record payment event in timeline if changed
       if (parsedPaidAmount !== (currentOrder.paidAmount || 0)) {
-        const pct = effectiveTotal > 0 ? Math.round((parsedPaidAmount / effectiveTotal) * 100) : 0;
         const remaining = Math.max(0, effectiveTotal - parsedPaidAmount);
+        const paymentTitle = parsedPaidAmount >= effectiveTotal
+          ? 'Commande intégralement réglée'
+          : parsedPaidAmount > 0
+          ? `Acompte enregistré : ${parsedPaidAmount} MAD`
+          : 'Paiement à la livraison';
         await prisma.orderTimelineEvent.create({
           data: {
             orderId: currentOrder.id,
             status: status || currentOrder.status,
-            title: `Règlement mis à jour (${pct}%)`,
-            description: `Acompte / Montant encaissé : ${parsedPaidAmount} MAD (${pct}%). Solde restant à la livraison : ${remaining} MAD.${body.advancePaymentMethod ? ` Mode : ${body.advancePaymentMethod}.` : ''}${body.paymentNotes ? ` Note : ${body.paymentNotes}` : ''}`,
+            title: paymentTitle,
+            description: `Montant encaissé : ${parsedPaidAmount} MAD. Solde restant à la livraison : ${remaining} MAD.${body.advancePaymentMethod ? ` Mode : ${body.advancePaymentMethod}.` : ''}${body.paymentNotes ? ` Note : ${body.paymentNotes}` : ''}`,
             actorName: admin?.name || actorNameOverride || 'Admin NAY',
             actorRole: admin?.role || 'STAFF',
             metadata: JSON.stringify({
               paidAmount: parsedPaidAmount,
-              percentage: pct,
               remaining,
               advancePaymentMethod: body.advancePaymentMethod,
             }),

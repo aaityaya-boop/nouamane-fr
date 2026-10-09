@@ -275,10 +275,10 @@ function OrdersPageContent() {
     }
   };
 
-  const handleQuickAdvance = async (pct: number) => {
+  const handleQuickAmount = async (amount: number) => {
     if (!editingOrder) return;
     const total = Number(editingOrder.total) || 0;
-    const computed = pct === 100 ? total : Math.round(total * (pct / 100));
+    const computed = Math.max(0, Math.min(total, amount));
     setAdvanceAmountInput(String(computed));
     await handleSavePayment(computed);
   };
@@ -1510,7 +1510,7 @@ function OrdersPageContent() {
                             return (
                               <div className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mt-0.5">
                                 <CheckCircle2 size={10} />
-                                <span>Payé 100% (0 DH solde)</span>
+                                <span>Totalement réglé</span>
                               </div>
                             );
                           }
@@ -1519,7 +1519,7 @@ function OrdersPageContent() {
                             return (
                               <div className="space-y-0.5 mt-0.5">
                                 <div className="inline-flex items-center gap-1 text-[10px] text-sky-800 font-bold bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">
-                                  <span>Acompte : {formatMAD(paid)} ({pct}%)</span>
+                                  <span>Acompte : {formatMAD(paid)}</span>
                                 </div>
                                 <div className="text-[10px] text-amber-700 font-medium">
                                   Reste : {formatMAD(remaining)}
@@ -1530,7 +1530,7 @@ function OrdersPageContent() {
 
                           return (
                             <div className="inline-flex items-center gap-1 text-[10px] text-slate-600 font-medium bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 mt-0.5">
-                              <span>À la livraison (100%)</span>
+                              <span>À la livraison</span>
                             </div>
                           );
                         })()}
@@ -1697,161 +1697,233 @@ function OrdersPageContent() {
 
               </div>
 
-              {/* 💳 GESTION DES ACOMPTES & RÈGLEMENTS */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-sky-50/40 border border-sky-200/80 shadow-2xs space-y-3.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#1D9BF0] text-white flex items-center justify-center shadow-xs">
+              {/* 💳 GESTION DES RÈGLEMENTS & ENCAISSEMENTS CLIENTS */}
+              <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+                
+                {/* Header */}
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-xs">
                       <CreditCard size={15} />
                     </div>
                     <div>
-                      <div className="font-bold text-slate-900 text-xs">
+                      <h4 className="font-bold text-slate-900 text-sm tracking-tight">
                         Règlement & Acomptes Clients
-                      </div>
-                      <div className="text-[10px] text-slate-500">
-                        Gestion des avances (10%, 20%, 50%, 100% ou montant libre)
-                      </div>
+                      </h4>
+                      <p className="text-[11px] text-slate-500 font-normal">
+                        Enregistrement des versements et suivi du solde restant
+                      </p>
                     </div>
                   </div>
 
-                  {paymentSavedMessage && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200 animate-in fade-in">
+                  {paymentSavedMessage ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200 animate-in fade-in">
                       <Check size={13} className="text-emerald-600" />
                       <span>{paymentSavedMessage}</span>
                     </span>
-                  )}
+                  ) : (() => {
+                    const total = Number(editingOrder.total) || 0;
+                    const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
+                    if (paid >= total && total > 0) {
+                      return (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200">
+                          <CheckCircle2 size={12} />
+                          <span>Totalement réglé</span>
+                        </span>
+                      );
+                    }
+                    if (paid > 0) {
+                      return (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 text-[#0284c7] text-[11px] font-bold border border-sky-200">
+                          <span>Acompte enregistré</span>
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-medium border border-slate-200">
+                        <span>À la livraison</span>
+                      </span>
+                    );
+                  })()}
                 </div>
 
-                {/* Progress bar of payment */}
+                {/* 3 Executive Financial Metric Pillars (Zero Percentages) */}
                 {(() => {
                   const total = Number(editingOrder.total) || 0;
                   const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
                   const remaining = Math.max(0, total - paid);
-                  const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
 
                   return (
-                    <div className="space-y-1.5 bg-white p-3 rounded-xl border border-slate-200/80">
-                      <div className="flex justify-between items-center text-xs">
-                        <div className="text-slate-600 text-[11px]">
-                          Total : <strong className="font-mono text-slate-900 font-bold">{formatMAD(total)}</strong>
+                    <div className="bg-slate-50/70 rounded-xl p-3.5 border border-slate-200/80 space-y-2.5">
+                      <div className="grid grid-cols-3 gap-2 text-left">
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                            Total Commande
+                          </span>
+                          <span className="font-mono font-bold text-slate-900 text-sm">
+                            {formatMAD(total)}
+                          </span>
                         </div>
-                        <div className="text-slate-600 text-[11px]">
-                          Encaissé : <strong className="font-mono text-emerald-600 font-bold">{formatMAD(paid)} ({pct}%)</strong>
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                            Déjà Encaissé
+                          </span>
+                          <span className={`font-mono font-bold text-sm ${paid > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                            {formatMAD(paid)}
+                          </span>
                         </div>
-                        <div className="text-slate-600 text-[11px]">
-                          Reste à livrer : <strong className="font-mono text-[#1D9BF0] font-bold">{formatMAD(remaining)}</strong>
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                            Reste à Livrer
+                          </span>
+                          <span className={`font-mono font-bold text-sm ${remaining > 0 ? 'text-[#1D9BF0]' : 'text-emerald-600'}`}>
+                            {formatMAD(remaining)}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Visual progress bar */}
-                      <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden flex border border-slate-200/60">
+                      {/* Clean Minimal Progress Track */}
+                      <div className="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden flex">
                         <div
                           className="bg-emerald-500 h-full transition-all duration-300"
-                          style={{ width: `${Math.min(100, pct)}%` }}
-                        />
-                        <div
-                          className="bg-sky-400 h-full transition-all duration-300"
-                          style={{ width: `${Math.max(0, 100 - pct)}%` }}
+                          style={{ width: `${Math.min(100, total > 0 ? (paid / total) * 100 : 0)}%` }}
                         />
                       </div>
                     </div>
                   );
                 })()}
 
-                {/* 1-Click Quick Preset Buttons */}
-                <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center justify-between">
-                    <span>Raccourcis Acomptes Rapides (1-Clic) :</span>
-                    <span className="text-slate-400 font-normal">Calcul automatique</span>
-                  </div>
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {[
-                      { label: '0% Non payé', pct: 0, bg: 'bg-slate-100 hover:bg-slate-200 text-slate-700' },
-                      { label: '10% Acompte', pct: 10, bg: 'bg-sky-100 hover:bg-sky-200 text-[#0284c7]' },
-                      { label: '20% Acompte', pct: 20, bg: 'bg-sky-100 hover:bg-sky-200 text-[#0284c7]' },
-                      { label: '50% Moitié', pct: 50, bg: 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold' },
-                      { label: '100% Payé', pct: 100, bg: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold' },
-                    ].map((btn) => (
-                      <button
-                        key={btn.pct}
-                        type="button"
-                        onClick={() => handleQuickAdvance(btn.pct)}
-                        disabled={isSavingPayment}
-                        className={`px-1.5 py-2 rounded-xl text-[11px] font-semibold text-center border border-slate-200/80 transition-all cursor-pointer ${btn.bg} active:scale-95 disabled:opacity-50`}
-                      >
-                        {btn.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Direct Action Presets (Clean Dirham Amounts - No Percentages) */}
+                {(() => {
+                  const total = Number(editingOrder.total) || 0;
+                  const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
+                  const half = Math.round(total / 2);
+
+                  const presets = [
+                    { label: 'À la livraison', amount: 0, desc: '0 MAD' },
+                    { label: 'Acompte 50 DH', amount: 50, desc: '50 MAD' },
+                    { label: 'Acompte 100 DH', amount: 100, desc: '100 MAD' },
+                    { label: 'Moitié commande', amount: half, desc: `${half} MAD` },
+                    { label: 'Totalité soldée', amount: total, desc: `${total} MAD` },
+                  ];
+
+                  return (
+                    <div>
+                      <div className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+                        <span>Raccourcis de Versement Rapides :</span>
+                        <span className="text-slate-400 font-normal">Sélection directe</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                        {presets.map((preset) => {
+                          const isSelected = paid === preset.amount;
+                          return (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => handleQuickAmount(preset.amount)}
+                              disabled={isSavingPayment}
+                              className={`p-2 rounded-xl text-left border transition-all cursor-pointer disabled:opacity-50 flex flex-col justify-between ${
+                                isSelected
+                                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 hover:border-slate-300'
+                              }`}
+                            >
+                              <span className={`text-[10.5px] font-bold truncate ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                                {preset.label}
+                              </span>
+                              <span className={`text-[10.5px] font-mono mt-1 font-bold ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                {preset.desc}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Custom Amount & Payment Details Form */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-200/70">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100">
                   
                   {/* Montant personnalisé */}
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                    <label className="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                       Montant Encaissé (MAD)
                     </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max={editingOrder.total}
-                      value={advanceAmountInput}
-                      onChange={(e) => setAdvanceAmountInput(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#1D9BF0]"
-                      placeholder="0"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max={editingOrder.total}
+                        value={advanceAmountInput}
+                        onChange={(e) => setAdvanceAmountInput(e.target.value)}
+                        className="w-full pl-3 pr-10 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all shadow-2xs"
+                        placeholder="0"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none">
+                        MAD
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Mode de règlement */}
+                  {/* Canal de règlement */}
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                    <label className="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                       Canal de Règlement
                     </label>
                     <select
                       value={advanceMethodInput}
                       onChange={(e) => setAdvanceMethodInput(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-[#1D9BF0]"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all shadow-2xs cursor-pointer"
                     >
-                      <option value="VIREMENT">Virement (CIH, Attijari...)</option>
+                      <option value="VIREMENT">Virement bancaire (CIH, Attijari...)</option>
                       <option value="CASHPLUS">CashPlus / Wafacash</option>
-                      <option value="CARTE">Carte Bancaire (CMI)</option>
+                      <option value="CARTE">Carte bancaire en ligne</option>
                       <option value="ESPECES">Espèces en main propre</option>
-                      <option value="AUTRE">Autre moyen</option>
+                      <option value="AUTRE">Autre mode de versement</option>
                     </select>
                   </div>
 
                   {/* Note / Référence */}
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 mb-1">
-                      Réf / Note de virement
+                    <label className="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                      Réf / Note de versement
                     </label>
                     <input
                       type="text"
                       value={advanceNotesInput}
                       onChange={(e) => setAdvanceNotesInput(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#1D9BF0]"
-                      placeholder="Ex: Virement CIH #129..."
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all shadow-2xs"
+                      placeholder="Ex: Réf virement #129..."
                     />
                   </div>
 
                 </div>
 
-                {/* Save Button */}
-                <div className="flex justify-end pt-1">
+                {/* Bottom Action Bar */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                  <div className="text-[11px] text-slate-500">
+                    {Number(advanceAmountInput) > 0 ? (
+                      <span>
+                        Solde restant à livrer : <strong className="font-mono text-slate-900 font-bold">{formatMAD(Math.max(0, (Number(editingOrder.total) || 0) - (Number(advanceAmountInput) || 0)))}</strong>
+                      </span>
+                    ) : (
+                      <span>Règlement intégral prévu à la livraison</span>
+                    )}
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => handleSavePayment()}
                     disabled={isSavingPayment}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D9BF0] hover:bg-[#1A8CD8] active:scale-95 text-white text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                   >
                     {isSavingPayment ? (
                       <RefreshCw size={13} className="animate-spin" />
                     ) : (
-                      <Check size={13} />
+                      <Check size={13} className="text-emerald-400" />
                     )}
-                    <span>Valider & Enregistrer l'Acompte</span>
+                    <span>Enregistrer le Règlement</span>
                   </button>
                 </div>
               </div>
@@ -1899,7 +1971,7 @@ function OrdersPageContent() {
                         </p>
                         {paid > 0 && (
                           <div className="text-[11px] text-emerald-400 mt-0.5 font-medium">
-                            ✓ Acompte de {formatMAD(paid)} déjà perçu ({Math.round((paid / total) * 100)}%)
+                            ✓ Acompte de {formatMAD(paid)} déjà perçu
                           </div>
                         )}
                       </div>
@@ -1911,10 +1983,10 @@ function OrdersPageContent() {
                           : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                       }`}>
                         {isPaidFull
-                          ? 'Payé 100%'
+                          ? 'Totalement réglé'
                           : paid > 0
-                          ? `Acompte Versé (${Math.round((paid / total) * 100)}%)`
-                          : 'Paiement Cash à la livraison'}
+                          ? `Acompte versé (${formatMAD(paid)})`
+                          : 'Paiement à la livraison'}
                       </span>
                     </div>
 
