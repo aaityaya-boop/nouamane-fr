@@ -92,6 +92,10 @@ function OrdersPageContent() {
   const [paymentFilter, setPaymentFilter] = useState<'ALL' | 'UNPAID' | 'PARTIAL' | 'PAID'>('ALL');
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
 
+  // Delivery Fee configuration (Default: 35 MAD per order)
+  const [shippingFeePerOrder, setShippingFeePerOrder] = useState<number>(35);
+  const [estimationMode, setEstimationMode] = useState<'NET' | 'BRUT'>('NET');
+
   // Advance Payment State in Drawer
   const [advanceAmountInput, setAdvanceAmountInput] = useState<string>('');
   const [advanceMethodInput, setAdvanceMethodInput] = useState<string>('VIREMENT');
@@ -437,14 +441,17 @@ function OrdersPageContent() {
   const deliveredRevenue = useMemo(() => orders.filter(o => o.status === 'delivered').reduce((acc, o) => acc + (Number(o.total) || 0), 0), [orders]);
   const deliverySuccessRate = tabCounts.ALL > 0 ? ((tabCounts.DELIVERED / tabCounts.ALL) * 100).toFixed(1) : '0';
 
-  // Real Financial Estimation & Cashflow Calculations
+  // Real Financial Estimation & Cashflow Calculations factoring 35 MAD shipping fee
   const financialEstimations = useMemo(() => {
-    let totalCashCollected = 0;       // Cash already in bank / collected
-    let advancesOnActiveOrders = 0;   // Acomptes already received on pending/processing/shipped orders
-    let remainingToCollectShipped = 0; // Balance to collect on currently shipped parcels
-    let remainingToCollectProcessing = 0; // Balance on confirmed/processing parcels
+    let totalCashCollectedGross = 0;       // Cash already in bank / collected (Gross)
+    let advancesOnActiveOrders = 0;        // Acomptes already received on pending/processing/shipped orders
+    let remainingToCollectShippedGross = 0; // Balance to collect on currently shipped parcels (Gross)
+    let remainingToCollectProcessingGross = 0; // Balance on confirmed/processing parcels (Gross)
     let countWithAdvance = 0;
     let countPaid100 = 0;
+    let deliveredOrdersCount = 0;
+    let shippedOrdersCount = 0;
+    let processingOrdersCount = 0;
 
     orders.forEach((o) => {
       const total = Number(o.total) || 0;
@@ -458,48 +465,95 @@ function OrdersPageContent() {
       }
 
       if (o.status === 'delivered') {
-        totalCashCollected += total;
+        deliveredOrdersCount += 1;
+        totalCashCollectedGross += total;
       } else if (o.status !== 'refused' && o.status !== 'returned' && o.status !== 'annule') {
-        totalCashCollected += paid;
+        totalCashCollectedGross += paid;
         if (paid > 0) {
           advancesOnActiveOrders += paid;
         }
 
         if (o.status === 'shipped') {
-          remainingToCollectShipped += remaining;
+          shippedOrdersCount += 1;
+          remainingToCollectShippedGross += remaining;
         } else if (o.status === 'processing' || o.status === 'confirmed') {
-          remainingToCollectProcessing += remaining;
+          processingOrdersCount += 1;
+          remainingToCollectProcessingGross += remaining;
         }
       }
     });
 
+    // Delivery costs calculation (35 MAD per delivered / successful order)
+    const deliveredShippingFees = deliveredOrdersCount * shippingFeePerOrder;
+    const totalCashCollectedNet = Math.max(0, totalCashCollectedGross - deliveredShippingFees);
+
+    // Shipped delivery fees (when delivered)
+    const shippedShippingFees = shippedOrdersCount * shippingFeePerOrder;
+    const remainingToCollectShippedNet = Math.max(0, remainingToCollectShippedGross - shippedShippingFees);
+
+    // Processing delivery fees
+    const processingShippingFees = processingOrdersCount * shippingFeePerOrder;
+    const remainingToCollectProcessingNet = Math.max(0, remainingToCollectProcessingGross - processingShippingFees);
+
+    // Historical delivery rate for COD orders
     const historicalDeliveryRate = totalOrdersCount > 0 && deliveredCount + returnedCount > 0
       ? deliveredCount / (deliveredCount + returnedCount)
       : 0.82;
 
-    let expectedFromShipped = 0;
+    let expectedFromShippedGross = 0;
+    let expectedFromShippedNet = 0;
+    let expectedShippedShippingFees = 0;
+
     orders.filter((o) => o.status === 'shipped').forEach((o) => {
       const total = Number(o.total) || 0;
       const paid = Math.min(total, Math.max(0, Number(o.paidAmount) || 0));
       const remaining = Math.max(0, total - paid);
       const prob = paid > 0 ? 0.98 : historicalDeliveryRate;
-      expectedFromShipped += remaining * prob;
+
+      expectedFromShippedGross += remaining * prob;
+      expectedShippedShippingFees += shippingFeePerOrder * prob;
+      expectedFromShippedNet += Math.max(0, remaining - shippingFeePerOrder) * prob;
     });
 
-    const perfectEstimation = Math.round(totalCashCollected + expectedFromShipped);
+    const perfectEstimationGross = Math.round(totalCashCollectedGross + expectedFromShippedGross);
+    const perfectEstimationNet = Math.round(totalCashCollectedNet + expectedFromShippedNet);
+    const totalShippingFeesIncurredAndExpected = Math.round(deliveredShippingFees + expectedShippedShippingFees);
 
     return {
-      totalCashCollected,
+      // Gross figures
+      totalCashCollectedGross,
+      remainingToCollectShippedGross,
+      remainingToCollectProcessingGross,
+      perfectEstimationGross,
+
+      // Net figures (after 35 MAD delivery fee per order)
+      totalCashCollectedNet,
+      remainingToCollectShippedNet,
+      remainingToCollectProcessingNet,
+      perfectEstimationNet,
+
+      // Active advances & counts
       advancesOnActiveOrders,
-      remainingToCollectShipped,
-      remainingToCollectProcessing,
-      expectedFromShipped: Math.round(expectedFromShipped),
-      perfectEstimation,
       countWithAdvance,
       countPaid100,
-      totalRemainingPipeline: remainingToCollectShipped + remainingToCollectProcessing,
+      deliveredOrdersCount,
+      shippedOrdersCount,
+      processingOrdersCount,
+
+      // Carrier fees
+      deliveredShippingFees,
+      shippedShippingFees,
+      totalShippingFeesIncurredAndExpected,
+      shippingFeePerOrder,
+
+      // Values according to estimationMode ('NET' | 'BRUT')
+      displayedCashCollected: estimationMode === 'NET' ? totalCashCollectedNet : totalCashCollectedGross,
+      displayedShipped: estimationMode === 'NET' ? remainingToCollectShippedNet : remainingToCollectShippedGross,
+      displayedProcessing: estimationMode === 'NET' ? remainingToCollectProcessingNet : remainingToCollectProcessingGross,
+      displayedEstimation: estimationMode === 'NET' ? perfectEstimationNet : perfectEstimationGross,
+      totalRemainingPipeline: remainingToCollectShippedGross + remainingToCollectProcessingGross,
     };
-  }, [orders, totalOrdersCount, deliveredCount, returnedCount]);
+  }, [orders, totalOrdersCount, deliveredCount, returnedCount, shippingFeePerOrder, estimationMode]);
 
   // Format WhatsApp Link
   const getWhatsAppLink = (phone: string, customerName: string, orderNumber: string) => {
@@ -894,7 +948,9 @@ function OrdersPageContent() {
                 </div>
               </div>
               <div className="text-2xl font-bold text-emerald-600 mt-2">{tabCounts.DELIVERED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">CA Livré: {formatMAD(deliveredRevenue)} ({deliverySuccessRate}%)</div>
+              <div className="text-[11px] text-slate-500 mt-1 font-medium">
+                CA: {formatMAD(deliveredRevenue)} • <span className="text-emerald-700 font-bold">Net: {formatMAD(Math.max(0, deliveredRevenue - (tabCounts.DELIVERED * shippingFeePerOrder)))}</span> (-{tabCounts.DELIVERED * shippingFeePerOrder} DH livr.)
+              </div>
             </div>
           </>
         )}
@@ -941,21 +997,51 @@ function OrdersPageContent() {
               <Calculator size={20} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-bold text-base text-white tracking-tight">
                   Centre d'Estimation Financière & Acomptes
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
                   Calcul Prévisionnel Parfait
                 </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  <Truck size={11} />
+                  <span>Frais Livraison : {shippingFeePerOrder} MAD / colis</span>
+                </span>
               </div>
               <p className="text-xs text-slate-300 mt-0.5">
-                Suivi en direct des avances clients (10%, 50%, 100%), du cash encaissé et des soldes restants chez les transporteurs.
+                Calcul précis après déduction des {shippingFeePerOrder} MAD de frais de transporteur par commande (Amana, Cathedis).
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs">
+            {/* Net vs Gross Mode Switch */}
+            <div className="flex items-center bg-white/10 p-1 rounded-xl border border-white/10 text-[11px] font-semibold">
+              <button
+                type="button"
+                onClick={() => setEstimationMode('NET')}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  estimationMode === 'NET'
+                    ? 'bg-emerald-500 text-white font-bold shadow-xs'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                Vue Nette (-{shippingFeePerOrder} DH livr.)
+              </button>
+              <button
+                type="button"
+                onClick={() => setEstimationMode('BRUT')}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  estimationMode === 'BRUT'
+                    ? 'bg-sky-500 text-white font-bold shadow-xs'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                Vue Brute (Client)
+              </button>
+            </div>
+
             <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>
@@ -971,58 +1057,80 @@ function OrdersPageContent() {
           {/* 1. Cash Déjà Encaissé */}
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 transition-colors">
             <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-              <span>Cash Déjà Encaissé</span>
+              <span>{estimationMode === 'NET' ? 'Cash Net Encaissé' : 'Cash Brut Encaissé'}</span>
               <CheckCircle2 size={14} className="text-emerald-400" />
             </div>
             <div className="text-xl font-black text-emerald-400 font-mono mt-1.5">
-              {formatMAD(financialEstimations.totalCashCollected)}
+              {formatMAD(financialEstimations.displayedCashCollected)}
             </div>
-            <div className="text-[10.5px] text-slate-300 mt-1 flex items-center gap-1">
-              <span>Dont</span>
-              <strong className="text-emerald-300">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong>
-              <span>d'acomptes actifs reçus</span>
+            <div className="text-[10.5px] text-slate-300 mt-1 flex flex-col gap-0.5">
+              <div className="flex items-center gap-1">
+                <span>Dont</span>
+                <strong className="text-emerald-300">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong>
+                <span>d'acomptes reçus</span>
+              </div>
+              <div className="text-[10px] text-slate-400">
+                {estimationMode === 'NET' 
+                  ? `Brut : ${formatMAD(financialEstimations.totalCashCollectedGross)} (déduit ${formatMAD(financialEstimations.deliveredShippingFees)} livr.)`
+                  : `Net réel en caisse : ${formatMAD(financialEstimations.totalCashCollectedNet)}`}
+              </div>
             </div>
           </div>
 
           {/* 2. Solde en Transit */}
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 transition-colors">
             <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-              <span>Solde en Livraison</span>
+              <span>{estimationMode === 'NET' ? 'Solde Net en Livraison' : 'Solde Brut en Livraison'}</span>
               <Truck size={14} className="text-[#1D9BF0]" />
             </div>
             <div className="text-xl font-black text-[#1D9BF0] font-mono mt-1.5">
-              {formatMAD(financialEstimations.remainingToCollectShipped)}
+              {formatMAD(financialEstimations.displayedShipped)}
             </div>
-            <div className="text-[10.5px] text-slate-300 mt-1">
-              À récupérer par Amana / Cathedis
+            <div className="text-[10.5px] text-slate-300 mt-1 flex flex-col gap-0.5">
+              <span>{financialEstimations.shippedOrdersCount} colis en cours avec transporteur</span>
+              <div className="text-[10px] text-slate-400">
+                {estimationMode === 'NET'
+                  ? `Déduit ${shippingFeePerOrder} DH/colis de commission livreur`
+                  : `Net transporteur : ${formatMAD(financialEstimations.remainingToCollectShippedNet)}`}
+              </div>
             </div>
           </div>
 
           {/* 3. Solde en Préparation */}
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
             <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-              <span>Solde en Préparation</span>
+              <span>{estimationMode === 'NET' ? 'Solde Net en Préparation' : 'Solde Brut en Préparation'}</span>
               <Clock size={14} className="text-amber-400" />
             </div>
             <div className="text-xl font-black text-amber-300 font-mono mt-1.5">
-              {formatMAD(financialEstimations.remainingToCollectProcessing)}
+              {formatMAD(financialEstimations.displayedProcessing)}
             </div>
-            <div className="text-[10.5px] text-slate-300 mt-1">
-              Commandes confirmées à expédier
+            <div className="text-[10.5px] text-slate-300 mt-1 flex flex-col gap-0.5">
+              <span>{financialEstimations.processingOrdersCount} commandes confirmées à expédier</span>
+              <div className="text-[10px] text-slate-400">
+                {estimationMode === 'NET'
+                  ? `Déduit ${shippingFeePerOrder} DH/colis de livraison future`
+                  : `Net marchandise : ${formatMAD(financialEstimations.remainingToCollectProcessingNet)}`}
+              </div>
             </div>
           </div>
 
-          {/* 4. ESTIMATION NETTE PARFAITE */}
+          {/* 4. ESTIMATION PARFAITE */}
           <div className="p-3.5 rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-600/20 border border-sky-400/40 hover:border-sky-300 transition-colors">
             <div className="flex items-center justify-between text-sky-200 text-[11px] font-bold uppercase tracking-wider">
-              <span>Estimation Parfaite</span>
+              <span>Estimation Parfaite {estimationMode === 'NET' ? '(Nette)' : '(Brute)'}</span>
               <Sparkles size={14} className="text-sky-300" />
             </div>
             <div className="text-xl font-black text-white font-mono mt-1.5">
-              {formatMAD(financialEstimations.perfectEstimation)}
+              {formatMAD(financialEstimations.displayedEstimation)}
             </div>
-            <div className="text-[10.5px] text-sky-200 mt-1">
-              Net estimé encaissable (fiabilité 98% sur acomptes)
+            <div className="text-[10.5px] text-sky-200 mt-1 flex flex-col gap-0.5">
+              <span>{estimationMode === 'NET' ? 'Net réel en poche (fiabilité 98% sur acomptes)' : 'Brut prévisionnel facturé (98% sur acomptes)'}</span>
+              <div className="text-[10px] text-sky-300/80">
+                {estimationMode === 'NET'
+                  ? `Frais transporteurs totaux déduits : -${formatMAD(financialEstimations.totalShippingFeesIncurredAndExpected)}`
+                  : `Estimation Nette réelle : ${formatMAD(financialEstimations.perfectEstimationNet)}`}
+              </div>
             </div>
           </div>
 
@@ -1387,6 +1495,10 @@ function OrdersPageContent() {
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="font-bold text-slate-900 text-xs">
                           {formatMAD(order.total)}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-medium">
+                          Net : <strong className="font-mono text-emerald-700">{formatMAD(Math.max(0, (Number(order.total) || 0) - shippingFeePerOrder))}</strong>
+                          <span className="text-slate-400"> (-{shippingFeePerOrder} DH livr.)</span>
                         </div>
                         {(() => {
                           const total = Number(order.total) || 0;
@@ -1773,35 +1885,54 @@ function OrdersPageContent() {
                 const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
                 const remaining = Math.max(0, total - paid);
                 const isPaidFull = paid >= total && total > 0;
+                const netProductRevenue = Math.max(0, total - shippingFeePerOrder);
 
                 return (
-                  <div className="p-4 rounded-2xl bg-slate-900 text-white flex justify-between items-center shadow-lg shadow-slate-900/10">
-                    <div>
-                      <span className="text-xs text-slate-400">
-                        {isPaidFull ? 'Commande Entièrement Payée' : 'Reste à encaisser à la livraison (Livreur)'}
+                  <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3 shadow-lg shadow-slate-900/10">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="text-xs text-slate-400">
+                          {isPaidFull ? 'Commande Entièrement Payée' : 'Reste à encaisser à la livraison (Livreur)'}
+                        </span>
+                        <p className="text-lg font-bold text-white mt-0.5 font-mono">
+                          {formatMAD(remaining)}
+                        </p>
+                        {paid > 0 && (
+                          <div className="text-[11px] text-emerald-400 mt-0.5 font-medium">
+                            ✓ Acompte de {formatMAD(paid)} déjà perçu ({Math.round((paid / total) * 100)}%)
+                          </div>
+                        )}
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                        isPaidFull
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                          : paid > 0
+                          ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+                          : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                      }`}>
+                        {isPaidFull
+                          ? 'Payé 100%'
+                          : paid > 0
+                          ? `Acompte Versé (${Math.round((paid / total) * 100)}%)`
+                          : 'Paiement Cash à la livraison'}
                       </span>
-                      <p className="text-lg font-bold text-white mt-0.5 font-mono">
-                        {formatMAD(remaining)}
-                      </p>
-                      {paid > 0 && (
-                        <div className="text-[11px] text-emerald-400 mt-0.5 font-medium">
-                          ✓ Acompte de {formatMAD(paid)} déjà perçu ({Math.round((paid / total) * 100)}%)
-                        </div>
-                      )}
                     </div>
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                      isPaidFull
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                        : paid > 0
-                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                    }`}>
-                      {isPaidFull
-                        ? 'Payé 100%'
-                        : paid > 0
-                        ? `Acompte Versé (${Math.round((paid / total) * 100)}%)`
-                        : 'Paiement Cash à la livraison'}
-                    </span>
+
+                    {/* Breakdown with 35 MAD delivery fee */}
+                    <div className="pt-2.5 border-t border-slate-800 text-[11px] space-y-1 text-slate-300">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Total payé par le client :</span>
+                        <span className="font-mono text-white">{formatMAD(total)}</span>
+                      </div>
+                      <div className="flex justify-between text-rose-300">
+                        <span>Frais transporteur livraison :</span>
+                        <span className="font-mono">-{formatMAD(shippingFeePerOrder)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-emerald-400 pt-1.5 border-t border-slate-800/80">
+                        <span>Net Boutique (Marchandise) :</span>
+                        <span className="font-mono text-sm">{formatMAD(netProductRevenue)}</span>
+                      </div>
+                    </div>
                   </div>
                 );
               })()}
