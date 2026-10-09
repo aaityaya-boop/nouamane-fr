@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import Link from "next/link";
 
 export default function WelcomePopup() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "exists">("idle");
@@ -60,10 +62,10 @@ export default function WelcomePopup() {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || pathname?.includes('/invoice')) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 print:hidden">
       <div className="relative w-full max-w-md bg-white overflow-hidden rounded-2xl shadow-2xl animate-in zoom-in-95 duration-500">
         
         {/* Close Button */}

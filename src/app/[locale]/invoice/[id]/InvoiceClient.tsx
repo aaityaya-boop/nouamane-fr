@@ -6,13 +6,9 @@ import Link from 'next/link';
 import {
   Printer,
   ArrowLeft,
-  CheckCircle2,
   Check,
   Copy,
-  ExternalLink,
-  ShieldCheck,
-  FileText,
-  Truck
+  FileText
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 import { generateQrCodeSvg } from '@/lib/qrCodeSvg';
@@ -104,8 +100,19 @@ export default function InvoiceClient({ order }: { order: any }) {
             background: #ffffff !important;
             overflow: visible !important;
           }
-          .no-print {
+          .no-print,
+          .print\:hidden,
+          [class*="print:hidden"],
+          button,
+          iframe,
+          [class*="fixed"],
+          [class*="bottom-"],
+          #merchantwidget,
+          #gcr-badge,
+          .gcr-badge {
             display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
           }
           .invoice-a4-sheet {
             width: 210mm !important;
@@ -223,7 +230,7 @@ export default function InvoiceClient({ order }: { order: any }) {
                 </p>
                 <div className="pt-0.5">
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${
                       isPaid
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         : isCOD
@@ -231,7 +238,6 @@ export default function InvoiceClient({ order }: { order: any }) {
                         : 'bg-sky-50 text-sky-700 border border-sky-200'
                     }`}
                   >
-                    <CheckCircle2 size={11} />
                     <span>
                       {isPaid
                         ? 'Facture Réglée'
@@ -263,8 +269,7 @@ export default function InvoiceClient({ order }: { order: any }) {
 
             {/* Client / Destinataire */}
             <div className="bg-slate-50/70 rounded-lg p-3.5 border border-slate-100 space-y-1">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-500">
-                <Truck size={11} />
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
                 <span>Facturé & Livré à</span>
               </div>
               <p className="font-bold text-slate-900 text-sm">{order.customerName || 'Client NAY'}</p>
@@ -357,23 +362,21 @@ export default function InvoiceClient({ order }: { order: any }) {
                   dangerouslySetInnerHTML={{ __html: qrSvg }}
                 />
                 <div className="text-xs space-y-0.5 pr-1">
-                  <div className="font-bold text-slate-900 group-hover:text-[#1D9BF0] flex items-center gap-1 transition-colors">
-                    <span>📱 Suivi en direct du colis</span>
-                    <ExternalLink size={11} className="text-slate-400 print:hidden shrink-0" />
+                  <div className="font-bold text-slate-900 group-hover:text-[#1D9BF0] transition-colors">
+                    <span>Suivi en direct du colis</span>
                   </div>
                   <p className="text-[11px] text-slate-600 leading-snug">
                     Scannez pour suivre l'acheminement et la livraison en temps réel.
                   </p>
                   <p className="text-[10px] text-slate-400 font-mono">
-                    Accès instantané par téléphone
+                    Accès instantané par smartphone
                   </p>
                 </div>
               </a>
 
               {/* Guarantees & Payment details */}
               <div className="p-3 rounded-xl bg-slate-50/60 border border-slate-100 text-[11px] text-slate-600 space-y-1">
-                <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                  <ShieldCheck size={13} className="text-emerald-600 shrink-0" />
+                <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">
                   <span>Garantie Authenticité & Qualité</span>
                 </div>
                 <p className="text-[10px] text-slate-500">

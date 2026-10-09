@@ -33,11 +33,13 @@ export default function WhatsAppButton() {
     return `${baseUrl}&text=${encodeURIComponent(text)}`;
   };
 
-  if (isProductPage) return null;
+  const isInvoicePage = pathname?.includes('/invoice');
+
+  if (isProductPage || isInvoicePage) return null;
   if (!mounted) return null; // Avoid rendering until mounted to prevent hydration mismatches on styles/href
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center justify-end">
+    <div className="fixed bottom-6 right-6 z-50 flex items-center justify-end print:hidden">
       <AnimatePresence>
         {isHovered && (
           <motion.div

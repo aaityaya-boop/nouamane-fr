@@ -198,10 +198,12 @@ export default async function LocaleLayout({
                 </CartProvider>
               </AuthProvider>
             {/* </SmoothScrollProvider> */}
-            <WhatsAppButton />
-            <AIChatWidget />
-            <WelcomePopup />
-            <CookieConsent />
+            <div className="print:hidden">
+              <WhatsAppButton />
+              <AIChatWidget />
+              <WelcomePopup />
+              <CookieConsent />
+            </div>
           </PreferencesProvider>
         </DictionaryProvider>
         <SpeedInsights />
