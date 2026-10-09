@@ -180,31 +180,23 @@ export default function InvoiceClient({ order }: { order: any }) {
         <div>
           {/* 1. BRAND HEADER */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-5 border-b-2 border-slate-900">
-            {/* Brand Identity */}
-            <div className="flex items-start gap-3.5">
-              <div className="relative w-14 h-14 shrink-0 bg-slate-50 rounded-lg p-1 border border-slate-100">
+            {/* Brand Identity - Single Official Logo */}
+            <div className="flex flex-col items-start">
+              <div className="h-10 flex items-center">
                 <Image
-                  src="/images/nay/nay-emblem.png"
-                  alt="NAY Emblem"
-                  fill
-                  className="object-contain"
+                  src="/images/nay/nay-logo-tight.png"
+                  alt="NAY Parfums"
+                  width={128}
+                  height={53}
+                  className="h-10 w-auto object-contain"
                   priority
                 />
               </div>
-              <div className="space-y-0.5">
-                <div className="relative w-28 h-7">
-                  <Image
-                    src="/images/nay/nay-wordmark.png"
-                    alt="NAY"
-                    fill
-                    className="object-contain object-left"
-                    priority
-                  />
-                </div>
-                <p className="text-[10px] tracking-widest text-[#1D9BF0] font-black uppercase">
+              <div className="mt-2 space-y-0.5">
+                <p className="text-[10.5px] font-semibold tracking-[0.18em] uppercase text-slate-600">
                   Parfumerie en Ligne • Partout au Maroc
                 </p>
-                <p className="text-[11px] text-slate-500 font-medium">
+                <p className="text-[10.5px] text-slate-500 font-medium">
                   Testeurs Authentiques de Grandes Marques • 100% Digital
                 </p>
               </div>
@@ -255,16 +247,16 @@ export default function InvoiceClient({ order }: { order: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-5 border-b border-slate-200 text-xs">
             {/* Vendeur */}
             <div className="bg-slate-50/70 rounded-lg p-3.5 border border-slate-100 space-y-1">
-              <div className="text-[10px] uppercase font-bold tracking-wider text-[#1D9BF0]">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
                 <span>Boutique Vendeur</span>
               </div>
               <p className="font-bold text-slate-900 text-sm">NAY Parfums</p>
-              <p className="text-slate-600">Boutique en ligne 100% digitale</p>
-              <p className="text-slate-600">Livraison express partout au Maroc</p>
-              <p className="text-slate-600">
-                WhatsApp & Service Client : <span className="font-semibold text-slate-900">+212 663-380011</span>
+              <p className="text-slate-700 font-medium">Boutique en ligne • Partout au Maroc</p>
+              <p className="text-slate-700 font-mono">
+                Tél : <span className="font-bold text-slate-900">+212 663-380011</span>
               </p>
-              <p className="text-slate-500">contact@nayparfum.ma • www.nayparfum.ma</p>
+              <p className="text-slate-500">contact@nayparfum.ma</p>
+              <p className="text-slate-500">www.nayparfum.ma</p>
             </div>
 
             {/* Client / Destinataire */}

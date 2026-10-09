@@ -135,27 +135,17 @@ export default function SuiviClient({
       <div className="max-w-2xl mx-auto space-y-6">
         {/* BRAND HEADER */}
         <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-3">
-            <div className="relative w-10 h-10 shrink-0">
-              <Image
-                src="/images/nay/nay-emblem.png"
-                alt="NAY"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <div className="relative w-24 h-7">
-              <Image
-                src="/images/nay/nay-wordmark.png"
-                alt="NAY Parfums"
-                fill
-                className="object-contain object-left"
-                priority
-              />
-            </div>
+          <Link href="/" className="inline-flex items-center justify-center">
+            <Image
+              src="/images/nay/nay-logo-tight.png"
+              alt="NAY Parfums"
+              width={128}
+              height={53}
+              className="h-10 w-auto object-contain"
+              priority
+            />
           </Link>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#1D9BF0]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
             Suivi de Commande en Direct
           </p>
         </div>
