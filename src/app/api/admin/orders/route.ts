@@ -114,6 +114,45 @@ export async function PUT(request: Request) {
       });
     }
 
+    const effectiveTotal = total !== undefined ? Number(total) : currentOrder.total;
+    let computedPaymentStatus = body.paymentStatus;
+    let parsedPaidAmount: number | undefined = undefined;
+
+    if (body.paidAmount !== undefined) {
+      parsedPaidAmount = Math.max(0, Number(body.paidAmount) || 0);
+      if (!computedPaymentStatus) {
+        if (parsedPaidAmount >= effectiveTotal && effectiveTotal > 0) {
+          computedPaymentStatus = 'paid';
+        } else if (parsedPaidAmount > 0) {
+          computedPaymentStatus = 'partial';
+        } else {
+          computedPaymentStatus = 'unpaid';
+        }
+      }
+
+      // Record payment event in timeline if changed
+      if (parsedPaidAmount !== (currentOrder.paidAmount || 0)) {
+        const pct = effectiveTotal > 0 ? Math.round((parsedPaidAmount / effectiveTotal) * 100) : 0;
+        const remaining = Math.max(0, effectiveTotal - parsedPaidAmount);
+        await prisma.orderTimelineEvent.create({
+          data: {
+            orderId: currentOrder.id,
+            status: status || currentOrder.status,
+            title: `Règlement mis à jour (${pct}%)`,
+            description: `Acompte / Montant encaissé : ${parsedPaidAmount} MAD (${pct}%). Solde restant à la livraison : ${remaining} MAD.${body.advancePaymentMethod ? ` Mode : ${body.advancePaymentMethod}.` : ''}${body.paymentNotes ? ` Note : ${body.paymentNotes}` : ''}`,
+            actorName: admin?.name || actorNameOverride || 'Admin NAY',
+            actorRole: admin?.role || 'STAFF',
+            metadata: JSON.stringify({
+              paidAmount: parsedPaidAmount,
+              percentage: pct,
+              remaining,
+              advancePaymentMethod: body.advancePaymentMethod,
+            }),
+          },
+        }).catch((err) => console.error('Error logging payment timeline:', err));
+      }
+    }
+
     const updated = await prisma.order.update({
       where: { id },
       data: {
@@ -121,6 +160,10 @@ export async function PUT(request: Request) {
         ...(customerName && { customerName }),
         ...(city && { shippingCity: city }),
         ...(total !== undefined && { total: Number(total) }),
+        ...(parsedPaidAmount !== undefined && { paidAmount: parsedPaidAmount }),
+        ...(computedPaymentStatus && { paymentStatus: computedPaymentStatus }),
+        ...(body.advancePaymentMethod !== undefined && { advancePaymentMethod: body.advancePaymentMethod }),
+        ...(body.paymentNotes !== undefined && { paymentNotes: body.paymentNotes }),
       },
       include: {
         timeline: {

@@ -33,7 +33,8 @@ import {
   TrendingUp,
   User,
   Package,
-  Target
+  Target,
+  Calculator
 } from 'lucide-react';
 import OrderTimelineStepper from '@/components/OrderTimelineStepper';
 import OrderTimelineFull from '@/components/OrderTimelineFull';
@@ -88,7 +89,24 @@ function OrdersPageContent() {
   const [search, setSearch] = useState(searchParam || '');
   const [activeTab, setActiveTab] = useState<string>(tabParam || 'ALL');
   const [cityFilter, setCityFilter] = useState<string>('ALL');
+  const [paymentFilter, setPaymentFilter] = useState<'ALL' | 'UNPAID' | 'PARTIAL' | 'PAID'>('ALL');
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
+
+  // Advance Payment State in Drawer
+  const [advanceAmountInput, setAdvanceAmountInput] = useState<string>('');
+  const [advanceMethodInput, setAdvanceMethodInput] = useState<string>('VIREMENT');
+  const [advanceNotesInput, setAdvanceNotesInput] = useState<string>('');
+  const [isSavingPayment, setIsSavingPayment] = useState<boolean>(false);
+  const [paymentSavedMessage, setPaymentSavedMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (editingOrder) {
+      setAdvanceAmountInput(String(editingOrder.paidAmount || 0));
+      setAdvanceMethodInput(editingOrder.advancePaymentMethod || 'VIREMENT');
+      setAdvanceNotesInput(editingOrder.paymentNotes || '');
+      setPaymentSavedMessage(null);
+    }
+  }, [editingOrder?.id, editingOrder?.paidAmount, editingOrder?.advancePaymentMethod, editingOrder?.paymentNotes]);
 
   // Target Highlight state (Spotlight)
   const [highlightedOrderId, setHighlightedOrderId] = useState<string | null>(null);
@@ -216,6 +234,51 @@ function OrdersPageContent() {
     }
   };
 
+  const handleSavePayment = async (customPaid?: number) => {
+    if (!editingOrder) return;
+    setIsSavingPayment(true);
+    setPaymentSavedMessage(null);
+
+    const amountToSave = customPaid !== undefined 
+      ? customPaid 
+      : Math.max(0, Number(advanceAmountInput) || 0);
+
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingOrder.id,
+          paidAmount: amountToSave,
+          advancePaymentMethod: advanceMethodInput,
+          paymentNotes: advanceNotesInput,
+          actorNameOverride: currentUser?.name || 'Admin NAY',
+        }),
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setOrders((prev) => prev.map((o) => (o.id === editingOrder.id ? updated : o)));
+        setEditingOrder(updated);
+        setAdvanceAmountInput(String(updated.paidAmount || 0));
+        setPaymentSavedMessage('Acompte enregistré avec succès !');
+        setTimeout(() => setPaymentSavedMessage(null), 3500);
+      }
+    } catch (err) {
+      console.error('Failed to save payment advance:', err);
+    } finally {
+      setIsSavingPayment(false);
+    }
+  };
+
+  const handleQuickAdvance = async (pct: number) => {
+    if (!editingOrder) return;
+    const total = Number(editingOrder.total) || 0;
+    const computed = pct === 100 ? total : Math.round(total * (pct / 100));
+    setAdvanceAmountInput(String(computed));
+    await handleSavePayment(computed);
+  };
+
   const handleAddTimelineNote = async (note: string, type: string = 'NOTE') => {
     if (!editingOrder) return;
     try {
@@ -331,6 +394,19 @@ function OrdersPageContent() {
         return false;
       }
 
+      if (paymentFilter === 'UNPAID') {
+        const paid = Number(o.paidAmount) || 0;
+        if (paid > 0) return false;
+      } else if (paymentFilter === 'PARTIAL') {
+        const paid = Number(o.paidAmount) || 0;
+        const total = Number(o.total) || 0;
+        if (paid <= 0 || paid >= total) return false;
+      } else if (paymentFilter === 'PAID') {
+        const paid = Number(o.paidAmount) || 0;
+        const total = Number(o.total) || 0;
+        if (paid < total || total <= 0) return false;
+      }
+
       if (activeTab === 'ALL') return true;
       if (activeTab === 'PENDING') {
         return jobProfile === 'CONFIRMATION' ? o.status === 'pending' : (o.status === 'pending' || o.status === 'unconfirmed');
@@ -343,7 +419,7 @@ function OrdersPageContent() {
 
       return true;
     });
-  }, [orders, search, activeTab, cityFilter, jobProfile]);
+  }, [orders, search, activeTab, cityFilter, paymentFilter, jobProfile]);
 
   // Key Metrics & Rates
   const totalOrdersCount = orders.length;
@@ -360,6 +436,70 @@ function OrdersPageContent() {
   const totalRevenue = useMemo(() => orders.reduce((acc, o) => acc + (Number(o.total) || 0), 0), [orders]);
   const deliveredRevenue = useMemo(() => orders.filter(o => o.status === 'delivered').reduce((acc, o) => acc + (Number(o.total) || 0), 0), [orders]);
   const deliverySuccessRate = tabCounts.ALL > 0 ? ((tabCounts.DELIVERED / tabCounts.ALL) * 100).toFixed(1) : '0';
+
+  // Real Financial Estimation & Cashflow Calculations
+  const financialEstimations = useMemo(() => {
+    let totalCashCollected = 0;       // Cash already in bank / collected
+    let advancesOnActiveOrders = 0;   // Acomptes already received on pending/processing/shipped orders
+    let remainingToCollectShipped = 0; // Balance to collect on currently shipped parcels
+    let remainingToCollectProcessing = 0; // Balance on confirmed/processing parcels
+    let countWithAdvance = 0;
+    let countPaid100 = 0;
+
+    orders.forEach((o) => {
+      const total = Number(o.total) || 0;
+      const paid = Math.min(total, Math.max(0, Number(o.paidAmount) || 0));
+      const remaining = Math.max(0, total - paid);
+
+      if (paid >= total && total > 0) {
+        countPaid100 += 1;
+      } else if (paid > 0) {
+        countWithAdvance += 1;
+      }
+
+      if (o.status === 'delivered') {
+        totalCashCollected += total;
+      } else if (o.status !== 'refused' && o.status !== 'returned' && o.status !== 'annule') {
+        totalCashCollected += paid;
+        if (paid > 0) {
+          advancesOnActiveOrders += paid;
+        }
+
+        if (o.status === 'shipped') {
+          remainingToCollectShipped += remaining;
+        } else if (o.status === 'processing' || o.status === 'confirmed') {
+          remainingToCollectProcessing += remaining;
+        }
+      }
+    });
+
+    const historicalDeliveryRate = totalOrdersCount > 0 && deliveredCount + returnedCount > 0
+      ? deliveredCount / (deliveredCount + returnedCount)
+      : 0.82;
+
+    let expectedFromShipped = 0;
+    orders.filter((o) => o.status === 'shipped').forEach((o) => {
+      const total = Number(o.total) || 0;
+      const paid = Math.min(total, Math.max(0, Number(o.paidAmount) || 0));
+      const remaining = Math.max(0, total - paid);
+      const prob = paid > 0 ? 0.98 : historicalDeliveryRate;
+      expectedFromShipped += remaining * prob;
+    });
+
+    const perfectEstimation = Math.round(totalCashCollected + expectedFromShipped);
+
+    return {
+      totalCashCollected,
+      advancesOnActiveOrders,
+      remainingToCollectShipped,
+      remainingToCollectProcessing,
+      expectedFromShipped: Math.round(expectedFromShipped),
+      perfectEstimation,
+      countWithAdvance,
+      countPaid100,
+      totalRemainingPipeline: remainingToCollectShipped + remainingToCollectProcessing,
+    };
+  }, [orders, totalOrdersCount, deliveredCount, returnedCount]);
 
   // Format WhatsApp Link
   const getWhatsAppLink = (phone: string, customerName: string, orderNumber: string) => {
@@ -791,6 +931,104 @@ function OrdersPageContent() {
         </div>
       )}
 
+      {/* 💎 CENTRE D'ESTIMATION FINANCIÈRE & SUIVI DES ACOMPTES (10%, 50%, 100%) */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-xl border border-slate-700/60 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 pb-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1D9BF0] to-blue-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25">
+              <Calculator size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-base text-white tracking-tight">
+                  Centre d'Estimation Financière & Acomptes
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                  Calcul Prévisionnel Parfait
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Suivi en direct des avances clients (10%, 50%, 100%), du cash encaissé et des soldes restants chez les transporteurs.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>
+                <strong className="text-white font-bold">{financialEstimations.countWithAdvance}</strong> avec acompte • <strong className="text-white font-bold">{financialEstimations.countPaid100}</strong> payées 100%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 4 Cards Grid of Financial Estimation */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 relative z-10">
+          
+          {/* 1. Cash Déjà Encaissé */}
+          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 transition-colors">
+            <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
+              <span>Cash Déjà Encaissé</span>
+              <CheckCircle2 size={14} className="text-emerald-400" />
+            </div>
+            <div className="text-xl font-black text-emerald-400 font-mono mt-1.5">
+              {formatMAD(financialEstimations.totalCashCollected)}
+            </div>
+            <div className="text-[10.5px] text-slate-300 mt-1 flex items-center gap-1">
+              <span>Dont</span>
+              <strong className="text-emerald-300">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong>
+              <span>d'acomptes actifs reçus</span>
+            </div>
+          </div>
+
+          {/* 2. Solde en Transit */}
+          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 transition-colors">
+            <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
+              <span>Solde en Livraison</span>
+              <Truck size={14} className="text-[#1D9BF0]" />
+            </div>
+            <div className="text-xl font-black text-[#1D9BF0] font-mono mt-1.5">
+              {formatMAD(financialEstimations.remainingToCollectShipped)}
+            </div>
+            <div className="text-[10.5px] text-slate-300 mt-1">
+              À récupérer par Amana / Cathedis
+            </div>
+          </div>
+
+          {/* 3. Solde en Préparation */}
+          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
+            <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
+              <span>Solde en Préparation</span>
+              <Clock size={14} className="text-amber-400" />
+            </div>
+            <div className="text-xl font-black text-amber-300 font-mono mt-1.5">
+              {formatMAD(financialEstimations.remainingToCollectProcessing)}
+            </div>
+            <div className="text-[10.5px] text-slate-300 mt-1">
+              Commandes confirmées à expédier
+            </div>
+          </div>
+
+          {/* 4. ESTIMATION NETTE PARFAITE */}
+          <div className="p-3.5 rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-600/20 border border-sky-400/40 hover:border-sky-300 transition-colors">
+            <div className="flex items-center justify-between text-sky-200 text-[11px] font-bold uppercase tracking-wider">
+              <span>Estimation Parfaite</span>
+              <Sparkles size={14} className="text-sky-300" />
+            </div>
+            <div className="text-xl font-black text-white font-mono mt-1.5">
+              {formatMAD(financialEstimations.perfectEstimation)}
+            </div>
+            <div className="text-[10.5px] text-sky-200 mt-1">
+              Net estimé encaissable (fiabilité 98% sur acomptes)
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       {/* Filter Tabs Bar with Status Colors */}
       <div className="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-1 overflow-x-auto custom-scrollbar">
         {(jobProfile === 'CONFIRMATION' ? [
@@ -867,19 +1105,37 @@ function OrdersPageContent() {
           )}
         </div>
 
-        {/* City Filter */}
-        <div className="flex items-center gap-2">
-          <MapPin size={14} className="text-slate-400 shrink-0" />
-          <select
-            value={cityFilter}
-            onChange={(e) => setCityFilter(e.target.value)}
-            className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-[#1D9BF0] cursor-pointer font-medium"
-          >
-            <option value="ALL">Toutes les villes ({uniqueCities.length})</option>
-            {uniqueCities.map((city) => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
+        {/* Filters Group */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Payment / Advance Filter */}
+          <div className="flex items-center gap-1.5">
+            <CreditCard size={14} className="text-slate-400 shrink-0" />
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value as any)}
+              className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-[#1D9BF0] cursor-pointer font-medium"
+            >
+              <option value="ALL">Tous les règlements</option>
+              <option value="PARTIAL">Avec Acompte (10%, 50%...)</option>
+              <option value="PAID">Payées à 100%</option>
+              <option value="UNPAID">Paiement à la livraison (0%)</option>
+            </select>
+          </div>
+
+          {/* City Filter */}
+          <div className="flex items-center gap-1.5">
+            <MapPin size={14} className="text-slate-400 shrink-0" />
+            <select
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-[#1D9BF0] cursor-pointer font-medium"
+            >
+              <option value="ALL">Toutes les villes ({uniqueCities.length})</option>
+              {uniqueCities.map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
       </div>
@@ -1127,14 +1383,45 @@ function OrdersPageContent() {
                         />
                       </td>
 
-                      {/* Total */}
+                      {/* Total & Payment Advance Status */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="font-bold text-slate-900 text-xs">
                           {formatMAD(order.total)}
                         </div>
-                        <div className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 mt-0.5">
-                          <span>Paiement à la livraison</span>
-                        </div>
+                        {(() => {
+                          const total = Number(order.total) || 0;
+                          const paid = Number(order.paidAmount) || 0;
+                          const remaining = Math.max(0, total - paid);
+                          const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
+
+                          if (paid >= total && total > 0) {
+                            return (
+                              <div className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mt-0.5">
+                                <CheckCircle2 size={10} />
+                                <span>Payé 100% (0 DH solde)</span>
+                              </div>
+                            );
+                          }
+
+                          if (paid > 0) {
+                            return (
+                              <div className="space-y-0.5 mt-0.5">
+                                <div className="inline-flex items-center gap-1 text-[10px] text-sky-800 font-bold bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">
+                                  <span>Acompte : {formatMAD(paid)} ({pct}%)</span>
+                                </div>
+                                <div className="text-[10px] text-amber-700 font-medium">
+                                  Reste : {formatMAD(remaining)}
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className="inline-flex items-center gap-1 text-[10px] text-slate-600 font-medium bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 mt-0.5">
+                              <span>À la livraison (100%)</span>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       {/* Status Dropdown */}
@@ -1298,6 +1585,165 @@ function OrdersPageContent() {
 
               </div>
 
+              {/* 💳 GESTION DES ACOMPTES & RÈGLEMENTS */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-sky-50/40 border border-sky-200/80 shadow-2xs space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#1D9BF0] text-white flex items-center justify-center shadow-xs">
+                      <CreditCard size={15} />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-xs">
+                        Règlement & Acomptes Clients
+                      </div>
+                      <div className="text-[10px] text-slate-500">
+                        Gestion des avances (10%, 20%, 50%, 100% ou montant libre)
+                      </div>
+                    </div>
+                  </div>
+
+                  {paymentSavedMessage && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200 animate-in fade-in">
+                      <Check size={13} className="text-emerald-600" />
+                      <span>{paymentSavedMessage}</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Progress bar of payment */}
+                {(() => {
+                  const total = Number(editingOrder.total) || 0;
+                  const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
+                  const remaining = Math.max(0, total - paid);
+                  const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
+
+                  return (
+                    <div className="space-y-1.5 bg-white p-3 rounded-xl border border-slate-200/80">
+                      <div className="flex justify-between items-center text-xs">
+                        <div className="text-slate-600 text-[11px]">
+                          Total : <strong className="font-mono text-slate-900 font-bold">{formatMAD(total)}</strong>
+                        </div>
+                        <div className="text-slate-600 text-[11px]">
+                          Encaissé : <strong className="font-mono text-emerald-600 font-bold">{formatMAD(paid)} ({pct}%)</strong>
+                        </div>
+                        <div className="text-slate-600 text-[11px]">
+                          Reste à livrer : <strong className="font-mono text-[#1D9BF0] font-bold">{formatMAD(remaining)}</strong>
+                        </div>
+                      </div>
+
+                      {/* Visual progress bar */}
+                      <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden flex border border-slate-200/60">
+                        <div
+                          className="bg-emerald-500 h-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, pct)}%` }}
+                        />
+                        <div
+                          className="bg-sky-400 h-full transition-all duration-300"
+                          style={{ width: `${Math.max(0, 100 - pct)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 1-Click Quick Preset Buttons */}
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center justify-between">
+                    <span>Raccourcis Acomptes Rapides (1-Clic) :</span>
+                    <span className="text-slate-400 font-normal">Calcul automatique</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {[
+                      { label: '0% Non payé', pct: 0, bg: 'bg-slate-100 hover:bg-slate-200 text-slate-700' },
+                      { label: '10% Acompte', pct: 10, bg: 'bg-sky-100 hover:bg-sky-200 text-[#0284c7]' },
+                      { label: '20% Acompte', pct: 20, bg: 'bg-sky-100 hover:bg-sky-200 text-[#0284c7]' },
+                      { label: '50% Moitié', pct: 50, bg: 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold' },
+                      { label: '100% Payé', pct: 100, bg: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold' },
+                    ].map((btn) => (
+                      <button
+                        key={btn.pct}
+                        type="button"
+                        onClick={() => handleQuickAdvance(btn.pct)}
+                        disabled={isSavingPayment}
+                        className={`px-1.5 py-2 rounded-xl text-[11px] font-semibold text-center border border-slate-200/80 transition-all cursor-pointer ${btn.bg} active:scale-95 disabled:opacity-50`}
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom Amount & Payment Details Form */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-200/70">
+                  
+                  {/* Montant personnalisé */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                      Montant Encaissé (MAD)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={editingOrder.total}
+                      value={advanceAmountInput}
+                      onChange={(e) => setAdvanceAmountInput(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#1D9BF0]"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  {/* Mode de règlement */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                      Canal de Règlement
+                    </label>
+                    <select
+                      value={advanceMethodInput}
+                      onChange={(e) => setAdvanceMethodInput(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-[#1D9BF0]"
+                    >
+                      <option value="VIREMENT">Virement (CIH, Attijari...)</option>
+                      <option value="CASHPLUS">CashPlus / Wafacash</option>
+                      <option value="CARTE">Carte Bancaire (CMI)</option>
+                      <option value="ESPECES">Espèces en main propre</option>
+                      <option value="AUTRE">Autre moyen</option>
+                    </select>
+                  </div>
+
+                  {/* Note / Référence */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                      Réf / Note de virement
+                    </label>
+                    <input
+                      type="text"
+                      value={advanceNotesInput}
+                      onChange={(e) => setAdvanceNotesInput(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#1D9BF0]"
+                      placeholder="Ex: Virement CIH #129..."
+                    />
+                  </div>
+
+                </div>
+
+                {/* Save Button */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleSavePayment()}
+                    disabled={isSavingPayment}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D9BF0] hover:bg-[#1A8CD8] active:scale-95 text-white text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingPayment ? (
+                      <RefreshCw size={13} className="animate-spin" />
+                    ) : (
+                      <Check size={13} />
+                    )}
+                    <span>Valider & Enregistrer l'Acompte</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Items List */}
               <div className="pt-4 border-t border-slate-100">
                 <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-3 flex items-center gap-1.5">
@@ -1322,15 +1768,43 @@ function OrdersPageContent() {
               </div>
 
               {/* Financial Summary */}
-              <div className="p-4 rounded-2xl bg-slate-900 text-white flex justify-between items-center shadow-lg shadow-slate-900/10">
-                <div>
-                  <span className="text-xs text-slate-400">Total à encaisser à la livraison (COD)</span>
-                  <p className="text-lg font-bold text-white mt-0.5">{formatMAD(editingOrder.total)}</p>
-                </div>
-                <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
-                  Paiement Cash
-                </span>
-              </div>
+              {(() => {
+                const total = Number(editingOrder.total) || 0;
+                const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
+                const remaining = Math.max(0, total - paid);
+                const isPaidFull = paid >= total && total > 0;
+
+                return (
+                  <div className="p-4 rounded-2xl bg-slate-900 text-white flex justify-between items-center shadow-lg shadow-slate-900/10">
+                    <div>
+                      <span className="text-xs text-slate-400">
+                        {isPaidFull ? 'Commande Entièrement Payée' : 'Reste à encaisser à la livraison (Livreur)'}
+                      </span>
+                      <p className="text-lg font-bold text-white mt-0.5 font-mono">
+                        {formatMAD(remaining)}
+                      </p>
+                      {paid > 0 && (
+                        <div className="text-[11px] text-emerald-400 mt-0.5 font-medium">
+                          ✓ Acompte de {formatMAD(paid)} déjà perçu ({Math.round((paid / total) * 100)}%)
+                        </div>
+                      )}
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                      isPaidFull
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                        : paid > 0
+                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                    }`}>
+                      {isPaidFull
+                        ? 'Payé 100%'
+                        : paid > 0
+                        ? `Acompte Versé (${Math.round((paid / total) * 100)}%)`
+                        : 'Paiement Cash à la livraison'}
+                    </span>
+                  </div>
+                );
+              })()}
 
             </div>
 

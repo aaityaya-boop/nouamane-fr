@@ -71,12 +71,17 @@ export default function InvoiceClient({ order }: { order: any }) {
   };
 
   const isCOD = !order.paymentMethod || order.paymentMethod === 'cod' || String(order.paymentMethod).toLowerCase().includes('livraison');
-  const isPaid = order.status === 'delivered' || (!isCOD && order.status !== 'cancelled' && order.status !== 'refused');
-
+  
   const totalAmount = Number(order.total) || 0;
   const subtotalAmount = Number(order.subtotal) || totalAmount;
   const shippingCost = Number(order.shippingCost) || 0;
   const discountAmount = Number(order.discount) || 0;
+
+  const paidAmount = Math.max(0, Number(order.paidAmount) || 0);
+  const balanceDue = Math.max(0, totalAmount - paidAmount);
+  const isFullyPaid = (paidAmount >= totalAmount && totalAmount > 0) || order.paymentStatus === 'paid' || order.status === 'delivered';
+  const hasAdvance = paidAmount > 0 && !isFullyPaid;
+  const advancePercentage = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
 
   return (
     <div className="bg-slate-200/75 min-h-screen text-slate-900 py-6 sm:py-10 px-3 sm:px-6 font-sans print:bg-white print:p-0 print:m-0 print:min-h-0 flex flex-col items-center">
@@ -223,16 +228,20 @@ export default function InvoiceClient({ order }: { order: any }) {
                 <div className="pt-0.5">
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${
-                      isPaid
+                      isFullyPaid
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : hasAdvance
+                        ? 'bg-sky-50 text-[#0284c7] border border-sky-200'
                         : isCOD
                         ? 'bg-amber-50 text-amber-700 border border-amber-200'
                         : 'bg-sky-50 text-sky-700 border border-sky-200'
                     }`}
                   >
                     <span>
-                      {isPaid
+                      {isFullyPaid
                         ? 'Facture Réglée'
+                        : hasAdvance
+                        ? `Acompte Versé (${advancePercentage}%) • Solde : ${formatMAD(balanceDue)}`
                         : isCOD
                         ? 'Règlement à la livraison'
                         : 'En attente'}
@@ -377,7 +386,13 @@ export default function InvoiceClient({ order }: { order: any }) {
                 <p className="text-[10px] text-slate-500">
                   • Mode de règlement :{' '}
                   <span className="font-semibold text-slate-700">
-                    {isCOD ? 'Espèces à la livraison (Cash on Delivery)' : 'Paiement sécurisé par carte'}
+                    {isFullyPaid
+                      ? 'Paiement intégral reçu'
+                      : hasAdvance
+                      ? `Acompte reçu (${formatMAD(paidAmount)}${order.advancePaymentMethod ? ` via ${order.advancePaymentMethod}` : ''}) • Solde de ${formatMAD(balanceDue)} à la livraison`
+                      : isCOD
+                      ? 'Espèces à la livraison (Cash on Delivery)'
+                      : 'Paiement sécurisé par carte'}
                   </span>
                 </p>
                 <p className="text-[10px] text-slate-500">
@@ -411,17 +426,38 @@ export default function InvoiceClient({ order }: { order: any }) {
                 </div>
               )}
 
+              <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline font-bold text-slate-800">
+                <span>Montant Total Commande</span>
+                <span className="font-mono text-sm">{formatMAD(totalAmount)}</span>
+              </div>
+
+              {paidAmount > 0 && (
+                <div className="flex justify-between items-center text-emerald-700 font-semibold bg-emerald-50/90 px-2.5 py-1.5 rounded-lg border border-emerald-200">
+                  <div className="flex flex-col">
+                    <span className="text-[11px]">
+                      - Acompte versé ({advancePercentage}%)
+                    </span>
+                    {order.advancePaymentMethod && (
+                      <span className="text-[9.5px] text-emerald-600 font-normal">
+                        Mode : {order.advancePaymentMethod}
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-mono font-bold">-{formatMAD(paidAmount)}</span>
+                </div>
+              )}
+
               <div className="pt-2.5 mt-1 border-t-2 border-slate-900 flex justify-between items-baseline">
                 <div>
                   <span className="text-xs uppercase font-black tracking-wider text-slate-900 block">
-                    TOTAL À PAYER
+                    {isFullyPaid ? 'TOTAL RÉGLÉ' : 'RESTE À PAYER (LIVRAISON)'}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    Montant net en Dirhams marocains
+                  <span className="text-[10px] text-slate-500 font-normal">
+                    {isFullyPaid ? 'Commande 100% soldée' : 'Montant net à régler au livreur'}
                   </span>
                 </div>
-                <span className="text-xl sm:text-2xl font-black font-mono text-[#1D9BF0]">
-                  {formatMAD(totalAmount)}
+                <span className={`text-xl sm:text-2xl font-black font-mono ${isFullyPaid ? 'text-emerald-600' : 'text-[#1D9BF0]'}`}>
+                  {formatMAD(isFullyPaid ? totalAmount : balanceDue)}
                 </span>
               </div>
             </div>
