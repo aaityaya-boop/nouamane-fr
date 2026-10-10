@@ -118,8 +118,6 @@ function OrdersPageContent() {
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isBulkProcessing, setIsBulkProcessing] = useState<boolean>(false);
 
-  // Thermal Slip Modal State
-  const [slipModalOrder, setSlipModalOrder] = useState<any | null>(null);
 
   // WhatsApp Presets Dropdown Open State (orderId -> boolean)
   const [openWhatsAppMenuId, setOpenWhatsAppMenuId] = useState<string | null>(null);
@@ -679,8 +677,8 @@ function OrdersPageContent() {
     }
   };
 
-  // Export Carrier Pickup Sheet CSV (Cathedis / Amana / Speedaf standard format)
-  const handleExportCarrierCSV = () => {
+  // Export Orders CSV (Excel / Logistics standard format)
+  const handleExportOrdersCSV = () => {
     const ordersToExport = selectedOrderIds.length > 0
       ? orders.filter((o) => selectedOrderIds.includes(o.id))
       : filteredOrders;
@@ -733,7 +731,7 @@ function OrdersPageContent() {
     const link = document.createElement('a');
     link.setAttribute('href', url);
     const today = new Date().toISOString().split('T')[0];
-    link.setAttribute('download', `Bordereau_Ramassage_Maison_NAY_${today}.csv`);
+    link.setAttribute('download', `Export_Commandes_Maison_NAY_${today}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -828,20 +826,11 @@ function OrdersPageContent() {
             <span>Gestion des Commandes & Expéditions</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Centre de commande exécutif : validation express, acomptes, bordereaux de transport et prévisions nettes.
+            Centre de commande exécutif : validation express, acomptes, suivi des expéditions et prévisions nettes.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={handleExportCarrierCSV}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-xs font-bold text-slate-700 shadow-2xs transition-all cursor-pointer hover:border-slate-300"
-            title="Exporter le bordereau de ramassage pour le transporteur"
-          >
-            <FileSpreadsheet size={14} className="text-emerald-600" />
-            <span>Bordereau Transporteur (CSV)</span>
-          </button>
-
           <button
             onClick={fetchOrders}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-xs font-bold text-slate-700 shadow-2xs transition-all cursor-pointer hover:border-slate-300"
@@ -1496,14 +1485,6 @@ function OrdersPageContent() {
                       <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           
-                          {/* 1-Click Thermal Slip Modal */}
-                          <button
-                            onClick={() => setSlipModalOrder(order)}
-                            className="p-1.5 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200/60"
-                            title="Imprimer le bordereau thermique"
-                          >
-                            <Printer size={13} />
-                          </button>
 
                           {/* WhatsApp Smart Presets Dropdown */}
                           <div className="relative whatsapp-dropdown-container">
@@ -1625,11 +1606,11 @@ function OrdersPageContent() {
             </button>
 
             <button
-              onClick={handleExportCarrierCSV}
+              onClick={handleExportOrdersCSV}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all cursor-pointer"
             >
               <FileSpreadsheet size={13} />
-              <span>Bordereau CSV</span>
+              <span>Exporter CSV</span>
             </button>
 
             <button
@@ -1643,151 +1624,7 @@ function OrdersPageContent() {
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* 9. LUXURY PRINTABLE THERMAL SLIP MODAL (BORDEREAU 10x15)  */}
-      {/* ========================================================= */}
-      {slipModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-150">
-            
-            {/* Modal Header */}
-            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Printer size={16} className="text-slate-900" />
-                <span className="font-bold text-sm text-slate-900">Bordereau de Livraison Thermique (10x15cm)</span>
-              </div>
-              <button
-                onClick={() => setSlipModalOrder(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg"
-              >
-                <X size={16} />
-              </button>
-            </div>
 
-            {/* Printable Slip Preview Container */}
-            <div className="p-6 overflow-y-auto max-h-[75vh]">
-              <div id="printable-thermal-slip" className="border-2 border-dashed border-slate-300 p-5 rounded-xl bg-white space-y-4 font-sans text-slate-900">
-                
-                {/* Brand & Crest */}
-                <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3">
-                  <div>
-                    <h2 className="font-black text-lg tracking-wider uppercase font-serif">MAISON NAY</h2>
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest block">HAUTE PARFUMERIE MAROC</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-black uppercase border border-rose-200">
-                      FRAGILE • PARFUM
-                    </span>
-                    <div className="font-mono text-xs font-black mt-1">#{slipModalOrder.orderNumber}</div>
-                  </div>
-                </div>
-
-                {/* Sender & Carrier */}
-                <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                  <div>
-                    <span className="text-slate-400 uppercase font-bold text-[9px] block">Expéditeur :</span>
-                    <strong>Maison NAY Parfums</strong>
-                    <div className="text-slate-500">Casablanca, Maroc</div>
-                    <div className="text-slate-500">Service Client : 06 63 60 76 60</div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-slate-400 uppercase font-bold text-[9px] block">Transporteur :</span>
-                    <strong>{slipModalOrder.carrier || 'Cathedis Express'}</strong>
-                    <div className="font-mono text-slate-500">Suivi : {slipModalOrder.trackingNumber || 'En attente'}</div>
-                  </div>
-                </div>
-
-                {/* Recipient Details (High Legibility for Courier) */}
-                <div className="p-3.5 bg-amber-50/50 rounded-xl border border-amber-200 space-y-1">
-                  <span className="text-amber-800 uppercase font-black text-[9px] tracking-wider block">DESTINATAIRE :</span>
-                  <div className="text-base font-black text-slate-900">{slipModalOrder.customerName}</div>
-                  <div className="text-sm font-mono font-bold text-slate-900 flex items-center gap-1.5">
-                    <Phone size={13} className="text-amber-600" />
-                    <span>{slipModalOrder.customerPhone || 'N/A'}</span>
-                  </div>
-                  <div className="text-xs font-semibold text-slate-800 pt-1">
-                    Ville : <strong className="text-slate-950 font-black">{slipModalOrder.shippingCity || 'Casablanca'}</strong>
-                  </div>
-                  <div className="text-xs text-slate-700 leading-tight">
-                    {slipModalOrder.shippingAddress || 'Adresse communiquée par téléphone'}
-                  </div>
-                </div>
-
-                {/* Items Breakdown */}
-                <div className="text-xs border-t border-slate-200 pt-2 space-y-1">
-                  <span className="text-slate-400 uppercase font-bold text-[9px] block">Contenu du colis :</span>
-                  {getParsedItems(slipModalOrder.items).map((it, idx) => (
-                    <div key={idx} className="flex justify-between font-medium">
-                      <span>• {it.quantity}x {it.name} {it.size ? `(${it.size})` : ''}</span>
-                      <span className="font-mono">{formatMAD((it.price || 0) * (it.quantity || 1))}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* COD PAYMENT TO COLLECT (CRBT EN ESPÈCES) */}
-                {(() => {
-                  const total = Number(slipModalOrder.total) || 0;
-                  const paid = Math.min(total, Math.max(0, Number(slipModalOrder.paidAmount) || 0));
-                  const remaining = Math.max(0, total - paid);
-
-                  return (
-                    <div className="p-4 rounded-xl bg-slate-900 text-white text-center space-y-1">
-                      <span className="text-[10px] uppercase font-black tracking-widest text-amber-400 block">
-                        MONTANT À ENCAISSER PAR LE LIVREUR (C.O.D)
-                      </span>
-                      <div className="text-3xl font-black font-mono tracking-tight text-white">
-                        {formatMAD(remaining)}
-                      </div>
-                      {paid > 0 && (
-                        <div className="text-[10.5px] text-emerald-300 font-medium pt-1 border-t border-slate-800">
-                          ✓ Acompte de {formatMAD(paid)} déjà réglé (Ne pas surfacturer le client)
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                <div className="text-[9px] text-center text-slate-400 pt-1">
-                  Merci pour votre confiance • www.nayparfum.ma • Flacon scellé
-                </div>
-
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-              <a
-                href={`/invoice/${slipModalOrder.orderNumber}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"
-              >
-                <FileText size={13} />
-                <span>Ouvrir Facture A4</span>
-              </a>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSlipModalOrder(null)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
-                >
-                  Fermer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Printer size={13} />
-                  <span>Imprimer le Bon</span>
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
 
       {/* ========================================================= */}
       {/* 10. DETAILS & TIMELINE DRAWER MODAL                       */}
@@ -1829,23 +1666,23 @@ function OrdersPageContent() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setSlipModalOrder(editingOrder)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
-                  title="Bordereau thermique"
+                <Link
+                  href={`/admin/sav?newClaim=true&orderId=${editingOrder.id}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition-colors"
+                  title="Ouvrir une réclamation SAV pour cette commande"
                 >
-                  <Printer size={13} />
-                  <span>Bordereau</span>
-                </button>
+                  <RotateCcw size={13} className="text-amber-600" />
+                  <span>Ouvrir SAV</span>
+                </Link>
 
                 <a
                   href={`/invoice/${editingOrder.orderNumber}`}
                   target="_blank"
                   rel="noreferrer"
                   className="p-2 text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
-                  title="Facture client A4"
+                  title="Imprimer la facture client A4"
                 >
-                  <FileText size={15} />
+                  <Printer size={16} />
                 </a>
 
                 <button
