@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -34,7 +34,20 @@ import {
   User,
   Package,
   Target,
-  Calculator
+  Calculator,
+  ShieldCheck,
+  ShieldAlert,
+  Send,
+  FileSpreadsheet,
+  CheckSquare,
+  Square,
+  FileText,
+  SlidersHorizontal,
+  ChevronRight,
+  QrCode,
+  DollarSign,
+  HelpCircle,
+  Share2
 } from 'lucide-react';
 import OrderTimelineStepper from '@/components/OrderTimelineStepper';
 import OrderTimelineFull from '@/components/OrderTimelineFull';
@@ -61,14 +74,16 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_CLASSES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  pending: { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', dot: 'bg-slate-400' },
-  unconfirmed: { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200', dot: 'bg-amber-500' },
-  processing: { bg: 'bg-sky-50', text: 'text-[#0284c7]', border: 'border-sky-200', dot: 'bg-[#1D9BF0]' },
-  shipped: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-500' },
-  delivered: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
-  refused: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-500' },
-  returned: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-500' },
+  pending: { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200/90', dot: 'bg-amber-500' },
+  unconfirmed: { bg: 'bg-rose-50', text: 'text-rose-800', border: 'border-rose-200/90', dot: 'bg-rose-500' },
+  processing: { bg: 'bg-sky-50', text: 'text-[#0284c7]', border: 'border-sky-200/90', dot: 'bg-[#1D9BF0]' },
+  shipped: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200/90', dot: 'bg-indigo-500' },
+  delivered: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200/90', dot: 'bg-emerald-500' },
+  refused: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200/90', dot: 'bg-rose-500' },
+  returned: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200/90', dot: 'bg-rose-500' },
 };
+
+const TOP_MOROCCAN_CITIES = ['Casablanca', 'Rabat', 'Marrakech', 'Tanger', 'Fès', 'Agadir', 'Salé', 'Meknès'];
 
 const formatMAD = (amount: number) => {
   return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', maximumFractionDigits: 0 }).format(amount);
@@ -92,30 +107,47 @@ function OrdersPageContent() {
   const [paymentFilter, setPaymentFilter] = useState<'ALL' | 'UNPAID' | 'PARTIAL' | 'PAID'>('ALL');
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
 
+  // View switch: 'OPERATIONAL' vs 'FINANCIAL' (Executive ribbon)
+  const [executiveView, setExecutiveView] = useState<'OPERATIONAL' | 'FINANCIAL'>('OPERATIONAL');
+
   // Delivery Fee configuration (Default: 35 MAD per order)
   const [shippingFeePerOrder, setShippingFeePerOrder] = useState<number>(35);
   const [estimationMode, setEstimationMode] = useState<'NET' | 'BRUT'>('NET');
+
+  // Multi-Selection State for Bulk Actions
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [isBulkProcessing, setIsBulkProcessing] = useState<boolean>(false);
+
+  // Thermal Slip Modal State
+  const [slipModalOrder, setSlipModalOrder] = useState<any | null>(null);
+
+  // WhatsApp Presets Dropdown Open State (orderId -> boolean)
+  const [openWhatsAppMenuId, setOpenWhatsAppMenuId] = useState<string | null>(null);
 
   // Advance Payment State in Drawer
   const [advanceAmountInput, setAdvanceAmountInput] = useState<string>('');
   const [advanceMethodInput, setAdvanceMethodInput] = useState<string>('VIREMENT');
   const [advanceNotesInput, setAdvanceNotesInput] = useState<string>('');
+  const [carrierInput, setCarrierInput] = useState<string>('Cathedis');
+  const [trackingInput, setTrackingInput] = useState<string>('');
   const [isSavingPayment, setIsSavingPayment] = useState<boolean>(false);
   const [paymentSavedMessage, setPaymentSavedMessage] = useState<string | null>(null);
+
+  // Target Highlight state (Spotlight)
+  const [highlightedOrderId, setHighlightedOrderId] = useState<string | null>(null);
+  const [highlightCountdown, setHighlightCountdown] = useState<number>(0);
+  const [highlightedOrder, setHighlightedOrder] = useState<any | null>(null);
 
   useEffect(() => {
     if (editingOrder) {
       setAdvanceAmountInput(String(editingOrder.paidAmount || 0));
       setAdvanceMethodInput(editingOrder.advancePaymentMethod || 'VIREMENT');
       setAdvanceNotesInput(editingOrder.paymentNotes || '');
+      setCarrierInput(editingOrder.carrier || 'Cathedis');
+      setTrackingInput(editingOrder.trackingNumber || '');
       setPaymentSavedMessage(null);
     }
-  }, [editingOrder?.id, editingOrder?.paidAmount, editingOrder?.advancePaymentMethod, editingOrder?.paymentNotes]);
-
-  // Target Highlight state (Spotlight)
-  const [highlightedOrderId, setHighlightedOrderId] = useState<string | null>(null);
-  const [highlightCountdown, setHighlightCountdown] = useState<number>(0);
-  const [highlightedOrder, setHighlightedOrder] = useState<any | null>(null);
+  }, [editingOrder?.id, editingOrder?.paidAmount, editingOrder?.advancePaymentMethod, editingOrder?.paymentNotes, editingOrder?.carrier, editingOrder?.trackingNumber]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -153,6 +185,17 @@ function OrdersPageContent() {
     fetchCurrentUser();
   }, []);
 
+  // Close WhatsApp dropdown when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.whatsapp-dropdown-container')) {
+        setOpenWhatsAppMenuId(null);
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, []);
+
   // Detect and Highlight Target Order for 12 seconds with Spotlight
   useEffect(() => {
     const targetKey = highlightParam || orderIdParam || orderNumberParam;
@@ -167,14 +210,12 @@ function OrdersPageContent() {
     );
 
     if (matched) {
-      // Ensure target order is visible: reset tabs and city filter
       setActiveTab('ALL');
       setCityFilter('ALL');
       setHighlightedOrderId(matched.id);
       setHighlightedOrder(matched);
       setHighlightCountdown(12);
 
-      // Smooth scroll to the targeted row
       const scrollTimer = setTimeout(() => {
         const rowElement = document.getElementById(`order-row-${matched.id}`);
         if (rowElement) {
@@ -182,7 +223,6 @@ function OrdersPageContent() {
         }
       }, 200);
 
-      // 12-second countdown timer
       let remaining = 12;
       const interval = setInterval(() => {
         remaining -= 1;
@@ -256,6 +296,8 @@ function OrdersPageContent() {
           paidAmount: amountToSave,
           advancePaymentMethod: advanceMethodInput,
           paymentNotes: advanceNotesInput,
+          carrier: carrierInput,
+          trackingNumber: trackingInput,
           actorNameOverride: currentUser?.name || 'Admin NAY',
         }),
       });
@@ -265,7 +307,7 @@ function OrdersPageContent() {
         setOrders((prev) => prev.map((o) => (o.id === editingOrder.id ? updated : o)));
         setEditingOrder(updated);
         setAdvanceAmountInput(String(updated.paidAmount || 0));
-        setPaymentSavedMessage('Acompte enregistré avec succès !');
+        setPaymentSavedMessage('Modifications enregistrées avec succès !');
         setTimeout(() => setPaymentSavedMessage(null), 3500);
       }
     } catch (err) {
@@ -291,7 +333,7 @@ function OrdersPageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: type,
-          title: type === 'CALL_ATTEMPT' ? 'Tentative d\'appel' : 'Note interne',
+          title: type === 'CALL_ATTEMPT' ? 'Tentative d\'appel client' : 'Note interne',
           description: note,
           actorNameOverride: currentUser?.name || 'Admin NAY',
         }),
@@ -433,20 +475,18 @@ function OrdersPageContent() {
   const returnedCount = tabCounts.ISSUES;
 
   const tauxConfirmation = totalOrdersCount > 0 ? ((confirmedCount / totalOrdersCount) * 100).toFixed(1) : '0';
-  const tauxNonConfirmation = totalOrdersCount > 0 ? ((unconfirmedCount / totalOrdersCount) * 100).toFixed(1) : '0';
   const tauxLivraison = totalOrdersCount > 0 ? ((deliveredCount / totalOrdersCount) * 100).toFixed(1) : '0';
   const tauxRetour = totalOrdersCount > 0 ? ((returnedCount / totalOrdersCount) * 100).toFixed(1) : '0';
 
   const totalRevenue = useMemo(() => orders.reduce((acc, o) => acc + (Number(o.total) || 0), 0), [orders]);
   const deliveredRevenue = useMemo(() => orders.filter(o => o.status === 'delivered').reduce((acc, o) => acc + (Number(o.total) || 0), 0), [orders]);
-  const deliverySuccessRate = tabCounts.ALL > 0 ? ((tabCounts.DELIVERED / tabCounts.ALL) * 100).toFixed(1) : '0';
 
-  // Real Financial Estimation & Cashflow Calculations factoring 35 MAD shipping fee
+  // Financial Estimations factoring 35 MAD delivery fee
   const financialEstimations = useMemo(() => {
-    let totalCashCollectedGross = 0;       // Cash already in bank / collected (Gross)
-    let advancesOnActiveOrders = 0;        // Acomptes already received on pending/processing/shipped orders
-    let remainingToCollectShippedGross = 0; // Balance to collect on currently shipped parcels (Gross)
-    let remainingToCollectProcessingGross = 0; // Balance on confirmed/processing parcels (Gross)
+    let totalCashCollectedGross = 0;
+    let advancesOnActiveOrders = 0;
+    let remainingToCollectShippedGross = 0;
+    let remainingToCollectProcessingGross = 0;
     let countWithAdvance = 0;
     let countPaid100 = 0;
     let deliveredOrdersCount = 0;
@@ -483,19 +523,15 @@ function OrdersPageContent() {
       }
     });
 
-    // Delivery costs calculation (35 MAD per delivered / successful order)
     const deliveredShippingFees = deliveredOrdersCount * shippingFeePerOrder;
     const totalCashCollectedNet = Math.max(0, totalCashCollectedGross - deliveredShippingFees);
 
-    // Shipped delivery fees (when delivered)
     const shippedShippingFees = shippedOrdersCount * shippingFeePerOrder;
     const remainingToCollectShippedNet = Math.max(0, remainingToCollectShippedGross - shippedShippingFees);
 
-    // Processing delivery fees
     const processingShippingFees = processingOrdersCount * shippingFeePerOrder;
     const remainingToCollectProcessingNet = Math.max(0, remainingToCollectProcessingGross - processingShippingFees);
 
-    // Historical delivery rate for COD orders
     const historicalDeliveryRate = totalOrdersCount > 0 && deliveredCount + returnedCount > 0
       ? deliveredCount / (deliveredCount + returnedCount)
       : 0.82;
@@ -520,33 +556,24 @@ function OrdersPageContent() {
     const totalShippingFeesIncurredAndExpected = Math.round(deliveredShippingFees + expectedShippedShippingFees);
 
     return {
-      // Gross figures
       totalCashCollectedGross,
       remainingToCollectShippedGross,
       remainingToCollectProcessingGross,
       perfectEstimationGross,
-
-      // Net figures (after 35 MAD delivery fee per order)
       totalCashCollectedNet,
       remainingToCollectShippedNet,
       remainingToCollectProcessingNet,
       perfectEstimationNet,
-
-      // Active advances & counts
       advancesOnActiveOrders,
       countWithAdvance,
       countPaid100,
       deliveredOrdersCount,
       shippedOrdersCount,
       processingOrdersCount,
-
-      // Carrier fees
       deliveredShippingFees,
       shippedShippingFees,
       totalShippingFeesIncurredAndExpected,
       shippingFeePerOrder,
-
-      // Values according to estimationMode ('NET' | 'BRUT')
       displayedCashCollected: estimationMode === 'NET' ? totalCashCollectedNet : totalCashCollectedGross,
       displayedShipped: estimationMode === 'NET' ? remainingToCollectShippedNet : remainingToCollectShippedGross,
       displayedProcessing: estimationMode === 'NET' ? remainingToCollectProcessingNet : remainingToCollectProcessingGross,
@@ -555,53 +582,164 @@ function OrdersPageContent() {
     };
   }, [orders, totalOrdersCount, deliveredCount, returnedCount, shippingFeePerOrder, estimationMode]);
 
-  // Format WhatsApp Link
-  const getWhatsAppLink = (phone: string, customerName: string, orderNumber: string) => {
-    let cleanPhone = phone.replace(/[^0-9]/g, '');
+  // Moroccan WhatsApp Smart Presets Builder
+  const getWhatsAppPresetUrl = (
+    phone: string,
+    customerName: string,
+    orderNumber: string,
+    itemsText: string,
+    city: string,
+    total: number,
+    paid: number,
+    presetType: 'CONFIRM' | 'ADVANCE' | 'SHIPPED' | 'LOCATION' | 'UNREACHABLE'
+  ) => {
+    let cleanPhone = (phone || '').replace(/[^0-9]/g, '');
     if (cleanPhone.startsWith('0')) {
       cleanPhone = '212' + cleanPhone.substring(1);
     }
-    const message = encodeURIComponent(`Bonjour ${customerName}, concernant votre commande NAY Parfums #${orderNumber}...`);
-    return `https://wa.me/${cleanPhone}?text=${message}`;
+    const remaining = Math.max(0, total - paid);
+
+    let text = '';
+    switch (presetType) {
+      case 'CONFIRM':
+        text = `Salam ${customerName} ✨ C'est Maison NAY Parfums concernant votre commande #${orderNumber} (${itemsText}). Nous préparons votre colis pour ${city || 'votre ville'}. Merci de nous confirmer si vous êtes disponible pour recevoir votre commande cette semaine ? Belle journée !`;
+        break;
+      case 'ADVANCE':
+        text = `Salam ${customerName} ✨ Merci pour votre commande NAY Parfums #${orderNumber}. Afin de valider l'expédition prioritaire de votre flacon de parfum, un acompte de sécurité de 50 DH (ou 100 DH) est souhaité.\n\nRIB CIH : 230 780 4567890123 45 (NAY PARFUMS)\nOu par Wafacash / CashPlus.\n\nMerci de nous transmettre le reçu de versement ici.`;
+        break;
+      case 'SHIPPED':
+        text = `Salam ${customerName} 🚚 Votre commande Maison NAY Parfums #${orderNumber} est en route avec notre livreur pour ${city || 'votre ville'} !\n\nMontant exact à préparer en espèces à la livraison : *${remaining} MAD*${paid > 0 ? ` (Acompte de ${paid} MAD déjà déduit)` : ''}.\n\nMerci de garder votre téléphone joignable !`;
+        break;
+      case 'LOCATION':
+        text = `Salam ${customerName} 📍 Notre livreur est en tournée aujourd'hui à ${city || 'votre ville'}. Pourriez-vous svp nous partager votre localisation GPS WhatsApp pour vous livrer directement à votre porte ? Merci beaucoup !`;
+        break;
+      case 'UNREACHABLE':
+        text = `Salam ${customerName} 📞 Nous avons essayé de vous joindre par téléphone au sujet de votre commande NAY Parfums #${orderNumber}, sans succès.\n\nMerci de nous répondre ou de nous rappeler au plus vite afin de maintenir votre commande active avant son annulation automatique.`;
+        break;
+    }
+
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
   };
 
-  // Profile-specific headers
-  const getHeaderInfo = () => {
-    switch (jobProfile) {
-      case 'CONFIRMATION':
-        return {
-          badge: 'Confirmation Téléphonique',
-          title: 'Validation & Confirmation des Commandes',
-          subtitle: 'Appels de confirmation des clients, validation des adresses et suivi des commandes.',
-        };
-      case 'PREPARATION':
-        return {
-          badge: 'Préparation & Emballage',
-          title: 'Préparation & Packaging des Commandes',
-          subtitle: 'Conditionnement soigné des flacons de parfum, emballage et préparation des colis.',
-        };
-      case 'LOGISTICS':
-        return {
-          badge: 'Logistique & Transport',
-          title: 'Expéditions & Suivi des Livraisons',
-          subtitle: 'Remise aux transporteurs (Amana, Cathedis...), bordereaux de livraison et encaissements.',
-        };
-      case 'SUPPORT':
-        return {
-          badge: 'Service Client & Support',
-          title: 'Suivi des Commandes & Assistance Client',
-          subtitle: 'Assistance après-vente, suivi des livraisons et résolutions d\'incidents.',
-        };
-      default:
-        return {
-          badge: 'Direction & Logistique',
-          title: 'Gestion des Commandes & Expéditions',
-          subtitle: 'Suivi en direct des confirmations, de l\'emballage, des livraisons et du chiffre d\'affaires.',
-        };
+  // Anti-RTS / Customer Trust Scoring
+  const getCustomerTrustScore = (order: any) => {
+    const paid = Number(order.paidAmount) || 0;
+    const total = Number(order.total) || 0;
+    const phone = (order.customerPhone || '').replace(/[^0-9]/g, '');
+
+    if (paid >= total && total > 0) {
+      return { label: 'Client VIP', badge: 'bg-emerald-50 text-emerald-800 border-emerald-200', icon: ShieldCheck, desc: '100% Réglé • Risque 0%' };
+    }
+    if (paid > 0) {
+      return { label: 'Acompte Sécurisé', badge: 'bg-teal-50 text-teal-800 border-teal-200', icon: ShieldCheck, desc: 'Acompte versé • Fiabilité 98%' };
+    }
+    if (order.status === 'processing' || order.status === 'confirmed') {
+      return { label: 'Confirmé', badge: 'bg-sky-50 text-sky-800 border-sky-200', icon: CheckCircle2, desc: 'Appel validé' };
+    }
+    if (phone.length < 9) {
+      return { label: 'N° Incomplet', badge: 'bg-rose-50 text-rose-800 border-rose-200', icon: ShieldAlert, desc: 'Téléphone à vérifier' };
+    }
+    if (order.status === 'unconfirmed') {
+      return { label: 'Injoignable', badge: 'bg-amber-50 text-amber-800 border-amber-200', icon: AlertTriangle, desc: 'Tentative infructueuse' };
+    }
+    return { label: 'Nouveau Prospect', badge: 'bg-slate-100 text-slate-700 border-slate-200', icon: User, desc: 'À confirmer' };
+  };
+
+  // Bulk Selection Handlers
+  const handleToggleSelectAll = () => {
+    if (selectedOrderIds.length === filteredOrders.length) {
+      setSelectedOrderIds([]);
+    } else {
+      setSelectedOrderIds(filteredOrders.map((o) => o.id));
     }
   };
 
-  // Profile-specific status dropdown options
+  const handleToggleSelectOne = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedOrderIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  // Bulk Status Update (1-Click confirmation or shipping)
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    if (selectedOrderIds.length === 0) return;
+    setIsBulkProcessing(true);
+    try {
+      await Promise.all(
+        selectedOrderIds.map((id) =>
+          handleStatusChange(id, newStatus, { customNote: `Mise à jour groupée en lot (${newStatus})` })
+        )
+      );
+      setSelectedOrderIds([]);
+    } catch (e) {
+      console.error('Bulk update error:', e);
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  // Export Carrier Pickup Sheet CSV (Cathedis / Amana / Speedaf standard format)
+  const handleExportCarrierCSV = () => {
+    const ordersToExport = selectedOrderIds.length > 0
+      ? orders.filter((o) => selectedOrderIds.includes(o.id))
+      : filteredOrders;
+
+    if (ordersToExport.length === 0) return;
+
+    const headers = [
+      'Ref Commande',
+      'Date',
+      'Nom Client',
+      'Telephone',
+      'Ville',
+      'Adresse Complete',
+      'Articles Details',
+      'Montant Total (MAD)',
+      'Acompte Recu (MAD)',
+      'MONTANT A ENCAISSER COD (MAD)',
+      'Transporteur Prevu',
+      'Statut Commande',
+      'Fragile'
+    ];
+
+    const rows = ordersToExport.map((o) => {
+      const parsed = getParsedItems(o.items);
+      const itemsStr = parsed.map((i) => `${i.quantity}x ${i.name} ${i.size || ''}`).join(' + ');
+      const total = Number(o.total) || 0;
+      const paid = Math.min(total, Math.max(0, Number(o.paidAmount) || 0));
+      const remaining = Math.max(0, total - paid);
+
+      return [
+        `"${o.orderNumber}"`,
+        `"${new Date(o.createdAt).toLocaleDateString('fr-MA')}"`,
+        `"${(o.customerName || '').replace(/"/g, '""')}"`,
+        `"${o.customerPhone || ''}"`,
+        `"${(o.shippingCity || 'Casablanca').replace(/"/g, '""')}"`,
+        `"${(o.shippingAddress || '').replace(/"/g, '""')}"`,
+        `"${itemsStr.replace(/"/g, '""')}"`,
+        total,
+        paid,
+        remaining,
+        `"${o.carrier || 'Cathedis'}"`,
+        `"${STATUS_LABELS[o.status] || o.status}"`,
+        '"OUI (Flacons Parfum)"'
+      ].join(';');
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    const today = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `Bordereau_Ramassage_Maison_NAY_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Status options per job profile
   const getStatusOptions = (profile: string) => {
     switch (profile) {
       case 'CONFIRMATION':
@@ -671,33 +809,42 @@ function OrdersPageContent() {
     return STATUS_LABELS[status] || status;
   };
 
-  const headerInfo = getHeaderInfo();
-
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-7xl mx-auto pb-24">
       
-      {/* Top Header */}
+      {/* ========================================================= */}
+      {/* 1. TOP HEADER: LUXURY MAISON NAY BRANDING & ACTIONS       */}
+      {/* ========================================================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/90 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-100/70 text-[#0284c7] border border-sky-200">
-              {headerInfo.badge}
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-900 text-amber-300 border border-slate-800 shadow-2xs">
+              Maison NAY • Haute Parfumerie
             </span>
-            <span className="text-xs text-slate-400 font-medium">Maison NAY</span>
+            <span className="text-xs text-slate-400 font-medium">Casablanca & Tout le Maroc</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <ShoppingBag size={22} className="text-[#1D9BF0]" />
-            <span>{headerInfo.title}</span>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
+            <ShoppingBag size={22} className="text-amber-500" />
+            <span>Gestion des Commandes & Expéditions</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            {headerInfo.subtitle}
+            Centre de commande exécutif : validation express, acomptes, bordereaux de transport et prévisions nettes.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleExportCarrierCSV}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-xs font-bold text-slate-700 shadow-2xs transition-all cursor-pointer hover:border-slate-300"
+            title="Exporter le bordereau de ramassage pour le transporteur"
+          >
+            <FileSpreadsheet size={14} className="text-emerald-600" />
+            <span>Bordereau Transporteur (CSV)</span>
+          </button>
+
           <button
             onClick={fetchOrders}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-xs font-bold text-slate-700 shadow-2xs transition-all cursor-pointer hover:border-slate-300"
           >
             <RefreshCw size={14} className={`text-slate-500 ${isLoading ? 'animate-spin text-[#1D9BF0]' : ''}`} />
             <span>Actualiser</span>
@@ -705,470 +852,260 @@ function OrdersPageContent() {
         </div>
       </div>
 
-      {/* Real-time KPI Cards Tailored to Every Job */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ========================================================= */}
+      {/* 2. UNIFIED EXECUTIVE COMMAND RIBBON (NO MORE BULKY DUAL CARDS) */}
+      {/* ========================================================= */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs space-y-4">
         
-        {/* PROFILE 1: CONFIRMATION */}
-        {jobProfile === 'CONFIRMATION' && (
-          <>
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Taux de Confirmation</span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <CheckCircle2 size={16} />
-                </div>
+        {/* Ribbon Switcher Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60 max-w-fit">
+            <button
+              type="button"
+              onClick={() => setExecutiveView('OPERATIONAL')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                executiveView === 'OPERATIONAL'
+                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Package size={13} className="text-[#1D9BF0]" />
+              <span>Flux Opérationnel</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setExecutiveView('FINANCIAL')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                executiveView === 'FINANCIAL'
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Calculator size={13} className="text-amber-400" />
+              <span>Trésorerie & Marges Nettes</span>
+            </button>
+          </div>
+
+          {/* Quick Carrier Fee Info Pill & Gross/Net Switch */}
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            {executiveView === 'FINANCIAL' && (
+              <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/60 text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setEstimationMode('NET')}
+                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                    estimationMode === 'NET'
+                      ? 'bg-emerald-600 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Vue Nette (-{shippingFeePerOrder} DH)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEstimationMode('BRUT')}
+                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                    estimationMode === 'BRUT'
+                      ? 'bg-slate-900 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Vue Brute Client
+                </button>
               </div>
-              <div className="text-2xl font-bold text-emerald-600 mt-2">{tauxConfirmation}%</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{confirmedCount} confirmées sur {totalOrdersCount} commandes</div>
+            )}
+
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 text-[11px] font-semibold">
+              <Truck size={12} className="text-amber-600 shrink-0" />
+              <span>Frais livreur : <strong className="font-bold">{shippingFeePerOrder} MAD</strong> / commande</span>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-rose-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Taux de Non-Confirmation</span>
-                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                  <Phone size={16} />
-                </div>
+            <div className="text-[11px] text-slate-500 font-medium">
+              Acomptes : <strong className="text-slate-900 font-bold">{financialEstimations.countWithAdvance}</strong> versés • <strong className="text-slate-900 font-bold">{financialEstimations.countPaid100}</strong> payées 100%
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Executive Cards Grid */}
+        {executiveView === 'OPERATIONAL' ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            
+            {/* Card 1: Volume Global */}
+            <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-xl border border-slate-200/70">
+              <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                <span>Volume Total</span>
+                <ShoppingBag size={14} className="text-slate-400" />
               </div>
-              <div className="text-2xl font-bold text-rose-600 mt-2">{tauxNonConfirmation}%</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{unconfirmedCount} non confirmées / injoignables</div>
+              <div className="text-2xl font-black text-slate-900 mt-1 font-mono">{orders.length}</div>
+              <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
+                <span>Valeur brute :</span>
+                <strong className="text-slate-800 font-mono">{formatMAD(totalRevenue)}</strong>
+              </div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Taux de Livraison</span>
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Truck size={16} />
-                </div>
+            {/* Card 2: À Valider Express */}
+            <div className="bg-amber-50/50 p-3.5 sm:p-4 rounded-xl border border-amber-200/70">
+              <div className="flex items-center justify-between text-amber-800 text-[11px] font-bold uppercase tracking-wider">
+                <span>À Confirmer & Préparer</span>
+                <Clock size={14} className="text-amber-600" />
               </div>
-              <div className="text-2xl font-bold text-indigo-600 mt-2">{tauxLivraison}%</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{deliveredCount} livrées avec succès</div>
+              <div className="text-2xl font-black text-amber-700 mt-1 font-mono">
+                {tabCounts.TO_CONFIRM_COMBINED + tabCounts.PROCESSING}
+              </div>
+              <div className="text-[11px] text-amber-800/80 mt-1 flex items-center justify-between">
+                <span>{tabCounts.TO_CONFIRM_COMBINED} appels</span>
+                <span>• {tabCounts.PROCESSING} en boîte</span>
+              </div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-amber-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Taux de Retour</span>
-                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <RotateCcw size={16} />
-                </div>
+            {/* Card 3: En Cours avec Livreur */}
+            <div className="bg-indigo-50/50 p-3.5 sm:p-4 rounded-xl border border-indigo-200/70">
+              <div className="flex items-center justify-between text-indigo-800 text-[11px] font-bold uppercase tracking-wider">
+                <span>En Livraison (Transit)</span>
+                <Truck size={14} className="text-indigo-600" />
               </div>
-              <div className="text-2xl font-bold text-amber-600 mt-2">{tauxRetour}%</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{returnedCount} refus & retours colis</div>
-            </div>
-          </>
-        )}
-
-        {/* PROFILE 2: PREPARATION & PACKAGING */}
-        {jobProfile === 'PREPARATION' && (
-          <>
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-teal-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Commandes Totales</span>
-                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
-                  <ShoppingBag size={16} />
-                </div>
+              <div className="text-2xl font-black text-indigo-700 mt-1 font-mono">{tabCounts.SHIPPED}</div>
+              <div className="text-[11px] text-indigo-800/80 mt-1 flex items-center justify-between">
+                <span>Solde à récupérer :</span>
+                <strong className="font-mono">{formatMAD(financialEstimations.remainingToCollectShippedGross)}</strong>
               </div>
-              <div className="text-2xl font-bold text-slate-900 mt-2">{orders.length}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{tabCounts.PROCESSING} à emballer</div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-sky-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">À Préparer & Emballer</span>
-                <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#1D9BF0] flex items-center justify-center">
-                  <Package size={16} />
-                </div>
+            {/* Card 4: Livrées & Encaissées */}
+            <div className="bg-emerald-50/50 p-3.5 sm:p-4 rounded-xl border border-emerald-200/70">
+              <div className="flex items-center justify-between text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
+                <span>Livrées & Encaissées</span>
+                <CheckCircle2 size={14} className="text-emerald-600" />
               </div>
-              <div className="text-2xl font-bold text-[#0284c7] mt-2">{tabCounts.PROCESSING}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">Commandes confirmées prêtes pour emballage</div>
+              <div className="text-2xl font-black text-emerald-700 mt-1 font-mono">{tabCounts.DELIVERED}</div>
+              <div className="text-[11px] text-emerald-800/80 mt-1 flex items-center justify-between">
+                <span>Taux de succès :</span>
+                <strong className="text-emerald-700 font-mono font-bold">{tauxLivraison}%</strong>
+              </div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Colis Prêts (Expédiés)</span>
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Truck size={16} />
-                </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            
+            {/* Card F1: Cash Encaissé Réel */}
+            <div className="bg-emerald-50/60 p-3.5 sm:p-4 rounded-xl border border-emerald-200/80">
+              <div className="flex items-center justify-between text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
+                <span>{estimationMode === 'NET' ? 'Cash Net en Caisse' : 'Cash Brut Encaissé'}</span>
+                <CheckCircle2 size={14} className="text-emerald-600" />
               </div>
-              <div className="text-2xl font-bold text-indigo-600 mt-2">{tabCounts.SHIPPED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">Remis aux transporteurs</div>
+              <div className="text-2xl font-black text-emerald-700 mt-1 font-mono">
+                {formatMAD(financialEstimations.displayedCashCollected)}
+              </div>
+              <div className="text-[11px] text-emerald-800/80 mt-1">
+                Dont <strong className="font-mono">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong> d'acomptes
+              </div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-amber-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">En Attente Confirmation</span>
-                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Clock size={16} />
-                </div>
+            {/* Card F2: Solde en Livraison */}
+            <div className="bg-sky-50/60 p-3.5 sm:p-4 rounded-xl border border-sky-200/80">
+              <div className="flex items-center justify-between text-sky-800 text-[11px] font-bold uppercase tracking-wider">
+                <span>{estimationMode === 'NET' ? 'Créances Nettes Livreur' : 'Créances Brutes Livreur'}</span>
+                <Truck size={14} className="text-[#1D9BF0]" />
               </div>
-              <div className="text-2xl font-bold text-amber-600 mt-2">{tabCounts.PENDING}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">En attente d'appel client</div>
-            </div>
-          </>
-        )}
-
-        {/* PROFILE 3: SHIPPING & LOGISTICS */}
-        {jobProfile === 'LOGISTICS' && (
-          <>
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-sky-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Flux Global</span>
-                <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#1D9BF0] flex items-center justify-center">
-                  <ShoppingBag size={16} />
-                </div>
+              <div className="text-2xl font-black text-[#0284c7] mt-1 font-mono">
+                {formatMAD(financialEstimations.displayedShipped)}
               </div>
-              <div className="text-2xl font-bold text-slate-900 mt-2">{orders.length}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{tabCounts.SHIPPED} colis en transit</div>
+              <div className="text-[11px] text-sky-800/80 mt-1">
+                {financialEstimations.shippedOrdersCount} colis chez transporteur
+              </div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-teal-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Prêtes pour Expédition</span>
-                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
-                  <Package size={16} />
-                </div>
+            {/* Card F3: Solde en Préparation */}
+            <div className="bg-amber-50/60 p-3.5 sm:p-4 rounded-xl border border-amber-200/80">
+              <div className="flex items-center justify-between text-amber-800 text-[11px] font-bold uppercase tracking-wider">
+                <span>{estimationMode === 'NET' ? 'Solde Net Commandes' : 'Solde Brut Commandes'}</span>
+                <Clock size={14} className="text-amber-600" />
               </div>
-              <div className="text-2xl font-bold text-teal-600 mt-2">{tabCounts.PROCESSING}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">À confier au transporteur</div>
+              <div className="text-2xl font-black text-amber-700 mt-1 font-mono">
+                {formatMAD(financialEstimations.displayedProcessing)}
+              </div>
+              <div className="text-[11px] text-amber-800/80 mt-1">
+                {financialEstimations.processingOrdersCount} colis à expédier
+              </div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">En Cours de Livraison</span>
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Truck size={16} />
-                </div>
+            {/* Card F4: Estimation Parfaite */}
+            <div className="bg-slate-900 text-white p-3.5 sm:p-4 rounded-xl border border-slate-800 shadow-md">
+              <div className="flex items-center justify-between text-amber-400 text-[11px] font-bold uppercase tracking-wider">
+                <span>{estimationMode === 'NET' ? 'Estimation Nette Réelle' : 'Estimation Brute Totale'}</span>
+                <Sparkles size={14} className="text-amber-400" />
               </div>
-              <div className="text-2xl font-bold text-indigo-600 mt-2">{tabCounts.SHIPPED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">Amana, Cathedis, Livreur</div>
+              <div className="text-2xl font-black text-white mt-1 font-mono">
+                {formatMAD(financialEstimations.displayedEstimation)}
+              </div>
+              <div className="text-[10.5px] text-slate-300 mt-1">
+                {estimationMode === 'NET'
+                  ? `Déduction faite de ${formatMAD(financialEstimations.totalShippingFeesIncurredAndExpected)} livr.`
+                  : 'Total facturé aux clients'}
+              </div>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Livrées avec Succès</span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <CheckCircle2 size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-emerald-600 mt-2">{tabCounts.DELIVERED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{deliverySuccessRate}% taux de livraison</div>
-            </div>
-          </>
-        )}
-
-        {/* PROFILE 4: CUSTOMER SUPPORT & CRM */}
-        {jobProfile === 'SUPPORT' && (
-          <>
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-rose-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Dossiers Clients</span>
-                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                  <User size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-slate-900 mt-2">{orders.length}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{tabCounts.ISSUES} litiges / retours</div>
-            </div>
-
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-amber-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">En Attente de Contact</span>
-                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Clock size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-amber-600 mt-2">{tabCounts.PENDING + tabCounts.UNCONFIRMED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">À relancer par WhatsApp / Appel</div>
-            </div>
-
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">En Livraison</span>
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Truck size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-indigo-600 mt-2">{tabCounts.SHIPPED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">Suivi transporteur</div>
-            </div>
-
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Livrées</span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <CheckCircle2 size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-emerald-600 mt-2">{tabCounts.DELIVERED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">Clients satisfaits</div>
-            </div>
-          </>
-        )}
-
-        {/* PROFILE 5: ADMIN FULL (OWNERS / GM / FINANCE) */}
-        {jobProfile === 'ADMIN_FULL' && (
-          <>
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-sky-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Volume Global</span>
-                <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#1D9BF0] flex items-center justify-center">
-                  <ShoppingBag size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-slate-900 mt-2">{orders.length}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">Total: {formatMAD(totalRevenue)}</div>
-            </div>
-
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-amber-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">À Confirmer & Préparer</span>
-                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Clock size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-amber-600 mt-2">{tabCounts.TO_CONFIRM_COMBINED + tabCounts.PROCESSING}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">{tabCounts.TO_CONFIRM_COMBINED} en attente • {tabCounts.PROCESSING} en préparation</div>
-            </div>
-
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">En Cours de Livraison</span>
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Truck size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-indigo-600 mt-2">{tabCounts.SHIPPED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">Colis avec transporteurs (Amana...)</div>
-            </div>
-
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Livrées & Encaissées</span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <CheckCircle2 size={16} />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-emerald-600 mt-2">{tabCounts.DELIVERED}</div>
-              <div className="text-[11px] text-slate-500 mt-1 font-medium">
-                CA: {formatMAD(deliveredRevenue)} • <span className="text-emerald-700 font-bold">Net: {formatMAD(Math.max(0, deliveredRevenue - (tabCounts.DELIVERED * shippingFeePerOrder)))}</span> (-{tabCounts.DELIVERED * shippingFeePerOrder} DH livr.)
-              </div>
-            </div>
-          </>
+          </div>
         )}
 
       </div>
 
-      {/* Confirmation Agent Real-time Performance & Activity Summary */}
-      {jobProfile === 'CONFIRMATION' && (
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#1D9BF0] animate-pulse"></span>
-            <span className="font-bold text-slate-900">Activité & Suivi des Appels :</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2.5 text-slate-600 font-medium">
-            <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800">
-              Total : <strong className="font-bold text-slate-900">{totalOrdersCount}</strong>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
-              À appeler immédiatement : <strong className="font-bold text-amber-900">{tabCounts.PENDING}</strong>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
-              Confirmées : <strong className="font-bold text-emerald-900">{confirmedCount}</strong>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-800 border border-rose-200">
-              Non confirmées : <strong className="font-bold text-rose-900">{unconfirmedCount}</strong>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">
-              Livrées : <strong className="font-bold text-indigo-900">{deliveredCount}</strong>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
-              Retours : <strong className="font-bold text-amber-900">{returnedCount}</strong>
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 💎 CENTRE D'ESTIMATION FINANCIÈRE & SUIVI DES ACOMPTES (10%, 50%, 100%) */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-xl border border-slate-700/60 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 pb-4 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1D9BF0] to-blue-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25">
-              <Calculator size={20} />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-bold text-base text-white tracking-tight">
-                  Centre d'Estimation Financière & Acomptes
-                </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
-                  Calcul Prévisionnel Parfait
+      {/* ========================================================= */}
+      {/* 3. MOROCCAN EXPRESS CITY FILTER CHIPS (1-CLICK HUBS)       */}
+      {/* ========================================================= */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1 shrink-0">
+          <MapPin size={12} className="text-amber-500" />
+          <span>Villes Express :</span>
+        </span>
+        <button
+          onClick={() => setCityFilter('ALL')}
+          className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap cursor-pointer ${
+            cityFilter === 'ALL'
+              ? 'bg-slate-900 text-white shadow-2xs'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+          }`}
+        >
+          Toutes ({uniqueCities.length})
+        </button>
+        {TOP_MOROCCAN_CITIES.map((city) => {
+          const count = orders.filter((o) => (o.shippingCity || '').toLowerCase().trim() === city.toLowerCase()).length;
+          return (
+            <button
+              key={city}
+              onClick={() => setCityFilter(cityFilter === city ? 'ALL' : city)}
+              className={`px-3 py-1 rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                cityFilter === city
+                  ? 'bg-amber-500 text-white font-bold shadow-2xs'
+                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
+              }`}
+            >
+              <span>{city}</span>
+              {count > 0 && (
+                <span className={`px-1 py-0.2 rounded text-[10px] font-mono font-bold ${
+                  cityFilter === city ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {count}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                  <Truck size={11} />
-                  <span>Frais Livraison : {shippingFeePerOrder} MAD / colis</span>
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 mt-0.5">
-                Calcul précis après déduction des {shippingFeePerOrder} MAD de frais de transporteur par commande (Amana, Cathedis).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5 text-xs">
-            {/* Net vs Gross Mode Switch */}
-            <div className="flex items-center bg-white/10 p-1 rounded-xl border border-white/10 text-[11px] font-semibold">
-              <button
-                type="button"
-                onClick={() => setEstimationMode('NET')}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                  estimationMode === 'NET'
-                    ? 'bg-emerald-500 text-white font-bold shadow-xs'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                Vue Nette (-{shippingFeePerOrder} DH livr.)
-              </button>
-              <button
-                type="button"
-                onClick={() => setEstimationMode('BRUT')}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                  estimationMode === 'BRUT'
-                    ? 'bg-sky-500 text-white font-bold shadow-xs'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                Vue Brute (Client)
-              </button>
-            </div>
-
-            <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>
-                <strong className="text-white font-bold">{financialEstimations.countWithAdvance}</strong> avec acompte • <strong className="text-white font-bold">{financialEstimations.countPaid100}</strong> payées 100%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 4 Cards Grid of Financial Estimation */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 relative z-10">
-          
-          {/* 1. Cash Déjà Encaissé */}
-          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 transition-colors">
-            <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-              <span>{estimationMode === 'NET' ? 'Cash Net Encaissé' : 'Cash Brut Encaissé'}</span>
-              <CheckCircle2 size={14} className="text-emerald-400" />
-            </div>
-            <div className="text-xl font-black text-emerald-400 font-mono mt-1.5">
-              {formatMAD(financialEstimations.displayedCashCollected)}
-            </div>
-            <div className="text-[10.5px] text-slate-300 mt-1 flex flex-col gap-0.5">
-              <div className="flex items-center gap-1">
-                <span>Dont</span>
-                <strong className="text-emerald-300">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong>
-                <span>d'acomptes reçus</span>
-              </div>
-              <div className="text-[10px] text-slate-400">
-                {estimationMode === 'NET' 
-                  ? `Brut : ${formatMAD(financialEstimations.totalCashCollectedGross)} (déduit ${formatMAD(financialEstimations.deliveredShippingFees)} livr.)`
-                  : `Net réel en caisse : ${formatMAD(financialEstimations.totalCashCollectedNet)}`}
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Solde en Transit */}
-          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 transition-colors">
-            <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-              <span>{estimationMode === 'NET' ? 'Solde Net en Livraison' : 'Solde Brut en Livraison'}</span>
-              <Truck size={14} className="text-[#1D9BF0]" />
-            </div>
-            <div className="text-xl font-black text-[#1D9BF0] font-mono mt-1.5">
-              {formatMAD(financialEstimations.displayedShipped)}
-            </div>
-            <div className="text-[10.5px] text-slate-300 mt-1 flex flex-col gap-0.5">
-              <span>{financialEstimations.shippedOrdersCount} colis en cours avec transporteur</span>
-              <div className="text-[10px] text-slate-400">
-                {estimationMode === 'NET'
-                  ? `Déduit ${shippingFeePerOrder} DH/colis de commission livreur`
-                  : `Net transporteur : ${formatMAD(financialEstimations.remainingToCollectShippedNet)}`}
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Solde en Préparation */}
-          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
-            <div className="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-              <span>{estimationMode === 'NET' ? 'Solde Net en Préparation' : 'Solde Brut en Préparation'}</span>
-              <Clock size={14} className="text-amber-400" />
-            </div>
-            <div className="text-xl font-black text-amber-300 font-mono mt-1.5">
-              {formatMAD(financialEstimations.displayedProcessing)}
-            </div>
-            <div className="text-[10.5px] text-slate-300 mt-1 flex flex-col gap-0.5">
-              <span>{financialEstimations.processingOrdersCount} commandes confirmées à expédier</span>
-              <div className="text-[10px] text-slate-400">
-                {estimationMode === 'NET'
-                  ? `Déduit ${shippingFeePerOrder} DH/colis de livraison future`
-                  : `Net marchandise : ${formatMAD(financialEstimations.remainingToCollectProcessingNet)}`}
-              </div>
-            </div>
-          </div>
-
-          {/* 4. ESTIMATION PARFAITE */}
-          <div className="p-3.5 rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-600/20 border border-sky-400/40 hover:border-sky-300 transition-colors">
-            <div className="flex items-center justify-between text-sky-200 text-[11px] font-bold uppercase tracking-wider">
-              <span>Estimation Parfaite {estimationMode === 'NET' ? '(Nette)' : '(Brute)'}</span>
-              <Sparkles size={14} className="text-sky-300" />
-            </div>
-            <div className="text-xl font-black text-white font-mono mt-1.5">
-              {formatMAD(financialEstimations.displayedEstimation)}
-            </div>
-            <div className="text-[10.5px] text-sky-200 mt-1 flex flex-col gap-0.5">
-              <span>{estimationMode === 'NET' ? 'Net réel en poche (fiabilité 98% sur acomptes)' : 'Brut prévisionnel facturé (98% sur acomptes)'}</span>
-              <div className="text-[10px] text-sky-300/80">
-                {estimationMode === 'NET'
-                  ? `Frais transporteurs totaux déduits : -${formatMAD(financialEstimations.totalShippingFeesIncurredAndExpected)}`
-                  : `Estimation Nette réelle : ${formatMAD(financialEstimations.perfectEstimationNet)}`}
-              </div>
-            </div>
-          </div>
-
-        </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Filter Tabs Bar with Status Colors */}
+      {/* ========================================================= */}
+      {/* 4. FILTER TABS & WORKFLOW PIPELINE                        */}
+      {/* ========================================================= */}
       <div className="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-1 overflow-x-auto custom-scrollbar">
-        {(jobProfile === 'CONFIRMATION' ? [
-          { id: 'ALL', label: 'Toutes', count: tabCounts.ALL, activeBg: 'bg-slate-900 text-white' },
-          { id: 'PENDING', label: 'En attente', count: tabCounts.PENDING, activeBg: 'bg-amber-500 text-white' },
-          { id: 'UNCONFIRMED', label: 'Non confirmées', count: tabCounts.UNCONFIRMED, activeBg: 'bg-rose-500 text-white' },
-          { id: 'PROCESSING', label: 'Confirmées', count: tabCounts.PROCESSING, activeBg: 'bg-[#1D9BF0] text-white' },
-        ] : jobProfile === 'PREPARATION' ? [
-          { id: 'ALL', label: 'Toutes', count: tabCounts.ALL, activeBg: 'bg-slate-900 text-white' },
-          { id: 'PROCESSING', label: 'À Préparer', count: tabCounts.PROCESSING, activeBg: 'bg-teal-600 text-white' },
-          { id: 'SHIPPED', label: 'Colis Prêts', count: tabCounts.SHIPPED, activeBg: 'bg-indigo-600 text-white' },
-          { id: 'PENDING', label: 'En attente', count: tabCounts.PENDING, activeBg: 'bg-amber-500 text-white' },
-        ] : jobProfile === 'LOGISTICS' ? [
-          { id: 'ALL', label: 'Toutes', count: tabCounts.ALL, activeBg: 'bg-slate-900 text-white' },
-          { id: 'PROCESSING', label: 'À Expédier', count: tabCounts.PROCESSING, activeBg: 'bg-teal-600 text-white' },
-          { id: 'SHIPPED', label: 'En Livraison', count: tabCounts.SHIPPED, activeBg: 'bg-indigo-600 text-white' },
-          { id: 'DELIVERED', label: 'Livrées', count: tabCounts.DELIVERED, activeBg: 'bg-emerald-600 text-white' },
-          { id: 'ISSUES', label: 'Refus & Retours', count: tabCounts.ISSUES, activeBg: 'bg-rose-600 text-white' },
-        ] : jobProfile === 'SUPPORT' ? [
-          { id: 'ALL', label: 'Toutes', count: tabCounts.ALL, activeBg: 'bg-slate-900 text-white' },
-          { id: 'PENDING', label: 'En attente', count: tabCounts.PENDING, activeBg: 'bg-amber-500 text-white' },
-          { id: 'SHIPPED', label: 'En Livraison', count: tabCounts.SHIPPED, activeBg: 'bg-indigo-600 text-white' },
-          { id: 'DELIVERED', label: 'Livrées', count: tabCounts.DELIVERED, activeBg: 'bg-emerald-600 text-white' },
-          { id: 'ISSUES', label: 'Réclamations & Retours', count: tabCounts.ISSUES, activeBg: 'bg-rose-600 text-white' },
-        ] : [
-          { id: 'ALL', label: 'Toutes', count: tabCounts.ALL, activeBg: 'bg-slate-900 text-white' },
+        {[
+          { id: 'ALL', label: 'Toutes les commandes', count: tabCounts.ALL, activeBg: 'bg-slate-900 text-white' },
           { id: 'PENDING', label: 'À Confirmer', count: tabCounts.TO_CONFIRM_COMBINED, activeBg: 'bg-amber-500 text-white' },
           { id: 'PROCESSING', label: 'En Préparation', count: tabCounts.PROCESSING, activeBg: 'bg-[#1D9BF0] text-white' },
           { id: 'SHIPPED', label: 'En Livraison', count: tabCounts.SHIPPED, activeBg: 'bg-indigo-600 text-white' },
           { id: 'DELIVERED', label: 'Livrées & Encaissées', count: tabCounts.DELIVERED, activeBg: 'bg-emerald-600 text-white' },
           { id: 'ISSUES', label: 'Refus & Retours', count: tabCounts.ISSUES, activeBg: 'bg-rose-600 text-white' },
-        ]).map((tab) => (
+        ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -1180,9 +1117,7 @@ function OrdersPageContent() {
           >
             <span>{tab.label}</span>
             <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold ${
-              activeTab === tab.id
-                ? 'bg-white/20 text-white'
-                : 'bg-slate-100 text-slate-600'
+              activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
             }`}>
               {tab.count}
             </span>
@@ -1190,7 +1125,9 @@ function OrdersPageContent() {
         ))}
       </div>
 
-      {/* Search & City Filter Bar */}
+      {/* ========================================================= */}
+      {/* 5. SEARCH & ADVANCED FILTERS BAR                          */}
+      {/* ========================================================= */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs">
         
         {/* Search Bar */}
@@ -1201,7 +1138,7 @@ function OrdersPageContent() {
             placeholder="Rechercher par n° commande, nom client, ville, téléphone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-8 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#1D9BF0] focus:ring-2 focus:ring-[#1D9BF0]/15 transition-all font-medium"
+            className="w-full pl-10 pr-8 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-medium"
           />
           {search && (
             <button
@@ -1215,28 +1152,26 @@ function OrdersPageContent() {
 
         {/* Filters Group */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Payment / Advance Filter */}
           <div className="flex items-center gap-1.5">
             <CreditCard size={14} className="text-slate-400 shrink-0" />
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value as any)}
-              className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-[#1D9BF0] cursor-pointer font-medium"
+              className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-slate-900 cursor-pointer font-medium"
             >
               <option value="ALL">Tous les règlements</option>
-              <option value="PARTIAL">Avec Acompte (10%, 50%...)</option>
-              <option value="PAID">Payées à 100%</option>
-              <option value="UNPAID">Paiement à la livraison (0%)</option>
+              <option value="PARTIAL">Avec Acompte versé</option>
+              <option value="PAID">100% Réglé</option>
+              <option value="UNPAID">Paiement à la livraison (0 DH)</option>
             </select>
           </div>
 
-          {/* City Filter */}
           <div className="flex items-center gap-1.5">
             <MapPin size={14} className="text-slate-400 shrink-0" />
             <select
               value={cityFilter}
               onChange={(e) => setCityFilter(e.target.value)}
-              className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-[#1D9BF0] cursor-pointer font-medium"
+              className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-slate-900 cursor-pointer font-medium"
             >
               <option value="ALL">Toutes les villes ({uniqueCities.length})</option>
               {uniqueCities.map((city) => (
@@ -1248,78 +1183,57 @@ function OrdersPageContent() {
 
       </div>
 
-      {/* Active Target Order Luxury Spotlight Banner */}
+      {/* ========================================================= */}
+      {/* 6. ACTIVE TARGET ORDER SPOTLIGHT BANNER                   */}
+      {/* ========================================================= */}
       {highlightedOrderId && (
-        <div className="relative overflow-hidden rounded-2xl border border-sky-400/50 dark:border-sky-500/40 bg-gradient-to-r from-slate-900/95 via-sky-950/95 to-slate-900/95 text-white p-4 sm:p-4.5 shadow-2xl shadow-sky-500/15 backdrop-blur-2xl animate-in fade-in slide-in-from-top-3 duration-300 ring-1 ring-sky-400/25">
-          {/* Subtle Ambient Decorative Glows */}
-          <div className="pointer-events-none absolute -top-12 -left-12 w-48 h-48 bg-[#0ea5e9]/20 rounded-full blur-3xl animate-pulse" />
-          <div className="pointer-events-none absolute -bottom-12 -right-12 w-48 h-48 bg-blue-500/15 rounded-full blur-3xl" />
-          
+        <div className="relative overflow-hidden rounded-2xl border border-sky-400/50 bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white p-4 shadow-2xl backdrop-blur-2xl ring-1 ring-sky-400/25">
           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            {/* Left: Creative Radar Icon & Live Summary */}
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="relative flex items-center justify-center shrink-0">
-                <span className="absolute inline-flex h-10 w-10 rounded-2xl bg-sky-400/40 animate-ping" />
-                <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0ea5e9] via-sky-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-sky-500/35 border border-sky-200/40">
-                  <Target size={19} className="animate-spin" style={{ animationDuration: '8s' }} />
-                </div>
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0ea5e9] to-blue-600 text-white flex items-center justify-center shadow-lg border border-sky-200/40">
+                <Target size={19} className="animate-spin" style={{ animationDuration: '8s' }} />
               </div>
-
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black tracking-wider bg-sky-400/20 text-sky-300 border border-sky-400/30 flex items-center gap-1 shadow-2xs">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black tracking-wider bg-sky-400/20 text-sky-300 border border-sky-400/30 flex items-center gap-1">
                     <Sparkles size={10} />
                     <span>Focus Commande</span>
                   </span>
-                  {highlightedOrder ? (
+                  {highlightedOrder && (
                     <>
                       <span className="font-mono font-black text-sm text-white tracking-wide bg-white/10 px-2 py-0.5 rounded-lg border border-white/10">
                         {highlightedOrder.orderNumber}
                       </span>
                       <span className="text-xs text-slate-200 font-semibold truncate">
-                        • {highlightedOrder.customerName}
+                        • {highlightedOrder.customerName} ({highlightedOrder.shippingCity || 'Casablanca'})
                       </span>
-                      {highlightedOrder.shippingCity && (
-                        <span className="text-[11px] text-sky-300 font-medium">
-                          ({highlightedOrder.shippingCity})
-                        </span>
-                      )}
                       <span className="text-xs font-black text-emerald-400 ml-1">
                         {formatMAD(highlightedOrder.total)}
                       </span>
                     </>
-                  ) : (
-                    <span className="font-mono font-bold text-xs text-white">
-                      Localisation de la commande...
-                    </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-300 font-medium mt-1 flex items-center gap-1.5 flex-wrap">
-                  <span>Ligne mise en valeur avec illumination saphir dans la liste ci-dessous.</span>
-                  <span className="text-slate-500">•</span>
-                  <span className="text-sky-300 font-semibold">Centrage automatique</span>
+                <p className="text-[11px] text-slate-300 font-medium mt-1">
+                  Commande localisée et centrée automatiquement ci-dessous.
                 </p>
               </div>
             </div>
 
-            {/* Right: Quick Action, Timer & Dismiss */}
             <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
               {highlightedOrder && (
                 <button
                   type="button"
                   onClick={() => setEditingOrder(highlightedOrder)}
-                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:from-[#0284c7] hover:to-blue-700 text-white font-bold text-xs shadow-md shadow-sky-500/25 flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:from-[#0284c7] hover:to-blue-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Eye size={13} />
                   <span>Ouvrir la fiche</span>
                 </button>
               )}
-
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/15 font-mono font-bold text-xs text-sky-200 shadow-2xs">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/15 font-mono font-bold text-xs text-sky-200">
                 <Clock size={12} className="text-sky-400 animate-pulse" />
                 <span>{highlightCountdown}s</span>
               </div>
-
               <button
                 type="button"
                 onClick={() => {
@@ -1327,7 +1241,6 @@ function OrdersPageContent() {
                   setHighlightedOrder(null);
                 }}
                 className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-                title="Fermer le focus"
               >
                 <X size={15} />
               </button>
@@ -1336,30 +1249,43 @@ function OrdersPageContent() {
         </div>
       )}
 
-      {/* Orders Table Container */}
+      {/* ========================================================= */}
+      {/* 7. ORDERS TABLE WITH COD & SMART WHATSAPP PRESETS         */}
+      {/* ========================================================= */}
       <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             
-            {/* Table Header */}
             <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-semibold">
               <tr>
-                <th className="px-5 py-3.5">Référence & Date</th>
-                <th className="px-5 py-3.5">Client & Contact</th>
-                <th className="px-5 py-3.5">Ville & Destination</th>
-                <th className="px-5 py-3.5">Articles</th>
-                <th className="px-5 py-3.5">Étape & Avancement</th>
-                <th className="px-5 py-3.5">Total TTC</th>
-                <th className="px-5 py-3.5">Statut</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
+                <th className="px-4 py-3.5 w-10 text-center">
+                  <button
+                    onClick={handleToggleSelectAll}
+                    className="text-slate-400 hover:text-slate-900 transition-colors p-1"
+                    title={selectedOrderIds.length === filteredOrders.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                  >
+                    {filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length ? (
+                      <CheckSquare size={16} className="text-slate-900" />
+                    ) : (
+                      <Square size={16} />
+                    )}
+                  </button>
+                </th>
+                <th className="px-4 py-3.5">Référence & Date</th>
+                <th className="px-4 py-3.5">Client & Confiance</th>
+                <th className="px-4 py-3.5">Destination & Livreur</th>
+                <th className="px-4 py-3.5">Articles & Fragile</th>
+                <th className="px-4 py-3.5">Étape Commande</th>
+                <th className="px-4 py-3.5">Total & Reste Livreur</th>
+                <th className="px-4 py-3.5">Statut</th>
+                <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
 
-            {/* Table Body */}
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16 text-slate-400">
+                  <td colSpan={9} className="text-center py-16 text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw size={20} className="animate-spin text-[#1D9BF0]" />
                       <span className="text-xs font-medium">Chargement des commandes...</span>
@@ -1368,7 +1294,7 @@ function OrdersPageContent() {
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16 text-slate-400">
+                  <td colSpan={9} className="text-center py-16 text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <ShoppingBag size={28} className="text-slate-300" />
                       <span className="font-semibold text-slate-700 text-sm">Aucune commande trouvée</span>
@@ -1382,6 +1308,7 @@ function OrdersPageContent() {
                 filteredOrders.map((order) => {
                   const parsedItems = getParsedItems(order.items);
                   const itemsCount = parsedItems.reduce((acc: number, item: any) => acc + (item.quantity || 1), 0);
+                  const itemsSummary = parsedItems.map(i => `${i.quantity}x ${i.name}`).join(', ') || 'Parfum NAY';
                   const formattedDate = new Date(order.createdAt).toLocaleDateString('fr-MA', {
                     timeZone: 'Africa/Casablanca',
                     day: 'numeric',
@@ -1390,38 +1317,55 @@ function OrdersPageContent() {
                     minute: '2-digit',
                   });
 
+                  const total = Number(order.total) || 0;
+                  const paid = Math.min(total, Math.max(0, Number(order.paidAmount) || 0));
+                  const remaining = Math.max(0, total - paid);
+                  const isPaidFull = paid >= total && total > 0;
+
                   const stConfig = STATUS_CLASSES[order.status] || STATUS_CLASSES.pending;
                   const isTargetHighlighted = highlightedOrderId === order.id;
+                  const isSelected = selectedOrderIds.includes(order.id);
+                  const trustScore = getCustomerTrustScore(order);
+                  const TrustIcon = trustScore.icon;
 
                   return (
                     <tr
                       key={order.id}
                       id={`order-row-${order.id}`}
                       onClick={() => setEditingOrder(order)}
-                      className={`transition-all duration-500 cursor-pointer group relative ${
+                      className={`transition-all duration-200 cursor-pointer group relative ${
+                        isSelected ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-slate-50/80'
+                      } ${
                         isTargetHighlighted
-                          ? 'bg-gradient-to-r from-sky-500/20 via-sky-500/10 to-transparent dark:from-sky-500/25 dark:via-sky-500/10 dark:to-transparent ring-2 ring-[#0ea5e9] dark:ring-sky-400 border-l-[5px] border-l-[#0ea5e9] shadow-[0_0_30px_rgba(14,165,233,0.3)] z-10'
-                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
+                          ? 'bg-sky-50/80 border-l-[4px] border-l-[#0ea5e9] shadow-sm'
+                          : ''
                       }`}
                     >
                       
+                      {/* Checkbox */}
+                      <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={(e) => handleToggleSelectOne(order.id, e)}
+                          className="text-slate-400 hover:text-slate-900 transition-colors p-1"
+                        >
+                          {isSelected ? (
+                            <CheckSquare size={16} className="text-amber-600" />
+                          ) : (
+                            <Square size={16} />
+                          )}
+                        </button>
+                      </td>
+
                       {/* Ref & Date */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span className={`font-mono font-bold transition-all ${
                             isTargetHighlighted
-                              ? 'text-[#0ea5e9] dark:text-sky-300 text-sm font-black scale-105 inline-block drop-shadow-[0_0_10px_rgba(14,165,233,0.6)]'
-                              : 'text-slate-900 dark:text-white group-hover:text-[#1D9BF0]'
+                              ? 'text-[#0ea5e9] text-sm font-black'
+                              : 'text-slate-900 group-hover:text-amber-600'
                           }`}>
                             {order.orderNumber}
                           </span>
-                          {isTargetHighlighted && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gradient-to-r from-[#0ea5e9] to-blue-600 text-white font-black text-[10px] uppercase tracking-wider shadow-md shadow-sky-500/30 animate-pulse border border-sky-300/40">
-                              <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                              <Target size={11} />
-                              <span>FOCUS ({highlightCountdown}s)</span>
-                            </span>
-                          )}
                           <button
                             onClick={(e) => handleCopyRef(order.orderNumber, e)}
                             className="p-1 text-slate-300 hover:text-slate-600 rounded hover:bg-slate-100 transition-colors opacity-0 group-hover:opacity-100"
@@ -1430,60 +1374,60 @@ function OrdersPageContent() {
                             {copiedRef === order.orderNumber ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                           </button>
                         </div>
-                        <div className={`text-[11px] font-mono mt-0.5 ${isTargetHighlighted ? 'text-sky-600 dark:text-sky-300 font-semibold' : 'text-slate-400'}`}>
+                        <div className="text-[11px] font-mono text-slate-400 mt-0.5">
                           {formattedDate}
                         </div>
                       </td>
 
-                      {/* Customer with Quick WhatsApp Button */}
-                      <td className="px-5 py-3.5">
+                      {/* Customer & Anti-RTS Reliability */}
+                      <td className="px-4 py-3.5">
                         <div className="font-semibold text-slate-900 flex items-center gap-1.5">
                           <span>{order.customerName}</span>
                         </div>
                         
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+                        <div className="flex items-center gap-2 mt-1 text-[11px]">
                           {order.customerPhone ? (
-                            <>
-                              <span className="font-mono">{order.customerPhone}</span>
-                              <a
-                                href={getWhatsAppLink(order.customerPhone, order.customerName, order.orderNumber)}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all text-[10px] font-semibold"
-                                title="Contacter sur WhatsApp"
-                              >
-                                <MessageCircle size={11} />
-                                <span>WhatsApp</span>
-                              </a>
-                            </>
+                            <span className="font-mono text-slate-600">{order.customerPhone}</span>
                           ) : (
-                            <span className="italic text-slate-400">Sans téléphone</span>
+                            <span className="italic text-slate-400">Sans tél</span>
+                          )}
+
+                          {/* Anti-RTS Trust Badge */}
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${trustScore.badge}`} title={trustScore.desc}>
+                            <TrustIcon size={10} />
+                            <span>{trustScore.label}</span>
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Destination & Carrier */}
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-800 font-bold text-xs">
+                          <MapPin size={11} className="text-amber-500" />
+                          <span>{order.shippingCity || 'Casablanca'}</span>
+                        </div>
+                        <div className="text-[10.5px] text-slate-500 mt-1 flex items-center gap-1">
+                          <Truck size={10} className="text-slate-400" />
+                          <span>{order.carrier || 'Cathedis'}</span>
+                          {order.trackingNumber && (
+                            <span className="font-mono text-[10px] text-slate-400">({order.trackingNumber})</span>
                           )}
                         </div>
                       </td>
 
-                      {/* City */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100/80 border border-slate-200/70 text-slate-700 font-semibold text-xs">
-                          <MapPin size={11} className="text-[#1D9BF0]" />
-                          <span>{order.shippingCity || 'Casablanca'}</span>
-                        </div>
-                      </td>
-
                       {/* Items */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <div className="font-semibold text-slate-800 flex items-center gap-1.5">
                           <Package size={13} className="text-slate-400" />
-                          <span>{itemsCount} article(s)</span>
+                          <span>{itemsCount} flacon(s)</span>
                         </div>
                         <div className="text-[11px] text-slate-400 truncate max-w-[140px] mt-0.5">
-                          {parsedItems.map(i => i.name).join(', ') || 'Fragrance NAY'}
+                          {itemsSummary}
                         </div>
                       </td>
 
-                      {/* Timeline / Progress Bar */}
-                      <td className="px-5 py-3.5">
+                      {/* Timeline */}
+                      <td className="px-4 py-3.5">
                         <OrderTimelineStepper
                           status={order.status}
                           timeline={order.timeline || []}
@@ -1491,54 +1435,45 @@ function OrdersPageContent() {
                         />
                       </td>
 
-                      {/* Total & Payment Advance Status */}
-                      <td className="px-5 py-3.5 whitespace-nowrap">
+                      {/* Total & Clear COD Split (Anti-Erreur Livreur) */}
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <div className="font-bold text-slate-900 text-xs">
                           {formatMAD(order.total)}
                         </div>
                         <div className="text-[10px] text-slate-500 font-medium">
-                          Net : <strong className="font-mono text-emerald-700">{formatMAD(Math.max(0, (Number(order.total) || 0) - shippingFeePerOrder))}</strong>
-                          <span className="text-slate-400"> (-{shippingFeePerOrder} DH livr.)</span>
+                          Net Boutique : <strong className="font-mono text-emerald-700">{formatMAD(Math.max(0, total - shippingFeePerOrder))}</strong>
+                          <span className="text-slate-400"> (-35 DH)</span>
                         </div>
-                        {(() => {
-                          const total = Number(order.total) || 0;
-                          const paid = Number(order.paidAmount) || 0;
-                          const remaining = Math.max(0, total - paid);
-                          const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
 
-                          if (paid >= total && total > 0) {
-                            return (
-                              <div className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mt-0.5">
-                                <CheckCircle2 size={10} />
-                                <span>Totalement réglé</span>
+                        {/* Driver COD Collection Badge */}
+                        <div className="mt-1">
+                          {isPaidFull ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                              <CheckCircle2 size={10} />
+                              <span>100% Réglé • 0 DH Livreur</span>
+                            </span>
+                          ) : paid > 0 ? (
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+                                Acompte : {formatMAD(paid)}
+                              </span>
+                              <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 text-[10px] font-bold">
+                                <Truck size={10} className="text-[#1D9BF0]" />
+                                <span>À ENCAISSER : {formatMAD(remaining)}</span>
                               </div>
-                            );
-                          }
-
-                          if (paid > 0) {
-                            return (
-                              <div className="space-y-0.5 mt-0.5">
-                                <div className="inline-flex items-center gap-1 text-[10px] text-sky-800 font-bold bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">
-                                  <span>Acompte : {formatMAD(paid)}</span>
-                                </div>
-                                <div className="text-[10px] text-amber-700 font-medium">
-                                  Reste : {formatMAD(remaining)}
-                                </div>
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <div className="inline-flex items-center gap-1 text-[10px] text-slate-600 font-medium bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 mt-0.5">
-                              <span>À la livraison</span>
                             </div>
-                          );
-                        })()}
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold">
+                              <Truck size={10} className="text-amber-600" />
+                              <span>À ENCAISSER : {formatMAD(total)}</span>
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Status Dropdown */}
-                      <td className="px-5 py-3.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="relative inline-block w-[140px]">
+                      <td className="px-4 py-3.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="relative inline-block w-[135px]">
                           <select
                             value={order.status === 'confirmed' ? 'processing' : order.status}
                             onChange={(e) => handleStatusChange(order.id, e.target.value)}
@@ -1557,15 +1492,98 @@ function OrdersPageContent() {
                         </div>
                       </td>
 
-                      {/* Actions */}
-                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => setEditingOrder(order)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-[#1D9BF0] text-[#0284c7] hover:text-white border border-sky-200 transition-all font-semibold text-xs cursor-pointer"
-                        >
-                          <Eye size={12} />
-                          <span>Détails</span>
-                        </button>
+                      {/* Actions & Smart WhatsApp Hub */}
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1.5">
+                          
+                          {/* 1-Click Thermal Slip Modal */}
+                          <button
+                            onClick={() => setSlipModalOrder(order)}
+                            className="p-1.5 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200/60"
+                            title="Imprimer le bordereau thermique"
+                          >
+                            <Printer size={13} />
+                          </button>
+
+                          {/* WhatsApp Smart Presets Dropdown */}
+                          <div className="relative whatsapp-dropdown-container">
+                            <button
+                              onClick={() => setOpenWhatsAppMenuId(openWhatsAppMenuId === order.id ? null : order.id)}
+                              className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all cursor-pointer"
+                              title="Messages WhatsApp pré-rédigés"
+                            >
+                              <MessageCircle size={13} className="text-emerald-600" />
+                              <ChevronDown size={11} className="opacity-70" />
+                            </button>
+
+                            {openWhatsAppMenuId === order.id && (
+                              <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 text-left animate-in fade-in slide-in-from-top-1">
+                                <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100 mb-1">
+                                  WhatsApp Express • Maison NAY
+                                </div>
+                                <a
+                                  href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'CONFIRM')}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={() => setOpenWhatsAppMenuId(null)}
+                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+                                >
+                                  <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                  <span>1. Confirmation express</span>
+                                </a>
+                                <a
+                                  href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'ADVANCE')}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={() => setOpenWhatsAppMenuId(null)}
+                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+                                >
+                                  <CreditCard size={13} className="text-amber-500 shrink-0" />
+                                  <span>2. Demande d'acompte (CIH)</span>
+                                </a>
+                                <a
+                                  href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'SHIPPED')}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={() => setOpenWhatsAppMenuId(null)}
+                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+                                >
+                                  <Truck size={13} className="text-[#1D9BF0] shrink-0" />
+                                  <span>3. Avis d'expédition & Reste</span>
+                                </a>
+                                <a
+                                  href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'LOCATION')}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={() => setOpenWhatsAppMenuId(null)}
+                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+                                >
+                                  <MapPin size={13} className="text-indigo-500 shrink-0" />
+                                  <span>4. Demande de localisation GPS</span>
+                                </a>
+                                <a
+                                  href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'UNREACHABLE')}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={() => setOpenWhatsAppMenuId(null)}
+                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+                                >
+                                  <Phone size={13} className="text-rose-500 shrink-0" />
+                                  <span>5. Relance client injoignable</span>
+                                </a>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Details Button */}
+                          <button
+                            onClick={() => setEditingOrder(order)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-all font-bold text-xs cursor-pointer"
+                          >
+                            <Eye size={12} />
+                            <span>Fiche</span>
+                          </button>
+                        </div>
                       </td>
 
                     </tr>
@@ -1577,7 +1595,203 @@ function OrdersPageContent() {
         </div>
       </div>
 
-      {/* Details & Timeline Drawer Modal */}
+      {/* ========================================================= */}
+      {/* 8. FLOATING BULK ACTIONS BAR (ACTIONS GROUPÉES)           */}
+      {/* ========================================================= */}
+      {selectedOrderIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-2 pr-3 border-r border-slate-700 text-xs font-bold">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>{selectedOrderIds.length} sélectionnée(s)</span>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            <button
+              onClick={() => handleBulkStatusUpdate('processing')}
+              disabled={isBulkProcessing}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold transition-all cursor-pointer disabled:opacity-50"
+            >
+              <CheckCircle2 size={13} />
+              <span>Valider le lot</span>
+            </button>
+
+            <button
+              onClick={() => handleBulkStatusUpdate('shipped')}
+              disabled={isBulkProcessing}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Truck size={13} />
+              <span>Remettre aux transporteurs</span>
+            </button>
+
+            <button
+              onClick={handleExportCarrierCSV}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all cursor-pointer"
+            >
+              <FileSpreadsheet size={13} />
+              <span>Bordereau CSV</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedOrderIds([])}
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
+              title="Désélectionner"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 9. LUXURY PRINTABLE THERMAL SLIP MODAL (BORDEREAU 10x15)  */}
+      {/* ========================================================= */}
+      {slipModalOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-150">
+            
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Printer size={16} className="text-slate-900" />
+                <span className="font-bold text-sm text-slate-900">Bordereau de Livraison Thermique (10x15cm)</span>
+              </div>
+              <button
+                onClick={() => setSlipModalOrder(null)}
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Printable Slip Preview Container */}
+            <div className="p-6 overflow-y-auto max-h-[75vh]">
+              <div id="printable-thermal-slip" className="border-2 border-dashed border-slate-300 p-5 rounded-xl bg-white space-y-4 font-sans text-slate-900">
+                
+                {/* Brand & Crest */}
+                <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3">
+                  <div>
+                    <h2 className="font-black text-lg tracking-wider uppercase font-serif">MAISON NAY</h2>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest block">HAUTE PARFUMERIE MAROC</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-black uppercase border border-rose-200">
+                      FRAGILE • PARFUM
+                    </span>
+                    <div className="font-mono text-xs font-black mt-1">#{slipModalOrder.orderNumber}</div>
+                  </div>
+                </div>
+
+                {/* Sender & Carrier */}
+                <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                  <div>
+                    <span className="text-slate-400 uppercase font-bold text-[9px] block">Expéditeur :</span>
+                    <strong>Maison NAY Parfums</strong>
+                    <div className="text-slate-500">Casablanca, Maroc</div>
+                    <div className="text-slate-500">Service Client : 06 63 60 76 60</div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-slate-400 uppercase font-bold text-[9px] block">Transporteur :</span>
+                    <strong>{slipModalOrder.carrier || 'Cathedis Express'}</strong>
+                    <div className="font-mono text-slate-500">Suivi : {slipModalOrder.trackingNumber || 'En attente'}</div>
+                  </div>
+                </div>
+
+                {/* Recipient Details (High Legibility for Courier) */}
+                <div className="p-3.5 bg-amber-50/50 rounded-xl border border-amber-200 space-y-1">
+                  <span className="text-amber-800 uppercase font-black text-[9px] tracking-wider block">DESTINATAIRE :</span>
+                  <div className="text-base font-black text-slate-900">{slipModalOrder.customerName}</div>
+                  <div className="text-sm font-mono font-bold text-slate-900 flex items-center gap-1.5">
+                    <Phone size={13} className="text-amber-600" />
+                    <span>{slipModalOrder.customerPhone || 'N/A'}</span>
+                  </div>
+                  <div className="text-xs font-semibold text-slate-800 pt-1">
+                    Ville : <strong className="text-slate-950 font-black">{slipModalOrder.shippingCity || 'Casablanca'}</strong>
+                  </div>
+                  <div className="text-xs text-slate-700 leading-tight">
+                    {slipModalOrder.shippingAddress || 'Adresse communiquée par téléphone'}
+                  </div>
+                </div>
+
+                {/* Items Breakdown */}
+                <div className="text-xs border-t border-slate-200 pt-2 space-y-1">
+                  <span className="text-slate-400 uppercase font-bold text-[9px] block">Contenu du colis :</span>
+                  {getParsedItems(slipModalOrder.items).map((it, idx) => (
+                    <div key={idx} className="flex justify-between font-medium">
+                      <span>• {it.quantity}x {it.name} {it.size ? `(${it.size})` : ''}</span>
+                      <span className="font-mono">{formatMAD((it.price || 0) * (it.quantity || 1))}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* COD PAYMENT TO COLLECT (CRBT EN ESPÈCES) */}
+                {(() => {
+                  const total = Number(slipModalOrder.total) || 0;
+                  const paid = Math.min(total, Math.max(0, Number(slipModalOrder.paidAmount) || 0));
+                  const remaining = Math.max(0, total - paid);
+
+                  return (
+                    <div className="p-4 rounded-xl bg-slate-900 text-white text-center space-y-1">
+                      <span className="text-[10px] uppercase font-black tracking-widest text-amber-400 block">
+                        MONTANT À ENCAISSER PAR LE LIVREUR (C.O.D)
+                      </span>
+                      <div className="text-3xl font-black font-mono tracking-tight text-white">
+                        {formatMAD(remaining)}
+                      </div>
+                      {paid > 0 && (
+                        <div className="text-[10.5px] text-emerald-300 font-medium pt-1 border-t border-slate-800">
+                          ✓ Acompte de {formatMAD(paid)} déjà réglé (Ne pas surfacturer le client)
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                <div className="text-[9px] text-center text-slate-400 pt-1">
+                  Merci pour votre confiance • www.nayparfum.ma • Flacon scellé
+                </div>
+
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+              <a
+                href={`/invoice/${slipModalOrder.orderNumber}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"
+              >
+                <FileText size={13} />
+                <span>Ouvrir Facture A4</span>
+              </a>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSlipModalOrder(null)}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Fermer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer size={13} />
+                  <span>Imprimer le Bon</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 10. DETAILS & TIMELINE DRAWER MODAL                       */}
+      {/* ========================================================= */}
       {editingOrder && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div
@@ -1615,23 +1829,25 @@ function OrdersPageContent() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Link
-                  href={`/admin/sav?newClaim=true&orderId=${editingOrder.id}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition-colors"
-                  title="Ouvrir une réclamation SAV pour cette commande"
+                <button
+                  onClick={() => setSlipModalOrder(editingOrder)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                  title="Bordereau thermique"
                 >
-                  <RotateCcw size={13} className="text-amber-600" />
-                  <span>Ouvrir SAV</span>
-                </Link>
+                  <Printer size={13} />
+                  <span>Bordereau</span>
+                </button>
+
                 <a
                   href={`/invoice/${editingOrder.orderNumber}`}
                   target="_blank"
                   rel="noreferrer"
                   className="p-2 text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
-                  title="Imprimer la facture"
+                  title="Facture client A4"
                 >
-                  <Printer size={16} />
+                  <FileText size={15} />
                 </a>
+
                 <button
                   onClick={() => setEditingOrder(null)}
                   className="p-2 text-slate-400 hover:text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
@@ -1644,7 +1860,7 @@ function OrdersPageContent() {
             {/* Drawer Body */}
             <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
               
-              {/* Timeline Full Stepper */}
+              {/* Stepper Timeline */}
               <OrderTimelineFull
                 order={editingOrder}
                 currentUser={currentUser}
@@ -1655,14 +1871,24 @@ function OrdersPageContent() {
                 onAddAttachment={handleAddAttachment}
               />
 
-              {/* Client & Shipping Info Cards */}
+              {/* Client & Destination Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-                
-                {/* Client Card */}
                 <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-2">
-                  <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
-                    <User size={13} className="text-[#1D9BF0]" />
-                    <span>Client</span>
+                  <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <User size={13} className="text-[#1D9BF0]" />
+                      <span>Client</span>
+                    </span>
+                    {(() => {
+                      const score = getCustomerTrustScore(editingOrder);
+                      const Icon = score.icon;
+                      return (
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold border ${score.badge}`}>
+                          <Icon size={10} />
+                          <span>{score.label}</span>
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="font-bold text-slate-900 text-sm">{editingOrder.customerName}</div>
                   
@@ -1670,10 +1896,10 @@ function OrdersPageContent() {
                     <div className="flex items-center gap-2 pt-1">
                       <span className="font-mono text-slate-600">{editingOrder.customerPhone}</span>
                       <a
-                        href={getWhatsAppLink(editingOrder.customerPhone, editingOrder.customerName, editingOrder.orderNumber)}
+                        href={getWhatsAppPresetUrl(editingOrder.customerPhone, editingOrder.customerName, editingOrder.orderNumber, 'Parfums NAY', editingOrder.shippingCity, Number(editingOrder.total) || 0, Number(editingOrder.paidAmount) || 0, 'CONFIRM')}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[11px] font-semibold hover:bg-emerald-600 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-0.8 rounded-lg bg-emerald-500 text-white text-[11px] font-semibold hover:bg-emerald-600 transition-colors"
                       >
                         <MessageCircle size={12} />
                         <span>WhatsApp</span>
@@ -1685,7 +1911,6 @@ function OrdersPageContent() {
                   )}
                 </div>
 
-                {/* Delivery Card */}
                 <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-2">
                   <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
                     <MapPin size={13} className="text-[#1D9BF0]" />
@@ -1694,13 +1919,11 @@ function OrdersPageContent() {
                   <div className="font-bold text-slate-900 text-sm">{editingOrder.shippingCity || 'Casablanca'}</div>
                   <div className="text-slate-600 leading-relaxed font-normal">{editingOrder.shippingAddress || 'Adresse client'}</div>
                 </div>
-
               </div>
 
-              {/* 💳 GESTION DES RÈGLEMENTS & ENCAISSEMENTS CLIENTS */}
+              {/* RÈGLEMENTS, ACOMPTES & TRANSPORTEURS */}
               <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
                 
-                {/* Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-xs">
@@ -1711,43 +1934,20 @@ function OrdersPageContent() {
                         Règlement & Acomptes Clients
                       </h4>
                       <p className="text-[11px] text-slate-500 font-normal">
-                        Enregistrement des versements et suivi du solde restant
+                        Suivi des versements reçus et du reste à encaisser par le livreur
                       </p>
                     </div>
                   </div>
 
-                  {paymentSavedMessage ? (
+                  {paymentSavedMessage && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200 animate-in fade-in">
                       <Check size={13} className="text-emerald-600" />
                       <span>{paymentSavedMessage}</span>
                     </span>
-                  ) : (() => {
-                    const total = Number(editingOrder.total) || 0;
-                    const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
-                    if (paid >= total && total > 0) {
-                      return (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200">
-                          <CheckCircle2 size={12} />
-                          <span>Totalement réglé</span>
-                        </span>
-                      );
-                    }
-                    if (paid > 0) {
-                      return (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 text-[#0284c7] text-[11px] font-bold border border-sky-200">
-                          <span>Acompte enregistré</span>
-                        </span>
-                      );
-                    }
-                    return (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-medium border border-slate-200">
-                        <span>À la livraison</span>
-                      </span>
-                    );
-                  })()}
+                  )}
                 </div>
 
-                {/* 3 Executive Financial Metric Pillars (Zero Percentages) */}
+                {/* 3 Executive Financial Metric Pillars */}
                 {(() => {
                   const total = Number(editingOrder.total) || 0;
                   const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
@@ -1774,7 +1974,7 @@ function OrdersPageContent() {
                         </div>
                         <div className="space-y-0.5">
                           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                            Reste à Livrer
+                            Reste Livreur (COD)
                           </span>
                           <span className={`font-mono font-bold text-sm ${remaining > 0 ? 'text-[#1D9BF0]' : 'text-emerald-600'}`}>
                             {formatMAD(remaining)}
@@ -1782,7 +1982,6 @@ function OrdersPageContent() {
                         </div>
                       </div>
 
-                      {/* Clean Minimal Progress Track */}
                       <div className="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden flex">
                         <div
                           className="bg-emerald-500 h-full transition-all duration-300"
@@ -1793,7 +1992,7 @@ function OrdersPageContent() {
                   );
                 })()}
 
-                {/* Direct Action Presets (Clean Dirham Amounts - No Percentages) */}
+                {/* Direct Action Presets */}
                 {(() => {
                   const total = Number(editingOrder.total) || 0;
                   const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
@@ -1809,9 +2008,8 @@ function OrdersPageContent() {
 
                   return (
                     <div>
-                      <div className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
-                        <span>Raccourcis de Versement Rapides :</span>
-                        <span className="text-slate-400 font-normal">Sélection directe</span>
+                      <div className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                        Raccourcis de Versement Rapides (Dirhams) :
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
                         {presets.map((preset) => {
@@ -1842,13 +2040,11 @@ function OrdersPageContent() {
                   );
                 })()}
 
-                {/* Custom Amount & Payment Details Form */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100">
-                  
-                  {/* Montant personnalisé */}
+                {/* Custom Amount & Carrier Details Form */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
                   <div>
                     <label className="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                      Montant Encaissé (MAD)
+                      Montant Acompte (MAD)
                     </label>
                     <div className="relative">
                       <input
@@ -1857,7 +2053,7 @@ function OrdersPageContent() {
                         max={editingOrder.total}
                         value={advanceAmountInput}
                         onChange={(e) => setAdvanceAmountInput(e.target.value)}
-                        className="w-full pl-3 pr-10 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all shadow-2xs"
+                        className="w-full pl-3 pr-10 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                         placeholder="0"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none">
@@ -1866,7 +2062,6 @@ function OrdersPageContent() {
                     </div>
                   </div>
 
-                  {/* Canal de règlement */}
                   <div>
                     <label className="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                       Canal de Règlement
@@ -1874,7 +2069,7 @@ function OrdersPageContent() {
                     <select
                       value={advanceMethodInput}
                       onChange={(e) => setAdvanceMethodInput(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all shadow-2xs cursor-pointer"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-slate-900 cursor-pointer"
                     >
                       <option value="VIREMENT">Virement bancaire (CIH, Attijari...)</option>
                       <option value="CASHPLUS">CashPlus / Wafacash</option>
@@ -1884,28 +2079,42 @@ function OrdersPageContent() {
                     </select>
                   </div>
 
-                  {/* Note / Référence */}
                   <div>
                     <label className="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                      Réf / Note de versement
+                      Transporteur Attribué
+                    </label>
+                    <select
+                      value={carrierInput}
+                      onChange={(e) => setCarrierInput(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-slate-900 cursor-pointer"
+                    >
+                      <option value="Cathedis">Cathedis Express</option>
+                      <option value="Amana">Amana / Poste Maroc</option>
+                      <option value="Speedaf">Speedaf Express</option>
+                      <option value="Livreur Maison">Livreur Interne NAY</option>
+                      <option value="Autre">Autre transporteur</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10.5px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                      N° Suivi / Tracking
                     </label>
                     <input
                       type="text"
-                      value={advanceNotesInput}
-                      onChange={(e) => setAdvanceNotesInput(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all shadow-2xs"
-                      placeholder="Ex: Réf virement #129..."
+                      value={trackingInput}
+                      onChange={(e) => setTrackingInput(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-slate-900"
+                      placeholder="Ex: CAT-98234-MA"
                     />
                   </div>
-
                 </div>
 
-                {/* Bottom Action Bar */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-slate-100">
                   <div className="text-[11px] text-slate-500">
                     {Number(advanceAmountInput) > 0 ? (
                       <span>
-                        Solde restant à livrer : <strong className="font-mono text-slate-900 font-bold">{formatMAD(Math.max(0, (Number(editingOrder.total) || 0) - (Number(advanceAmountInput) || 0)))}</strong>
+                        Solde restant livreur : <strong className="font-mono text-slate-900 font-bold">{formatMAD(Math.max(0, (Number(editingOrder.total) || 0) - (Number(advanceAmountInput) || 0)))}</strong>
                       </span>
                     ) : (
                       <span>Règlement intégral prévu à la livraison</span>
@@ -1916,14 +2125,14 @@ function OrdersPageContent() {
                     type="button"
                     onClick={() => handleSavePayment()}
                     disabled={isSavingPayment}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                   >
                     {isSavingPayment ? (
                       <RefreshCw size={13} className="animate-spin" />
                     ) : (
                       <Check size={13} className="text-emerald-400" />
                     )}
-                    <span>Enregistrer le Règlement</span>
+                    <span>Enregistrer</span>
                   </button>
                 </div>
               </div>
@@ -1931,8 +2140,8 @@ function OrdersPageContent() {
               {/* Items List */}
               <div className="pt-4 border-t border-slate-100">
                 <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-3 flex items-center gap-1.5">
-                  <Package size={13} className="text-[#1D9BF0]" />
-                  <span>Articles Commandés</span>
+                  <Package size={13} className="text-amber-500" />
+                  <span>Flacons de Parfum Commandés</span>
                 </div>
                 <div className="space-y-2">
                   {getParsedItems(editingOrder.items).map((item, idx) => (
@@ -1943,7 +2152,7 @@ function OrdersPageContent() {
                           {item.size ? `Format: ${item.size} • ` : ''}Quantité: {item.quantity}
                         </div>
                       </div>
-                      <div className="font-bold text-slate-900 text-xs">
+                      <div className="font-bold text-slate-900 text-xs font-mono">
                         {formatMAD((item.price || 0) * (item.quantity || 1))}
                       </div>
                     </div>
@@ -1951,7 +2160,7 @@ function OrdersPageContent() {
                 </div>
               </div>
 
-              {/* Financial Summary */}
+              {/* Bottom Financial Breakdown */}
               {(() => {
                 const total = Number(editingOrder.total) || 0;
                 const paid = Math.min(total, Math.max(0, Number(editingOrder.paidAmount) || 0));
@@ -1960,13 +2169,13 @@ function OrdersPageContent() {
                 const netProductRevenue = Math.max(0, total - shippingFeePerOrder);
 
                 return (
-                  <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3 shadow-lg shadow-slate-900/10">
+                  <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3 shadow-lg">
                     <div className="flex justify-between items-start">
                       <div>
                         <span className="text-xs text-slate-400">
-                          {isPaidFull ? 'Commande Entièrement Payée' : 'Reste à encaisser à la livraison (Livreur)'}
+                          {isPaidFull ? 'Commande Entièrement Réglée' : 'Montant à encaisser par le livreur (COD)'}
                         </span>
-                        <p className="text-lg font-bold text-white mt-0.5 font-mono">
+                        <p className="text-xl font-bold text-white mt-0.5 font-mono">
                           {formatMAD(remaining)}
                         </p>
                         {paid > 0 && (
@@ -1990,10 +2199,9 @@ function OrdersPageContent() {
                       </span>
                     </div>
 
-                    {/* Breakdown with 35 MAD delivery fee */}
                     <div className="pt-2.5 border-t border-slate-800 text-[11px] space-y-1 text-slate-300">
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Total payé par le client :</span>
+                        <span className="text-slate-400">Total facturé au client :</span>
                         <span className="font-mono text-white">{formatMAD(total)}</span>
                       </div>
                       <div className="flex justify-between text-rose-300">
@@ -2001,7 +2209,7 @@ function OrdersPageContent() {
                         <span className="font-mono">-{formatMAD(shippingFeePerOrder)}</span>
                       </div>
                       <div className="flex justify-between font-bold text-emerald-400 pt-1.5 border-t border-slate-800/80">
-                        <span>Net Boutique (Marchandise) :</span>
+                        <span>Net Marchandise Maison NAY :</span>
                         <span className="font-mono text-sm">{formatMAD(netProductRevenue)}</span>
                       </div>
                     </div>
@@ -2024,7 +2232,7 @@ export default function OrdersPage() {
     <Suspense
       fallback={
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-slate-400">
-          <RefreshCw size={24} className="animate-spin text-[#1D9BF0]" />
+          <RefreshCw size={24} className="animate-spin text-amber-500" />
           <span className="text-xs font-semibold text-slate-600">Chargement de la gestion des commandes...</span>
         </div>
       }
@@ -2033,4 +2241,3 @@ export default function OrdersPage() {
     </Suspense>
   );
 }
-
