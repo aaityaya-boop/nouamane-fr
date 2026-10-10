@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { sendNaydayWelcomeEmail } from '@/lib/email/emailService';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,6 +81,10 @@ export async function GET() {
         customerName: stats ? stats.customerName : null,
         customerPhone: stats ? stats.customerPhone : null,
         lastOrderDate: stats ? stats.lastOrderDate : null,
+        welcomeEmailSent: sub.welcomeEmailSent,
+        welcomeEmailSentAt: sub.welcomeEmailSentAt,
+        welcomeEmailStatus: sub.welcomeEmailStatus,
+        welcomeEmailError: sub.welcomeEmailError,
       };
     });
 
@@ -90,6 +95,7 @@ export async function GET() {
       customerCount: enriched.filter((s) => s.isCustomer).length,
       leadCount: enriched.filter((s) => !s.isCustomer).length,
       totalRevenueFromSubscribers: enriched.reduce((sum, s) => sum + s.totalSpent, 0),
+      welcomeEmailsSentCount: enriched.filter((s) => s.welcomeEmailSent).length,
     });
   } catch (error) {
     console.error('Error fetching admin newsletter subscribers:', error);
@@ -100,8 +106,42 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email } = body;
+    const { action, email, emails, sendWelcomeEmail } = body;
 
+    // Action 1: Send NAYDAY welcome email to single subscriber
+    if (action === 'send_welcome' || (action === 'send' && email)) {
+      if (!email || !email.includes('@')) {
+        return NextResponse.json({ error: 'Adresse email invalide' }, { status: 400 });
+      }
+      const result = await sendNaydayWelcomeEmail(email);
+      return NextResponse.json({ success: result.success, result });
+    }
+
+    // Action 2: Batch send NAYDAY welcome email to multiple subscribers
+    if (action === 'send_batch' && Array.isArray(emails) && emails.length > 0) {
+      let sentCount = 0;
+      const errors: string[] = [];
+
+      for (const targetEmail of emails) {
+        if (targetEmail && targetEmail.includes('@')) {
+          try {
+            const res = await sendNaydayWelcomeEmail(targetEmail);
+            if (res.success) sentCount++;
+          } catch (err: any) {
+            errors.push(`${targetEmail}: ${err?.message || 'Erreur'}`);
+          }
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        sentCount,
+        totalRequested: emails.length,
+        errors: errors.length > 0 ? errors : undefined,
+      });
+    }
+
+    // Default Action: Add new subscriber manually
     if (!email || typeof email !== 'string' || !email.includes('@')) {
       return NextResponse.json({ error: 'Adresse email invalide' }, { status: 400 });
     }
@@ -120,10 +160,20 @@ export async function POST(request: Request) {
       data: { email: cleanEmail },
     });
 
-    return NextResponse.json({ success: true, subscriber: newSub });
+    // Automatically send welcome email if requested or default true
+    let emailResult = null;
+    if (sendWelcomeEmail !== false) {
+      try {
+        emailResult = await sendNaydayWelcomeEmail(cleanEmail);
+      } catch (emailErr) {
+        console.error('Error sending welcome email on manual add:', emailErr);
+      }
+    }
+
+    return NextResponse.json({ success: true, subscriber: newSub, emailResult });
   } catch (error) {
-    console.error('Error adding subscriber:', error);
-    return NextResponse.json({ error: 'Erreur lors de l\'ajout de l\'abonné' }, { status: 500 });
+    console.error('Error in admin newsletter POST handler:', error);
+    return NextResponse.json({ error: 'Erreur lors du traitement de la requête' }, { status: 500 });
   }
 }
 

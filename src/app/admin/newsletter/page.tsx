@@ -50,6 +50,10 @@ interface EnrichedSubscriber {
   customerName: string | null;
   customerPhone: string | null;
   lastOrderDate: string | null;
+  welcomeEmailSent?: boolean;
+  welcomeEmailSentAt?: string | null;
+  welcomeEmailStatus?: string | null;
+  welcomeEmailError?: string | null;
 }
 
 export default function AdminNewsletter() {
@@ -60,13 +64,21 @@ export default function AdminNewsletter() {
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'customers' | 'leads' | 'recent'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'customers' | 'leads' | 'recent' | 'sent' | 'pending'>('all');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [copiedSuccess, setCopiedSuccess] = useState<string | null>(null);
+
+  // Email Dispatch State
+  const [sendingEmailId, setSendingEmailId] = useState<number | null>(null);
+  const [batchSending, setBatchSending] = useState(false);
+  const [sendFeedback, setSendFeedback] = useState<{ id?: number; text: string; type: 'success' | 'error' } | null>(null);
+  const [testEmailTarget, setTestEmailTarget] = useState('');
+  const [isSendingTest, setIsSendingTest] = useState(false);
 
   // Add Subscriber Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newEmail, setNewEmail] = useState('');
+  const [sendWelcomeOnAdd, setSendWelcomeOnAdd] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState('');
 
@@ -74,15 +86,15 @@ export default function AdminNewsletter() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // Campaign Studio State
-  const [campaignTemplate, setCampaignTemplate] = useState<'welcomeOffer' | 'newLaunch' | 'vipPrivate' | 'weekendSpecial'>('welcomeOffer');
-  const [campaignSubject, setCampaignSubject] = useState('Offre Exclusive NAY Parfums : -10% dès 3 flacons avec le code PARFUM10');
-  const [campaignPreheader, setCampaignPreheader] = useState('Sublimez vos sens avec nos fragrances d\'exception distillées à la main.');
-  const [campaignHeadline, setCampaignHeadline] = useState('L\'Excellence du Parfum Niche à Portée de Main');
+  const [campaignTemplate, setCampaignTemplate] = useState<'nayday' | 'welcomeOffer' | 'newLaunch' | 'vipPrivate' | 'weekendSpecial'>('nayday');
+  const [campaignSubject, setCampaignSubject] = useState('OFFRE NAYDAY — Votre sélection, encore plus avantageuse (−10% avec le code NAYDAY)');
+  const [campaignPreheader, setCampaignPreheader] = useState('Achetez plus de 2 parfums et profitez de −10% sur votre commande.');
+  const [campaignHeadline, setCampaignHeadline] = useState('Votre sélection, encore plus avantageuse.');
   const [campaignMessage, setCampaignMessage] = useState(
-    'Chers passionnés d\'élégance,\n\nProfitez de notre offre exclusive : pour l\'achat de plus de 2 parfums (3 flacons ou plus), bénéficiez immédiatement de 10% de réduction avec le code promo PARFUM10.\n\nLivraison rapide et soignée dans tout le Maroc.'
+    'Achetez plus de 2 parfums et profitez de -10% sur votre commande grâce au code NAYDAY.\n\nFlacons d\'exception, tenue remarquable et livraison soignée partout au Maroc.'
   );
-  const [campaignPromoCode, setCampaignPromoCode] = useState('PARFUM10');
-  const [campaignCtaText, setCampaignCtaText] = useState('Découvrir la Collection');
+  const [campaignPromoCode, setCampaignPromoCode] = useState('NAYDAY');
+  const [campaignCtaText, setCampaignCtaText] = useState('PROFITER DE −10%');
   const [campaignCtaLink, setCampaignCtaLink] = useState('https://nayparfum.ma/fr/shop');
   const [copiedHtml, setCopiedHtml] = useState(false);
 
@@ -108,9 +120,19 @@ export default function AdminNewsletter() {
   }, []);
 
   // Update campaign template defaults
-  const handleTemplateChange = (tpl: 'welcomeOffer' | 'newLaunch' | 'vipPrivate' | 'weekendSpecial') => {
+  const handleTemplateChange = (tpl: 'nayday' | 'welcomeOffer' | 'newLaunch' | 'vipPrivate' | 'weekendSpecial') => {
     setCampaignTemplate(tpl);
-    if (tpl === 'welcomeOffer') {
+    if (tpl === 'nayday') {
+      setCampaignSubject('OFFRE NAYDAY — Votre sélection, encore plus avantageuse (−10% avec le code NAYDAY)');
+      setCampaignPreheader('Achetez plus de 2 parfums et profitez de −10% sur votre commande.');
+      setCampaignHeadline('Votre sélection, encore plus avantageuse.');
+      setCampaignMessage(
+        'Achetez plus de 2 parfums et profitez de -10% sur votre commande grâce au code NAYDAY.\n\nFlacons d\'exception, tenue remarquable et livraison soignée partout au Maroc.'
+      );
+      setCampaignPromoCode('NAYDAY');
+      setCampaignCtaText('PROFITER DE −10%');
+      setCampaignCtaLink('https://nayparfum.ma/fr/shop');
+    } else if (tpl === 'welcomeOffer') {
       setCampaignSubject('Offre Exclusive NAY Parfums : -10% dès 3 flacons avec le code PARFUM10');
       setCampaignPreheader('Sublimez vos sens avec nos fragrances d\'exception distillées à la main.');
       setCampaignHeadline('L\'Excellence du Parfum Niche : -10% dès 3 Flacons');
@@ -118,6 +140,8 @@ export default function AdminNewsletter() {
         'Profitez de notre offre du moment : dès 3 parfums ajoutés au panier, bénéficiez de -10% immédiat sur votre commande grâce au code PARFUM10.\n\nFlacons d\'exception, tenue remarquable et livraison soignée partout au Maroc.'
       );
       setCampaignPromoCode('PARFUM10');
+      setCampaignCtaText('Découvrir la Collection');
+      setCampaignCtaLink('https://nayparfum.ma/fr/shop');
     } else if (tpl === 'newLaunch') {
       setCampaignSubject('✦ Nouveauté Privée : Découvrez notre dernière fragrance de niche');
       setCampaignPreheader('Une création olfactive rare réservée à nos abonnés privilégiés.');
@@ -126,6 +150,8 @@ export default function AdminNewsletter() {
         'Nous avons le plaisir de vous dévoiler en avant-première notre nouvelle création olfactive. Des accords boisés nobles et des notes orientales précieuses créées pour laisser une empreinte inoubliable.'
       );
       setCampaignPromoCode('NOUVEAUTE');
+      setCampaignCtaText('Découvrir en Avant-Première');
+      setCampaignCtaLink('https://nayparfum.ma/fr/shop');
     } else if (tpl === 'vipPrivate') {
       setCampaignSubject('Accès VIP : Vente Privée NAY Parfums réservée aux abonnés');
       setCampaignPreheader('Remises exclusives et échantillons de testeurs offerts.');
@@ -134,6 +160,8 @@ export default function AdminNewsletter() {
         'En tant qu\'abonné privilégié, accédez en avant-première à notre sélection exclusive. Pour toute commande de 2 parfums ou plus, un échantillon testeur 5ml de votre choix vous est offert en cadeau.'
       );
       setCampaignPromoCode('VIPCLUB');
+      setCampaignCtaText('Accéder à la Vente Privée');
+      setCampaignCtaLink('https://nayparfum.ma/fr/shop');
     } else if (tpl === 'weekendSpecial') {
       setCampaignSubject('⚡ Flash Week-end : Livraison Gratuite + Cadeau Offert');
       setCampaignPreheader('Offre limitée ce week-end uniquement sur nayparfum.ma.');
@@ -142,6 +170,8 @@ export default function AdminNewsletter() {
         'Ce week-end, sublimez vos journées : la livraison est 100% offerte partout au Maroc dès 2 parfums commandés. Faites-vous plaisir ou gâtez vos proches sans frais supplémentaires.'
       );
       setCampaignPromoCode('LIVRAISON0');
+      setCampaignCtaText('Commander sans Frais');
+      setCampaignCtaLink('https://nayparfum.ma/fr/shop');
     }
   };
 
@@ -181,6 +211,9 @@ export default function AdminNewsletter() {
       }))
       .sort((a, b) => b.count - a.count);
 
+    const emailsSentCount = subscribers.filter((s) => s.welcomeEmailSent).length;
+    const emailsPendingCount = total - emailsSentCount;
+
     return {
       total,
       customersCount: customers.length,
@@ -190,6 +223,8 @@ export default function AdminNewsletter() {
       newThisMonth,
       conversionRate,
       domainsList,
+      emailsSentCount,
+      emailsPendingCount,
     };
   }, [subscribers]);
 
@@ -207,6 +242,8 @@ export default function AdminNewsletter() {
 
       if (statusFilter === 'customers') return sub.isCustomer;
       if (statusFilter === 'leads') return !sub.isCustomer;
+      if (statusFilter === 'sent') return !!sub.welcomeEmailSent;
+      if (statusFilter === 'pending') return !sub.welcomeEmailSent;
       if (statusFilter === 'recent') {
         const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
         return new Date(sub.createdAt).getTime() >= thirtyDaysAgo;
@@ -237,12 +274,13 @@ export default function AdminNewsletter() {
 
   // Export CSV
   const exportToCSV = () => {
-    const headers = ['ID', 'Email', 'Nom Client', 'Statut', 'Commandes', 'Total Depense (MAD)', 'Date Inscription'];
+    const headers = ['ID', 'Email', 'Nom Client', 'Statut Client', 'Email NAYDAY', 'Commandes', 'Total Depense (MAD)', 'Date Inscription'];
     const rows = filteredSubscribers.map((s) => [
       s.id,
       s.email,
       s.customerName ? `"${s.customerName}"` : 'Prospect',
       s.isCustomer ? 'Client Acheteur' : 'Prospect Non Converti',
+      s.welcomeEmailSent ? 'Envoyé' : 'En attente',
       s.ordersCount,
       s.totalSpent,
       new Date(s.createdAt).toISOString().split('T')[0],
@@ -279,6 +317,116 @@ export default function AdminNewsletter() {
     );
   };
 
+  // Send NAYDAY Welcome Email to Single Subscriber
+  const handleSendWelcomeEmail = async (sub: EnrichedSubscriber) => {
+    setSendingEmailId(sub.id);
+    setSendFeedback(null);
+    try {
+      const res = await fetch('/api/admin/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: sub.email }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSendFeedback({
+          id: sub.id,
+          text: `Email NAYDAY envoyé avec succès à ${sub.email} !`,
+          type: 'success',
+        });
+        setSubscribers((prev) =>
+          prev.map((s) =>
+            s.id === sub.id
+              ? {
+                  ...s,
+                  welcomeEmailSent: true,
+                  welcomeEmailSentAt: new Date().toISOString(),
+                  welcomeEmailStatus: data.result?.channel === 'SIMULATED' ? 'SIMULATED' : 'SENT',
+                }
+              : s
+          )
+        );
+      } else {
+        setSendFeedback({
+          id: sub.id,
+          text: data.error || 'Erreur lors de l\'envoi de l\'email.',
+          type: 'error',
+        });
+      }
+    } catch {
+      setSendFeedback({
+        id: sub.id,
+        text: 'Erreur réseau lors de l\'envoi.',
+        type: 'error',
+      });
+    } finally {
+      setSendingEmailId(null);
+      setTimeout(() => setSendFeedback(null), 4000);
+    }
+  };
+
+  // Batch Send NAYDAY Welcome Email to Selected Subscribers
+  const handleBatchSendWelcomeEmail = async () => {
+    const selectedEmails = subscribers
+      .filter((s) => selectedIds.includes(s.id))
+      .map((s) => s.email);
+
+    if (selectedEmails.length === 0) return;
+    if (
+      !confirm(
+        `Envoyer l'email NAYDAY (-10% avec code NAYDAY) aux ${selectedEmails.length} abonnés sélectionnés ?`
+      )
+    )
+      return;
+
+    setBatchSending(true);
+    try {
+      const res = await fetch('/api/admin/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails: selectedEmails }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(`Succès : ${data.sentCount} emails envoyés sur ${data.totalRequested} !`);
+        fetchSubscribers();
+      } else {
+        alert(data.error || 'Erreur lors de l\'envoi groupé.');
+      }
+    } catch {
+      alert('Erreur réseau lors de l\'envoi groupé.');
+    } finally {
+      setBatchSending(false);
+    }
+  };
+
+  // Send Test Email from Studio
+  const handleSendTestEmail = async () => {
+    if (!testEmailTarget || !testEmailTarget.includes('@')) {
+      alert('Veuillez entrer une adresse email de test valide.');
+      return;
+    }
+
+    setIsSendingTest(true);
+    try {
+      const res = await fetch('/api/admin/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: testEmailTarget }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(`Email de test NAYDAY envoyé avec succès à ${testEmailTarget} !`);
+      } else {
+        alert(data.error || 'Erreur lors de l\'envoi du test.');
+      }
+    } catch {
+      alert('Erreur réseau.');
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
   // Add Subscriber
   const handleAddSubscriber = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -293,7 +441,7 @@ export default function AdminNewsletter() {
       const res = await fetch('/api/admin/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: newEmail }),
+        body: JSON.stringify({ email: newEmail, sendWelcomeEmail: sendWelcomeOnAdd }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -455,22 +603,29 @@ export default function AdminNewsletter() {
           </div>
         </div>
 
-        {/* Metric 3: Total Revenue from Subscribers */}
+        {/* Metric 3: NAYDAY Welcome Emails Dispatched */}
         <div className="bg-white border border-neutral-200/80 rounded-2xl p-4.5 shadow-xs relative overflow-hidden group">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-              Revenus Abonnés
+              Emails NAYDAY Envoyés
             </span>
             <div className="w-8 h-8 rounded-lg bg-sky-50 text-[#0ea5e9] border border-sky-200 flex items-center justify-center">
-              <DollarSign size={15} />
+              <Mail size={15} />
             </div>
           </div>
-          <div className="text-2xl font-black text-neutral-900 tracking-tight">
-            {formatMAD(stats.totalRevenue)}
+          <div className="text-2xl font-black text-neutral-900 tracking-tight flex items-baseline gap-2">
+            <span>{stats.emailsSentCount}</span>
+            <span className="text-xs font-bold text-[#0ea5e9]">
+              / {stats.total}
+            </span>
           </div>
           <div className="text-[11px] text-neutral-500 mt-2 flex items-center gap-1">
-            <TrendingUp size={12} className="text-[#0ea5e9]" />
-            <span>Valeur marchande des inscrits</span>
+            <CheckCircle2 size={12} className="text-emerald-500" />
+            <span>
+              {stats.emailsPendingCount > 0
+                ? `${stats.emailsPendingCount} en attente d'envoi automatique`
+                : 'Tous les abonnés ont reçu l\'offre'}
+            </span>
           </div>
         </div>
 
@@ -489,7 +644,7 @@ export default function AdminNewsletter() {
           </div>
           <div className="text-[11px] text-amber-700 mt-2 flex items-center gap-1">
             <Zap size={12} className="text-amber-500" />
-            <span>Cibles idéales pour le code PARFUM10</span>
+            <span>Cibles prêtes pour le code NAYDAY (-10%)</span>
           </div>
         </div>
       </div>
@@ -543,8 +698,8 @@ export default function AdminNewsletter() {
           >
             <Send size={14} />
             <span>Studio de Campagnes Email</span>
-            <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-400 text-neutral-900 uppercase">
-              PARFUM10
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-sky-50 text-[#0ea5e9] border border-sky-300 uppercase">
+              NAYDAY -10%
             </span>
           </button>
 
@@ -643,11 +798,37 @@ export default function AdminNewsletter() {
 
               <button
                 type="button"
+                onClick={() => setStatusFilter('sent')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'sent'
+                    ? 'bg-[#0ea5e9] text-white shadow-2xs'
+                    : 'bg-sky-50 text-[#0ea5e9] hover:bg-sky-100/70 border border-sky-200'
+                }`}
+              >
+                <CheckCircle2 size={12} />
+                <span>NAYDAY Envoyé ({stats.emailsSentCount})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStatusFilter('pending')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'pending'
+                    ? 'bg-neutral-700 text-white shadow-2xs'
+                    : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/70'
+                }`}
+              >
+                <Clock size={12} />
+                <span>En attente ({stats.emailsPendingCount})</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setStatusFilter('recent')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   statusFilter === 'recent'
-                    ? 'bg-[#0ea5e9] text-white shadow-2xs'
-                    : 'bg-sky-50 text-[#0ea5e9] hover:bg-sky-100/70 border border-sky-200'
+                    ? 'bg-neutral-900 text-white shadow-2xs'
+                    : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/70'
                 }`}
               >
                 <span>Ce mois ({stats.newThisMonth})</span>
@@ -657,17 +838,26 @@ export default function AdminNewsletter() {
 
           {/* Bulk Selection Ribbon */}
           {selectedIds.length > 0 && (
-            <div className="flex items-center justify-between p-3 bg-sky-50/80 border border-sky-200 rounded-xl text-xs">
+            <div className="flex items-center justify-between p-3 bg-sky-50/80 border border-sky-200 rounded-xl text-xs flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-[#0ea5e9]">
                   {selectedIds.length} abonné{selectedIds.length > 1 ? 's' : ''} sélectionné{selectedIds.length > 1 ? 's' : ''}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  disabled={batchSending}
+                  onClick={handleBatchSendWelcomeEmail}
+                  className="px-3.5 py-1.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white rounded-lg font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-2xs"
+                >
+                  {batchSending ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
+                  <span>Envoyer Offre NAYDAY ({selectedIds.length})</span>
+                </button>
                 <button
                   type="button"
                   onClick={copySelectedEmails}
-                  className="px-3 py-1 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 rounded-lg font-bold flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 rounded-lg font-bold flex items-center gap-1 cursor-pointer"
                 >
                   {copiedSuccess === 'selected_emails' ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
                   <span>Copier les emails</span>
@@ -675,7 +865,7 @@ export default function AdminNewsletter() {
                 <button
                   type="button"
                   onClick={() => setSelectedIds([])}
-                  className="px-2 py-1 text-neutral-500 hover:text-neutral-800 text-[11px] font-semibold"
+                  className="px-2 py-1.5 text-neutral-500 hover:text-neutral-800 text-[11px] font-semibold"
                 >
                   Désélectionner
                 </button>
@@ -713,6 +903,7 @@ export default function AdminNewsletter() {
                       </th>
                       <th className="py-3 px-4">Abonné & Email</th>
                       <th className="py-3 px-4">Statut Client CRM</th>
+                      <th className="py-3 px-4">Offre NAYDAY (-10%)</th>
                       <th className="py-3 px-4">Commandes & Valeur</th>
                       <th className="py-3 px-4">Date d&apos;Inscription</th>
                       <th className="py-3 px-4 text-right">Actions</th>
@@ -775,7 +966,7 @@ export default function AdminNewsletter() {
                                   {sub.customerName ? (
                                     <span className="text-neutral-600 font-medium">{sub.customerName}</span>
                                   ) : (
-                                    <span>Inscrit via formulaire boutique</span>
+                                    <span>Inscrit via boutique NAY</span>
                                   )}
                                 </div>
                               </div>
@@ -793,6 +984,38 @@ export default function AdminNewsletter() {
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                                 <Target size={12} className="text-amber-600" />
                                 <span>Prospect Chaud</span>
+                              </span>
+                            )}
+                          </td>
+
+                          {/* NAYDAY Email Status */}
+                          <td className="py-3.5 px-4">
+                            {sub.welcomeEmailSent ? (
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold bg-sky-50 text-[#0ea5e9] border border-sky-200">
+                                  <CheckCircle2 size={12} className="text-[#0ea5e9]" />
+                                  <span>Envoyé (Code NAYDAY)</span>
+                                </span>
+                                {sub.welcomeEmailSentAt && (
+                                  <div className="text-[10px] text-neutral-400 pl-1">
+                                    {new Date(sub.welcomeEmailSentAt).toLocaleDateString('fr-FR', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            ) : sub.welcomeEmailStatus === 'FAILED' ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                <AlertCircle size={12} />
+                                <span>Échec d&apos;envoi</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200">
+                                <Clock size={11} className="text-neutral-400" />
+                                <span>En attente</span>
                               </span>
                             )}
                           </td>
@@ -835,13 +1058,19 @@ export default function AdminNewsletter() {
                           {/* Actions */}
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <a
-                                href={`mailto:${sub.email}?subject=Votre%20Privil%C3%A8ge%20NAY%20Parfums&body=Bonjour,`}
-                                className="p-1.5 rounded-lg border border-neutral-200 hover:border-sky-300 text-neutral-500 hover:text-[#0ea5e9] hover:bg-sky-50 transition-colors"
-                                title="Envoyer un email direct"
+                              <button
+                                type="button"
+                                onClick={() => handleSendWelcomeEmail(sub)}
+                                disabled={sendingEmailId === sub.id}
+                                className="p-1.5 rounded-lg border border-sky-200 bg-sky-50/70 hover:bg-[#0ea5e9] text-[#0ea5e9] hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                                title="Envoyer directement l'email NAYDAY (-10%)"
                               >
-                                <Send size={13} />
-                              </a>
+                                {sendingEmailId === sub.id ? (
+                                  <RefreshCw size={13} className="animate-spin" />
+                                ) : (
+                                  <Send size={13} />
+                                )}
+                              </button>
 
                               <button
                                 type="button"
@@ -1021,6 +1250,24 @@ export default function AdminNewsletter() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
+                  onClick={() => handleTemplateChange('nayday')}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer col-span-2 ${
+                    campaignTemplate === 'nayday'
+                      ? 'bg-sky-50 border-[#0ea5e9] text-[#0ea5e9] font-bold ring-1 ring-[#0ea5e9]'
+                      : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+                  }`}
+                >
+                  <div className="text-xs font-bold flex items-center justify-between">
+                    <span>⚡ OFFRE NAYDAY : −10% dès 2 Parfums (Email Automatique)</span>
+                    <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#0ea5e9] text-white">Actif & Officiel</span>
+                  </div>
+                  <div className="text-[10px] text-neutral-500 font-normal mt-0.5">
+                    Miss Dior Parfum + Armani Stronger With You Intensely (Code NAYDAY)
+                  </div>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => handleTemplateChange('welcomeOffer')}
                   className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                     campaignTemplate === 'welcomeOffer'
@@ -1129,6 +1376,32 @@ export default function AdminNewsletter() {
               />
             </div>
 
+            {/* Direct Send Test to Admin Email */}
+            <div className="p-3.5 bg-sky-50/70 border border-sky-200 rounded-xl space-y-2">
+              <label className="text-[11px] font-bold text-neutral-800 flex items-center gap-1.5">
+                <Send size={12} className="text-[#0ea5e9]" />
+                <span>Tester l&apos;envoi vers votre boîte email</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="votre-email@gmail.com"
+                  value={testEmailTarget}
+                  onChange={(e) => setTestEmailTarget(e.target.value)}
+                  className="flex-1 px-3 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendTestEmail}
+                  disabled={isSendingTest}
+                  className="px-3.5 py-1.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-bold rounded-lg cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-2xs"
+                >
+                  {isSendingTest ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
+                  <span>Tester</span>
+                </button>
+              </div>
+            </div>
+
             {/* Dispatch Actions */}
             <div className="space-y-2 pt-2 border-t border-neutral-200">
               <button
@@ -1159,86 +1432,198 @@ export default function AdminNewsletter() {
             <div className="flex items-center justify-between text-xs font-bold text-neutral-700 px-1">
               <span className="flex items-center gap-1.5 uppercase tracking-wider text-[11px] text-neutral-500">
                 <Eye size={13} className="text-[#0ea5e9]" />
-                <span>Aperçu Réel du Mail de Luxe (Client)</span>
+                <span>
+                  {campaignTemplate === 'nayday'
+                    ? 'Aperçu Réel : Modèle NAYDAY Envoyé Automatiquement'
+                    : 'Aperçu Réel du Mail de Luxe (Client)'}
+                </span>
               </span>
               <span className="text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded border border-neutral-200">
-                Design Responsive 600px
+                Design Responsive 640px
               </span>
             </div>
 
             {/* Email Container Frame */}
-            <div className="bg-[#f8f7f4] border border-neutral-200/90 rounded-2xl p-4 sm:p-8 shadow-xs max-w-xl mx-auto">
-              <div className="bg-white rounded-xl border border-neutral-200/70 overflow-hidden shadow-xs">
-                {/* Email Header */}
-                <div className="bg-[#0f172a] p-6 text-center text-white border-b border-neutral-800">
-                  <div className="text-[10px] font-extrabold tracking-[0.3em] uppercase text-sky-400 mb-1">
-                    HAUTE PARFUMERIE MAROCAINE
-                  </div>
-                  <div className="text-xl font-bold tracking-wider font-serif">
-                    NAY PARFUMS
-                  </div>
-                  <div className="text-[10px] text-neutral-400 mt-0.5">
-                    Distillation & Création Artisanale • Maroc
-                  </div>
-                </div>
-
-                {/* Email Banner / Badge */}
-                <div className="bg-sky-50 p-4 border-b border-sky-100 text-center">
-                  <span className="inline-block px-3 py-1 bg-[#0ea5e9] text-white font-extrabold text-[11px] rounded-full uppercase tracking-wider shadow-2xs">
-                    ✦ PRIVILÈGE ABONNÉ EXCLUSIF ✦
-                  </span>
-                </div>
-
-                {/* Email Content Body */}
-                <div className="p-6 sm:p-8 space-y-5">
-                  <h3 className="text-base sm:text-lg font-bold text-neutral-900 text-center leading-snug">
-                    {campaignHeadline}
-                  </h3>
-
-                  <div className="text-xs text-neutral-600 leading-relaxed space-y-3 whitespace-pre-line text-center max-w-md mx-auto">
-                    {campaignMessage}
+            <div className="bg-[#f4f5f7] border border-neutral-200/90 rounded-2xl p-3 sm:p-6 shadow-xs max-w-xl mx-auto">
+              {campaignTemplate === 'nayday' ? (
+                <div className="bg-white rounded-xl border border-neutral-200/80 overflow-hidden shadow-xs">
+                  {/* Header Logo */}
+                  <div className="p-6 text-center border-b border-[#eceff3] bg-white">
+                    <img
+                      src="https://nayparfum.ma/images/nay/nay-logo-tight.png"
+                      alt="NAY Parfum"
+                      className="h-9 mx-auto object-contain"
+                    />
                   </div>
 
-                  {/* Promo Box */}
-                  {campaignPromoCode && (
-                    <div className="p-4 bg-gradient-to-br from-sky-50 to-white border-2 border-dashed border-sky-300 rounded-xl text-center space-y-1">
-                      <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">
-                        Votre Code de Réduction Personnel :
-                      </div>
-                      <div className="font-mono text-lg font-black text-[#0ea5e9] tracking-widest">
-                        {campaignPromoCode}
-                      </div>
-                      <div className="text-[10px] text-neutral-500">
-                        À renseigner lors de la validation de votre panier
-                      </div>
+                  {/* Hero */}
+                  <div className="p-6 text-center space-y-2.5">
+                    <div className="text-[11px] tracking-[3px] text-[#189fe3] font-bold uppercase">
+                      OFFRE NAYDAY
                     </div>
-                  )}
+                    <h3 className="font-serif text-2xl sm:text-3xl font-normal text-[#0e1d34] leading-tight">
+                      Votre sélection,<br />encore plus avantageuse.
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[#5c6470] leading-relaxed">
+                      Achetez <strong>plus de 2 parfums</strong> et profitez de <strong className="text-[#189fe3]">−10%</strong> sur votre commande.
+                    </p>
+                  </div>
 
-                  {/* CTA Button */}
-                  <div className="text-center pt-2">
+                  {/* Promo Code Box */}
+                  <div className="px-6 pb-4">
+                    <div className="bg-[#0e1d34] p-4 text-center rounded-lg text-white">
+                      <div className="text-[10px] tracking-widest text-[#b8c6d8] uppercase">CODE PROMO</div>
+                      <div className="text-2xl font-black tracking-[4px] mt-1 text-white">NAYDAY</div>
+                    </div>
+                  </div>
+
+                  {/* 2 Products Showcase */}
+                  <div className="px-4 pb-4 grid grid-cols-2 gap-3">
+                    <div className="border border-[#e9edf2] p-3 rounded-lg text-center bg-white space-y-1.5">
+                      <img
+                        src="https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/1784029115159-214358233-Miss_Dior_parfum.jpg"
+                        alt="Miss Dior Parfum"
+                        className="w-full h-28 object-contain mx-auto"
+                      />
+                      <div className="text-[9px] uppercase tracking-wider text-[#8a929c] font-bold">POUR ELLE</div>
+                      <div className="font-serif text-xs font-semibold text-[#0e1d34] truncate">Miss Dior Parfum</div>
+                      <div className="text-[10px] text-[#5c6470]">Chypré fruité · 100 ml</div>
+                      <div className="text-xs font-bold text-[#0e1d34]">299 DH</div>
+                      <a
+                        href="https://nayparfum.ma/fr/product/miss-dior-parfum-tester"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-[10px] text-[#0e1d34] border-b border-[#0e1d34] pb-0.5 font-bold"
+                      >
+                        DÉCOUVRIR
+                      </a>
+                    </div>
+
+                    <div className="border border-[#e9edf2] p-3 rounded-lg text-center bg-white space-y-1.5">
+                      <img
+                        src="https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/raw-1783986821133-armani_stronger_with_you_intens.jpg"
+                        alt="Stronger With You Intensely"
+                        className="w-full h-28 object-contain mx-auto"
+                      />
+                      <div className="text-[9px] uppercase tracking-wider text-[#8a929c] font-bold">POUR LUI</div>
+                      <div className="font-serif text-xs font-semibold text-[#0e1d34] truncate">Stronger With You</div>
+                      <div className="text-[10px] text-[#5c6470]">Ambré fougère · 100 ml</div>
+                      <div className="text-xs font-bold text-[#0e1d34]">299 DH</div>
+                      <a
+                        href="https://nayparfum.ma/fr/product/armani-stronger-with-you-intensely-tester"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-[10px] text-[#0e1d34] border-b border-[#0e1d34] pb-0.5 font-bold"
+                      >
+                        DÉCOUVRIR
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <div className="p-6 text-center space-y-3">
+                    <div className="font-serif text-lg text-[#0e1d34]">Composez votre sélection.</div>
+                    <div className="text-xs text-[#66707c]">
+                      Ajoutez <strong>plus de 2 parfums</strong> à votre panier et utilisez le code <strong>NAYDAY</strong>.
+                    </div>
                     <a
-                      href={campaignCtaLink}
+                      href="https://nayparfum.ma/fr/shop"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-8 py-3 bg-[#0ea5e9] text-white text-xs font-bold rounded-full shadow-xs hover:bg-[#0284c7] transition-all"
+                      className="inline-block bg-[#189fe3] text-white text-xs font-bold px-6 py-2.5 uppercase tracking-wider rounded"
                     >
-                      <span>{campaignCtaText}</span>
-                      <ArrowRight size={13} />
+                      PROFITER DE −10%
                     </a>
                   </div>
-                </div>
 
-                {/* Email Footer */}
-                <div className="bg-neutral-50 p-5 text-center text-[10px] text-neutral-400 border-t border-neutral-150 space-y-1.5">
-                  <div className="font-semibold text-neutral-600">NAY Parfums • Maison de Luxe</div>
-                  <div>Casablanca • Marrakech • Rabat • Livraison partout au Maroc</div>
-                  <div className="text-[9px] text-neutral-400 pt-1">
-                    Vous recevez cet email car vous êtes inscrit sur <span className="underline">nayparfum.ma</span>.
-                    <br />
-                    Pour modifier vos préférences ou vous désinscrire, répondez simplement « STOP ».
+                  {/* Trust */}
+                  <div className="bg-[#f5f8fb] p-3 text-center text-xs text-[#3e4650] border-t border-[#e9edf2]">
+                    Livraison partout au Maroc · Paiement à la livraison<br />
+                    <strong>nayparfum.ma</strong>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="bg-[#0e1d34] p-4 text-center text-white space-y-1">
+                    <div className="text-xs font-bold tracking-widest">NAY PARFUM</div>
+                    <div className="text-[10px] text-[#aab6c5]">
+                      Offre valable pour l&apos;achat de plus de 2 parfums avec le code NAYDAY.<br />
+                      © 2026 NAY Parfum
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-white rounded-xl border border-neutral-200/70 overflow-hidden shadow-xs">
+                  {/* Email Header */}
+                  <div className="bg-[#0f172a] p-6 text-center text-white border-b border-neutral-800">
+                    <div className="text-[10px] font-extrabold tracking-[0.3em] uppercase text-sky-400 mb-1">
+                      HAUTE PARFUMERIE MAROCAINE
+                    </div>
+                    <div className="text-xl font-bold tracking-wider font-serif">
+                      NAY PARFUMS
+                    </div>
+                    <div className="text-[10px] text-neutral-400 mt-0.5">
+                      Distillation & Création Artisanale • Maroc
+                    </div>
+                  </div>
+
+                  {/* Email Banner / Badge */}
+                  <div className="bg-sky-50 p-4 border-b border-sky-100 text-center">
+                    <span className="inline-block px-3 py-1 bg-[#0ea5e9] text-white font-extrabold text-[11px] rounded-full uppercase tracking-wider shadow-2xs">
+                      ✦ PRIVILÈGE ABONNÉ EXCLUSIF ✦
+                    </span>
+                  </div>
+
+                  {/* Email Content Body */}
+                  <div className="p-6 sm:p-8 space-y-5">
+                    <h3 className="text-base sm:text-lg font-bold text-neutral-900 text-center leading-snug">
+                      {campaignHeadline}
+                    </h3>
+
+                    <div className="text-xs text-neutral-600 leading-relaxed space-y-3 whitespace-pre-line text-center max-w-md mx-auto">
+                      {campaignMessage}
+                    </div>
+
+                    {/* Promo Box */}
+                    {campaignPromoCode && (
+                      <div className="p-4 bg-gradient-to-br from-sky-50 to-white border-2 border-dashed border-sky-300 rounded-xl text-center space-y-1">
+                        <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">
+                          Votre Code de Réduction Personnel :
+                        </div>
+                        <div className="font-mono text-lg font-black text-[#0ea5e9] tracking-widest">
+                          {campaignPromoCode}
+                        </div>
+                        <div className="text-[10px] text-neutral-500">
+                          À renseigner lors de la validation de votre panier
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CTA Button */}
+                    <div className="text-center pt-2">
+                      <a
+                        href={campaignCtaLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-8 py-3 bg-[#0ea5e9] text-white text-xs font-bold rounded-full shadow-xs hover:bg-[#0284c7] transition-all"
+                      >
+                        <span>{campaignCtaText}</span>
+                        <ArrowRight size={13} />
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Email Footer */}
+                  <div className="bg-neutral-50 p-5 text-center text-[10px] text-neutral-400 border-t border-neutral-150 space-y-1.5">
+                    <div className="font-semibold text-neutral-600">NAY Parfums • Maison de Luxe</div>
+                    <div>Casablanca • Marrakech • Rabat • Livraison partout au Maroc</div>
+                    <div className="text-[9px] text-neutral-400 pt-1">
+                      Vous recevez cet email car vous êtes inscrit sur <span className="underline">nayparfum.ma</span>.
+                      <br />
+                      Pour modifier vos préférences ou vous désinscrire, répondez simplement « STOP ».
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1406,6 +1791,20 @@ export default function AdminNewsletter() {
                 </p>
               </div>
 
+              {/* Automatic welcome email option */}
+              <div className="flex items-center gap-2.5 pt-1 p-2.5 bg-sky-50/70 rounded-xl border border-sky-100">
+                <input
+                  type="checkbox"
+                  id="sendWelcome"
+                  checked={sendWelcomeOnAdd}
+                  onChange={(e) => setSendWelcomeOnAdd(e.target.checked)}
+                  className="rounded text-[#0ea5e9] focus:ring-[#0ea5e9] cursor-pointer"
+                />
+                <label htmlFor="sendWelcome" className="text-xs font-semibold text-neutral-800 cursor-pointer">
+                  Envoyer immédiatement l&apos;email NAYDAY (-10%)
+                </label>
+              </div>
+
               {addError && (
                 <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2">
                   <AlertCircle size={14} className="flex-shrink-0" />
@@ -1442,6 +1841,28 @@ export default function AdminNewsletter() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {sendFeedback && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold flex items-center gap-2.5 animate-in slide-in-from-bottom-4 ${
+            sendFeedback.type === 'success'
+              ? 'bg-[#0e1d34] text-white border-sky-400/40 shadow-sky-500/10'
+              : 'bg-rose-950 text-white border-rose-500/40 shadow-rose-500/10'
+          }`}
+        >
+          {sendFeedback.type === 'success' ? (
+            <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <CheckCircle2 size={15} />
+            </div>
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center">
+              <AlertCircle size={15} />
+            </div>
+          )}
+          <span>{sendFeedback.text}</span>
         </div>
       )}
     </div>

@@ -145,9 +145,13 @@ model SiteConfig {
 }
 
 model NewsletterSubscriber {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  createdAt DateTime @default(now())
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  welcomeEmailSent   Boolean   @default(false)
+  welcomeEmailSentAt DateTime?
+  welcomeEmailStatus String?   @default("PENDING")
+  welcomeEmailError  String?
+  createdAt          DateTime  @default(now())
 }
 
 model LandingPage {

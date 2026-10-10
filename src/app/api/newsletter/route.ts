@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { sendNaydayWelcomeEmail } from '@/lib/email/emailService';
 
 export async function POST(req: Request) {
   try {
@@ -10,17 +11,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email invalide' }, { status: 400 });
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
     const existing = await prisma.newsletterSubscriber.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
     });
 
     if (existing) {
       return NextResponse.json({ error: 'Cet email est déjà inscrit' }, { status: 400 });
     }
 
-    await prisma.newsletterSubscriber.create({
-      data: { email },
+    const subscriber = await prisma.newsletterSubscriber.create({
+      data: { email: cleanEmail },
     });
+
+    // Send NAYDAY promotional welcome email automatically
+    try {
+      await sendNaydayWelcomeEmail(cleanEmail);
+    } catch (emailErr) {
+      console.error('Error sending welcome email to subscriber:', emailErr);
+    }
 
     // Track Affiliate Lead if referral cookie is present
     try {
@@ -40,7 +50,7 @@ export async function POST(req: Request) {
               data: {
                 affiliateId: affiliate.id,
                 type: 'NEWSLETTER',
-                email,
+                email: cleanEmail,
                 commissionEarned: leadCommission,
               },
             }),
