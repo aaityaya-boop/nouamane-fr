@@ -183,6 +183,7 @@ export interface SendEmailResult {
  */
 export async function sendNaydayWelcomeEmail(recipientEmail: string): Promise<SendEmailResult> {
   const cleanEmail = recipientEmail.trim().toLowerCase();
+  let providerError: string | null = null;
 
   try {
     // 1. Try Resend if API key is provided
@@ -208,9 +209,11 @@ export async function sendNaydayWelcomeEmail(recipientEmail: string): Promise<Se
           await updateSubscriberStatus(cleanEmail, true, 'SENT', null);
           return { success: true, channel: 'RESEND', messageId: resData.id };
         } else {
+          providerError = resData.message || (typeof resData === 'string' ? resData : JSON.stringify(resData));
           console.warn('Resend API returned error, falling back:', resData);
         }
       } catch (resendErr: any) {
+        providerError = resendErr?.message || 'Erreur réseau Resend';
         console.error('Resend dispatch failed:', resendErr);
       }
     }
@@ -243,8 +246,19 @@ export async function sendNaydayWelcomeEmail(recipientEmail: string): Promise<Se
         await updateSubscriberStatus(cleanEmail, true, 'SENT', null);
         return { success: true, channel: 'SMTP', messageId: info.messageId };
       } catch (smtpErr: any) {
+        providerError = smtpErr?.message || 'Erreur SMTP';
         console.error('SMTP dispatch failed:', smtpErr);
       }
+    }
+
+    // If an external provider was configured (e.g. Resend) but returned an error
+    if (providerError) {
+      await updateSubscriberStatus(cleanEmail, false, 'FAILED', providerError);
+      return {
+        success: false,
+        channel: 'RESEND',
+        error: providerError,
+      };
     }
 
     // 3. Fallback: Simulation/Prepared (no external provider yet configured)
