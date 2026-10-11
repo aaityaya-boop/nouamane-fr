@@ -162,6 +162,13 @@ export default async function FinancePage() {
         affiliates={affiliates}
         customersCount={customersCount}
         initialGoal={initialRevenueGoal}
+        currentUser={{
+          id: admin.id,
+          name: admin.name,
+          email: admin.email,
+          role: admin.role,
+          avatar: admin.avatar,
+        }}
       />
     </div>
   );

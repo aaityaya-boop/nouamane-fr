@@ -12,9 +12,18 @@ import {
   UploadCloud, FileText, Image as ImageIcon, Paperclip, Eye,
   ShieldCheck, ArrowUpRight, Filter, Calculator, Sparkles,
   Sliders, Download, Printer, Target, Flame, Layers, Award,
-  DollarSign, ShoppingBag, Users, HelpCircle
+  DollarSign, ShoppingBag, Users, HelpCircle,
+  Check, Clock, AlertTriangle, FileSpreadsheet, Building2, User,
+  ChevronDown, ZoomIn, Receipt, Edit3, Tag, ArrowRight
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
+import {
+  BillMetadata,
+  parseBillMetadata,
+  encodeBillDescription,
+  checkIsOverdue,
+  getDaysRemaining,
+} from '@/lib/billsHelper';
 
 type OrderData = {
   id: string;
@@ -51,6 +60,33 @@ export type ExpenseData = {
     avatar?: string | null;
   } | null;
 };
+
+export interface EnrichedExpense {
+  id: string;
+  title: string;
+  vendor: string;
+  invoiceNumber: string;
+  category: string;
+  amount: number;
+  date: string;
+  dueDate: string | null;
+  status: 'PAID' | 'PENDING' | 'OVERDUE' | 'CANCELLED';
+  paidAt: string | null;
+  paidBy: string;
+  payerRole: string;
+  paymentMethod: string;
+  recurring: string;
+  cleanNotes: string;
+  receiptUrl: string | null;
+  isOverdue: boolean;
+  daysRemaining: number | null;
+  creator?: {
+    id: string;
+    name: string;
+    avatar?: string | null;
+  } | null;
+  raw: ExpenseData;
+}
 
 export type EmployeeData = {
   id: string;
@@ -97,7 +133,160 @@ type FinanceClientProps = {
   affiliates?: AffiliateData[];
   customersCount?: number;
   initialGoal?: number;
+  currentUser?: {
+    id: string;
+    name: string;
+    email?: string;
+    role: string;
+    avatar?: string | null;
+  };
 };
+
+export const PAYMENT_METHOD_OPTIONS = [
+  { id: 'CREDIT_CARD', label: 'Carte Bancaire CIH NAY' },
+  { id: 'BANK_TRANSFER', label: 'Virement Bancaire Société' },
+  { id: 'CASH', label: 'Espèces (Caisse Boutique)' },
+  { id: 'AUTO_DEBIT', label: 'Prélèvement Automatique' },
+  { id: 'CHECK', label: 'Chèque Bancaire' },
+  { id: 'OTHER', label: 'Autre mode de règlement' },
+];
+
+export const QUICK_VENDOR_SUGGESTIONS = [
+  'Hostinger Web & Mail',
+  'Google Workspace',
+  'Meta Ads (Facebook/Insta)',
+  'TikTok Ads Manager',
+  'Cartonnerie Casablanca',
+  'Cathedis Express',
+  'Amana Poste Maroc',
+  'Vercel Cloud',
+  'CIH Bank',
+  'Fournisseur Parfums',
+];
+
+export const EXPENSE_STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
+  PAID: {
+    label: 'Réglée / Payée',
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    border: 'border-emerald-200',
+    dot: 'bg-emerald-500',
+  },
+  PENDING: {
+    label: 'À Payer (En attente)',
+    bg: 'bg-amber-50',
+    text: 'text-amber-800',
+    border: 'border-amber-200',
+    dot: 'bg-amber-500',
+  },
+  OVERDUE: {
+    label: 'En Retard (Échue)',
+    bg: 'bg-rose-50',
+    text: 'text-rose-700',
+    border: 'border-rose-200',
+    dot: 'bg-rose-500',
+  },
+  CANCELLED: {
+    label: 'Annulée / Rejetée',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-600',
+    border: 'border-neutral-200',
+    dot: 'bg-neutral-400',
+  },
+};
+
+export function extractVendorFromTitle(title: string): string {
+  const lower = (title || '').toLowerCase();
+  if (lower.includes('mail') || lower.includes('hostinger') || lower.includes('domain')) return 'Hostinger / Web Mail';
+  if (lower.includes('tiktok')) return 'TikTok Ads';
+  if (lower.includes('meta') || lower.includes('facebook') || lower.includes('instagram')) return 'Meta Ads';
+  if (lower.includes('google')) return 'Google Workspace / Ads';
+  if (lower.includes('carton') || lower.includes('pochon') || lower.includes('packaging')) return 'Cartonnerie & Packaging';
+  if (lower.includes('amana') || lower.includes('cathedis') || lower.includes('speedaf') || lower.includes('livraison')) return 'Transporteur Express';
+  if (lower.includes('salaire') || lower.includes('prime') || lower.includes('équipe')) return 'Équipe NAY';
+  if (lower.includes('vercel')) return 'Vercel Cloud';
+  if (lower.includes('shopify')) return 'Shopify SaaS';
+  if (lower.includes('cih') || lower.includes('banque')) return 'CIH Bank';
+  const firstWords = (title || '').split(' ').slice(0, 2).join(' ');
+  return firstWords || 'Prestataire NAY';
+}
+
+export function enrichExpense(exp: ExpenseData): EnrichedExpense {
+  const meta = parseBillMetadata(exp.description);
+
+  if (meta) {
+    const isOverdue = checkIsOverdue(meta.dueDate, meta.status);
+    const computedStatus: 'PAID' | 'PENDING' | 'OVERDUE' | 'CANCELLED' =
+      meta.status === 'CANCELLED'
+        ? 'CANCELLED'
+        : meta.status === 'PAID'
+        ? 'PAID'
+        : isOverdue
+        ? 'OVERDUE'
+        : 'PENDING';
+
+    const daysRemaining = getDaysRemaining(meta.dueDate);
+
+    let cleanNotes = '';
+    if (exp.description) {
+      const closingIdx = exp.description.indexOf(']');
+      if (closingIdx !== -1) {
+        cleanNotes = exp.description.substring(closingIdx + 1).trim();
+      } else {
+        cleanNotes = exp.description;
+      }
+    }
+
+    return {
+      id: exp.id,
+      title: exp.title,
+      vendor: meta.vendor || extractVendorFromTitle(exp.title),
+      invoiceNumber: meta.invoiceNumber || `FAC-${exp.id.slice(-5).toUpperCase()}`,
+      category: exp.category || 'OTHER',
+      amount: Number(exp.amount) || 0,
+      date: exp.date,
+      dueDate: meta.dueDate || null,
+      status: computedStatus,
+      paidAt: meta.paidAt || (meta.status === 'PAID' ? exp.date : null),
+      paidBy: meta.paidBy || exp.creator?.name || 'Ayoub Ait Yahya',
+      payerRole: meta.creatorRole || 'Propriétaire NAY',
+      paymentMethod: meta.paymentMethod || exp.paymentMethod || 'CREDIT_CARD',
+      recurring: exp.recurring || 'ONE_TIME',
+      cleanNotes: meta.notes || cleanNotes,
+      receiptUrl: exp.receiptUrl || meta.paymentVoucherUrl || null,
+      isOverdue,
+      daysRemaining,
+      creator: exp.creator,
+      raw: exp,
+    };
+  }
+
+  const inferredVendor = extractVendorFromTitle(exp.title);
+  const inferredInvNum = `FAC-${exp.id.slice(-5).toUpperCase()}`;
+
+  return {
+    id: exp.id,
+    title: exp.title,
+    vendor: inferredVendor,
+    invoiceNumber: inferredInvNum,
+    category: exp.category || 'OTHER',
+    amount: Number(exp.amount) || 0,
+    date: exp.date,
+    dueDate: null,
+    status: 'PAID',
+    paidAt: exp.date,
+    paidBy: exp.creator?.name || 'Ayoub Ait Yahya',
+    payerRole: 'Propriétaire NAY',
+    paymentMethod: exp.paymentMethod || 'CREDIT_CARD',
+    recurring: exp.recurring || 'ONE_TIME',
+    cleanNotes: exp.description || '',
+    receiptUrl: exp.receiptUrl || null,
+    isOverdue: false,
+    daysRemaining: null,
+    creator: exp.creator,
+    raw: exp,
+  };
+}
 
 const EXPENSE_CATEGORIES = [
   { id: 'ADS', label: 'Publicité & Ads (TikTok, Meta, Google)', color: '#f43f5e' },
@@ -138,6 +327,7 @@ export default function FinanceClient({
   affiliates = [],
   customersCount = 0,
   initialGoal = 150000,
+  currentUser,
 }: FinanceClientProps) {
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'UNIT_ECONOMICS' | 'ACQUISITION_ROAS' | 'SIMULATOR' | 'PNL_STATEMENT' | 'EXPENSES'>('OVERVIEW');
   const [dateRange, setDateRange] = useState<number>(30); // days, 0 = all time
@@ -157,9 +347,15 @@ export default function FinanceClient({
   // Modal State for New Expense
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [formTitle, setFormTitle] = useState('');
+  const [formVendor, setFormVendor] = useState('');
+  const [formInvoiceNumber, setFormInvoiceNumber] = useState('');
   const [formCategory, setFormCategory] = useState('ADS');
   const [formAmount, setFormAmount] = useState('');
   const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
+  const [formStatus, setFormStatus] = useState<'PAID' | 'PENDING'>('PAID');
+  const [formDueDate, setFormDueDate] = useState('');
+  const [formPaidBy, setFormPaidBy] = useState(currentUser?.name || 'Ayoub Ait Yahya');
+  const [formPaidAt, setFormPaidAt] = useState(new Date().toISOString().split('T')[0]);
   const [formDescription, setFormDescription] = useState('');
   const [formPaymentMethod, setFormPaymentMethod] = useState('CREDIT_CARD');
   const [formRecurring, setFormRecurring] = useState('ONE_TIME');
@@ -169,11 +365,40 @@ export default function FinanceClient({
   const [formLoading, setFormLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Edit Expense & Viewer Modal States
+  const [editingExpense, setEditingExpense] = useState<EnrichedExpense | null>(null);
+  const [activeReceiptModal, setActiveReceiptModal] = useState<{
+    url: string;
+    title: string;
+    vendor?: string;
+    amount?: number;
+    invoiceNumber?: string;
+  } | null>(null);
+
+  const [editTitle, setEditTitle] = useState('');
+  const [editVendor, setEditVendor] = useState('');
+  const [editInvoiceNumber, setEditInvoiceNumber] = useState('');
+  const [editCategory, setEditCategory] = useState('OTHER');
+  const [editAmount, setEditAmount] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editStatus, setEditStatus] = useState<'PAID' | 'PENDING'>('PAID');
+  const [editDueDate, setEditDueDate] = useState('');
+  const [editPaidAt, setEditPaidAt] = useState('');
+  const [editPaidBy, setEditPaidBy] = useState('');
+  const [editPaymentMethod, setEditPaymentMethod] = useState('CREDIT_CARD');
+  const [editRecurring, setEditRecurring] = useState('ONE_TIME');
+  const [editReceiptUrl, setEditReceiptUrl] = useState('');
+  const [editReceiptFileName, setEditReceiptFileName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [isEditingLoading, setIsEditingLoading] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter state for Expenses tab
   const [expenseSearch, setExpenseSearch] = useState('');
   const [expenseCategoryFilter, setExpenseCategoryFilter] = useState('ALL');
+  const [expenseStatusFilter, setExpenseStatusFilter] = useState<'ALL' | 'PAID' | 'PENDING' | 'OVERDUE' | 'RECURRING'>('ALL');
 
   // Interactive Profit Simulator State
   const [simDailyOrders, setSimDailyOrders] = useState<number>(25);
@@ -402,6 +627,34 @@ export default function FinanceClient({
     return data;
   }, [validOrders, filteredExpenses, dateRange]);
 
+  // Upload Invoice / Receipt for Edit
+  const handleEditFileUpload = async (file: File) => {
+    try {
+      setIsUploadingReceipt(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setEditReceiptUrl(data.url);
+        setEditReceiptFileName(file.name);
+        showToast('Justificatif téléversé avec succès !');
+      } else {
+        alert(data.error || 'Erreur lors du téléversement du fichier.');
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+      alert('Erreur réseau lors de l\'envoi du fichier.');
+    } finally {
+      setIsUploadingReceipt(false);
+    }
+  };
+
   // Create Expense Submit
   const handleCreateExpense = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -412,15 +665,30 @@ export default function FinanceClient({
 
     setFormLoading(true);
     try {
+      const metadata: BillMetadata = {
+        type: 'EMPLOYEE_BILL',
+        status: formStatus,
+        vendor: formVendor.trim() || extractVendorFromTitle(formTitle),
+        invoiceNumber: formInvoiceNumber.trim() || undefined,
+        dueDate: formStatus === 'PENDING' ? (formDueDate || undefined) : undefined,
+        paidAt: formStatus === 'PAID' ? (formPaidAt ? new Date(formPaidAt).toISOString() : new Date().toISOString()) : undefined,
+        paidBy: formPaidBy.trim() || currentUser?.name || 'Ayoub Ait Yahya',
+        creatorRole: currentUser?.role || 'Direction NAY',
+        paymentMethod: formPaymentMethod,
+        notes: formDescription.trim() || undefined,
+      };
+
+      const finalDescription = encodeBillDescription(metadata, formDescription);
+
       const res = await fetch('/api/admin/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: formTitle,
+          title: formTitle.trim(),
           category: formCategory,
           amount: parseFloat(formAmount),
           date: formDate ? new Date(formDate).toISOString() : new Date().toISOString(),
-          description: formDescription,
+          description: finalDescription,
           paymentMethod: formPaymentMethod,
           recurring: formRecurring,
           receiptUrl: formReceiptUrl || null,
@@ -428,16 +696,21 @@ export default function FinanceClient({
       });
 
       if (res.ok) {
-        const newExpense = await res.json();
+        const data = await res.json();
+        const newExpense = data.expense || data;
         setExpenses([newExpense, ...expenses]);
         setIsAddExpenseModalOpen(false);
         setFormTitle('');
+        setFormVendor('');
+        setFormInvoiceNumber('');
         setFormAmount('');
         setFormDescription('');
         setFormReceiptUrl('');
         setFormReceiptFileName('');
+        setFormStatus('PAID');
+        setFormDueDate('');
         setFormDate(new Date().toISOString().split('T')[0]);
-        showToast('Charge et justificatif enregistrés avec succès.');
+        showToast('Charge et facture enregistrées avec succès.');
       } else {
         const d = await res.json();
         alert(d.error || "Erreur lors de l'enregistrement de la charge.");
@@ -449,6 +722,266 @@ export default function FinanceClient({
       setFormLoading(false);
     }
   };
+
+  // Open Edit Expense Modal
+  const openEditModal = (exp: EnrichedExpense) => {
+    setEditingExpense(exp);
+    setEditTitle(exp.title);
+    setEditVendor(exp.vendor);
+    setEditInvoiceNumber(exp.invoiceNumber);
+    setEditAmount(String(exp.amount));
+    setEditCategory(exp.category);
+    setEditDate(exp.date ? exp.date.split('T')[0] : '');
+    setEditStatus(exp.status === 'PAID' ? 'PAID' : 'PENDING');
+    setEditDueDate(exp.dueDate ? exp.dueDate.split('T')[0] : '');
+    setEditPaidBy(exp.paidBy || currentUser?.name || 'Ayoub Ait Yahya');
+    setEditPaidAt(exp.paidAt ? exp.paidAt.split('T')[0] : new Date().toISOString().split('T')[0]);
+    setEditPaymentMethod(exp.paymentMethod || 'CREDIT_CARD');
+    setEditRecurring(exp.recurring || 'ONE_TIME');
+    setEditReceiptUrl(exp.receiptUrl || '');
+    setEditReceiptFileName(exp.receiptUrl ? 'Justificatif joint' : '');
+    setEditDescription(exp.cleanNotes || '');
+  };
+
+  // Update Expense Submit
+  const handleUpdateExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingExpense || !editTitle || !editAmount) return;
+
+    setIsEditingLoading(true);
+    try {
+      const metadata: BillMetadata = {
+        type: 'EMPLOYEE_BILL',
+        status: editStatus,
+        vendor: editVendor.trim() || extractVendorFromTitle(editTitle),
+        invoiceNumber: editInvoiceNumber.trim() || undefined,
+        dueDate: editStatus === 'PENDING' ? (editDueDate || undefined) : undefined,
+        paidAt: editStatus === 'PAID' ? (editPaidAt ? new Date(editPaidAt).toISOString() : new Date().toISOString()) : undefined,
+        paidBy: editPaidBy.trim() || currentUser?.name || 'Ayoub Ait Yahya',
+        creatorRole: currentUser?.role || 'Direction NAY',
+        paymentMethod: editPaymentMethod,
+        notes: editDescription.trim() || undefined,
+      };
+
+      const finalDescription = encodeBillDescription(metadata, editDescription);
+
+      const res = await fetch(`/api/admin/expenses/${editingExpense.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          category: editCategory,
+          amount: parseFloat(editAmount),
+          date: editDate ? new Date(editDate).toISOString() : undefined,
+          description: finalDescription,
+          paymentMethod: editPaymentMethod,
+          recurring: editRecurring,
+          receiptUrl: editReceiptUrl || null,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const updatedExp = data.expense || data;
+        setExpenses((prev) => prev.map((e) => (e.id === editingExpense.id ? { ...e, ...updatedExp } : e)));
+        setEditingExpense(null);
+        showToast('Charge et facture mises à jour avec succès.');
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Erreur lors de la mise à jour.');
+      }
+    } catch (err) {
+      console.error('Update expense error:', err);
+      alert('Erreur réseau lors de la modification de la charge.');
+    } finally {
+      setIsEditingLoading(false);
+    }
+  };
+
+  // 1-Click Status Toggle (Mark as Paid / Pending)
+  const handleToggleStatus = async (exp: EnrichedExpense) => {
+    const nextStatus = exp.status === 'PAID' ? 'PENDING' : 'PAID';
+    const metadata: BillMetadata = {
+      type: 'EMPLOYEE_BILL',
+      status: nextStatus,
+      vendor: exp.vendor,
+      invoiceNumber: exp.invoiceNumber,
+      dueDate: nextStatus === 'PENDING' ? (exp.dueDate || undefined) : undefined,
+      paidAt: nextStatus === 'PAID' ? new Date().toISOString() : undefined,
+      paidBy: nextStatus === 'PAID' ? (currentUser?.name || 'Ayoub Ait Yahya') : undefined,
+      creatorRole: currentUser?.role || 'Direction NAY',
+      paymentMethod: exp.paymentMethod,
+      notes: exp.cleanNotes || undefined,
+    };
+
+    const finalDescription = encodeBillDescription(metadata, exp.cleanNotes);
+
+    try {
+      const res = await fetch(`/api/admin/expenses/${exp.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: finalDescription,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const updated = data.expense || data;
+        setExpenses((prev) => prev.map((e) => (e.id === exp.id ? { ...e, ...updated } : e)));
+        showToast(
+          nextStatus === 'PAID'
+            ? `✓ Facture "${exp.title}" marquée comme Payée par ${currentUser?.name || 'Ayoub'} !`
+            : `⏳ Facture "${exp.title}" remise en Attente de paiement.`
+        );
+      }
+    } catch (e) {
+      console.error('Error toggling status:', e);
+    }
+  };
+
+  // Export Expenses CSV
+  const handleExportExpensesCSV = () => {
+    const itemsToExport = filteredEnrichedExpenses;
+    if (itemsToExport.length === 0) return;
+
+    const headers = [
+      'Date',
+      'Ref Facture',
+      'Fournisseur / Prestataire',
+      'Intitule Prestation',
+      'Categorie',
+      'Montant (MAD)',
+      'Statut Facture',
+      'Paye Par',
+      'Canal de Reglement',
+      'Date de Paiement',
+      'Date d Echeance',
+      'Recurrence',
+      'Justificatif URL',
+      'Notes'
+    ];
+
+    const rows = itemsToExport.map((e) => [
+      `"${new Date(e.date).toLocaleDateString('fr-FR')}"`,
+      `"${e.invoiceNumber}"`,
+      `"${(e.vendor || '').replace(/"/g, '""')}"`,
+      `"${(e.title || '').replace(/"/g, '""')}"`,
+      `"${e.category}"`,
+      e.amount,
+      `"${e.status === 'PAID' ? 'PAYEE' : e.status === 'OVERDUE' ? 'EN RETARD' : 'EN ATTENTE'}"`,
+      `"${(e.paidBy || '').replace(/"/g, '""')}"`,
+      `"${e.paymentMethod}"`,
+      `"${e.paidAt ? new Date(e.paidAt).toLocaleDateString('fr-FR') : '-'}"`,
+      `"${e.dueDate ? new Date(e.dueDate).toLocaleDateString('fr-FR') : '-'}"`,
+      `"${e.recurring}"`,
+      `"${e.receiptUrl || 'Sans justificatif'}"`,
+      `"${(e.cleanNotes || '').replace(/"/g, '""')}"`,
+    ].join(';'));
+
+    const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    const today = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `Registre_Charges_Factures_Maison_NAY_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // All enriched expenses
+  const enrichedExpenses = useMemo(() => {
+    return expenses.map((exp) => enrichExpense(exp));
+  }, [expenses]);
+
+  // Executive KPI stats for charges & factures
+  const expenseKpis = useMemo(() => {
+    let totalPaid = 0;
+    let totalPending = 0;
+    let totalOverdue = 0;
+    let countPending = 0;
+    let countOverdue = 0;
+    let recurringMonthly = 0;
+    let withReceiptCount = 0;
+
+    enrichedExpenses.forEach((e) => {
+      if (e.status === 'PAID') {
+        totalPaid += e.amount;
+      } else if (e.status === 'OVERDUE') {
+        totalOverdue += e.amount;
+        countOverdue += 1;
+      } else if (e.status === 'PENDING') {
+        totalPending += e.amount;
+        countPending += 1;
+      }
+
+      if (e.recurring === 'MONTHLY') {
+        recurringMonthly += e.amount;
+      } else if (e.recurring === 'ANNUAL') {
+        recurringMonthly += e.amount / 12;
+      }
+
+      if (e.receiptUrl) {
+        withReceiptCount += 1;
+      }
+    });
+
+    const receiptRate = enrichedExpenses.length > 0
+      ? Math.round((withReceiptCount / enrichedExpenses.length) * 100)
+      : 100;
+
+    return {
+      totalPaid,
+      totalPending,
+      totalOverdue,
+      countPending,
+      countOverdue,
+      recurringMonthly: Math.round(recurringMonthly),
+      receiptRate,
+      withReceiptCount,
+      totalAll: totalPaid + totalPending + totalOverdue,
+    };
+  }, [enrichedExpenses]);
+
+  // Filtered enriched expenses for tab view
+  const filteredEnrichedExpenses = useMemo(() => {
+    return enrichedExpenses.filter((e) => {
+      // Date filter
+      if (dateRange !== 0) {
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - dateRange);
+        if (new Date(e.date) < cutoff) return false;
+      }
+
+      // Search filter
+      if (expenseSearch) {
+        const q = expenseSearch.toLowerCase();
+        const matches =
+          e.title.toLowerCase().includes(q) ||
+          e.vendor.toLowerCase().includes(q) ||
+          e.invoiceNumber.toLowerCase().includes(q) ||
+          e.paidBy.toLowerCase().includes(q) ||
+          e.cleanNotes.toLowerCase().includes(q) ||
+          e.category.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+
+      // Category filter
+      if (expenseCategoryFilter !== 'ALL' && e.category !== expenseCategoryFilter) {
+        return false;
+      }
+
+      // Status filter
+      if (expenseStatusFilter === 'PAID' && e.status !== 'PAID') return false;
+      if (expenseStatusFilter === 'PENDING' && e.status !== 'PENDING') return false;
+      if (expenseStatusFilter === 'OVERDUE' && e.status !== 'OVERDUE') return false;
+      if (expenseStatusFilter === 'RECURRING' && (e.recurring !== 'MONTHLY' && e.recurring !== 'ANNUAL')) return false;
+
+      return true;
+    });
+  }, [enrichedExpenses, dateRange, expenseSearch, expenseCategoryFilter, expenseStatusFilter]);
 
   // Delete Expense
   const handleDeleteExpense = async (id: string, title: string) => {
@@ -1543,116 +2076,541 @@ export default function FinanceClient({
         </div>
       )}
 
-      {/* TAB 6: EXPENSES & INVOICES (Gestion des Charges) */}
+      {/* TAB 6: EXPENSES & INVOICES (Gestion des Charges & Factures Professionnelle) */}
       {activeTab === 'EXPENSES' && (
         <div className="space-y-6">
-          {/* Filters */}
+          {/* Header Banner & Global Actions */}
+          <div className="bg-gradient-to-r from-neutral-900 via-neutral-900 to-neutral-800 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-neutral-800 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Comptabilité & Trésorerie
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-white/10 text-neutral-300 border border-white/10">
+                  {filteredEnrichedExpenses.length} facture(s) répertoriée(s)
+                </span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2.5">
+                <Receipt className="text-emerald-400" size={26} />
+                <span>Registre des Charges & Factures Fournisseurs</span>
+              </h2>
+              <p className="text-xs text-neutral-400 max-w-2xl leading-relaxed">
+                Suivi rigoureux des décaissements, gestion des échéances de paiement, traçabilité des règlements par associé et centralisation des pièces justificatives certifiées.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                type="button"
+                onClick={handleExportExpensesCSV}
+                className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/15 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+              >
+                <FileSpreadsheet size={15} className="text-emerald-400" />
+                <span>Exporter Registre CSV</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setFormTitle('');
+                  setFormVendor('');
+                  setFormInvoiceNumber('');
+                  setFormAmount('');
+                  setFormDescription('');
+                  setFormReceiptUrl('');
+                  setFormReceiptFileName('');
+                  setFormStatus('PAID');
+                  setFormDueDate('');
+                  setFormDate(new Date().toISOString().split('T')[0]);
+                  setIsAddExpenseModalOpen(true);
+                }}
+                className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-xs flex items-center gap-2 transition-all shadow-md hover:shadow-lg cursor-pointer"
+              >
+                <Plus size={16} />
+                <span>Enregistrer une Facture</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 5-Card Executive KPI Ribbon */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+            {/* Card 1: Paid Total */}
+            <div className="bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-2xs hover:border-emerald-300 transition-all">
+              <div className="flex items-center justify-between text-neutral-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600">Total Réglé</span>
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <CheckCircle2 size={16} />
+                </div>
+              </div>
+              <div className="text-xl font-black text-neutral-900 font-mono tracking-tight">
+                {formatMAD(expenseKpis.totalPaid)}
+              </div>
+              <div className="mt-1 flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium">
+                <ShieldCheck size={12} />
+                <span>Factures acquittées</span>
+              </div>
+            </div>
+
+            {/* Card 2: Pending Invoices */}
+            <div className="bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-2xs hover:border-amber-300 transition-all">
+              <div className="flex items-center justify-between text-neutral-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600">À Régler</span>
+                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Clock size={16} />
+                </div>
+              </div>
+              <div className="text-xl font-black text-amber-700 font-mono tracking-tight">
+                {formatMAD(expenseKpis.totalPending)}
+              </div>
+              <div className="mt-1 flex items-center gap-1.5 text-[11px] text-amber-700 font-medium">
+                <span className="w-2 h-2 rounded-full bg-amber-500 inline-block animate-pulse"></span>
+                <span>{expenseKpis.countPending} facture(s) en attente</span>
+              </div>
+            </div>
+
+            {/* Card 3: Overdue Invoices */}
+            <div className={`rounded-2xl p-4 border transition-all ${
+              expenseKpis.countOverdue > 0
+                ? 'bg-rose-50/50 border-rose-300 shadow-2xs'
+                : 'bg-white border-neutral-200/80 shadow-2xs'
+            }`}>
+              <div className="flex items-center justify-between text-neutral-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600">En Retard</span>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                  expenseKpis.countOverdue > 0 ? 'bg-rose-100 text-rose-700' : 'bg-neutral-100 text-neutral-400'
+                }`}>
+                  <AlertTriangle size={16} />
+                </div>
+              </div>
+              <div className={`text-xl font-black font-mono tracking-tight ${
+                expenseKpis.countOverdue > 0 ? 'text-rose-700' : 'text-neutral-900'
+              }`}>
+                {formatMAD(expenseKpis.totalOverdue)}
+              </div>
+              <div className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-rose-700">
+                {expenseKpis.countOverdue > 0 ? (
+                  <span>⚠️ {expenseKpis.countOverdue} facture(s) échue(s)</span>
+                ) : (
+                  <span className="text-neutral-400">Aucun retard de paiement</span>
+                )}
+              </div>
+            </div>
+
+            {/* Card 4: Recurring Monthly */}
+            <div className="bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-2xs hover:border-sky-300 transition-all">
+              <div className="flex items-center justify-between text-neutral-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600">Abonnements SaaS</span>
+                <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                  <RefreshCw size={15} />
+                </div>
+              </div>
+              <div className="text-xl font-black text-neutral-900 font-mono tracking-tight">
+                ~{formatMAD(expenseKpis.recurringMonthly)}
+              </div>
+              <div className="mt-1 flex items-center gap-1.5 text-[11px] text-sky-700 font-medium">
+                <Layers size={12} />
+                <span>Charges fixes par mois</span>
+              </div>
+            </div>
+
+            {/* Card 5: Receipts Compliance Rate */}
+            <div className="bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-2xs hover:border-purple-300 transition-all">
+              <div className="flex items-center justify-between text-neutral-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600">Justificatifs</span>
+                <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Paperclip size={15} />
+                </div>
+              </div>
+              <div className="text-xl font-black text-neutral-900 font-mono tracking-tight">
+                {expenseKpis.receiptRate}%
+              </div>
+              <div className="mt-1 text-[11px] text-neutral-500 font-medium flex items-center gap-1">
+                <div className="flex-1 bg-neutral-100 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-purple-600 h-full rounded-full transition-all"
+                    style={{ width: `${expenseKpis.receiptRate}%` }}
+                  />
+                </div>
+                <span className="text-[10px] font-mono">{expenseKpis.withReceiptCount}/{enrichedExpenses.length}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Status Filter Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setExpenseStatusFilter('ALL')}
+              className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                expenseStatusFilter === 'ALL'
+                  ? 'bg-neutral-900 text-white shadow-xs'
+                  : 'bg-white hover:bg-neutral-100 text-neutral-600 border border-neutral-200'
+              }`}
+            >
+              <span>Toutes les charges</span>
+              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
+                expenseStatusFilter === 'ALL' ? 'bg-neutral-800 text-neutral-200' : 'bg-neutral-100 text-neutral-600'
+              }`}>
+                {enrichedExpenses.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setExpenseStatusFilter('PAID')}
+              className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                expenseStatusFilter === 'PAID'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'bg-white hover:bg-emerald-50 text-emerald-800 border border-neutral-200'
+              }`}
+            >
+              <CheckCircle2 size={13} />
+              <span>Réglées / Payées</span>
+              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
+                expenseStatusFilter === 'PAID' ? 'bg-emerald-800 text-emerald-100' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {enrichedExpenses.filter(e => e.status === 'PAID').length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setExpenseStatusFilter('PENDING')}
+              className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                expenseStatusFilter === 'PENDING'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'bg-white hover:bg-amber-50 text-amber-800 border border-neutral-200'
+              }`}
+            >
+              <Clock size={13} />
+              <span>À Payer (En attente)</span>
+              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
+                expenseStatusFilter === 'PENDING' ? 'bg-amber-700 text-amber-100' : 'bg-amber-100 text-amber-800'
+              }`}>
+                {expenseKpis.countPending}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setExpenseStatusFilter('OVERDUE')}
+              className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                expenseStatusFilter === 'OVERDUE'
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'bg-white hover:bg-rose-50 text-rose-700 border border-neutral-200'
+              }`}
+            >
+              <AlertTriangle size={13} />
+              <span>En Retard</span>
+              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
+                expenseStatusFilter === 'OVERDUE' ? 'bg-rose-700 text-rose-100' : 'bg-rose-100 text-rose-700'
+              }`}>
+                {expenseKpis.countOverdue}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setExpenseStatusFilter('RECURRING')}
+              className={`px-3.5 py-2 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                expenseStatusFilter === 'RECURRING'
+                  ? 'bg-sky-700 text-white shadow-xs'
+                  : 'bg-white hover:bg-sky-50 text-sky-800 border border-neutral-200'
+              }`}
+            >
+              <RefreshCw size={13} />
+              <span>Abonnements Récurrents</span>
+              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
+                expenseStatusFilter === 'RECURRING' ? 'bg-sky-800 text-sky-100' : 'bg-sky-100 text-sky-800'
+              }`}>
+                {enrichedExpenses.filter(e => e.recurring === 'MONTHLY' || e.recurring === 'ANNUAL').length}
+              </span>
+            </button>
+          </div>
+
+          {/* Filters Bar: Search & Category */}
           <div className="bg-white p-4 rounded-2xl border border-neutral-200 shadow-2xs flex flex-col sm:flex-row gap-3 items-center justify-between">
-            <div className="relative w-full sm:w-80">
-              <Search size={14} className="absolute left-3 top-3 text-neutral-400" />
+            <div className="relative w-full sm:w-96">
+              <Search size={14} className="absolute left-3.5 top-3 text-neutral-400" />
               <input
                 type="text"
                 value={expenseSearch}
                 onChange={(e) => setExpenseSearch(e.target.value)}
-                placeholder="Rechercher une charge, facture..."
-                className="w-full pl-9 pr-3 py-2 border border-neutral-200 rounded-xl text-xs"
+                placeholder="Rechercher par intitulé, fournisseur, réf facture, payé par..."
+                className="w-full pl-9 pr-3 py-2 border border-neutral-200 rounded-xl text-xs bg-neutral-50/50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900"
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <div className="flex items-center gap-1.5 text-xs text-neutral-500 font-medium">
+                <Filter size={13} />
+                <span>Catégorie :</span>
+              </div>
               <select
                 value={expenseCategoryFilter}
                 onChange={(e) => setExpenseCategoryFilter(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-xl text-xs bg-white w-full sm:w-auto font-semibold text-neutral-700"
+                className="px-3 py-2 border border-neutral-200 rounded-xl text-xs bg-white w-full sm:w-auto font-semibold text-neutral-800 focus:outline-hidden focus:ring-2 focus:ring-neutral-900/10 cursor-pointer"
               >
                 <option value="ALL">Toutes les catégories</option>
                 {EXPENSE_CATEGORIES.map((c) => (
                   <option key={c.id} value={c.id}>{c.label}</option>
                 ))}
               </select>
+
+              {(expenseSearch || expenseCategoryFilter !== 'ALL' || expenseStatusFilter !== 'ALL') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExpenseSearch('');
+                    setExpenseCategoryFilter('ALL');
+                    setExpenseStatusFilter('ALL');
+                  }}
+                  className="px-2.5 py-2 text-xs font-semibold text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer"
+                  title="Réinitialiser les filtres"
+                >
+                  Effacer
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Expenses Table */}
-          <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-2xs">
-            <div className="p-4 border-b border-neutral-200 bg-neutral-50/50 flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-700">
-                Registre des Dépenses & Factures ({expenses.length})
-              </h3>
-              <span className="text-xs text-neutral-500">Total : {formatMAD(totalCharges)}</span>
+          {/* Enriched Expenses & Invoices Table */}
+          <div className="bg-white rounded-3xl border border-neutral-200/90 overflow-hidden shadow-2xs">
+            <div className="p-4 sm:p-5 border-b border-neutral-200 bg-neutral-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900 flex items-center gap-2">
+                  <FileText size={15} className="text-neutral-600" />
+                  <span>Grand Livre des Dépenses & Factures Fournisseurs</span>
+                </h3>
+                <span className="text-[11px] text-neutral-500 mt-0.5 block">
+                  Affichage de {filteredEnrichedExpenses.length} facture(s) sur {enrichedExpenses.length} au total
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200 shadow-2xs text-xs font-mono">
+                  <span className="text-neutral-400 mr-1.5">Sous-total :</span>
+                  <strong className="text-neutral-900 font-bold">
+                    {formatMAD(filteredEnrichedExpenses.reduce((sum, e) => sum + e.amount, 0))}
+                  </strong>
+                </div>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-neutral-50 border-b border-neutral-200 text-[11px] font-semibold text-neutral-600 uppercase">
-                    <th className="py-2.5 px-4">Date</th>
-                    <th className="py-2.5 px-4">Intitulé</th>
-                    <th className="py-2.5 px-4">Catégorie</th>
-                    <th className="py-2.5 px-4">Montant</th>
-                    <th className="py-2.5 px-4">Mode</th>
-                    <th className="py-2.5 px-4 text-center">Justificatif</th>
-                    <th className="py-2.5 px-4 text-right">Actions</th>
+                  <tr className="bg-neutral-50 border-b border-neutral-200 text-[11px] font-bold text-neutral-600 uppercase tracking-wider">
+                    <th className="py-3 px-4">Date & Échéance</th>
+                    <th className="py-3 px-4">Fournisseur & Réf</th>
+                    <th className="py-3 px-4">Intitulé & Catégorie</th>
+                    <th className="py-3 px-4">Statut Facture</th>
+                    <th className="py-3 px-4">Payé Par & Compte</th>
+                    <th className="py-3 px-4 text-right">Montant (MAD)</th>
+                    <th className="py-3 px-4 text-center">Justificatif</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 text-neutral-700">
-                  {expenses.length === 0 ? (
+                <tbody className="divide-y divide-neutral-100 text-neutral-800">
+                  {filteredEnrichedExpenses.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-10 text-center text-neutral-400">
-                        Aucune charge enregistrée. Cliquez sur "Ajouter une Charge" pour débuter.
+                      <td colSpan={8} className="py-14 text-center">
+                        <div className="max-w-xs mx-auto space-y-3">
+                          <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto">
+                            <Receipt size={24} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-neutral-800 text-sm">Aucune charge trouvée</p>
+                            <p className="text-xs text-neutral-400 mt-0.5">
+                              {expenseSearch || expenseCategoryFilter !== 'ALL' || expenseStatusFilter !== 'ALL'
+                                ? 'Modifiez vos critères de recherche ou réinitialisez les filtres.'
+                                : 'Commencez par enregistrer une première facture fournisseur.'}
+                            </p>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ) : (
-                    expenses
-                      .filter((e) => {
-                        const matchCat = expenseCategoryFilter === 'ALL' || e.category === expenseCategoryFilter;
-                        const matchSearch = e.title.toLowerCase().includes(expenseSearch.toLowerCase()) || (e.description || '').toLowerCase().includes(expenseSearch.toLowerCase());
-                        return matchCat && matchSearch;
-                      })
-                      .map((exp) => (
-                        <tr key={exp.id} className="hover:bg-neutral-50">
-                          <td className="py-2.5 px-4 text-neutral-500">
-                            {new Date(exp.date).toLocaleDateString('fr-FR')}
-                          </td>
-                          <td className="py-2.5 px-4">
-                            <span className="font-bold text-neutral-900 block">{exp.title}</span>
-                            {exp.description && <span className="text-[11px] text-neutral-400">{exp.description}</span>}
-                          </td>
-                          <td className="py-2.5 px-4">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-neutral-100 text-neutral-800 border border-neutral-200">
-                              {exp.category}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4 font-bold text-rose-700 font-mono">
-                            -{formatMAD(exp.amount)}
-                          </td>
-                          <td className="py-2.5 px-4 text-neutral-600">{exp.paymentMethod}</td>
-                          <td className="py-2.5 px-4 text-center">
-                            {exp.receiptUrl ? (
-                              <a
-                                href={exp.receiptUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-sky-600 hover:underline font-semibold text-[11px]"
-                              >
-                                <Eye size={12} />
-                                <span>Reçu</span>
-                              </a>
+                    filteredEnrichedExpenses.map((exp) => {
+                      const statusCfg = EXPENSE_STATUS_CONFIG[exp.status] || EXPENSE_STATUS_CONFIG.PAID;
+                      const hasReceipt = Boolean(exp.receiptUrl);
+
+                      return (
+                        <tr key={exp.id} className="hover:bg-neutral-50/80 transition-colors group">
+                          {/* Col 1: Date & Due Date */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <div className="font-bold text-neutral-900 font-mono">
+                              {new Date(exp.date).toLocaleDateString('fr-FR')}
+                            </div>
+                            {exp.status === 'PAID' ? (
+                              <div className="text-[10px] text-emerald-700 font-medium mt-0.5 flex items-center gap-1">
+                                <Check size={10} />
+                                <span>Réglée {exp.paidAt ? `le ${new Date(exp.paidAt).toLocaleDateString('fr-FR')}` : ''}</span>
+                              </div>
+                            ) : exp.status === 'OVERDUE' ? (
+                              <div className="text-[10px] text-rose-700 font-bold mt-0.5 flex items-center gap-1">
+                                <AlertTriangle size={10} />
+                                <span>Échue ({exp.daysRemaining ? `${Math.abs(exp.daysRemaining)}j retard` : 'En retard'})</span>
+                              </div>
                             ) : (
-                              <span className="text-neutral-400 text-xs">-</span>
+                              <div className="text-[10px] text-amber-700 font-medium mt-0.5 flex items-center gap-1">
+                                <Clock size={10} />
+                                <span>{exp.dueDate ? `Échéance ${new Date(exp.dueDate).toLocaleDateString('fr-FR')}` : 'À régler'}</span>
+                              </div>
                             )}
                           </td>
-                          <td className="py-2.5 px-4 text-right">
-                            <button
-                              onClick={() => handleDeleteExpense(exp.id, exp.title)}
-                              className="p-1.5 text-neutral-400 hover:text-rose-600 transition-colors"
-                              title="Supprimer"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+
+                          {/* Col 2: Vendor & Invoice Number */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-neutral-100 border border-neutral-200 text-neutral-700 flex items-center justify-center shrink-0">
+                                <Building2 size={13} />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-bold text-neutral-900 truncate">
+                                  {exp.vendor}
+                                </div>
+                                <div className="text-[10px] font-mono text-neutral-500 bg-neutral-100 px-1.5 py-0.2 rounded inline-block mt-0.5">
+                                  {exp.invoiceNumber}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Col 3: Title & Category */}
+                          <td className="py-3.5 px-4 max-w-[240px]">
+                            <div className="font-semibold text-neutral-900 truncate" title={exp.title}>
+                              {exp.title}
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-neutral-100 text-neutral-800 border border-neutral-200/80">
+                                {EXPENSE_CATEGORIES.find((c) => c.id === exp.category)?.label || exp.category}
+                              </span>
+
+                              {exp.recurring && exp.recurring !== 'ONE_TIME' && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
+                                  <RefreshCw size={9} />
+                                  <span>{exp.recurring === 'MONTHLY' ? 'Mensuel' : 'Annuel'}</span>
+                                </span>
+                              )}
+                            </div>
+                            {exp.cleanNotes && (
+                              <p className="text-[10px] text-neutral-400 mt-0.5 truncate max-w-[200px]" title={exp.cleanNotes}>
+                                {exp.cleanNotes}
+                              </p>
+                            )}
+                          </td>
+
+                          {/* Col 4: Invoice Status with 1-Click Toggle */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <div className="flex flex-col items-start gap-1">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusCfg.bg} ${statusCfg.text} ${statusCfg.border}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`}></span>
+                                <span>{statusCfg.label}</span>
+                              </span>
+
+                              {/* 1-Click Status Quick Switch */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStatus(exp)}
+                                className="text-[10px] font-semibold text-neutral-500 hover:text-neutral-900 underline underline-offset-2 transition-colors cursor-pointer flex items-center gap-1 opacity-70 group-hover:opacity-100"
+                                title={exp.status === 'PAID' ? 'Marquer comme À Payer' : 'Marquer comme Réglée'}
+                              >
+                                {exp.status === 'PAID' ? (
+                                  <>
+                                    <Clock size={10} className="text-amber-600" />
+                                    <span>Remettre en attente</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check size={10} className="text-emerald-600" />
+                                    <span>Marquer comme Réglée</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </td>
+
+                          {/* Col 5: Paid By & Account */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[10px] font-bold uppercase">
+                                {(exp.paidBy || 'A')[0]}
+                              </div>
+                              <div>
+                                <span className="font-bold text-neutral-900 block text-[11px]">
+                                  {exp.paidBy || 'Ayoub Ait Yahya'}
+                                </span>
+                                <span className="text-[10px] text-neutral-500 flex items-center gap-1">
+                                  <CreditCard size={10} className="text-neutral-400" />
+                                  <span>
+                                    {PAYMENT_METHOD_OPTIONS.find((p) => p.id === exp.paymentMethod)?.label.split('(')[0] || exp.paymentMethod}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Col 6: Amount in MAD */}
+                          <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                            <div className="font-black text-rose-700 font-mono text-sm">
+                              -{formatMAD(exp.amount)}
+                            </div>
+                            <span className="text-[10px] text-neutral-400 block">TTC Encaissé</span>
+                          </td>
+
+                          {/* Col 7: Receipt Viewer Button */}
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            {hasReceipt ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveReceiptModal({
+                                    url: exp.receiptUrl!,
+                                    title: exp.title,
+                                    vendor: exp.vendor,
+                                    amount: exp.amount,
+                                    invoiceNumber: exp.invoiceNumber,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-lg font-bold text-[11px] transition-colors cursor-pointer shadow-2xs"
+                                title="Voir le justificatif"
+                              >
+                                <Eye size={12} />
+                                <span>Voir Pièce</span>
+                              </button>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-neutral-400 text-[10px] italic">
+                                <span>Sans pièce</span>
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Col 8: Actions */}
+                          <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(exp)}
+                                className="p-1.5 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+                                title="Modifier la facture"
+                              >
+                                <Edit3 size={14} />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteExpense(exp.id, exp.title)}
+                                className="p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                title="Supprimer définitivement"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
-                      ))
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -1661,73 +2619,252 @@ export default function FinanceClient({
         </div>
       )}
 
-      {/* ADD EXPENSE MODAL */}
+      {/* MODAL: ADD EXPENSE & INVOICE (Création enrichie avec métadonnées) */}
       {isAddExpenseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-neutral-200 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-              <h3 className="font-bold text-neutral-900 text-sm flex items-center gap-2">
-                <Plus size={16} className="text-emerald-600" />
-                <span>Enregistrer une Charge ou Facture</span>
-              </h3>
-              <button onClick={() => setIsAddExpenseModalOpen(false)} className="text-neutral-400 hover:text-neutral-600">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-neutral-200 overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shadow-2xs">
+                  <Receipt size={20} className="text-emerald-700" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-neutral-900 text-sm">
+                    Enregistrer une Charge ou Facture Fournisseur
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Complétez les informations pour la tenue comptable et le suivi des échéances
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddExpenseModalOpen(false)}
+                className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            <form onSubmit={handleCreateExpense} className="space-y-3.5 text-xs">
+            {/* Modal Form Body */}
+            <form onSubmit={handleCreateExpense} className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
+              {/* Row 1: Title */}
               <div>
-                <label className="block font-semibold text-neutral-700 mb-1">Intitulé de la Dépense *</label>
+                <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                  Intitulé de la Prestation / Dépense *
+                </label>
                 <input
                   type="text"
                   required
                   value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="Ex: Campagne TikTok Ads Mars, Cartons & Pochons..."
-                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg"
+                  onChange={(e) => {
+                    setFormTitle(e.target.value);
+                    if (!formVendor) {
+                      setFormVendor(extractVendorFromTitle(e.target.value));
+                    }
+                  }}
+                  placeholder="Ex: Campagne TikTok Ads Mars, Cartons 50ml NAY, Hébergement Hostinger..."
+                  className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl font-medium focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* Row 2: Vendor & Invoice Number */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">Montant (MAD) *</label>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Fournisseur / Prestataire *
+                  </label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    step="0.5"
-                    value={formAmount}
-                    onChange={(e) => setFormAmount(e.target.value)}
-                    placeholder="Ex: 1500"
-                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg font-bold"
+                    value={formVendor}
+                    onChange={(e) => setFormVendor(e.target.value)}
+                    placeholder="Ex: Hostinger, Meta Ads, Cartonnerie..."
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                   />
+                  {/* Quick Suggestions Chips */}
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {QUICK_VENDOR_SUGGESTIONS.slice(0, 4).map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setFormVendor(v)}
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-700 cursor-pointer"
+                      >
+                        {v.split(' ')[0]}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">Date</label>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    N° Facture / Référence Pièce
+                  </label>
                   <input
-                    type="date"
-                    value={formDate}
-                    onChange={(e) => setFormDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg"
+                    type="text"
+                    value={formInvoiceNumber}
+                    onChange={(e) => setFormInvoiceNumber(e.target.value)}
+                    placeholder="Ex: FAC-2024-001, HOST-8921..."
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl font-mono uppercase focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                   />
+                  <span className="text-[10px] text-neutral-400 mt-1 block">
+                    Générée automatiquement si laissée vide
+                  </span>
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-neutral-700 mb-1">Catégorie</label>
-                <select
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-white"
-                >
-                  {EXPENSE_CATEGORIES.map((c) => (
-                    <option key={c.id} value={c.id}>{c.label}</option>
-                  ))}
-                </select>
+              {/* Row 3: Amount & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Montant Décaissé (MAD) *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      required
+                      step="0.5"
+                      min="0"
+                      value={formAmount}
+                      onChange={(e) => setFormAmount(e.target.value)}
+                      placeholder="Ex: 1500"
+                      className="w-full pl-3.5 pr-14 py-2.5 border border-neutral-200 rounded-xl font-mono font-black text-sm text-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-xs font-bold text-neutral-400">
+                      MAD
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Catégorie Comptable *
+                  </label>
+                  <select
+                    value={formCategory}
+                    onChange={(e) => setFormCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl bg-white font-semibold focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+                  >
+                    {EXPENSE_CATEGORIES.map((c) => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Receipt File Upload */}
-              <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2">
-                <label className="block font-semibold text-neutral-900">
-                  Justificatif / Facture (PDF ou Image)
+              {/* Row 4: Status Selector (Paid vs Pending) */}
+              <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-neutral-900 uppercase tracking-wider text-[11px] block">
+                    Statut du Paiement
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormStatus('PAID')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        formStatus === 'PAID'
+                          ? 'bg-emerald-600 text-white shadow-2xs'
+                          : 'bg-white text-neutral-600 border border-neutral-200'
+                      }`}
+                    >
+                      ✓ Déjà Réglée (Payée)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormStatus('PENDING')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        formStatus === 'PENDING'
+                          ? 'bg-amber-600 text-white shadow-2xs'
+                          : 'bg-white text-neutral-600 border border-neutral-200'
+                      }`}
+                    >
+                      ⏳ À Régler (En attente)
+                    </button>
+                  </div>
+                </div>
+
+                {formStatus === 'PAID' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-neutral-200/60">
+                    <div>
+                      <label className="block font-medium text-neutral-600 mb-1 text-[11px]">
+                        Payé Par (Associé / Responsable)
+                      </label>
+                      <input
+                        type="text"
+                        value={formPaidBy}
+                        onChange={(e) => setFormPaidBy(e.target.value)}
+                        placeholder="Ex: Ayoub Ait Yahya, Nouamane..."
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-neutral-600 mb-1 text-[11px]">
+                        Date d'Acquittement
+                      </label>
+                      <input
+                        type="date"
+                        value={formPaidAt}
+                        onChange={(e) => setFormPaidAt(e.target.value)}
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-white"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="pt-1 border-t border-neutral-200/60">
+                    <label className="block font-medium text-neutral-600 mb-1 text-[11px]">
+                      Date Limite d'Échéance *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formDueDate}
+                      onChange={(e) => setFormDueDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-white"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Row 5: Payment Method & Recurring */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Canal de Règlement
+                  </label>
+                  <select
+                    value={formPaymentMethod}
+                    onChange={(e) => setFormPaymentMethod(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl bg-white focus:outline-hidden cursor-pointer"
+                  >
+                    {PAYMENT_METHOD_OPTIONS.map((m) => (
+                      <option key={m.id} value={m.id}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Type de Récurrence
+                  </label>
+                  <select
+                    value={formRecurring}
+                    onChange={(e) => setFormRecurring(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl bg-white focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="ONE_TIME">Ponctuelle (Achat unique)</option>
+                    <option value="MONTHLY">Abonnement Mensuel Récurrent</option>
+                    <option value="ANNUAL">Abonnement Annuel</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 6: Receipt File Upload */}
+              <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200 space-y-2">
+                <label className="block font-bold text-neutral-900 uppercase tracking-wider text-[11px]">
+                  Pièce Justificative / Facture PDF / Photo du Reçu
                 </label>
                 <input
                   type="file"
@@ -1741,60 +2878,463 @@ export default function FinanceClient({
                 />
 
                 {formReceiptUrl ? (
-                  <div className="flex items-center justify-between p-2 bg-white rounded border border-neutral-300">
-                    <span className="text-[11px] font-mono truncate max-w-[200px]">{formReceiptFileName || 'Justificatif joint'}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormReceiptUrl('');
-                        setFormReceiptFileName('');
-                      }}
-                      className="text-red-600 text-[11px] font-bold"
-                    >
-                      Supprimer
-                    </button>
+                  <div className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-neutral-200 shadow-2xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Paperclip size={14} className="text-emerald-600 shrink-0" />
+                      <span className="text-xs font-mono font-medium truncate">
+                        {formReceiptFileName || 'Justificatif joint'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={formReceiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-bold text-sky-600 hover:underline"
+                      >
+                        Voir
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormReceiptUrl('');
+                          setFormReceiptFileName('');
+                        }}
+                        className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                      >
+                        Retirer
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingReceipt}
-                    className="w-full py-2 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-lg font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 bg-white hover:bg-neutral-100 text-neutral-700 border border-dashed border-neutral-300 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                   >
-                    <UploadCloud size={13} />
-                    <span>{isUploadingReceipt ? 'Upload...' : 'Téléverser une facture / reçu'}</span>
+                    <UploadCloud size={15} className="text-neutral-500" />
+                    <span>{isUploadingReceipt ? 'Téléversement en cours...' : 'Téléverser la facture (PDF, PNG, JPG)'}</span>
                   </button>
                 )}
               </div>
 
+              {/* Row 7: Notes */}
               <div>
-                <label className="block font-semibold text-neutral-700 mb-1">Description / Notes</label>
+                <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                  Notes Comptables & Commentaire Interne
+                </label>
                 <textarea
                   rows={2}
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  placeholder="Notes comptables, fournisseur..."
-                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg"
+                  placeholder="Notes sur la commande, bon de livraison, accord d'équipe..."
+                  className="w-full px-3.5 py-2 border border-neutral-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
 
-              <div className="pt-2 flex gap-2">
+              {/* Submit Buttons */}
+              <div className="pt-2 flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddExpenseModalOpen(false)}
-                  className="flex-1 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg font-semibold"
+                  className="flex-1 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl font-bold transition-colors cursor-pointer"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={formLoading || isUploadingReceipt}
-                  className="flex-1 py-2 bg-neutral-900 hover:bg-black text-white rounded-lg font-semibold shadow-xs disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-xs hover:shadow transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  {formLoading ? 'Enregistrement...' : 'Enregistrer la Charge'}
+                  {formLoading ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Enregistrement...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={14} />
+                      <span>Enregistrer la Facture</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT EXPENSE & INVOICE */}
+      {editingExpense && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-neutral-200 overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-sky-100 text-sky-800 flex items-center justify-center shadow-2xs">
+                  <Edit3 size={20} className="text-sky-700" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-neutral-900 text-sm">
+                    Modifier la Facture : {editingExpense.title}
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Réf : {editingExpense.invoiceNumber} • Fournisseur : {editingExpense.vendor}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingExpense(null)}
+                className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Form Body */}
+            <form onSubmit={handleUpdateExpense} className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
+              <div>
+                <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                  Intitulé de la Prestation *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl font-medium focus:outline-hidden"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Fournisseur / Prestataire *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editVendor}
+                    onChange={(e) => setEditVendor(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    N° Facture / Référence
+                  </label>
+                  <input
+                    type="text"
+                    value={editInvoiceNumber}
+                    onChange={(e) => setEditInvoiceNumber(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl font-mono uppercase focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Montant Décaissé (MAD) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    step="0.5"
+                    value={editAmount}
+                    onChange={(e) => setEditAmount(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl font-mono font-black text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Catégorie Comptable *
+                  </label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl bg-white font-semibold cursor-pointer"
+                  >
+                    {EXPENSE_CATEGORIES.map((c) => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Status Section */}
+              <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-neutral-900 uppercase tracking-wider text-[11px]">
+                    Statut du Paiement
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditStatus('PAID')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        editStatus === 'PAID'
+                          ? 'bg-emerald-600 text-white shadow-2xs'
+                          : 'bg-white text-neutral-600 border border-neutral-200'
+                      }`}
+                    >
+                      ✓ Réglée (Payée)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditStatus('PENDING')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        editStatus === 'PENDING'
+                          ? 'bg-amber-600 text-white shadow-2xs'
+                          : 'bg-white text-neutral-600 border border-neutral-200'
+                      }`}
+                    >
+                      ⏳ À Régler (En attente)
+                    </button>
+                  </div>
+                </div>
+
+                {editStatus === 'PAID' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-neutral-200/60">
+                    <div>
+                      <label className="block font-medium text-neutral-600 mb-1 text-[11px]">
+                        Payé Par
+                      </label>
+                      <input
+                        type="text"
+                        value={editPaidBy}
+                        onChange={(e) => setEditPaidBy(e.target.value)}
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-neutral-600 mb-1 text-[11px]">
+                        Date d'Acquittement
+                      </label>
+                      <input
+                        type="date"
+                        value={editPaidAt}
+                        onChange={(e) => setEditPaidAt(e.target.value)}
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-white"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="pt-1 border-t border-neutral-200/60">
+                    <label className="block font-medium text-neutral-600 mb-1 text-[11px]">
+                      Date Limite d'Échéance
+                    </label>
+                    <input
+                      type="date"
+                      value={editDueDate}
+                      onChange={(e) => setEditDueDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-lg bg-white"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Channel & Recurrence */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Canal de Règlement
+                  </label>
+                  <select
+                    value={editPaymentMethod}
+                    onChange={(e) => setEditPaymentMethod(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl bg-white cursor-pointer"
+                  >
+                    {PAYMENT_METHOD_OPTIONS.map((m) => (
+                      <option key={m.id} value={m.id}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                    Type de Récurrence
+                  </label>
+                  <select
+                    value={editRecurring}
+                    onChange={(e) => setEditRecurring(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-neutral-200 rounded-xl bg-white cursor-pointer"
+                  >
+                    <option value="ONE_TIME">Ponctuelle (Achat unique)</option>
+                    <option value="MONTHLY">Abonnement Mensuel Récurrent</option>
+                    <option value="ANNUAL">Abonnement Annuel</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Receipt File */}
+              <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200 space-y-2">
+                <label className="block font-bold text-neutral-900 uppercase tracking-wider text-[11px]">
+                  Pièce Justificative (PDF ou Image)
+                </label>
+                <input
+                  type="file"
+                  ref={editFileInputRef}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleEditFileUpload(f);
+                  }}
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                />
+
+                {editReceiptUrl ? (
+                  <div className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-neutral-200 shadow-2xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Paperclip size={14} className="text-emerald-600 shrink-0" />
+                      <span className="text-xs font-mono font-medium truncate">
+                        {editReceiptFileName || 'Justificatif joint'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={editReceiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-bold text-sky-600 hover:underline"
+                      >
+                        Voir
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditReceiptUrl('');
+                          setEditReceiptFileName('');
+                        }}
+                        className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                      >
+                        Retirer
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => editFileInputRef.current?.click()}
+                    disabled={isUploadingReceipt}
+                    className="w-full py-2.5 bg-white hover:bg-neutral-100 text-neutral-700 border border-dashed border-neutral-300 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <UploadCloud size={15} className="text-neutral-500" />
+                    <span>{isUploadingReceipt ? 'Téléversement...' : 'Remplacer ou ajouter un justificatif'}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block font-bold text-neutral-700 uppercase tracking-wider mb-1 text-[11px]">
+                  Notes Comptables
+                </label>
+                <textarea
+                  rows={2}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full px-3.5 py-2 border border-neutral-200 rounded-xl focus:outline-hidden"
+                />
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="pt-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingExpense(null)}
+                  className="flex-1 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl font-bold transition-colors cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditingLoading || isUploadingReceipt}
+                  className="flex-1 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl font-bold shadow-xs hover:shadow transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {isEditingLoading ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Mise à jour...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={14} />
+                      <span>Enregistrer les Modifications</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: INTERACTIVE RECEIPT VIEWER */}
+      {activeReceiptModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[92vh]">
+            {/* Header */}
+            <div className="p-4 sm:p-5 border-b border-neutral-200 bg-neutral-50/80 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+                  <FileText size={20} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-neutral-900 text-sm truncate">
+                    Justificatif : {activeReceiptModal.title}
+                  </h3>
+                  <p className="text-xs text-neutral-500 truncate">
+                    {activeReceiptModal.vendor && <span>Fournisseur : {activeReceiptModal.vendor} • </span>}
+                    {activeReceiptModal.invoiceNumber && <span>Réf : {activeReceiptModal.invoiceNumber} • </span>}
+                    {activeReceiptModal.amount && <strong className="text-neutral-800">{formatMAD(activeReceiptModal.amount)}</strong>}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={activeReceiptModal.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="px-3 py-1.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <ExternalLink size={13} />
+                  <span>Ouvrir / Télécharger</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setActiveReceiptModal(null)}
+                  className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200/80 rounded-xl transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Viewer Body */}
+            <div className="flex-1 bg-neutral-900/5 p-4 overflow-auto flex items-center justify-center min-h-[420px]">
+              {activeReceiptModal.url.toLowerCase().endsWith('.pdf') ? (
+                <iframe
+                  src={activeReceiptModal.url}
+                  className="w-full h-[550px] rounded-2xl border border-neutral-200 bg-white"
+                  title="Aperçu PDF de la facture"
+                />
+              ) : (
+                <div className="relative max-w-full max-h-[550px] overflow-hidden rounded-2xl shadow-md border border-neutral-200 bg-white p-2">
+                  <img
+                    src={activeReceiptModal.url}
+                    alt={activeReceiptModal.title}
+                    className="max-h-[520px] max-w-full object-contain rounded-xl mx-auto"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
