@@ -142,6 +142,7 @@ model SiteConfig {
   recommendedOriental   String   @default("[]")
   recommendedMaster     String   @default("[]")
   recommendedCoffrets   String   @default("[]")
+  recommendedTesters    String   @default("[]")
 }
 
 model NewsletterSubscriber {

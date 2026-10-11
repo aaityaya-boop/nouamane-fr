@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Sparkles, 
   Flame, 
@@ -19,7 +19,8 @@ import {
   ShoppingBag, 
   Copy,
   ExternalLink,
-  Filter
+  Filter,
+  Package
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 
@@ -32,6 +33,10 @@ interface Product {
   gender: string;
   subcategory: string;
   images: string;
+  isTester?: boolean;
+  testerPrice?: number | null;
+  stock?: number;
+  inStock?: boolean;
 }
 
 type TabKey = 
@@ -41,6 +46,7 @@ type TabKey =
   | 'recommendedMen' 
   | 'recommendedWomen' 
   | 'recommendedUnisex' 
+  | 'recommendedTesters'
   | 'recommendedOriental' 
   | 'recommendedMaster' 
   | 'recommendedCoffrets' 
@@ -56,6 +62,7 @@ interface TabConfig {
   description: string;
   defaultSubcategory?: string;
   defaultGender?: string;
+  isTesterOnly?: boolean;
 }
 
 const TABS: TabConfig[] = [
@@ -89,6 +96,16 @@ const TABS: TabConfig[] = [
     pageLabel: '/shop/unisex',
     description: 'Parfums recommandés affichés en premier dans la catégorie Unisexe.',
     defaultGender: 'unisex'
+  },
+  {
+    key: 'recommendedTesters',
+    label: 'Testeurs',
+    group: 'shop',
+    icon: <Sparkles size={14} className="text-amber-500" />,
+    pageUrl: '/fr/testeurs',
+    pageLabel: '/testeurs',
+    description: 'Testeurs de grande marque 100% originaux affichés en premier sur la page Testeurs (/testeurs).',
+    isTesterOnly: true
   },
   {
     key: 'recommendedOriental',
@@ -173,6 +190,7 @@ export default function VitrinePage() {
   const [recommendedMen, setRecommendedMen] = useState<string[]>([]);
   const [recommendedWomen, setRecommendedWomen] = useState<string[]>([]);
   const [recommendedUnisex, setRecommendedUnisex] = useState<string[]>([]);
+  const [recommendedTesters, setRecommendedTesters] = useState<string[]>([]);
   const [recommendedOriental, setRecommendedOriental] = useState<string[]>([]);
   const [recommendedMaster, setRecommendedMaster] = useState<string[]>([]);
   const [recommendedCoffrets, setRecommendedCoffrets] = useState<string[]>([]);
@@ -180,7 +198,8 @@ export default function VitrinePage() {
 
   const [activeTab, setActiveTab] = useState<TabKey>('recommendedMen');
   const [search, setSearch] = useState('');
-  const [filterByCategoryOnly, setFilterByCategoryOnly] = useState(true);
+  const [filterScope, setFilterScope] = useState<'category' | 'testers' | 'all'>('category');
+  const [selectedBrand, setSelectedBrand] = useState<string>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
@@ -212,6 +231,7 @@ export default function VitrinePage() {
         setRecommendedMen(parseValid(config.recommendedMen));
         setRecommendedWomen(parseValid(config.recommendedWomen));
         setRecommendedUnisex(parseValid(config.recommendedUnisex));
+        setRecommendedTesters(parseValid(config.recommendedTesters));
         setRecommendedOriental(parseValid(config.recommendedOriental));
         setRecommendedMaster(parseValid(config.recommendedMaster));
         setRecommendedCoffrets(parseValid(config.recommendedCoffrets));
@@ -231,6 +251,7 @@ export default function VitrinePage() {
       case 'recommendedMen': return recommendedMen;
       case 'recommendedWomen': return recommendedWomen;
       case 'recommendedUnisex': return recommendedUnisex;
+      case 'recommendedTesters': return recommendedTesters;
       case 'recommendedOriental': return recommendedOriental;
       case 'recommendedMaster': return recommendedMaster;
       case 'recommendedCoffrets': return recommendedCoffrets;
@@ -246,6 +267,7 @@ export default function VitrinePage() {
       case 'recommendedMen': setRecommendedMen(updater); break;
       case 'recommendedWomen': setRecommendedWomen(updater); break;
       case 'recommendedUnisex': setRecommendedUnisex(updater); break;
+      case 'recommendedTesters': setRecommendedTesters(updater); break;
       case 'recommendedOriental': setRecommendedOriental(updater); break;
       case 'recommendedMaster': setRecommendedMaster(updater); break;
       case 'recommendedCoffrets': setRecommendedCoffrets(updater); break;
@@ -255,6 +277,22 @@ export default function VitrinePage() {
 
   const currentSlugs = getActiveSlugs();
   const currentTabConfig = TABS.find(t => t.key === activeTab)!;
+
+  const testersCount = useMemo(() => allProducts.filter(p => p.isTester).length, [allProducts]);
+  const uniqueBrands = useMemo(() => {
+    const set = new Set<string>();
+    allProducts.forEach(p => { if (p.brandLabel) set.add(p.brandLabel); });
+    return Array.from(set).sort();
+  }, [allProducts]);
+
+  const categoryCount = useMemo(() => {
+    return allProducts.filter(p => {
+      if (currentTabConfig.isTesterOnly) return p.isTester === true;
+      if (currentTabConfig.defaultGender) return p.gender === currentTabConfig.defaultGender || p.gender === 'unisex';
+      if (currentTabConfig.defaultSubcategory) return p.subcategory === currentTabConfig.defaultSubcategory;
+      return true;
+    }).length;
+  }, [allProducts, currentTabConfig]);
 
   const toggleProduct = (slug: string) => {
     setActiveSlugs(prev =>
@@ -303,6 +341,7 @@ export default function VitrinePage() {
           recommendedMen: JSON.stringify(recommendedMen),
           recommendedWomen: JSON.stringify(recommendedWomen),
           recommendedUnisex: JSON.stringify(recommendedUnisex),
+          recommendedTesters: JSON.stringify(recommendedTesters),
           recommendedOriental: JSON.stringify(recommendedOriental),
           recommendedMaster: JSON.stringify(recommendedMaster),
           recommendedCoffrets: JSON.stringify(recommendedCoffrets),
@@ -322,27 +361,46 @@ export default function VitrinePage() {
     }
   };
 
-  // Filter products for library
-  const filtered = allProducts.filter(p => {
-    const matchesSearch = 
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.brandLabel.toLowerCase().includes(search.toLowerCase()) ||
-      p.slug.toLowerCase().includes(search.toLowerCase());
+  // Filter products for library (Full Inventory or Scope)
+  const filtered = useMemo(() => {
+    return allProducts.filter(p => {
+      // 1. Text Search across name, brand, slug
+      if (search.trim()) {
+        const q = search.toLowerCase().trim();
+        const matchesSearch = 
+          p.name.toLowerCase().includes(q) ||
+          p.brandLabel.toLowerCase().includes(q) ||
+          p.slug.toLowerCase().includes(q);
+        if (!matchesSearch) return false;
+      }
 
-    if (!matchesSearch) return false;
+      // 2. Brand Filter
+      if (selectedBrand !== 'ALL' && p.brandLabel !== selectedBrand) {
+        return false;
+      }
 
-    if (!filterByCategoryOnly) return true;
+      // 3. Scope Filter
+      if (filterScope === 'all') {
+        return true; // All 199 products from inventaire
+      }
+      if (filterScope === 'testers') {
+        return p.isTester === true;
+      }
 
-    // Smart contextual filtering based on active tab
-    if (currentTabConfig.defaultGender) {
-      return p.gender === currentTabConfig.defaultGender || p.gender === 'unisex';
-    }
-    if (currentTabConfig.defaultSubcategory) {
-      return p.subcategory === currentTabConfig.defaultSubcategory;
-    }
+      // filterScope === 'category'
+      if (currentTabConfig.isTesterOnly) {
+        return p.isTester === true;
+      }
+      if (currentTabConfig.defaultGender) {
+        return p.gender === currentTabConfig.defaultGender || p.gender === 'unisex';
+      }
+      if (currentTabConfig.defaultSubcategory) {
+        return p.subcategory === currentTabConfig.defaultSubcategory;
+      }
 
-    return true;
-  });
+      return true;
+    });
+  }, [allProducts, search, selectedBrand, filterScope, currentTabConfig]);
 
   const getImage = (p: Product) => {
     try { return JSON.parse(p.images)[0] || '/images/hero.png'; } catch { return '/images/hero.png'; }
@@ -362,6 +420,11 @@ export default function VitrinePage() {
       {/* Sticky Top Header */}
       <div className="flex-shrink-0 bg-white border-b border-neutral-200 px-6 lg:px-8 py-3.5 flex items-center justify-between z-20 shadow-2xs">
         <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">NAY Parfums</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-xs font-semibold text-neutral-700">Inventaire Global : {allProducts.length} parfums ({testersCount} testeurs)</span>
+          </div>
           <h1 className="text-xl font-bold text-neutral-900 tracking-tight">Vitrine & Recommandations</h1>
           <p className="text-xs text-neutral-500 font-normal">Choisissez et ordonnez les parfums mis en avant pour chaque catégorie</p>
         </div>
@@ -413,6 +476,7 @@ export default function VitrinePage() {
                   const count = tab.key === 'recommendedMen' ? recommendedMen.length
                     : tab.key === 'recommendedWomen' ? recommendedWomen.length
                     : tab.key === 'recommendedUnisex' ? recommendedUnisex.length
+                    : tab.key === 'recommendedTesters' ? recommendedTesters.length
                     : tab.key === 'recommendedOriental' ? recommendedOriental.length
                     : tab.key === 'recommendedMaster' ? recommendedMaster.length
                     : tab.key === 'recommendedCoffrets' ? recommendedCoffrets.length
@@ -482,35 +546,88 @@ export default function VitrinePage() {
               </div>
             </div>
 
-            {/* Search Bar & Filter Toggle */}
-            <div className="flex items-center gap-2.5 pt-1">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-400">
-                  <Search size={14} />
+            {/* Search Bar & Full Inventory Scope Selector */}
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-400">
+                    <Search size={14} />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={`Rechercher parmi les ${allProducts.length} parfums de l'inventaire...`}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="block w-full pl-9 pr-3.5 py-2 bg-[#f8fafc] border border-neutral-200 rounded-xl text-xs text-neutral-900 placeholder:text-neutral-400 focus:bg-white focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all outline-none font-medium"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 text-xs p-1"
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
-                <input
-                  type="text"
-                  placeholder={`Rechercher un parfum dans ${currentTabConfig.label}...`}
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="block w-full pl-9 pr-3.5 py-2 bg-[#f8fafc] border border-neutral-200 rounded-xl text-xs text-neutral-900 placeholder:text-neutral-400 focus:bg-white focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all outline-none"
-                />
+
+                {/* Brand Filter */}
+                <select
+                  value={selectedBrand}
+                  onChange={(e) => setSelectedBrand(e.target.value)}
+                  className="text-xs bg-[#f8fafc] border border-neutral-200 rounded-xl px-3 py-2 text-neutral-700 font-medium cursor-pointer focus:bg-white focus:border-neutral-900 outline-none max-w-[170px]"
+                >
+                  <option value="ALL">Toutes les marques ({uniqueBrands.length})</option>
+                  {uniqueBrands.map(b => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
               </div>
 
-              {(currentTabConfig.defaultGender || currentTabConfig.defaultSubcategory) && (
-                <button
-                  onClick={() => setFilterByCategoryOnly(!filterByCategoryOnly)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
-                    filterByCategoryOnly 
-                      ? 'bg-neutral-900 border-neutral-900 text-white shadow-2xs' 
-                      : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50 shadow-2xs'
-                  }`}
-                  title={filterByCategoryOnly ? 'Afficher uniquement les parfums de cette catégorie' : 'Tous les parfums affichés'}
-                >
-                  <Filter size={13} />
-                  <span>{filterByCategoryOnly ? `Catégorie ${currentTabConfig.label}` : 'Tout le catalogue'}</span>
-                </button>
-              )}
+              {/* Scope Selector: Catégorie Active vs Testeurs vs Tout l'inventaire */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 p-1 bg-neutral-100/90 rounded-xl border border-neutral-200 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setFilterScope('category')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      filterScope === 'category'
+                        ? 'bg-white text-neutral-900 shadow-2xs'
+                        : 'text-neutral-600 hover:text-neutral-900'
+                    }`}
+                  >
+                    🎯 Filtre {currentTabConfig.label} ({categoryCount})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFilterScope('testers')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                      filterScope === 'testers'
+                        ? 'bg-amber-500 text-white shadow-2xs font-bold'
+                        : 'text-amber-800 hover:text-amber-950 hover:bg-amber-100/60'
+                    }`}
+                  >
+                    <Sparkles size={11} />
+                    <span>Testeurs ({testersCount})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFilterScope('all')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      filterScope === 'all'
+                        ? 'bg-neutral-900 text-white shadow-2xs'
+                        : 'text-neutral-600 hover:text-neutral-900'
+                    }`}
+                  >
+                    📦 Tout l'inventaire ({allProducts.length})
+                  </button>
+                </div>
+
+                <div className="text-[11px] text-neutral-500 font-medium">
+                  <span>{filtered.length} affiché(s) sur {allProducts.length}</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -519,6 +636,7 @@ export default function VitrinePage() {
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
               {filtered.map((p) => {
                 const isSelected = currentSlugs.includes(p.slug);
+                const selectedRank = isSelected ? currentSlugs.indexOf(p.slug) + 1 : null;
                 return (
                   <div
                     key={p.slug}
@@ -529,30 +647,49 @@ export default function VitrinePage() {
                         : 'bg-white border border-neutral-200 hover:border-neutral-300 shadow-2xs hover:shadow-xs'
                     }`}
                   >
-                    {/* Checkmark Overlay */}
+                    {/* Rank Overlay */}
                     <AnimatePresence>
                       {isSelected && (
                         <motion.div
                           initial={{ scale: 0, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           exit={{ scale: 0, opacity: 0 }}
-                          className="absolute top-2 right-2 w-5 h-5 rounded-full bg-neutral-900 text-white flex items-center justify-center z-10 shadow-sm"
+                          className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-neutral-900 text-white font-mono text-[10px] font-bold flex items-center gap-1 z-10 shadow-sm"
                         >
-                          <Check size={12} strokeWidth={2.5} />
+                          <Check size={10} strokeWidth={3} />
+                          <span>#{selectedRank}</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
 
                     <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-50 mb-2.5 border border-neutral-100">
+                      {/* Tester Badge */}
+                      {p.isTester && (
+                        <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-white shadow-xs z-10">
+                          Testeur
+                        </span>
+                      )}
+
+                      {/* Stock Badge */}
+                      <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-black/60 text-white backdrop-blur-xs z-10">
+                        {p.stock !== undefined ? `${p.stock} en stock` : 'En stock'}
+                      </span>
+
                       <img src={getImage(p)} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     </div>
+
                     <div className="flex-1 flex flex-col justify-end">
                       <div className="flex items-center justify-between text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-0.5">
                         <span className="truncate">{p.brandLabel}</span>
                         <span className="text-neutral-400 capitalize shrink-0 ml-1">{p.gender}</span>
                       </div>
                       <div className="text-xs font-semibold text-neutral-900 leading-snug line-clamp-2">{p.name}</div>
-                      <div className="text-xs font-medium text-neutral-600 mt-1">{p.price} MAD</div>
+                      <div className="flex items-center justify-between text-xs font-medium text-neutral-700 mt-1">
+                        <span>{p.price} MAD</span>
+                        {p.isTester && p.testerPrice && (
+                          <span className="text-[10px] text-amber-700 font-semibold font-mono">Testeur: {p.testerPrice} DH</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -560,15 +697,13 @@ export default function VitrinePage() {
               {filtered.length === 0 && (
                 <div className="col-span-full py-14 flex flex-col items-center justify-center text-neutral-400">
                   <Search size={28} className="mb-2.5 opacity-40" />
-                  <p className="text-xs font-medium text-neutral-600">Aucun parfum ne correspond à vos filtres.</p>
-                  {(currentTabConfig.defaultGender || currentTabConfig.defaultSubcategory) && filterByCategoryOnly && (
-                    <button
-                      onClick={() => setFilterByCategoryOnly(false)}
-                      className="mt-2 text-xs text-neutral-900 font-semibold underline underline-offset-2 hover:text-black cursor-pointer"
-                    >
-                      Afficher tous les parfums du catalogue
-                    </button>
-                  )}
+                  <p className="text-xs font-medium text-neutral-600">Aucun parfum ne correspond à vos filtres actuels.</p>
+                  <button
+                    onClick={() => { setFilterScope('all'); setSelectedBrand('ALL'); setSearch(''); }}
+                    className="mt-3 px-3 py-1.5 bg-neutral-900 text-white rounded-xl text-xs font-semibold hover:bg-black cursor-pointer shadow-2xs"
+                  >
+                    Afficher tous les {allProducts.length} parfums de l'inventaire
+                  </button>
                 </div>
               )}
             </div>

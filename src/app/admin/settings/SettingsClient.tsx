@@ -88,6 +88,7 @@ interface SiteConfigData {
   recommendedOriental?: string;
   recommendedMaster?: string;
   recommendedCoffrets?: string;
+  recommendedTesters?: string;
   updatedAt?: string;
 }
 

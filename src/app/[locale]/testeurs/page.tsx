@@ -39,7 +39,7 @@ export default async function TesteursPage() {
 
   let recommendedSlugs: string[] = [];
   try {
-    recommendedSlugs = JSON.parse(config?.recommendedShop || '[]');
+    recommendedSlugs = JSON.parse((config as any)?.recommendedTesters || config?.recommendedShop || '[]');
   } catch {}
   
   const products: Product[] = dbProducts.map((p) => ({

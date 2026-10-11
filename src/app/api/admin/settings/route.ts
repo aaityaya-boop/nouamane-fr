@@ -53,7 +53,8 @@ export async function PUT(request: Request) {
         recommendedOriental: body.recommendedOriental !== undefined ? body.recommendedOriental : undefined,
         recommendedMaster: body.recommendedMaster !== undefined ? body.recommendedMaster : undefined,
         recommendedCoffrets: body.recommendedCoffrets !== undefined ? body.recommendedCoffrets : undefined,
-      }
+        ...(body.recommendedTesters !== undefined ? { recommendedTesters: body.recommendedTesters } : {}),
+      } as any
     });
 
     return NextResponse.json(updatedConfig);
