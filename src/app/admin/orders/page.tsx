@@ -813,98 +813,89 @@ function OrdersPageContent() {
       {/* ========================================================= */}
       {/* 1. TOP HEADER: LUXURY MAISON NAY BRANDING & ACTIONS       */}
       {/* ========================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/90 pb-4">
+      {/* ========================================================= */}
+      {/* 1. TOP HEADER: LUXURY MAISON NAY BRANDING & ACTIONS       */}
+      {/* ========================================================= */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-900 text-amber-300 border border-slate-800 shadow-2xs">
               Maison NAY • Haute Parfumerie
             </span>
-            <span className="text-xs text-slate-400 font-medium">Casablanca & Tout le Maroc</span>
+            <span className="text-xs text-slate-400 font-medium">Casablanca & National</span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Direct Ventes</span>
+            </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
-            <ShoppingBag size={22} className="text-amber-500" />
+            <ShoppingBag size={24} className="text-amber-500" />
             <span>Gestion des Commandes & Expéditions</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Centre de commande exécutif : validation express, acomptes, suivi des expéditions et prévisions nettes.
+            Centre exécutif : validation express, acomptes CIH, suivi des expéditions et prévisions nettes.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={fetchOrders}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-xs font-bold text-slate-700 shadow-2xs transition-all cursor-pointer hover:border-slate-300"
-          >
-            <RefreshCw size={14} className={`text-slate-500 ${isLoading ? 'animate-spin text-[#1D9BF0]' : ''}`} />
-            <span>Actualiser</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ========================================================= */}
-      {/* 2. UNIFIED EXECUTIVE COMMAND RIBBON (NO MORE BULKY DUAL CARDS) */}
-      {/* ========================================================= */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs space-y-4">
-        
-        {/* Ribbon Switcher Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60 max-w-fit">
+        {/* Global Action Cluster */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* View switcher: Operational vs Financial */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 text-xs font-bold shadow-2xs">
             <button
               type="button"
               onClick={() => setExecutiveView('OPERATIONAL')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                 executiveView === 'OPERATIONAL'
                   ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Package size={13} className="text-[#1D9BF0]" />
-              <span>Flux Opérationnel</span>
+              <Package size={13} className="text-amber-500" />
+              <span>Opérations</span>
             </button>
             <button
               type="button"
               onClick={() => setExecutiveView('FINANCIAL')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                 executiveView === 'FINANCIAL'
                   ? 'bg-slate-900 text-white shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Calculator size={13} className="text-amber-400" />
-              <span>Trésorerie & Marges Nettes</span>
+              <span>Trésorerie</span>
             </button>
           </div>
 
-          {/* Quick Carrier Fee Info Pill & Gross/Net Switch */}
-          <div className="flex items-center gap-2 flex-wrap text-xs">
-            {executiveView === 'FINANCIAL' && (
-              <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/60 text-[11px] font-bold">
-                <button
-                  type="button"
-                  onClick={() => setEstimationMode('NET')}
-                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                    estimationMode === 'NET'
-                      ? 'bg-emerald-600 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Vue Nette (-{shippingFeePerOrder} DH)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEstimationMode('BRUT')}
-                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                    estimationMode === 'BRUT'
-                      ? 'bg-slate-900 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Vue Brute Client
-                </button>
-              </div>
-            )}
+          <button
+            type="button"
+            onClick={handleExportOrdersCSV}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs transition-all cursor-pointer hover:border-slate-300"
+            title="Exporter le registre des commandes en format Excel CSV"
+          >
+            <FileSpreadsheet size={14} className="text-emerald-600" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
 
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 text-[11px] font-semibold">
+          <button
+            type="button"
+            onClick={fetchOrders}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-xs font-bold text-white shadow-xs transition-all cursor-pointer"
+          >
+            <RefreshCw size={13} className={`${isLoading ? 'animate-spin text-amber-400' : 'text-slate-300'}`} />
+            <span>Actualiser</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 2. CREATIVE EXECUTIVE COMMAND CARDS                       */}
+      {/* ========================================================= */}
+      <div className="space-y-3">
+        {/* Sub-header info bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 text-[11px] font-semibold shadow-2xs">
               <Truck size={12} className="text-amber-600 shrink-0" />
               <span>Frais livreur : <strong className="font-bold">{shippingFeePerOrder} MAD</strong> / commande</span>
             </div>
@@ -913,62 +904,111 @@ function OrdersPageContent() {
               Acomptes : <strong className="text-slate-900 font-bold">{financialEstimations.countWithAdvance}</strong> versés • <strong className="text-slate-900 font-bold">{financialEstimations.countPaid100}</strong> payées 100%
             </div>
           </div>
+
+          {executiveView === 'FINANCIAL' && (
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => setEstimationMode('NET')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  estimationMode === 'NET'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Vue Nette (-{shippingFeePerOrder} DH)
+              </button>
+              <button
+                type="button"
+                onClick={() => setEstimationMode('BRUT')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  estimationMode === 'BRUT'
+                    ? 'bg-slate-900 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Vue Brute Client
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Dynamic Executive Cards Grid */}
+        {/* Dynamic Cards Grid */}
         {executiveView === 'OPERATIONAL' ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             
             {/* Card 1: Volume Global */}
-            <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-xl border border-slate-200/70">
-              <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all group">
+              <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <span>Volume Total</span>
-                <ShoppingBag size={14} className="text-slate-400" />
+                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                  <ShoppingBag size={14} />
+                </div>
               </div>
-              <div className="text-2xl font-black text-slate-900 mt-1 font-mono">{orders.length}</div>
-              <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
-                <span>Valeur brute :</span>
-                <strong className="text-slate-800 font-mono">{formatMAD(totalRevenue)}</strong>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
+                {orders.length}
+              </div>
+              <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Valeur brute :</span>
+                <strong className="text-slate-800 font-mono font-bold">{formatMAD(totalRevenue)}</strong>
               </div>
             </div>
 
             {/* Card 2: À Valider Express */}
-            <div className="bg-amber-50/50 p-3.5 sm:p-4 rounded-xl border border-amber-200/70">
-              <div className="flex items-center justify-between text-amber-800 text-[11px] font-bold uppercase tracking-wider">
-                <span>À Confirmer & Préparer</span>
-                <Clock size={14} className="text-amber-600" />
+            <div className="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-2xs hover:border-amber-400 transition-all group relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-amber-400" />
+              <div className="flex items-center justify-between text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-2">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span>À Confirmer & Préparer</span>
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-700">
+                  <Clock size={14} />
+                </div>
               </div>
-              <div className="text-2xl font-black text-amber-700 mt-1 font-mono">
+              <div className="text-2xl sm:text-3xl font-black text-amber-700 font-mono tracking-tight">
                 {tabCounts.TO_CONFIRM_COMBINED + tabCounts.PROCESSING}
               </div>
-              <div className="text-[11px] text-amber-800/80 mt-1 flex items-center justify-between">
+              <div className="mt-2 pt-2 border-t border-amber-100/70 flex items-center justify-between text-[11px] text-amber-800 font-medium">
                 <span>{tabCounts.TO_CONFIRM_COMBINED} appels</span>
                 <span>• {tabCounts.PROCESSING} en boîte</span>
               </div>
             </div>
 
             {/* Card 3: En Cours avec Livreur */}
-            <div className="bg-indigo-50/50 p-3.5 sm:p-4 rounded-xl border border-indigo-200/70">
-              <div className="flex items-center justify-between text-indigo-800 text-[11px] font-bold uppercase tracking-wider">
+            <div className="bg-white p-4 rounded-2xl border border-indigo-200/80 shadow-2xs hover:border-indigo-400 transition-all group relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-indigo-500" />
+              <div className="flex items-center justify-between text-indigo-900 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <span>En Livraison (Transit)</span>
-                <Truck size={14} className="text-indigo-600" />
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                  <Truck size={14} />
+                </div>
               </div>
-              <div className="text-2xl font-black text-indigo-700 mt-1 font-mono">{tabCounts.SHIPPED}</div>
-              <div className="text-[11px] text-indigo-800/80 mt-1 flex items-center justify-between">
-                <span>Solde à récupérer :</span>
-                <strong className="font-mono">{formatMAD(financialEstimations.remainingToCollectShippedGross)}</strong>
+              <div className="text-2xl sm:text-3xl font-black text-indigo-700 font-mono tracking-tight">
+                {tabCounts.SHIPPED}
+              </div>
+              <div className="mt-2 pt-2 border-t border-indigo-100/70 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Solde à récupérer :</span>
+                <strong className="text-indigo-800 font-mono font-bold">
+                  {formatMAD(financialEstimations.remainingToCollectShippedGross)}
+                </strong>
               </div>
             </div>
 
             {/* Card 4: Livrées & Encaissées */}
-            <div className="bg-emerald-50/50 p-3.5 sm:p-4 rounded-xl border border-emerald-200/70">
-              <div className="flex items-center justify-between text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
+            <div className="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-2xs hover:border-emerald-400 transition-all group relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500" />
+              <div className="flex items-center justify-between text-emerald-900 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <span>Livrées & Encaissées</span>
-                <CheckCircle2 size={14} className="text-emerald-600" />
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                  <CheckCircle2 size={14} />
+                </div>
               </div>
-              <div className="text-2xl font-black text-emerald-700 mt-1 font-mono">{tabCounts.DELIVERED}</div>
-              <div className="text-[11px] text-emerald-800/80 mt-1 flex items-center justify-between">
-                <span>Taux de succès :</span>
+              <div className="text-2xl sm:text-3xl font-black text-emerald-700 font-mono tracking-tight">
+                {tabCounts.DELIVERED}
+              </div>
+              <div className="mt-2 pt-2 border-t border-emerald-100/70 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Taux de succès :</span>
                 <strong className="text-emerald-700 font-mono font-bold">{tauxLivraison}%</strong>
               </div>
             </div>
@@ -978,57 +1018,57 @@ function OrdersPageContent() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             
             {/* Card F1: Cash Encaissé Réel */}
-            <div className="bg-emerald-50/60 p-3.5 sm:p-4 rounded-xl border border-emerald-200/80">
-              <div className="flex items-center justify-between text-emerald-800 text-[11px] font-bold uppercase tracking-wider">
+            <div className="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <span>{estimationMode === 'NET' ? 'Cash Net en Caisse' : 'Cash Brut Encaissé'}</span>
                 <CheckCircle2 size={14} className="text-emerald-600" />
               </div>
-              <div className="text-2xl font-black text-emerald-700 mt-1 font-mono">
+              <div className="text-2xl sm:text-3xl font-black text-emerald-700 font-mono tracking-tight">
                 {formatMAD(financialEstimations.displayedCashCollected)}
               </div>
-              <div className="text-[11px] text-emerald-800/80 mt-1">
-                Dont <strong className="font-mono">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong> d'acomptes
+              <div className="mt-2 pt-2 border-t border-emerald-100 text-[11px] text-emerald-800">
+                Dont <strong className="font-mono font-bold">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong> d'acomptes
               </div>
             </div>
 
             {/* Card F2: Solde en Livraison */}
-            <div className="bg-sky-50/60 p-3.5 sm:p-4 rounded-xl border border-sky-200/80">
-              <div className="flex items-center justify-between text-sky-800 text-[11px] font-bold uppercase tracking-wider">
+            <div className="bg-white p-4 rounded-2xl border border-sky-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-sky-800 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <span>{estimationMode === 'NET' ? 'Créances Nettes Livreur' : 'Créances Brutes Livreur'}</span>
                 <Truck size={14} className="text-[#1D9BF0]" />
               </div>
-              <div className="text-2xl font-black text-[#0284c7] mt-1 font-mono">
+              <div className="text-2xl sm:text-3xl font-black text-[#0284c7] font-mono tracking-tight">
                 {formatMAD(financialEstimations.displayedShipped)}
               </div>
-              <div className="text-[11px] text-sky-800/80 mt-1">
+              <div className="mt-2 pt-2 border-t border-sky-100 text-[11px] text-sky-800">
                 {financialEstimations.shippedOrdersCount} colis chez transporteur
               </div>
             </div>
 
             {/* Card F3: Solde en Préparation */}
-            <div className="bg-amber-50/60 p-3.5 sm:p-4 rounded-xl border border-amber-200/80">
-              <div className="flex items-center justify-between text-amber-800 text-[11px] font-bold uppercase tracking-wider">
+            <div className="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-amber-800 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <span>{estimationMode === 'NET' ? 'Solde Net Commandes' : 'Solde Brut Commandes'}</span>
                 <Clock size={14} className="text-amber-600" />
               </div>
-              <div className="text-2xl font-black text-amber-700 mt-1 font-mono">
+              <div className="text-2xl sm:text-3xl font-black text-amber-700 font-mono tracking-tight">
                 {formatMAD(financialEstimations.displayedProcessing)}
               </div>
-              <div className="text-[11px] text-amber-800/80 mt-1">
+              <div className="mt-2 pt-2 border-t border-amber-100 text-[11px] text-amber-800">
                 {financialEstimations.processingOrdersCount} colis à expédier
               </div>
             </div>
 
             {/* Card F4: Estimation Parfaite */}
-            <div className="bg-slate-900 text-white p-3.5 sm:p-4 rounded-xl border border-slate-800 shadow-md">
-              <div className="flex items-center justify-between text-amber-400 text-[11px] font-bold uppercase tracking-wider">
+            <div className="bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-md">
+              <div className="flex items-center justify-between text-amber-400 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <span>{estimationMode === 'NET' ? 'Estimation Nette Réelle' : 'Estimation Brute Totale'}</span>
                 <Sparkles size={14} className="text-amber-400" />
               </div>
-              <div className="text-2xl font-black text-white mt-1 font-mono">
+              <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
                 {formatMAD(financialEstimations.displayedEstimation)}
               </div>
-              <div className="text-[10.5px] text-slate-300 mt-1">
+              <div className="mt-2 pt-2 border-t border-slate-800 text-[10.5px] text-slate-300">
                 {estimationMode === 'NET'
                   ? `Déduction faite de ${formatMAD(financialEstimations.totalShippingFeesIncurredAndExpected)} livr.`
                   : 'Total facturé aux clients'}
@@ -1037,143 +1077,167 @@ function OrdersPageContent() {
 
           </div>
         )}
-
       </div>
 
       {/* ========================================================= */}
-      {/* 3. MOROCCAN EXPRESS CITY FILTER CHIPS (1-CLICK HUBS)       */}
+      {/* 3. WORKFLOW TABS PIPELINE (CLEAN LINEAR DESIGN)           */}
       {/* ========================================================= */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1 shrink-0">
-          <MapPin size={12} className="text-amber-500" />
-          <span>Villes Express :</span>
-        </span>
-        <button
-          onClick={() => setCityFilter('ALL')}
-          className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap cursor-pointer ${
-            cityFilter === 'ALL'
-              ? 'bg-slate-900 text-white shadow-2xs'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
-          }`}
-        >
-          Toutes ({uniqueCities.length})
-        </button>
-        {TOP_MOROCCAN_CITIES.map((city) => {
-          const count = orders.filter((o) => (o.shippingCity || '').toLowerCase().trim() === city.toLowerCase()).length;
+      <div className="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
+        {[
+          { id: 'ALL', label: 'Toutes les commandes', count: tabCounts.ALL, dot: 'bg-slate-500' },
+          { id: 'PENDING', label: 'À Confirmer', count: tabCounts.TO_CONFIRM_COMBINED, dot: 'bg-amber-500' },
+          { id: 'PROCESSING', label: 'En Préparation', count: tabCounts.PROCESSING, dot: 'bg-[#1D9BF0]' },
+          { id: 'SHIPPED', label: 'En Livraison', count: tabCounts.SHIPPED, dot: 'bg-indigo-500' },
+          { id: 'DELIVERED', label: 'Livrées & Encaissées', count: tabCounts.DELIVERED, dot: 'bg-emerald-500' },
+          { id: 'ISSUES', label: 'Refus & Retours', count: tabCounts.ISSUES, dot: 'bg-rose-500' },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
           return (
             <button
-              key={city}
-              onClick={() => setCityFilter(cityFilter === city ? 'ALL' : city)}
-              className={`px-3 py-1 rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                cityFilter === city
-                  ? 'bg-amber-500 text-white font-bold shadow-2xs'
-                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
+                isActive
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <span>{city}</span>
-              {count > 0 && (
-                <span className={`px-1 py-0.2 rounded text-[10px] font-mono font-bold ${
-                  cityFilter === city ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                }`}>
-                  {count}
-                </span>
-              )}
+              <span className={`w-2 h-2 rounded-full ${tab.dot}`} />
+              <span>{tab.label}</span>
+              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
+                isActive ? 'bg-white/20 text-white font-bold' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {tab.count}
+              </span>
             </button>
           );
         })}
       </div>
 
       {/* ========================================================= */}
-      {/* 4. FILTER TABS & WORKFLOW PIPELINE                        */}
+      {/* 4. UNIFIED SEARCH & CITY HUBS TOOLBAR                     */}
       {/* ========================================================= */}
-      <div className="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-1 overflow-x-auto custom-scrollbar">
-        {[
-          { id: 'ALL', label: 'Toutes les commandes', count: tabCounts.ALL, activeBg: 'bg-slate-900 text-white' },
-          { id: 'PENDING', label: 'À Confirmer', count: tabCounts.TO_CONFIRM_COMBINED, activeBg: 'bg-amber-500 text-white' },
-          { id: 'PROCESSING', label: 'En Préparation', count: tabCounts.PROCESSING, activeBg: 'bg-[#1D9BF0] text-white' },
-          { id: 'SHIPPED', label: 'En Livraison', count: tabCounts.SHIPPED, activeBg: 'bg-indigo-600 text-white' },
-          { id: 'DELIVERED', label: 'Livrées & Encaissées', count: tabCounts.DELIVERED, activeBg: 'bg-emerald-600 text-white' },
-          { id: 'ISSUES', label: 'Refus & Retours', count: tabCounts.ISSUES, activeBg: 'bg-rose-600 text-white' },
-        ].map((tab) => (
+      <div className="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-lg">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Rechercher par n° commande, client, ville, tél..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-8 py-2 bg-slate-50/80 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-hidden focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 transition-all font-medium"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Quick Filters Group */}
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            {/* Payment filter */}
+            <div className="flex items-center gap-1.5">
+              <CreditCard size={13} className="text-slate-400 shrink-0" />
+              <select
+                value={paymentFilter}
+                onChange={(e) => setPaymentFilter(e.target.value as any)}
+                className="text-xs bg-slate-50/80 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-hidden focus:border-slate-900 cursor-pointer font-semibold"
+              >
+                <option value="ALL">Tous les règlements</option>
+                <option value="PARTIAL">Avec Acompte versé</option>
+                <option value="PAID">100% Réglé</option>
+                <option value="UNPAID">Paiement livraison (0 DH)</option>
+              </select>
+            </div>
+
+            {/* City dropdown */}
+            <div className="flex items-center gap-1.5">
+              <MapPin size={13} className="text-slate-400 shrink-0" />
+              <select
+                value={cityFilter}
+                onChange={(e) => setCityFilter(e.target.value)}
+                className="text-xs bg-slate-50/80 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-hidden focus:border-slate-900 cursor-pointer font-semibold"
+              >
+                <option value="ALL">Toutes les villes ({uniqueCities.length})</option>
+                {uniqueCities.map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Reset Filter Button */}
+            {(search || cityFilter !== 'ALL' || paymentFilter !== 'ALL' || activeTab !== 'ALL') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setCityFilter('ALL');
+                  setPaymentFilter('ALL');
+                  setActiveTab('ALL');
+                }}
+                className="px-2.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                title="Réinitialiser tous les filtres"
+              >
+                Effacer filtres
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Express City Hubs Row (Compact & Elegant Pills) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-1 border-t border-slate-100 text-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1 shrink-0">
+            <MapPin size={11} className="text-amber-500" />
+            <span>Pôles Express :</span>
+          </span>
+
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeTab === tab.id
-                ? `${tab.activeBg} shadow-2xs`
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            onClick={() => setCityFilter('ALL')}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer ${
+              cityFilter === 'ALL'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/70'
             }`}
           >
-            <span>{tab.label}</span>
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold ${
-              activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-            }`}>
-              {tab.count}
-            </span>
+            Toutes ({uniqueCities.length})
           </button>
-        ))}
+
+          {TOP_MOROCCAN_CITIES.map((city) => {
+            const count = orders.filter((o) => (o.shippingCity || '').toLowerCase().trim() === city.toLowerCase()).length;
+            if (count === 0) return null;
+            const isSelected = cityFilter.toLowerCase() === city.toLowerCase();
+
+            return (
+              <button
+                key={city}
+                onClick={() => setCityFilter(isSelected ? 'ALL' : city)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-amber-500 text-white font-bold shadow-2xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/70'
+                }`}
+              >
+                <span>{city}</span>
+                <span className={`px-1 py-0.2 rounded text-[10px] font-mono font-bold ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-white text-slate-600'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ========================================================= */}
-      {/* 5. SEARCH & ADVANCED FILTERS BAR                          */}
-      {/* ========================================================= */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs">
-        
-        {/* Search Bar */}
-        <div className="relative flex-1 max-w-md">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Rechercher par n° commande, nom client, ville, téléphone..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-8 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-medium"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
-
-        {/* Filters Group */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <CreditCard size={14} className="text-slate-400 shrink-0" />
-            <select
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value as any)}
-              className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-slate-900 cursor-pointer font-medium"
-            >
-              <option value="ALL">Tous les règlements</option>
-              <option value="PARTIAL">Avec Acompte versé</option>
-              <option value="PAID">100% Réglé</option>
-              <option value="UNPAID">Paiement à la livraison (0 DH)</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <MapPin size={14} className="text-slate-400 shrink-0" />
-            <select
-              value={cityFilter}
-              onChange={(e) => setCityFilter(e.target.value)}
-              className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:bg-white focus:outline-none focus:border-slate-900 cursor-pointer font-medium"
-            >
-              <option value="ALL">Toutes les villes ({uniqueCities.length})</option>
-              {uniqueCities.map((city) => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-      </div>
-
-      {/* ========================================================= */}
-      {/* 6. ACTIVE TARGET ORDER SPOTLIGHT BANNER                   */}
+      {/* 5. ACTIVE TARGET ORDER SPOTLIGHT BANNER                   */}
       {/* ========================================================= */}
       {highlightedOrderId && (
         <div className="relative overflow-hidden rounded-2xl border border-sky-400/50 bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white p-4 shadow-2xl backdrop-blur-2xl ring-1 ring-sky-400/25">
@@ -1239,18 +1303,32 @@ function OrdersPageContent() {
       )}
 
       {/* ========================================================= */}
-      {/* 7. ORDERS TABLE WITH COD & SMART WHATSAPP PRESETS         */}
+      {/* 6. ORDERS TABLE WITH COD & SMART WHATSAPP PRESETS         */}
       {/* ========================================================= */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-2xs">
+        {/* Table summary sub-bar */}
+        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs">
+          <span className="font-bold text-slate-700 flex items-center gap-2">
+            <span>Registre des commandes actives</span>
+            <span className="px-2 py-0.5 rounded-md text-[10px] bg-slate-200/80 text-slate-700 font-mono">
+              {filteredOrders.length} affichée(s)
+            </span>
+          </span>
+
+          <span className="text-[11px] text-slate-500 font-mono">
+            Sous-total : <strong className="text-slate-900 font-bold">{formatMAD(filteredOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0))}</strong>
+          </span>
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs border-collapse">
             
-            <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-semibold">
+            <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 text-[11px] uppercase tracking-wider font-bold">
               <tr>
                 <th className="px-4 py-3.5 w-10 text-center">
                   <button
                     onClick={handleToggleSelectAll}
-                    className="text-slate-400 hover:text-slate-900 transition-colors p-1"
+                    className="text-slate-400 hover:text-slate-900 transition-colors p-1 cursor-pointer"
                     title={selectedOrderIds.length === filteredOrders.length ? 'Tout désélectionner' : 'Tout sélectionner'}
                   >
                     {filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length ? (
@@ -1263,31 +1341,33 @@ function OrdersPageContent() {
                 <th className="px-4 py-3.5">Référence & Date</th>
                 <th className="px-4 py-3.5">Client & Confiance</th>
                 <th className="px-4 py-3.5">Destination & Livreur</th>
-                <th className="px-4 py-3.5">Articles & Fragile</th>
+                <th className="px-4 py-3.5">Articles</th>
                 <th className="px-4 py-3.5">Étape Commande</th>
-                <th className="px-4 py-3.5">Total & Reste Livreur</th>
+                <th className="px-4 py-3.5">Total & Règlement Livreur</th>
                 <th className="px-4 py-3.5">Statut</th>
                 <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 text-slate-800">
               {isLoading ? (
                 <tr>
                   <td colSpan={9} className="text-center py-16 text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <RefreshCw size={20} className="animate-spin text-[#1D9BF0]" />
-                      <span className="text-xs font-medium">Chargement des commandes...</span>
+                      <RefreshCw size={20} className="animate-spin text-amber-500" />
+                      <span className="text-xs font-semibold">Chargement des commandes...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-16 text-slate-400">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <ShoppingBag size={28} className="text-slate-300" />
-                      <span className="font-semibold text-slate-700 text-sm">Aucune commande trouvée</span>
-                      <p className="text-xs text-slate-400 max-w-sm">
+                    <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                        <ShoppingBag size={24} />
+                      </div>
+                      <span className="font-bold text-slate-800 text-sm">Aucune commande trouvée</span>
+                      <p className="text-xs text-slate-400">
                         Modifiez votre recherche ou vos filtres pour afficher des résultats.
                       </p>
                     </div>
@@ -1322,11 +1402,11 @@ function OrdersPageContent() {
                       key={order.id}
                       id={`order-row-${order.id}`}
                       onClick={() => setEditingOrder(order)}
-                      className={`transition-all duration-200 cursor-pointer group relative ${
-                        isSelected ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-slate-50/80'
+                      className={`transition-colors duration-150 cursor-pointer group relative ${
+                        isSelected ? 'bg-amber-50/50 hover:bg-amber-50/70' : 'hover:bg-slate-50/90'
                       } ${
                         isTargetHighlighted
-                          ? 'bg-sky-50/80 border-l-[4px] border-l-[#0ea5e9] shadow-sm'
+                          ? 'bg-sky-50/80 border-l-[4px] border-l-[#0ea5e9]'
                           : ''
                       }`}
                     >
@@ -1335,7 +1415,7 @@ function OrdersPageContent() {
                       <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => handleToggleSelectOne(order.id, e)}
-                          className="text-slate-400 hover:text-slate-900 transition-colors p-1"
+                          className="text-slate-400 hover:text-slate-900 transition-colors p-1 cursor-pointer"
                         >
                           {isSelected ? (
                             <CheckSquare size={16} className="text-amber-600" />
@@ -1347,8 +1427,8 @@ function OrdersPageContent() {
 
                       {/* Ref & Date */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-mono font-bold transition-all ${
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-mono font-bold transition-colors ${
                             isTargetHighlighted
                               ? 'text-[#0ea5e9] text-sm font-black'
                               : 'text-slate-900 group-hover:text-amber-600'
@@ -1357,7 +1437,7 @@ function OrdersPageContent() {
                           </span>
                           <button
                             onClick={(e) => handleCopyRef(order.orderNumber, e)}
-                            className="p-1 text-slate-300 hover:text-slate-600 rounded hover:bg-slate-100 transition-colors opacity-0 group-hover:opacity-100"
+                            className="p-1 text-slate-300 hover:text-slate-600 rounded hover:bg-slate-100 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                             title="Copier la référence"
                           >
                             {copiedRef === order.orderNumber ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
@@ -1368,21 +1448,27 @@ function OrdersPageContent() {
                         </div>
                       </td>
 
-                      {/* Customer & Anti-RTS Reliability */}
+                      {/* Customer & Reliability */}
                       <td className="px-4 py-3.5">
-                        <div className="font-semibold text-slate-900 flex items-center gap-1.5">
+                        <div className="font-bold text-slate-900 flex items-center gap-1.5">
                           <span>{order.customerName}</span>
                         </div>
                         
-                        <div className="flex items-center gap-2 mt-1 text-[11px]">
+                        <div className="flex items-center gap-1.5 mt-1 text-[11px] flex-wrap">
                           {order.customerPhone ? (
-                            <span className="font-mono text-slate-600">{order.customerPhone}</span>
+                            <a
+                              href={`tel:${order.customerPhone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-mono text-slate-600 hover:text-slate-900 hover:underline"
+                            >
+                              {order.customerPhone}
+                            </a>
                           ) : (
                             <span className="italic text-slate-400">Sans tél</span>
                           )}
 
                           {/* Anti-RTS Trust Badge */}
-                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${trustScore.badge}`} title={trustScore.desc}>
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold border ${trustScore.badge}`} title={trustScore.desc}>
                             <TrustIcon size={10} />
                             <span>{trustScore.label}</span>
                           </span>
@@ -1391,26 +1477,26 @@ function OrdersPageContent() {
 
                       {/* Destination & Carrier */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-800 font-bold text-xs">
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 font-bold text-xs">
                           <MapPin size={11} className="text-amber-500" />
                           <span>{order.shippingCity || 'Casablanca'}</span>
                         </div>
                         <div className="text-[10.5px] text-slate-500 mt-1 flex items-center gap-1">
-                          <Truck size={10} className="text-slate-400" />
-                          <span>{order.carrier || 'Cathedis'}</span>
+                          <Truck size={11} className="text-slate-400" />
+                          <span className="font-medium">{order.carrier || 'Cathedis'}</span>
                           {order.trackingNumber && (
                             <span className="font-mono text-[10px] text-slate-400">({order.trackingNumber})</span>
                           )}
                         </div>
                       </td>
 
-                      {/* Items */}
+                      {/* Articles */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="font-semibold text-slate-800 flex items-center gap-1.5">
-                          <Package size={13} className="text-slate-400" />
+                        <div className="font-bold text-slate-800 flex items-center gap-1.5">
+                          <Package size={13} className="text-amber-500" />
                           <span>{itemsCount} flacon(s)</span>
                         </div>
-                        <div className="text-[11px] text-slate-400 truncate max-w-[140px] mt-0.5">
+                        <div className="text-[11px] text-slate-500 truncate max-w-[150px] mt-0.5" title={itemsSummary}>
                           {itemsSummary}
                         </div>
                       </td>
@@ -1426,7 +1512,7 @@ function OrdersPageContent() {
 
                       {/* Total & Clear COD Split (Anti-Erreur Livreur) */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="font-bold text-slate-900 text-xs">
+                        <div className="font-black text-slate-900 font-mono text-sm">
                           {formatMAD(order.total)}
                         </div>
                         <div className="text-[10px] text-slate-500 font-medium">
@@ -1466,7 +1552,7 @@ function OrdersPageContent() {
                           <select
                             value={order.status === 'confirmed' ? 'processing' : order.status}
                             onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                            className={`w-full appearance-none pl-2.5 pr-6 py-1.5 rounded-xl text-[11px] font-bold border cursor-pointer focus:outline-none transition-all ${stConfig.bg} ${stConfig.text} ${stConfig.border}`}
+                            className={`w-full appearance-none pl-2.5 pr-6 py-1.5 rounded-xl text-[11px] font-bold border cursor-pointer focus:outline-hidden transition-all shadow-2xs ${stConfig.bg} ${stConfig.text} ${stConfig.border}`}
                           >
                             {getStatusOptions(jobProfile).map((opt) => (
                               <option key={opt.value} value={opt.value}>
@@ -1485,13 +1571,12 @@ function OrdersPageContent() {
                       <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           
-
                           {/* WhatsApp Smart Presets Dropdown */}
                           <div className="relative whatsapp-dropdown-container">
                             <button
                               onClick={() => setOpenWhatsAppMenuId(openWhatsAppMenuId === order.id ? null : order.id)}
-                              className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all cursor-pointer"
-                              title="Messages WhatsApp pré-rédigés"
+                              className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                              title="Messages WhatsApp pré-rédigés Maison NAY"
                             >
                               <MessageCircle size={13} className="text-emerald-600" />
                               <ChevronDown size={11} className="opacity-70" />
@@ -1540,7 +1625,7 @@ function OrdersPageContent() {
                                   className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-medium transition-colors"
                                 >
                                   <MapPin size={13} className="text-indigo-500 shrink-0" />
-                                  <span>4. Demande de localisation GPS</span>
+                                  <span>4. Demande localisation GPS</span>
                                 </a>
                                 <a
                                   href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'UNREACHABLE')}
@@ -1559,7 +1644,7 @@ function OrdersPageContent() {
                           {/* Details Button */}
                           <button
                             onClick={() => setEditingOrder(order)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-all font-bold text-xs cursor-pointer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-black text-white transition-all font-bold text-xs cursor-pointer shadow-2xs"
                           >
                             <Eye size={12} />
                             <span>Fiche</span>
