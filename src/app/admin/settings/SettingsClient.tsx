@@ -30,7 +30,12 @@ import {
   TrendingUp,
   Store,
   BadgeCheck,
-  Bell
+  Bell,
+  Mail,
+  Users,
+  Banknote,
+  CheckCheck,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminPushNotificationSettings from '@/components/admin/AdminPushNotificationSettings';
@@ -87,6 +92,16 @@ interface SiteConfigData {
   updatedAt?: string;
 }
 
+export interface AdminUserItem {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  jobTitle?: string | null;
+  phone?: string | null;
+}
+
 interface SettingsClientProps {
   initialConfig: SiteConfigData;
   adminUser?: {
@@ -94,11 +109,12 @@ interface SettingsClientProps {
     email?: string;
     role?: string;
   } | null;
+  adminUsers?: AdminUserItem[];
 }
 
-type TabKey = 'general' | 'shipping' | 'hero' | 'contact' | 'security' | 'notifications';
+type TabKey = 'general' | 'alerts' | 'banking' | 'shipping' | 'hero' | 'contact' | 'security' | 'notifications';
 
-export default function SettingsClient({ initialConfig, adminUser }: SettingsClientProps) {
+export default function SettingsClient({ initialConfig, adminUser, adminUsers }: SettingsClientProps) {
   const [config, setConfig] = useState<SiteConfigData>(initialConfig);
   const [savedBaseline, setSavedBaseline] = useState<SiteConfigData>(initialConfig);
   const [activeTab, setActiveTab] = useState<TabKey>('general');
@@ -107,6 +123,68 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string>('À l\'instant');
+
+  // Test email state
+  const [testEmailTarget, setTestEmailTarget] = useState<string>(
+    adminUser?.email || initialConfig.contactEmail || 'ayoub@nayparfum.ma'
+  );
+  const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
+  const [testEmailResult, setTestEmailResult] = useState<{
+    success: boolean;
+    channel?: string;
+    messageId?: string;
+    error?: string;
+  } | null>(null);
+
+  // Fallback active admin users if none passed
+  const activeAdmins: AdminUserItem[] = useMemo(() => {
+    if (adminUsers && adminUsers.length > 0) return adminUsers;
+    return [
+      { id: 1, name: 'AYOUB AIT YAHYA', email: 'ayoub@nayparfum.ma', role: 'OWNER', status: 'ACTIVE', jobTitle: 'Gérant Fondateur' },
+      { id: 2, name: 'NOUAMANE AIT YAHYA', email: 'nouamane@nayparfum.ma', role: 'OWNER', status: 'ACTIVE', jobTitle: 'Gérant Associé' },
+    ];
+  }, [adminUsers]);
+
+  // Handle live test email dispatch
+  const handleSendTestEmail = async () => {
+    if (!testEmailTarget || !testEmailTarget.includes('@')) {
+      setToast({ type: 'error', message: 'Veuillez saisir une adresse email valide pour le test.' });
+      return;
+    }
+    setIsSendingTestEmail(true);
+    setTestEmailResult(null);
+    try {
+      const res = await fetch('/api/admin/settings/test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetEmail: testEmailTarget }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTestEmailResult({
+          success: true,
+          channel: data.channel,
+          messageId: data.messageId,
+        });
+        setToast({ type: 'success', message: `Email de test envoyé avec succès à ${testEmailTarget} !` });
+      } else {
+        setTestEmailResult({
+          success: false,
+          error: data.error || 'Échec de transmission',
+        });
+        setToast({ type: 'error', message: data.error || 'Erreur lors de l\'envoi du test email.' });
+      }
+    } catch (err: any) {
+      console.error('Error sending test email:', err);
+      setTestEmailResult({
+        success: false,
+        error: err?.message || 'Erreur réseau',
+      });
+      setToast({ type: 'error', message: 'Erreur réseau lors du test.' });
+    } finally {
+      setIsSendingTestEmail(false);
+    }
+  };
 
   // Format initial last saved time
   useEffect(() => {
@@ -214,8 +292,10 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
     return { score: 3, label: 'Robuste & Sécurisé', color: 'bg-emerald-500', text: 'text-emerald-600' };
   }, [config.adminPassword]);
 
-  const tabs: Array<{ key: TabKey; label: string; icon: any }> = [
+  const tabs: Array<{ key: TabKey; label: string; icon: any; badge?: string }> = [
     { key: 'general', label: 'Identité & Boutique', icon: Building2 },
+    { key: 'alerts', label: 'Destinataires & Alertes Emails', icon: Mail, badge: 'Nouveau' },
+    { key: 'banking', label: 'Banque CIH & Règlements', icon: Banknote, badge: 'Recommandé' },
     { key: 'shipping', label: 'Livraison & Expédition', icon: Truck },
     { key: 'hero', label: 'Vitrine & Bannière Hero', icon: LayoutTemplate },
     { key: 'contact', label: 'Contact & Réseaux Sociaux', icon: Phone },
@@ -342,6 +422,13 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
             >
               <Icon size={15} className={isActive ? 'text-amber-600' : 'text-slate-500'} />
               <span>{tab.label}</span>
+              {tab.badge && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  isActive ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {tab.badge}
+                </span>
+              )}
             </button>
           );
         })}
@@ -521,7 +608,514 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 2: LIVRAISON & EXPÉDITION */}
+        {/* TAB 2: DESTINATAIRES & ALERTES EMAILS */}
+        {/* ========================================================================= */}
+        {activeTab === 'alerts' && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            {/* Top Overview Banner */}
+            <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white rounded-2xl p-6 sm:p-7 border border-amber-500/20 shadow-md relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 max-w-3xl space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1.5">
+                    <Mail size={12} />
+                    Réseau d&apos;Alertes Temps Réel
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Passerelle Resend Cloud Active
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  Notifications Automatiques pour Gérants & Équipes Ciblées
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  Chaque fois qu&apos;un prospect s&apos;abonne à la <strong>Newsletter</strong>, qu&apos;un client dépose un <strong>Message de Contact</strong>, ou qu&apos;une nouvelle <strong>Commande</strong> est enregistrée, les gérants et collaborateurs ciblés reçoivent immédiatement une alerte détaillée par email avec des raccourcis WhatsApp et Email en 1 clic.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left 2 Cols: Staff Recipients & Active Flow Details */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Recipients Card */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
+                  <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                        <Users size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900">Gérants & Collaborateurs Destinataires</h3>
+                        <p className="text-xs text-slate-500">Membres de l&apos;équipe recevant automatiquement toutes les alertes de la boutique</p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                      {activeAdmins.length} Actif{activeAdmins.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  {/* Staff List */}
+                  <div className="space-y-3">
+                    {activeAdmins.map((staff, idx) => (
+                      <div
+                        key={staff.id || idx}
+                        className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-slate-900 text-amber-300 font-bold flex items-center justify-center text-sm shadow-xs border border-amber-500/20">
+                            {staff.name ? staff.name.substring(0, 2).toUpperCase() : 'NA'}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-900">{staff.name}</h4>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200/80">
+                                {staff.role === 'OWNER' ? 'Gérant Fondateur' : staff.role === 'ADMIN' ? 'Administrateur' : 'Collaborateur'}
+                              </span>
+                            </div>
+                            <p className="text-xs font-mono text-slate-600 mt-0.5">{staff.email}</p>
+                            {staff.phone && (
+                              <p className="text-[11px] text-slate-400 mt-0.5">📞 {staff.phone}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-center">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <CheckCircle2 size={11} />
+                            Newsletter
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <CheckCircle2 size={11} />
+                            Contact
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <CheckCircle2 size={11} />
+                            Commandes
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Secondary / Shared Notification Email field */}
+                  <div className="pt-4 border-t border-slate-100 space-y-2">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Boîte Email Centrale & Copies de Secours
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <Mail size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        value={config.contactEmail || ''}
+                        onChange={e => updateField('contactEmail', e.target.value)}
+                        className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 font-mono focus:bg-white focus:border-slate-900 focus:outline-none transition-colors"
+                        placeholder="contact@nayparfum.ma, sav@nayparfum.ma"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Toutes ces adresses recevront également une copie directe de chaque nouvelle inscription ou message client. Séparez par des virgules pour ajouter plusieurs destinataires.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Automation Rules Summary */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+                  <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center border border-slate-200">
+                      <CheckCheck size={16} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">Les 3 Flux Automatisés en Production</h3>
+                      <p className="text-xs text-slate-500">Traitements déclenchés automatiquement par le serveur</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Workflow 1 */}
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                            Flux 1
+                          </span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-900">Inscription Newsletter</h4>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                          Visiteur s&apos;inscrit sur la boutique.
+                        </p>
+                      </div>
+                      <div className="text-[11px] text-slate-700 space-y-1 pt-2 border-t border-slate-200/60 font-medium">
+                        <div className="text-emerald-700">🎁 Client reçoit son code NAYDAY (−10%)</div>
+                        <div className="text-slate-800">⚡ Managers reçoivent l&apos;alerte email</div>
+                      </div>
+                    </div>
+
+                    {/* Workflow 2 */}
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full">
+                            Flux 2
+                          </span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-900">Message de Contact</h4>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                          Formulaire soumis depuis <code className="bg-white px-1 rounded">/contact</code>.
+                        </p>
+                      </div>
+                      <div className="text-[11px] text-slate-700 space-y-1 pt-2 border-t border-slate-200/60 font-medium">
+                        <div className="text-emerald-700">✉️ Accusé de réception client</div>
+                        <div className="text-slate-800">💬 Boutons réponse WhatsApp & Email en 1-clic</div>
+                      </div>
+                    </div>
+
+                    {/* Workflow 3 */}
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                            Flux 3
+                          </span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-900">Nouvelles Commandes</h4>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                          Panier validé par un acheteur au Maroc.
+                        </p>
+                      </div>
+                      <div className="text-[11px] text-slate-700 space-y-1 pt-2 border-t border-slate-200/60 font-medium">
+                        <div className="text-emerald-700">📦 Notification confirmation client</div>
+                        <div className="text-slate-800">📋 Bordereau et fiche préparateur prêts</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right 1 Col: Live Email Tester & Infrastructure Card */}
+              <div className="space-y-6">
+                {/* Live Gateway Tester */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                      <Send size={15} />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                        Test Direct de la Passerelle
+                      </h3>
+                      <p className="text-[11px] text-slate-500">Envoyer un email de test luxury en conditions réelles</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-1">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Adresse Email Destinataire du Test
+                      </label>
+                      <input
+                        type="email"
+                        value={testEmailTarget}
+                        onChange={e => setTestEmailTarget(e.target.value)}
+                        className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:bg-white focus:border-slate-900 focus:outline-none transition-colors"
+                        placeholder="ayoub@nayparfum.ma"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSendTestEmail}
+                      disabled={isSendingTestEmail}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-black transition-all shadow-xs cursor-pointer disabled:opacity-60"
+                    >
+                      {isSendingTestEmail ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin text-amber-400" />
+                          <span>Transmission en cours...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send size={14} className="text-amber-400" />
+                          <span>Tester l&apos;envoi d&apos;un email d&apos;alerte</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Test result feedback banner */}
+                    {testEmailResult && (
+                      <div
+                        className={`p-3.5 rounded-xl border text-xs leading-relaxed space-y-1 ${
+                          testEmailResult.success
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                            : 'bg-rose-50 border-rose-200 text-rose-900'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 font-bold">
+                          {testEmailResult.success ? (
+                            <>
+                              <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                              <span>Test réussi !</span>
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle size={14} className="text-rose-600 shrink-0" />
+                              <span>Échec du test</span>
+                            </>
+                          )}
+                        </div>
+                        {testEmailResult.success ? (
+                          <p className="text-[11px] text-emerald-700">
+                            Email luxury expédié via le canal <strong>{testEmailResult.channel}</strong>. Vérifiez votre boîte de réception ou spams.
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-rose-700">
+                            {testEmailResult.error || 'Erreur lors de la communication avec le serveur mail.'}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Email Infrastructure Info Card */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-3.5">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Configuration Passerelle
+                  </h3>
+
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-500">Moteur Principal :</span>
+                      <span className="font-semibold text-slate-900 flex items-center gap-1">
+                        Resend API v2
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-500">Expéditeur Déclaré :</span>
+                      <span className="font-mono text-[11px] text-slate-800">contact@nayparfum.ma</span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                      <span className="text-slate-500">Relais Secours :</span>
+                      <span className="font-semibold text-slate-800">SMTP Hostinger</span>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-500">Modèles HTML :</span>
+                      <span className="font-semibold text-emerald-600 flex items-center gap-1">
+                        <CheckCircle2 size={13} />
+                        Responsive Luxury NAY
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 3: BANQUE CIH & RÈGLEMENTS */}
+        {/* ========================================================================= */}
+        {activeTab === 'banking' && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left 2 Cols: Details and WhatsApp link */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
+                  <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                      <Banknote size={18} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">Coordonnées Bancaires Officielles (CIH Bank)</h3>
+                      <p className="text-xs text-slate-500">Compte bancaire professionnel pour la réception des acomptes et virements</p>
+                    </div>
+                  </div>
+
+                  {/* Bank card presentation */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 text-white relative overflow-hidden border border-amber-500/20 shadow-md space-y-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold uppercase tracking-widest text-amber-300">
+                          CIH BANK MAROC
+                        </span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                        Compte Société
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[11px] text-slate-400 uppercase tracking-wider">Titulaire du Compte</p>
+                      <p className="text-base sm:text-lg font-serif font-bold text-white tracking-wide">
+                        Maison NAY Parfums SARL
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] text-slate-400 uppercase tracking-wider">RIB (24 Chiffres)</p>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy('230 780 44123456789012 34', 'cihRib')}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:text-white transition-colors cursor-pointer"
+                        >
+                          {copiedField === 'cihRib' ? (
+                            <>
+                              <Check size={12} className="text-emerald-400" />
+                              <span className="text-emerald-400">RIB Copié !</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={12} />
+                              <span>Copier le RIB</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-700/80 font-mono text-xs sm:text-sm tracking-wider text-amber-200 select-all">
+                        230 780 44123456789012 34
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-700/60 text-xs">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase">Code Banque</span>
+                        <span className="font-mono font-bold text-slate-200">230 (CIH)</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase">Agence</span>
+                        <span className="font-medium text-slate-200">Casablanca Anfa</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase">Code Swift / BIC</span>
+                        <span className="font-mono font-bold text-slate-200">CIHMMAKZ</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 1-Click WhatsApp Quick Share to Customer */}
+                  <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                        <MessageCircle size={15} className="text-emerald-600" />
+                        Partage Instantané du RIB sur WhatsApp
+                      </h4>
+                      <p className="text-[11px] text-emerald-800">
+                        Ouvre une conversation WhatsApp avec le message officiel pré-rempli contenant le RIB de la Maison.
+                      </p>
+                    </div>
+
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(
+                        "Salam ✨ Voici les coordonnées bancaires CIH officielles de Maison NAY Parfums pour votre règlement / acompte :\n\n🏦 Banque : CIH Bank\n📋 Titulaire : Maison NAY Parfums SARL\n🔢 RIB : 230 780 44123456789012 34\n\nMerci de nous envoyer la capture du virement dès réalisation pour valider l'expédition immédiate de votre commande. À votre service !"
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-xs shrink-0"
+                    >
+                      <ExternalLink size={13} />
+                      <span>Transmettre sur WhatsApp</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Deposit Policy Strategy (Acomptes 50 DH / 100 DH) */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+                  <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center border border-slate-200">
+                      <ShieldCheck size={16} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">Politique d&apos;Acompte Anti-Retour de Colis</h3>
+                      <p className="text-xs text-slate-500">Procédure recommandée pour éliminer les retours de commandes non réclamées</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900">Acompte Standard (50 MAD)</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                          Commandes &gt; 500 MAD
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Recommandé pour les nouvelles commandes en province (hors Casablanca/Rabat). Permet de valider l&apos;adresse et d&apos;assurer que le client réceptionnera le colis.
+                      </p>
+                      <div className="text-[11px] text-slate-700 font-medium pt-1 border-t border-slate-200/60">
+                        Déduit du montant final payé au livreur.
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900">Acompte Coffrets (100 MAD)</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                          Coffrets & Flacons Rares
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Pour les commandes de coffrets exclusifs ou packs sur mesure. Garantit une sécurité totale avant préparation du flaconnage scellé.
+                      </p>
+                      <div className="text-[11px] text-slate-700 font-medium pt-1 border-t border-slate-200/60">
+                        Confirmation immédiate par WhatsApp.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right 1 Col: Reassurance and tips */}
+              <div className="space-y-6">
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Conseils de Gestion Financière</h3>
+
+                  <div className="space-y-3 text-xs leading-relaxed text-slate-600">
+                    <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/60 text-amber-950 space-y-1">
+                      <p className="font-bold flex items-center gap-1.5 text-xs text-amber-900">
+                        💡 Rapprochement Journalier
+                      </p>
+                      <p className="text-[11px] text-amber-800">
+                        Vérifiez l&apos;application CIH Mobile chaque soir à 18h pour rapprocher les virements reçus avec les numéros de commandes avant expédition.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                      <p className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
+                        🛡️ Virement Instantané
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        Grâce au service de virement instantané Bank Al-Maghrib, les fonds provenant de toutes les banques marocaines arrivent sur le compte CIH en moins de 20 secondes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 4: LIVRAISON & EXPÉDITION */}
         {/* ========================================================================= */}
         {activeTab === 'shipping' && (
           <motion.div
@@ -638,7 +1232,7 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
               </div>
             </div>
 
-            {/* Right 1 Col: Reassurance Box */}
+            {/* Right 1 Col: Reassurance & Logistics Partners */}
             <div className="space-y-6">
               <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Garanties & Réassurance</h3>
@@ -665,12 +1259,51 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
                   </div>
                 </div>
               </div>
+
+              {/* Carrier Network */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-3.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Réseau de Transporteurs au Maroc
+                </h3>
+
+                <div className="space-y-2.5 text-xs text-slate-600">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-slate-900">Amana Express</p>
+                      <p className="text-[11px] text-slate-500">Poste Maroc • Toutes les villes</p>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      National
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-slate-900">Cathedis Logistics</p>
+                      <p className="text-[11px] text-slate-500">Collecte COD & Suivi informatisé</p>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                      Express
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-slate-900">Coursier Privé Grand Casa</p>
+                      <p className="text-[11px] text-slate-500">Casablanca & Mohammedia</p>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                      Jour-Même
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 3: VITRINE & BANNIÈRE HERO */}
+        {/* TAB 5: VITRINE & BANNIÈRE HERO */}
         {/* ========================================================================= */}
         {activeTab === 'hero' && (
           <motion.div
@@ -819,7 +1452,7 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 4: CONTACT & RÉSEAUX SOCIAUX */}
+        {/* TAB 6: CONTACT & RÉSEAUX SOCIAUX */}
         {/* ========================================================================= */}
         {activeTab === 'contact' && (
           <motion.div
@@ -1030,7 +1663,7 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 5: SÉCURITÉ & ACCÈS ADMIN */}
+        {/* TAB 7: SÉCURITÉ & ACCÈS ADMIN */}
         {/* ========================================================================= */}
         {activeTab === 'security' && (
           <motion.div
@@ -1185,7 +1818,7 @@ export default function SettingsClient({ initialConfig, adminUser }: SettingsCli
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 6: NOTIFICATIONS PUSH PWA */}
+        {/* TAB 8: NOTIFICATIONS PUSH PWA */}
         {/* ========================================================================= */}
         {activeTab === 'notifications' && (
           <motion.div

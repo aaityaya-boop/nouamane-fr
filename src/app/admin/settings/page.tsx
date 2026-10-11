@@ -41,6 +41,19 @@ export default async function SettingsPage() {
     updatedAt: config.updatedAt ? config.updatedAt.toISOString() : undefined,
   };
 
+  const adminUsers = await prisma.adminUser.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      jobTitle: true,
+      phone: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
   return (
     <SettingsClient
       initialConfig={serializedConfig}
@@ -49,6 +62,7 @@ export default async function SettingsPage() {
         email: admin.email,
         role: admin.role,
       }}
+      adminUsers={adminUsers}
     />
   );
 }

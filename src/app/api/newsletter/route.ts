@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { sendNaydayWelcomeEmail } from '@/lib/email/emailService';
+import { sendNaydayWelcomeEmail, sendAdminNewsletterAlert } from '@/lib/email/emailService';
 
 export async function POST(req: Request) {
   try {
@@ -25,11 +25,18 @@ export async function POST(req: Request) {
       data: { email: cleanEmail },
     });
 
-    // Send NAYDAY promotional welcome email automatically
+    // Send NAYDAY promotional welcome email automatically to subscriber
     try {
       await sendNaydayWelcomeEmail(cleanEmail);
     } catch (emailErr) {
       console.error('Error sending welcome email to subscriber:', emailErr);
+    }
+
+    // Send internal alert to managers and targeted staff
+    try {
+      await sendAdminNewsletterAlert(cleanEmail);
+    } catch (alertErr) {
+      console.error('Error sending newsletter alert to managers:', alertErr);
     }
 
     // Track Affiliate Lead if referral cookie is present

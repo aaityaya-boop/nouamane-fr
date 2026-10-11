@@ -179,96 +179,173 @@ export interface SendEmailResult {
 }
 
 /**
- * Dispatch welcome email with NAYDAY promotion
+ * Universal email dispatcher (tries Resend -> SMTP -> Simulation)
+ */
+export async function dispatchGenericEmail({
+  to,
+  subject,
+  html,
+  text,
+}: {
+  to: string | string[];
+  subject: string;
+  html: string;
+  text?: string;
+}): Promise<SendEmailResult> {
+  const recipients = Array.isArray(to) ? to : [to];
+  const cleanRecipients = recipients
+    .map((e) => (e || '').trim().toLowerCase())
+    .filter((e) => e.includes('@'));
+
+  if (cleanRecipients.length === 0) {
+    return { success: false, channel: 'SIMULATED', error: 'Aucun destinataire email valide' };
+  }
+
+  let providerError: string | null = null;
+
+  // 1. Try Resend if API key is provided
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const fromAddress = process.env.EMAIL_FROM || 'NAY Parfum <contact@nayparfum.ma>';
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: fromAddress,
+          to: cleanRecipients,
+          subject,
+          html,
+          text: text || undefined,
+        }),
+      });
+
+      const resData = await res.json();
+      if (res.ok && resData.id) {
+        return { success: true, channel: 'RESEND', messageId: resData.id };
+      } else {
+        providerError = resData.message || (typeof resData === 'string' ? resData : JSON.stringify(resData));
+        console.warn('Resend API returned error, falling back:', resData);
+      }
+    } catch (resendErr: any) {
+      providerError = resendErr?.message || 'Erreur réseau Resend';
+      console.error('Resend dispatch failed:', resendErr);
+    }
+  }
+
+  // 2. Try SMTP via Nodemailer
+  const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_SERVER_HOST;
+  const smtpUser = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
+  const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
+  const smtpPort = Number(process.env.SMTP_PORT || process.env.EMAIL_SERVER_PORT || 465);
+
+  if (smtpHost && smtpUser && smtpPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      const info = await transporter.sendMail({
+        from: process.env.EMAIL_FROM || `NAY Parfum <${smtpUser}>`,
+        to: cleanRecipients.join(', '),
+        subject,
+        html,
+        text: text || undefined,
+      });
+
+      return { success: true, channel: 'SMTP', messageId: info.messageId };
+    } catch (smtpErr: any) {
+      providerError = smtpErr?.message || 'Erreur SMTP';
+      console.error('SMTP dispatch failed:', smtpErr);
+    }
+  }
+
+  // 3. Fallback: Simulation / Local Log
+  console.log(`[SIMULATED EMAIL] To: ${cleanRecipients.join(', ')} | Subject: ${subject}`);
+  return {
+    success: true,
+    channel: 'SIMULATED',
+    messageId: `sim_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+    error: providerError || undefined,
+  };
+}
+
+/**
+ * Get emails of managers and targeted employees
+ */
+export async function getStaffNotificationRecipients(): Promise<string[]> {
+  const emails = new Set<string>();
+
+  try {
+    // 1. Fetch active managers and staff
+    const admins = await prisma.adminUser.findMany({
+      where: {
+        status: 'ACTIVE',
+      },
+      select: { email: true, role: true },
+    });
+
+    admins.forEach((a) => {
+      if (a.email && a.email.includes('@')) {
+        emails.add(a.email.trim().toLowerCase());
+      }
+    });
+
+    // 2. Fetch contactEmail from SiteConfig
+    const config = await prisma.siteConfig.findFirst({
+      select: { contactEmail: true },
+    });
+
+    if (config?.contactEmail) {
+      config.contactEmail.split(',').forEach((em) => {
+        const clean = em.trim().toLowerCase();
+        if (clean.includes('@')) {
+          emails.add(clean);
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error querying staff notification recipients:', err);
+  }
+
+  // Guaranteed fallback to managers if DB empty
+  if (emails.size === 0) {
+    emails.add('ayoub@nayparfum.ma');
+    emails.add('nouamane@nayparfum.ma');
+    emails.add('contact@nayparfum.ma');
+  }
+
+  return Array.from(emails);
+}
+
+/**
+ * Dispatch welcome email with NAYDAY promotion to subscriber
  */
 export async function sendNaydayWelcomeEmail(recipientEmail: string): Promise<SendEmailResult> {
   const cleanEmail = recipientEmail.trim().toLowerCase();
-  let providerError: string | null = null;
 
   try {
-    // 1. Try Resend if API key is provided
-    if (process.env.RESEND_API_KEY) {
-      try {
-        const fromAddress = process.env.EMAIL_FROM || 'NAY Parfum <contact@nayparfum.ma>';
-        const res = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: fromAddress,
-            to: [cleanEmail],
-            subject: NAYDAY_EMAIL_SUBJECT,
-            html: NAYDAY_EMAIL_HTML,
-          }),
-        });
+    const result = await dispatchGenericEmail({
+      to: cleanEmail,
+      subject: NAYDAY_EMAIL_SUBJECT,
+      html: NAYDAY_EMAIL_HTML,
+    });
 
-        const resData = await res.json();
-        if (res.ok && resData.id) {
-          await updateSubscriberStatus(cleanEmail, true, 'SENT', null);
-          return { success: true, channel: 'RESEND', messageId: resData.id };
-        } else {
-          providerError = resData.message || (typeof resData === 'string' ? resData : JSON.stringify(resData));
-          console.warn('Resend API returned error, falling back:', resData);
-        }
-      } catch (resendErr: any) {
-        providerError = resendErr?.message || 'Erreur réseau Resend';
-        console.error('Resend dispatch failed:', resendErr);
-      }
+    if (result.success) {
+      await updateSubscriberStatus(cleanEmail, true, result.channel === 'SIMULATED' ? 'SIMULATED' : 'SENT', null);
+    } else {
+      await updateSubscriberStatus(cleanEmail, false, 'FAILED', result.error || 'Échec envoi');
     }
 
-    // 2. Try SMTP via Nodemailer
-    const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_SERVER_HOST;
-    const smtpUser = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
-    const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
-    const smtpPort = Number(process.env.SMTP_PORT || process.env.EMAIL_SERVER_PORT || 465);
-
-    if (smtpHost && smtpUser && smtpPass) {
-      try {
-        const transporter = nodemailer.createTransport({
-          host: smtpHost,
-          port: smtpPort,
-          secure: smtpPort === 465,
-          auth: {
-            user: smtpUser,
-            pass: smtpPass,
-          },
-        });
-
-        const info = await transporter.sendMail({
-          from: process.env.EMAIL_FROM || `NAY Parfum <${smtpUser}>`,
-          to: cleanEmail,
-          subject: NAYDAY_EMAIL_SUBJECT,
-          html: NAYDAY_EMAIL_HTML,
-        });
-
-        await updateSubscriberStatus(cleanEmail, true, 'SENT', null);
-        return { success: true, channel: 'SMTP', messageId: info.messageId };
-      } catch (smtpErr: any) {
-        providerError = smtpErr?.message || 'Erreur SMTP';
-        console.error('SMTP dispatch failed:', smtpErr);
-      }
-    }
-
-    // If an external provider was configured (e.g. Resend) but returned an error
-    if (providerError) {
-      await updateSubscriberStatus(cleanEmail, false, 'FAILED', providerError);
-      return {
-        success: false,
-        channel: 'RESEND',
-        error: providerError,
-      };
-    }
-
-    // 3. Fallback: Simulation/Prepared (no external provider yet configured)
-    console.log(`[NAYDAY WELCOME EMAIL] Prepared & ready for ${cleanEmail} (Subject: ${NAYDAY_EMAIL_SUBJECT})`);
-    await updateSubscriberStatus(cleanEmail, true, 'SIMULATED', null);
-    return {
-      success: true,
-      channel: 'SIMULATED',
-      messageId: `sim_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-    };
+    return result;
   } catch (error: any) {
     console.error('Error dispatching NAYDAY welcome email:', error);
     await updateSubscriberStatus(cleanEmail, false, 'FAILED', error?.message || 'Erreur inconnue');
@@ -278,6 +355,285 @@ export async function sendNaydayWelcomeEmail(recipientEmail: string): Promise<Se
       error: error?.message || 'Erreur interne envoi email',
     };
   }
+}
+
+/**
+ * Send alert email to managers & targeted employees when a new subscriber signs up
+ */
+export async function sendAdminNewsletterAlert(subscriberEmail: string): Promise<SendEmailResult> {
+  const cleanEmail = subscriberEmail.trim().toLowerCase();
+  const staffRecipients = await getStaffNotificationRecipients();
+  const nowStr = new Date().toLocaleString('fr-FR', {
+    timeZone: 'Africa/Casablanca',
+    dateStyle: 'full',
+    timeStyle: 'medium',
+  });
+
+  const subject = `✨ Nouvel Abonné Newsletter — ${cleanEmail}`;
+
+  const html = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin:0; padding:0; background:#f4f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#0f172a; }
+  .box { max-width:580px; margin:24px auto; background:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #e2e8f0; }
+  .header { background:#0f172a; padding:24px 28px; color:#ffffff; }
+  .badge { display:inline-block; background:rgba(245,158,11,0.2); color:#fbbf24; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .content { padding:28px; font-size:13px; line-height:1.6; }
+  .data-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; margin:18px 0; }
+  .data-row { display:flex; justify-content:space-between; margin-bottom:10px; }
+  .btn { display:inline-block; background:#0f172a; color:#ffffff !important; padding:12px 22px; border-radius:10px; text-decoration:none; font-weight:700; font-size:12px; margin-top:14px; }
+  .footer { padding:18px 28px; background:#f8fafc; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b; text-align:center; }
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="header">
+    <div class="badge">Alerte Direction • Maison NAY</div>
+    <h2 style="margin:10px 0 4px; font-size:20px; font-weight:800; color:#ffffff;">✨ Nouvel Abonné Newsletter Capté</h2>
+    <p style="margin:0; font-size:12px; color:#94a3b8;">Un nouveau prospect vient de s'inscrire pour recevoir les offres exclusives.</p>
+  </div>
+  <div class="content">
+    <p>Bonjour à la Direction & à l'Équipe NAY,</p>
+    <p>Un nouveau visiteur vient de valider son inscription sur la boutique en ligne <strong>nayparfum.ma</strong> :</p>
+
+    <div class="data-card">
+      <div style="margin-bottom:8px;">
+        <span style="color:#64748b; font-size:11px; text-transform:uppercase; font-weight:700;">Email du client :</span><br>
+        <strong style="font-size:16px; color:#0f172a; font-family:monospace;">${cleanEmail}</strong>
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="color:#64748b; font-size:11px; text-transform:uppercase; font-weight:700;">Date & Heure (Maroc) :</span><br>
+        <span style="color:#334155; font-size:13px;">${nowStr}</span>
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="color:#64748b; font-size:11px; text-transform:uppercase; font-weight:700;">Offre de bienvenue transmise :</span><br>
+        <span style="color:#059669; font-weight:700;">Code Promo −10% NAYDAY expédié automatiquement</span>
+      </div>
+      <div>
+        <span style="color:#64748b; font-size:11px; text-transform:uppercase; font-weight:700;">Canal :</span><br>
+        <span style="color:#334155;">Formulaire pied de page & Vitrine</span>
+      </div>
+    </div>
+
+    <p style="margin-top:14px;">Vous pouvez consulter la liste complète des abonnés et exporter le fichier clients depuis votre espace d'administration :</p>
+    <div style="text-align:center;">
+      <a href="https://nayparfum.ma/admin/newsletter" class="btn">Accéder au Registre Newsletter Admin</a>
+    </div>
+  </div>
+  <div class="footer">
+    Notification automatique réservée aux gérants et collaborateurs ciblés de Maison NAY Parfums.<br>
+    Casablanca, Maroc • © 2026 Maison NAY
+  </div>
+</div>
+</body>
+</html>`;
+
+  return dispatchGenericEmail({
+    to: staffRecipients,
+    subject,
+    html,
+  });
+}
+
+/**
+ * Send alert email to managers & targeted employees when a customer submits a contact message
+ */
+export async function sendAdminContactMessageAlert({
+  name,
+  email,
+  phone,
+  message,
+}: {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+}): Promise<SendEmailResult> {
+  const staffRecipients = await getStaffNotificationRecipients();
+  const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+  const waPhone = cleanPhone.startsWith('0') ? '212' + cleanPhone.substring(1) : cleanPhone;
+  const nowStr = new Date().toLocaleString('fr-FR', {
+    timeZone: 'Africa/Casablanca',
+    dateStyle: 'full',
+    timeStyle: 'medium',
+  });
+
+  const subject = `📩 Nouveau Message Client Maison NAY — De : ${name}`;
+
+  const html = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin:0; padding:0; background:#f4f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#0f172a; }
+  .box { max-width:600px; margin:24px auto; background:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #e2e8f0; }
+  .header { background:#0f172a; padding:24px 28px; color:#ffffff; }
+  .badge { display:inline-block; background:rgba(14,165,233,0.2); color:#38bdf8; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .content { padding:28px; font-size:13px; line-height:1.6; }
+  .client-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:18px 20px; margin:16px 0; }
+  .message-box { background:#fffbeb; border-left:4px solid #f59e0b; padding:16px 18px; border-radius:8px; margin:16px 0; font-size:13.5px; color:#1e293b; line-height:1.7; font-style:italic; }
+  .actions { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .btn-mail { background:#0f172a; color:#ffffff !important; padding:11px 20px; border-radius:10px; text-decoration:none; font-weight:700; font-size:12px; display:inline-block; }
+  .btn-wa { background:#16a34a; color:#ffffff !important; padding:11px 20px; border-radius:10px; text-decoration:none; font-weight:700; font-size:12px; display:inline-block; }
+  .footer { padding:18px 28px; background:#f8fafc; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b; text-align:center; }
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="header">
+    <div class="badge">Service Client & Direction • NAY</div>
+    <h2 style="margin:10px 0 4px; font-size:20px; font-weight:800; color:#ffffff;">📩 Nouveau Message Formulaire de Contact</h2>
+    <p style="margin:0; font-size:12px; color:#94a3b8;">Un client vient d'envoyer une demande depuis la page de contact.</p>
+  </div>
+  <div class="content">
+    <p>Bonjour à la Direction & aux Collaborateurs,</p>
+    <p>Une nouvelle demande de contact a été enregistrée le <strong>${nowStr}</strong> :</p>
+
+    <div class="client-card">
+      <div style="margin-bottom:8px;">
+        <span style="color:#64748b; font-size:11px; text-transform:uppercase; font-weight:700;">Nom du Client :</span><br>
+        <strong style="font-size:15px; color:#0f172a;">${name}</strong>
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="color:#64748b; font-size:11px; text-transform:uppercase; font-weight:700;">Email de réponse :</span><br>
+        <a href="mailto:${email}" style="color:#0284c7; font-weight:600; text-decoration:none;">${email}</a>
+      </div>
+      ${phone ? `
+      <div>
+        <span style="color:#64748b; font-size:11px; text-transform:uppercase; font-weight:700;">Téléphone portable :</span><br>
+        <strong style="color:#0f172a; font-family:monospace;">${phone}</strong>
+      </div>` : ''}
+    </div>
+
+    <div style="font-weight:700; color:#334155; margin-bottom:6px;">Message transmis par le client :</div>
+    <div class="message-box">
+      "${message.replace(/\n/g, '<br>')}"
+    </div>
+
+    <div class="actions">
+      <a href="mailto:${email}?subject=${encodeURIComponent(`Re: Votre message à Maison NAY Parfums`)}" class="btn-mail">
+        ✉️ Répondre par Email
+      </a>
+      ${cleanPhone ? `
+      <a href="https://wa.me/${waPhone}?text=${encodeURIComponent(`Salam ${name} ✨ C'est Maison NAY Parfums concernant votre message. Comment pouvons-nous vous aider ?`)}" class="btn-wa">
+        💬 Contacter sur WhatsApp
+      </a>` : ''}
+    </div>
+  </div>
+  <div class="footer">
+    Alerte transmise en temps réel aux gérants et équipes ciblées de Maison NAY.<br>
+    Casablanca, Maroc • © 2026 Maison NAY
+  </div>
+</div>
+</body>
+</html>`;
+
+  return dispatchGenericEmail({
+    to: staffRecipients,
+    subject,
+    html,
+  });
+}
+
+/**
+ * Send customer courtesy confirmation email when they submit the contact form
+ */
+export async function sendCustomerContactReceipt({
+  name,
+  email,
+}: {
+  name: string;
+  email: string;
+}): Promise<SendEmailResult> {
+  const cleanEmail = email.trim().toLowerCase();
+  const subject = `Nous avons bien reçu votre message — Maison NAY Parfums`;
+
+  const html = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin:0; padding:0; background:#f4f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#0f172a; }
+  .box { max-width:580px; margin:24px auto; background:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #e2e8f0; }
+  .header { background:#0f172a; padding:28px; text-align:center; color:#ffffff; }
+  .content { padding:30px; font-size:14px; line-height:1.7; color:#334155; }
+  .footer { padding:20px; background:#f8fafc; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b; text-align:center; }
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="header">
+    <div style="font-size:11px; letter-spacing:2px; color:#d97706; text-transform:uppercase; font-weight:700;">MAISON NAY • HAUTE PARFUMERIE</div>
+    <h2 style="margin:10px 0 0; font-size:22px; color:#ffffff; font-serif:Georgia,serif;">Bienvenue chez NAY</h2>
+  </div>
+  <div class="content">
+    <p>Bonjour <strong>${name}</strong>,</p>
+    <p>Nous vous remercions sincèrement pour votre prise de contact avec notre Maison.</p>
+    <p>Votre message a été transmis à notre service clientèle et nos conseillers olfactifs. Nous mettons tout en œuvre pour vous apporter une réponse personnalisée dans les plus brefs délais (généralement sous 24h ouvrées).</p>
+    <p>Pour toute question urgente concernant une commande en cours ou une expédition express, vous pouvez également nous joindre directement sur notre ligne WhatsApp :</p>
+    <div style="text-align:center; margin:24px 0;">
+      <a href="https://wa.me/212663380011" style="background:#16a34a; color:#ffffff; padding:12px 24px; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px; display:inline-block;">
+        💬 Joindre notre Conseiller WhatsApp
+      </a>
+    </div>
+    <p>Avec toute notre bienveillance,</p>
+    <p><strong>L'Équipe de la Maison NAY Parfums</strong><br><span style="font-size:12px; color:#64748b;">Casablanca, Maroc</span></p>
+  </div>
+  <div class="footer">
+    NAY Parfums • Haute Parfumerie & Parfums Rares<br>
+    Casablanca & Tout le Maroc • contact@nayparfum.ma
+  </div>
+</div>
+</body>
+</html>`;
+
+  return dispatchGenericEmail({
+    to: cleanEmail,
+    subject,
+    html,
+  });
+}
+
+/**
+ * Send a test email from the admin settings page to verify configuration
+ */
+export async function sendTestNotificationEmail(targetEmail: string): Promise<SendEmailResult> {
+  const cleanEmail = targetEmail.trim().toLowerCase();
+  const nowStr = new Date().toLocaleString('fr-FR', {
+    timeZone: 'Africa/Casablanca',
+    dateStyle: 'full',
+    timeStyle: 'medium',
+  });
+
+  const subject = `🧪 Test Réussi — Notifications Maison NAY Parfums`;
+
+  const html = `<!doctype html>
+<html lang="fr">
+<body style="font-family:sans-serif; background:#f4f5f7; padding:24px;">
+  <div style="max-width:540px; margin:0 auto; background:#ffffff; border-radius:14px; padding:28px; border:1px solid #e2e8f0;">
+    <h2 style="color:#0f172a; margin-top:0;">✅ Test d'Alerte Email Validé !</h2>
+    <p style="font-size:14px; color:#334155; line-height:1.6;">
+      Ce message confirme que la passerelle d'envoi d'emails (Resend / SMTP) de <strong>Maison NAY Parfums</strong> est parfaitement opérationnelle.
+    </p>
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; font-size:12px; margin:16px 0;">
+      <strong>Destinataire test :</strong> ${cleanEmail}<br>
+      <strong>Horodatage :</strong> ${nowStr}<br>
+      <strong>Fournisseur actif :</strong> ${process.env.RESEND_API_KEY ? 'Resend API (Clé active)' : 'SMTP / Simulation'}
+    </div>
+    <p style="font-size:12px; color:#64748b;">
+      Désormais, les nouvelles inscriptions à la newsletter et les messages reçus sur la page de contact seront immédiatement transmis à cette adresse.
+    </p>
+  </div>
+</body>
+</html>`;
+
+  return dispatchGenericEmail({
+    to: cleanEmail,
+    subject,
+    html,
+  });
 }
 
 async function updateSubscriberStatus(
@@ -300,3 +656,4 @@ async function updateSubscriberStatus(
     console.error('Error updating subscriber email status in DB:', err);
   }
 }
+

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { sendAdminContactMessageAlert, sendCustomerContactReceipt } from '@/lib/email/emailService';
 
 export async function POST(request: Request) {
   try {
@@ -15,12 +16,34 @@ export async function POST(request: Request) {
 
     const message = await prisma.contactMessage.create({
       data: {
-        name: body.name,
-        email: body.email,
-        phone: body.phone || '',
-        message: body.message,
+        name: body.name.trim(),
+        email: body.email.trim(),
+        phone: body.phone ? body.phone.trim() : '',
+        message: body.message.trim(),
       }
     });
+
+    // 1. Send immediate alert email to managers and targeted employees
+    try {
+      await sendAdminContactMessageAlert({
+        name: body.name.trim(),
+        email: body.email.trim(),
+        phone: body.phone ? body.phone.trim() : undefined,
+        message: body.message.trim(),
+      });
+    } catch (alertErr) {
+      console.error('Error sending contact alert to managers:', alertErr);
+    }
+
+    // 2. Send courtesy receipt to the customer
+    try {
+      await sendCustomerContactReceipt({
+        name: body.name.trim(),
+        email: body.email.trim(),
+      });
+    } catch (custErr) {
+      console.error('Error sending contact receipt to customer:', custErr);
+    }
 
     return NextResponse.json({ success: true, id: message.id });
   } catch (error) {
