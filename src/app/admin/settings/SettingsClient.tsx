@@ -93,7 +93,7 @@ interface SiteConfigData {
 }
 
 export interface AdminUserItem {
-  id: number;
+  id: string | number;
   name: string;
   email: string;
   role: string;

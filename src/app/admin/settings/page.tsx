@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma';
 import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
 import SettingsClient from './SettingsClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Paramètres Boutique — Configuration & Identité | Admin NAY Parfums',
   description: 'Gérez l’identité commerciale, la tarification de livraison, la vitrine d’accueil, les coordonnées de contact et la sécurité de votre boutique NAY Parfums.',

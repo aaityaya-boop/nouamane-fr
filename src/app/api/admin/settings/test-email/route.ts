@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
 import { sendTestNotificationEmail } from '@/lib/email/emailService';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const admin = await getAuthenticatedAdmin();
