@@ -47,6 +47,7 @@ export default function AnalyticsDashboardClient() {
   const [sourceCategoryFilter, setSourceCategoryFilter] = useState<string>('ALL');
   const [citySearch, setCitySearch] = useState('');
   const [pageSearch, setPageSearch] = useState('');
+  const [geoSubTab, setGeoSubTab] = useState<'cities' | 'sources' | 'devices' | 'pages' | 'stream'>('cities');
 
   // Fetch Analytics API
   const fetchAnalytics = useCallback(async (showSpinner = true) => {
@@ -182,46 +183,38 @@ export default function AnalyticsDashboardClient() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* ── TOP ANALYTICS & PERFORMANCE HEADER ────────────────────────────── */}
-      <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 shadow-sm transition-colors">
+      {/* ── TOP EXECUTIVE ANALYTICS HEADER ────────────────────────────── */}
+      <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 shadow-xs transition-colors">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800 flex items-center gap-2">
-                <Globe size={13} className="text-sky-500" />
-                <span>Haute Performance & Intelligence Commerciale</span>
-              </span>
-
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <span>{data?.kpi?.activeVisitorsCount || 1} en direct</span>
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 border border-neutral-200/60 dark:border-neutral-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{data?.kpi?.activeVisitorsCount ?? 0} en direct</span>
               </span>
 
               <span className="text-neutral-300 dark:text-neutral-700">•</span>
               <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-                {data?.period?.label || '30 derniers jours'}
+                Période : <strong className="text-neutral-700 dark:text-neutral-300">{data?.period?.label || '30 derniers jours'}</strong>
               </span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white flex items-center gap-3">
               <TrendingUp size={28} className="text-sky-500" />
               <span>Analytics & Performance</span>
-              <span className="text-xs font-semibold px-2.5 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-lg">
-                Enterprise Luxury Suite
-              </span>
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-3xl">
-              Plateforme d&apos;intelligence décisionnelle de NAY Parfums : suivi en temps réel des clients entrants, diagnostic marketing IA, simulateur de ROAS, entonnoir de conversion et palmarès des parfums.
+            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl">
+              Pilotage des ventes, flux de visiteurs en temps réel, diagnostic marketing et entonnoir de conversion de NAY Parfums.
             </p>
           </div>
 
           {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
             <button
               onClick={() => fetchAnalytics(false)}
               disabled={isRefreshing}
               className="p-2.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded-xl transition-all cursor-pointer disabled:opacity-50"
-              title="Rafraîchir les statistiques"
+              title="Rafraîchir les statistiques en temps réel"
             >
               <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-sky-500' : ''} />
             </button>
@@ -229,16 +222,16 @@ export default function AnalyticsDashboardClient() {
             <button
               onClick={handleExportVisitorsCSV}
               disabled={!data?.trafficAnalytics?.visitorSessions?.length}
-              className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-3.5 py-2.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
             >
               <Users size={15} />
-              <span>Exporter Clients CSV</span>
+              <span>Exporter Visiteurs CSV</span>
             </button>
 
             <button
               onClick={handleExportCSV}
               disabled={!data}
-              className="flex items-center gap-2 px-3.5 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
             >
               <Download size={15} />
               <span>Rapport Global CSV</span>
@@ -246,9 +239,9 @@ export default function AnalyticsDashboardClient() {
           </div>
         </div>
 
-        {/* Date Filter Bar */}
+        {/* Date Filter Segmented Bar */}
         <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+          <div className="inline-flex p-1 rounded-2xl bg-neutral-100 dark:bg-neutral-800/80 max-w-full overflow-x-auto gap-1" style={{ scrollbarWidth: 'none' }}>
             {(
               [
                 { id: 'today', label: "Aujourd'hui" },
@@ -258,7 +251,7 @@ export default function AnalyticsDashboardClient() {
                 { id: 'this_month', label: 'Ce mois-ci' },
                 { id: '90d', label: '90 jours' },
                 { id: 'year', label: 'Cette année' },
-                { id: 'all', label: 'Tout l\'historique' },
+                { id: 'all', label: "Tout l'historique" },
               ] as const
             ).map((p) => (
               <button
@@ -267,10 +260,10 @@ export default function AnalyticsDashboardClient() {
                   setPeriod(p.id);
                   setShowDatePicker(false);
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                   period === p.id
-                    ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/20'
-                    : 'bg-neutral-100 dark:bg-neutral-800/70 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                    ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs font-extrabold'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
               >
                 {p.label}
@@ -279,10 +272,10 @@ export default function AnalyticsDashboardClient() {
 
             <button
               onClick={() => setShowDatePicker(!showDatePicker)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 period === 'custom'
-                  ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/20'
-                  : 'bg-neutral-100 dark:bg-neutral-800/70 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                  ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs font-extrabold'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
             >
               <Calendar size={13} />
@@ -290,14 +283,15 @@ export default function AnalyticsDashboardClient() {
             </button>
           </div>
 
-          <div className="text-[11px] text-neutral-400 dark:text-neutral-500">
-            Moteur de tracking : <strong className="text-neutral-700 dark:text-neutral-300">NAY Real-Time Sensor</strong>
+          <div className="text-[11px] text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+            <span>Moteur de télémesure : <strong>NAY Live Sensor</strong></span>
           </div>
         </div>
 
         {/* Custom Date Picker Dropdown */}
         {showDatePicker && (
-          <div className="mt-4 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-700 flex flex-wrap items-center gap-4">
+          <div className="mt-4 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-700 flex flex-wrap items-center gap-4 animate-in fade-in duration-150">
             <div className="flex items-center gap-2">
               <label className="text-xs font-medium text-neutral-600 dark:text-neutral-400">Date début :</label>
               <input
@@ -321,7 +315,7 @@ export default function AnalyticsDashboardClient() {
                 if (customStartDate && customEndDate) setPeriod('custom');
               }}
               disabled={!customStartDate || !customEndDate}
-              className="px-4 py-1.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-40 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+              className="px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 disabled:opacity-40 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
             >
               Appliquer la sélection
             </button>
@@ -330,103 +324,33 @@ export default function AnalyticsDashboardClient() {
       </div>
 
       {/* ── 6 EXECUTIVE TRAFFIC KPIS ───────────────────────────────────────── */}
+      {/* ── 6 EXECUTIVE TRAFFIC & FINANCIAL KPIS ───────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        {/* KPI 1: Unique Visitors */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
+        {/* KPI 1: Chiffre d'Affaires Brut */}
+        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-emerald-500/40 transition-all">
           <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Visiteurs Uniques</span>
-            <Users size={15} className="text-sky-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-            {data?.kpi?.visitorsCount?.toLocaleString() ?? '—'}
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Tendance :</span>
-            <span className={`font-bold flex items-center gap-0.5 ${
-              (data?.kpi?.deltas?.visitors || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'
-            }`}>
-              {(data?.kpi?.deltas?.visitors || 0) >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-              {Math.abs(data?.kpi?.deltas?.visitors || 0)}%
-            </span>
-          </div>
-        </div>
-
-        {/* KPI 2: Total Pageviews */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Pages Vues</span>
-            <Eye size={15} className="text-indigo-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-            {data?.kpi?.pageViewsCount?.toLocaleString() ?? '—'}
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Pages / Visiteur :</span>
-            <span className="font-bold text-neutral-800 dark:text-neutral-200">
-              {data?.kpi?.pagesPerVisitor ?? '3.3'}
-            </span>
-          </div>
-        </div>
-
-        {/* KPI 3: Bounce Rate */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Taux de Rebond</span>
-            <Gauge size={15} className="text-amber-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-            {data?.kpi?.bounceRate ?? '36.8'}%
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Benchmark Luxe :</span>
-            <span className="font-bold text-emerald-600 dark:text-emerald-400">
-              Excellent (&lt; 40%)
-            </span>
-          </div>
-        </div>
-
-        {/* KPI 4: Average Duration */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Durée Moyenne</span>
-            <Clock size={15} className="text-emerald-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-            {data?.kpi?.avgDuration ?? '2 min 48 s'}
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Engagement :</span>
-            <span className="font-bold text-emerald-600 dark:text-emerald-400">
-              Élevé
-            </span>
-          </div>
-        </div>
-
-        {/* KPI 5: Conversion Rate */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Conversion Trafic</span>
-            <Target size={15} className="text-rose-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-            {data?.kpi?.conversionRate ?? '1.53'}%
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Commandes :</span>
-            <span className="font-bold text-rose-600 dark:text-rose-400">
-              {data?.kpi?.totalOrders ?? '0'} achats
-            </span>
-          </div>
-        </div>
-
-        {/* KPI 6: Traffic Revenue */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">CA Généré</span>
-            <DollarSign size={15} className="text-amber-500" />
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Chiffre d&apos;Affaires</span>
+            <DollarSign size={15} className="text-emerald-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
             {data ? formatMAD(data.kpi.grossRevenue) : '—'}
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px]">
+            <span className="text-neutral-400">Encaissé COD :</span>
+            <span className="font-bold text-emerald-600 dark:text-emerald-400">
+              {data ? formatMAD(data.kpi.deliveredRevenue) : '—'}
+            </span>
+          </div>
+        </div>
+
+        {/* KPI 2: Commandes & Panier Moyen */}
+        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Commandes</span>
+            <ShoppingBag size={15} className="text-sky-500" />
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+            {data?.kpi?.totalOrders?.toLocaleString() ?? '—'}
           </div>
           <div className="mt-2 flex items-center justify-between text-[11px]">
             <span className="text-neutral-400">Panier moyen :</span>
@@ -435,65 +359,143 @@ export default function AnalyticsDashboardClient() {
             </span>
           </div>
         </div>
+
+        {/* KPI 3: Visiteurs Uniques */}
+        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-indigo-500/40 transition-all">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Visiteurs Uniques</span>
+            <Users size={15} className="text-indigo-500" />
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+            {data?.kpi?.visitorsCount?.toLocaleString() ?? '—'}
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px]">
+            <span className="text-neutral-400">Pages vues :</span>
+            <span className="font-bold text-neutral-800 dark:text-neutral-200">
+              {data?.kpi?.pageViewsCount?.toLocaleString() ?? '—'}
+            </span>
+          </div>
+        </div>
+
+        {/* KPI 4: Taux de Conversion */}
+        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-rose-500/40 transition-all">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Taux Conversion</span>
+            <Target size={15} className="text-rose-500" />
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+            {data?.kpi?.conversionRate ?? 0}%
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px]">
+            <span className="text-neutral-400">Livraison réussie :</span>
+            <span className="font-bold text-emerald-600 dark:text-emerald-400">
+              {data?.kpi?.deliveryRate ?? 0}%
+            </span>
+          </div>
+        </div>
+
+        {/* KPI 5: Paniers en Cours & Valeur en Attente */}
+        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-amber-500/40 transition-all">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Paniers Actifs</span>
+            <ShoppingCart size={15} className="text-amber-500" />
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+            {formatMAD(data?.trafficAnalytics?.visitorSessions?.reduce((s, v) => s + (v.cartValue || 0), 0) || 0)}
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px]">
+            <span className="text-neutral-400">À relancer :</span>
+            <span className="font-bold text-amber-600 dark:text-amber-400">
+              {data?.trafficAnalytics?.visitorSessions?.filter(s => s.hasCart || s.cartValue > 0).length || 0} paniers
+            </span>
+          </div>
+        </div>
+
+        {/* KPI 6: Taux de Rebond & Durée Moyenne */}
+        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-purple-500/40 transition-all">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Taux Rebond</span>
+            <Gauge size={15} className="text-purple-500" />
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+            {data?.kpi?.bounceRate ?? 0}%
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px]">
+            <span className="text-neutral-400">Durée moy. :</span>
+            <span className="font-bold text-neutral-800 dark:text-neutral-200">
+              {data?.kpi?.avgDuration ?? '—'}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* ── DEDICATED AUDIENCE & PERFORMANCE TABS ───────────────────────── */}
+      {/* ── 5 EXECUTIVE DASHBOARD TABS ───────────────────────── */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-neutral-200 dark:border-neutral-800" style={{ scrollbarWidth: 'none' }}>
         {[
           {
             id: 'visitors',
-            label: '👥 Visiteurs Entrants (En Direct)',
+            label: 'Visiteurs & Registre Live',
             badge: data?.trafficAnalytics?.visitorSessions?.length ? `${data.trafficAnalytics.visitorSessions.length}` : undefined,
             badgeColor: 'bg-emerald-500 text-white',
             icon: <Users size={15} className="text-emerald-500" />,
           },
           {
-            id: 'marketing_ai',
-            label: '🧠 Conseils Marketing & ROAS IA',
-            badge: 'PRO',
-            badgeColor: 'bg-amber-500 text-white',
-            icon: <Sparkles size={15} className="text-amber-500" />,
-          },
-          {
             id: 'funnel',
-            label: '🌪️ Entonnoir de Conversion',
+            label: 'Entonnoir de Conversion',
             badge: data?.kpi ? `${data.kpi.conversionRate}%` : undefined,
             badgeColor: 'bg-indigo-500 text-white',
             icon: <Filter size={15} className="text-indigo-500" />,
           },
           {
             id: 'perfumes',
-            label: '💎 Parfums Stars & Familles',
+            label: 'Performance Parfums & Stocks',
+            badge: data?.perfumeAnalytics?.bestSellers?.length ? `${data.perfumeAnalytics.bestSellers.length}` : undefined,
+            badgeColor: 'bg-purple-500 text-white',
             icon: <Award size={15} className="text-purple-500" />,
           },
-          { id: 'sources', label: '🌐 Toutes les Sources de Trafic', icon: <Share2 size={15} /> },
-          { id: 'geography', label: '🗺️ Villes du Maroc & Monde', icon: <MapPin size={15} /> },
-          { id: 'devices', label: '📱 Appareils & Navigateurs', icon: <Smartphone size={15} /> },
-          { id: 'pages', label: '📄 Pages & Fiches Parfums Vues', icon: <Eye size={15} /> },
-          { id: 'livestream', label: '🔴 Live Stream & Affluence', icon: <Radio size={15} className="text-rose-500 animate-pulse" /> },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as TabType)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-sm'
-                : 'bg-white dark:bg-[#111827] text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-800'
-            }`}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-            {tab.badge && (
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${tab.badgeColor || 'bg-sky-500 text-white'}`}>
-                {tab.badge}
-              </span>
-            )}
-          </button>
-        ))}
+          {
+            id: 'geography',
+            label: 'Villes & Canaux de Trafic',
+            badge: 'Maroc 🇲🇦',
+            badgeColor: 'bg-rose-500 text-white',
+            icon: <MapPin size={15} className="text-rose-500" />,
+          },
+          {
+            id: 'marketing_ai',
+            label: 'Marketing, ROAS & Dépenses Ads',
+            badge: 'IA & ROAS',
+            badgeColor: 'bg-amber-500 text-white',
+            icon: <Sparkles size={15} className="text-amber-500" />,
+          },
+        ].map((tab) => {
+          const isActive =
+            activeTab === tab.id ||
+            (tab.id === 'geography' && (activeTab === 'sources' || activeTab === 'devices' || activeTab === 'pages' || activeTab === 'livestream'));
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                isActive
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-sm'
+                  : 'bg-white dark:bg-[#111827] text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-800'
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+              {tab.badge && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${tab.badgeColor}`}>
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 0: VISITEURS ENTRANTS & SESSIONS EN DIRECT                        */}
+      {/* TAB 1: VISITEURS ENTRANTS & SESSIONS EN DIRECT                        */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'visitors' && (
         <VisitorsRegistrySection
@@ -505,21 +507,7 @@ export default function AnalyticsDashboardClient() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 0.1: CONSEILS STRATÉGIQUES MARKETING & SIMULATEUR ROAS            */}
-      {/* ══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'marketing_ai' && (
-        <MarketingIntelligenceSection
-          insights={data?.marketingInsights || []}
-          aov={data?.kpi?.aov || 463}
-          conversionRate={data?.kpi?.conversionRate || 1.64}
-          activeCartsValue={
-            data?.trafficAnalytics?.visitorSessions?.reduce((s, v) => s + (v.cartValue || 0), 0) || 20572
-          }
-        />
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 0.2: ENTONNOIR DE CONVERSION E-COMMERCE (FULL FUNNEL)              */}
+      {/* TAB 2: ENTONNOIR DE CONVERSION E-COMMERCE (FULL FUNNEL)              */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'funnel' && (
         <ConversionFunnelSection
@@ -529,17 +517,71 @@ export default function AnalyticsDashboardClient() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 0.3: PALMARÈS DES PARFUMS & FAMILLES OLFACTIVES                   */}
+      {/* TAB 3: PALMARÈS DES PARFUMS & FAMILLES OLFACTIVES                   */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'perfumes' && (
         <PerfumesIntelligenceSection perfumes={data?.perfumeAnalytics} />
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 1: TOUTES LES SOURCES DE TRAFIC (ACQUISITION & CONVERSION)         */}
+      {/* TAB 5: CONSEILS STRATÉGIQUES MARKETING & SIMULATEUR ROAS            */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'sources' && (
+      {activeTab === 'marketing_ai' && (
+        <MarketingIntelligenceSection
+          insights={data?.marketingInsights || []}
+          aov={data?.kpi?.aov || 0}
+          conversionRate={data?.kpi?.conversionRate || 0}
+          activeCartsValue={
+            data?.trafficAnalytics?.visitorSessions?.reduce((s, v) => s + (v.cartValue || 0), 0) || 0
+          }
+          marketingFinancials={data?.marketingFinancials}
+        />
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 4: VILLES DU MAROC, CANAUX DE TRAFIC & TELEMESURE                */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {(activeTab === 'geography' || activeTab === 'sources' || activeTab === 'devices' || activeTab === 'pages' || activeTab === 'livestream') && (
         <div className="space-y-6">
+          {/* Sub Navigation Bar */}
+          <div className="flex items-center gap-2 overflow-x-auto p-1.5 bg-neutral-100 dark:bg-neutral-800/80 rounded-2xl max-w-full" style={{ scrollbarWidth: 'none' }}>
+            {[
+              { id: 'cities', label: '📍 Villes du Maroc', icon: <MapPin size={14} className="text-rose-500" /> },
+              { id: 'sources', label: '🌐 Sources d\'Acquisition', icon: <Share2 size={14} className="text-sky-500" /> },
+              { id: 'devices', label: '📱 Appareils & Systèmes', icon: <Smartphone size={14} className="text-purple-500" /> },
+              { id: 'pages', label: '📄 Pages & Fiches Parfums', icon: <Eye size={14} className="text-indigo-500" /> },
+              { id: 'stream', label: '🔴 Flux Télémesure Live', icon: <Radio size={14} className="text-emerald-500 animate-pulse" /> },
+            ].map((sub) => {
+              const isSelected =
+                (geoSubTab === sub.id && activeTab === 'geography') ||
+                (sub.id === 'sources' && activeTab === 'sources') ||
+                (sub.id === 'devices' && activeTab === 'devices') ||
+                (sub.id === 'pages' && activeTab === 'pages') ||
+                (sub.id === 'stream' && activeTab === 'livestream');
+
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => {
+                    setGeoSubTab(sub.id as any);
+                    setActiveTab('geography');
+                  }}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    isSelected
+                      ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs font-black'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  {sub.icon}
+                  <span>{sub.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sub View: Sources */}
+          {((geoSubTab === 'sources' && activeTab === 'geography') || activeTab === 'sources') && (
+            <div className="space-y-6">
           {/* Visual Distribution of Sources */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Donut Chart */}
@@ -740,7 +782,7 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* TAB 2: VILLES DU MAROC & GÉOGRAPHIE                                    */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'geography' && (
+      {((geoSubTab === 'cities' && activeTab === 'geography') || (activeTab === 'geography' && geoSubTab === 'cities')) && (
         <div className="space-y-6">
           <div className="bg-white dark:bg-[#111827] rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm p-6 space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
@@ -801,7 +843,7 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* TAB 3: APPAREILS, SYSTÈMES & NAVIGATEURS (TECH AUDIENCE)               */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'devices' && (
+      {((geoSubTab === 'devices' && activeTab === 'geography') || activeTab === 'devices') && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Device Types */}
@@ -890,7 +932,7 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* TAB 4: PAGES & FICHES PARFUMS LES PLUS VUES                           */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'pages' && (
+      {((geoSubTab === 'pages' && activeTab === 'geography') || activeTab === 'pages') && (
         <div className="space-y-6">
           <div className="bg-white dark:bg-[#111827] rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm p-6 space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
@@ -976,7 +1018,7 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* TAB 5: LIVE STREAM & PICS D'AFFLUENCE DU SITE                         */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'livestream' && (
+      {((geoSubTab === 'stream' && activeTab === 'geography') || activeTab === 'livestream') && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Live Actions Stream (2 cols) */}
@@ -1088,6 +1130,9 @@ export default function AnalyticsDashboardClient() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
         </div>
       )}
     </div>

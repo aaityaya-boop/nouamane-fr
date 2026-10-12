@@ -14,6 +14,12 @@ interface MarketingIntelligenceSectionProps {
   aov: number;
   conversionRate: number;
   activeCartsValue: number;
+  marketingFinancials?: {
+    totalAdSpend: number;
+    roas: number;
+    netProfitEst: number;
+    adExpensesList: any[];
+  };
 }
 
 export default function MarketingIntelligenceSection({
@@ -21,6 +27,7 @@ export default function MarketingIntelligenceSection({
   aov,
   conversionRate,
   activeCartsValue,
+  marketingFinancials,
 }: MarketingIntelligenceSectionProps) {
   // ROAS & Budget Simulator State
   const [adBudget, setAdBudget] = useState<number>(3000);
@@ -160,6 +167,45 @@ export default function MarketingIntelligenceSection({
           <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-lg">
             Panier Moyen : {formatMAD(aov || 460)}
           </span>
+        </div>
+
+        {/* Real Ad Performance Metrics Strip */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 p-4 bg-emerald-50/50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200/60 dark:border-emerald-900/40">
+          <div>
+            <div className="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-300">
+              Dépenses Ads Réelles (Charges)
+            </div>
+            <div className="text-lg font-black text-neutral-900 dark:text-white mt-0.5">
+              {marketingFinancials ? formatMAD(marketingFinancials.totalAdSpend) : '0 MAD'}
+            </div>
+            <div className="text-[10px] text-neutral-500">
+              {marketingFinancials?.adExpensesList?.length || 0} charge(s) pub enregistrée(s)
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-300">
+              ROAS Réel Réalisé
+            </div>
+            <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+              {marketingFinancials && marketingFinancials.roas > 0 ? `${marketingFinancials.roas}x` : '— (Hors campagne)'}
+            </div>
+            <div className="text-[10px] text-neutral-500">
+              Chiffre d&apos;affaires / Dépense pub
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-300">
+              Marge Nette Commerciale Est.
+            </div>
+            <div className="text-lg font-black text-neutral-900 dark:text-white mt-0.5">
+              {marketingFinancials ? formatMAD(marketingFinancials.netProfitEst) : '0 MAD'}
+            </div>
+            <div className="text-[10px] text-neutral-500">
+              Après coût des marchandises et ads
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -8,7 +8,7 @@ import {
   ArrowRight, Search, Filter, RefreshCw, Download, ExternalLink,
   Clock, CheckCircle2, ShoppingBag, X, ChevronLeft, ChevronRight,
   Sparkles, Compass, ShieldCheck, Flame, Share2, HelpCircle,
-  TrendingUp, Radio, AlertCircle
+  TrendingUp, Radio, AlertCircle, MessageCircle
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 import { VisitorSession, VisitorJourneyStep } from './types';
@@ -527,10 +527,27 @@ export default function VisitorsRegistrySection({
                           <span>Achat Converti</span>
                         </span>
                       ) : v.hasCart || v.cartValue > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                          <ShoppingCart size={11} className="text-amber-600" />
-                          <span>Panier : {formatMAD(v.cartValue)}</span>
-                        </span>
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                            <ShoppingCart size={11} className="text-amber-600" />
+                            <span>Panier : {formatMAD(v.cartValue)}</span>
+                          </span>
+                          {(v.rawCustomerPhone || v.customerPhone) && (
+                            <a
+                              href={`https://wa.me/212${(v.rawCustomerPhone || v.customerPhone || '').replace(/\D/g, '').replace(/^212/, '').replace(/^0/, '')}?text=${encodeURIComponent(
+                                `Bonjour ${v.customerName || ''} ! Nous avons remarqué que vous n'avez pas finalisé votre panier sur NAY Parfums (${formatMAD(v.cartValue)}). Profitez aujourd'hui de la Livraison Express Gratuite avec le code NAYEXPRESS ! https://nayparfum.ma`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-bold shadow-xs transition-all"
+                              title="Relancer le panier sur WhatsApp"
+                            >
+                              <MessageCircle size={10} />
+                              <span>Relance WA</span>
+                            </a>
+                          )}
+                        </div>
                       ) : v.productsViewed.length > 0 ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
                           <Eye size={11} className="text-sky-600" />
@@ -640,12 +657,29 @@ export default function VisitorsRegistrySection({
                 </div>
               </div>
 
-              <button
-                onClick={() => setSelectedVisitor(null)}
-                className="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all cursor-pointer"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                {selectedVisitor.cartValue > 0 && (selectedVisitor.rawCustomerPhone || selectedVisitor.customerPhone) && (
+                  <a
+                    href={`https://wa.me/212${(selectedVisitor.rawCustomerPhone || selectedVisitor.customerPhone || '').replace(/\D/g, '').replace(/^212/, '').replace(/^0/, '')}?text=${encodeURIComponent(
+                      `Bonjour ${selectedVisitor.customerName || ''} ! Nous avons remarqué que vous n'avez pas finalisé votre panier sur NAY Parfums (${formatMAD(selectedVisitor.cartValue)}). Profitez dès aujourd'hui de la Livraison Express Gratuite avec le code NAYEXPRESS ! https://nayparfum.ma`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    title="Relancer le panier sur WhatsApp"
+                  >
+                    <MessageCircle size={14} />
+                    <span>Relancer WhatsApp</span>
+                  </a>
+                )}
+
+                <button
+                  onClick={() => setSelectedVisitor(null)}
+                  className="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Modal Body (Scrollable) */}

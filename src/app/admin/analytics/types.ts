@@ -1,11 +1,12 @@
 export type PeriodType = 'today' | 'yesterday' | '7d' | '30d' | 'this_month' | '90d' | 'year' | 'all' | 'custom';
 export type TabType =
+  | 'overview'
   | 'visitors'
-  | 'marketing_ai'
   | 'funnel'
+  | 'perfumes'
+  | 'marketing_ai'
   | 'sources'
   | 'geography'
-  | 'perfumes'
   | 'devices'
   | 'pages'
   | 'livestream';
@@ -101,6 +102,7 @@ export interface VisitorSession {
   productsViewed: Array<{ name: string; slug: string; brand: string }>;
   customerName: string | null;
   customerPhone: string | null;
+  rawCustomerPhone?: string | null;
   status: 'ONLINE' | 'PURCHASED' | 'CHECKOUT' | 'CART' | 'BROWSING';
 }
 
@@ -232,4 +234,18 @@ export interface AnalyticsData {
   funnel?: ConversionFunnelData;
   marketingInsights?: MarketingInsight[];
   perfumeAnalytics?: PerfumeAnalytics;
+  marketingFinancials?: {
+    totalAdSpend: number;
+    roas: number;
+    netProfitEst: number;
+    adExpensesList: Array<{ id: string; title: string; amount: number; date: string; category: string }>;
+  };
+  logistics?: {
+    statusDistribution: Record<string, number>;
+    codHealth: {
+      encaisse: number;
+      enTransit: number;
+      perdu: number;
+    };
+  };
 }
