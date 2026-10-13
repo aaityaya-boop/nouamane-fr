@@ -44,11 +44,98 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (body.isTester !== undefined) data.isTester = body.isTester;
     if (body.published !== undefined) data.published = body.published;
 
-
     const updatedProduct = await prisma.product.update({
       where: { id: parseInt(id, 10) },
       data,
     });
+
+    if (body.pendingSections) {
+      const targetKeys: Array<{ key: 'tester' | 'original' | 'masterCopy'; section: 'tester' | 'original' | 'master-copier' }> = [
+        { key: 'tester', section: 'tester' },
+        { key: 'original', section: 'original' },
+        { key: 'masterCopy', section: 'master-copier' },
+      ];
+
+      for (const { key, section } of targetKeys) {
+        const draft = body.pendingSections[key];
+        if (!draft || !draft.enabled) continue;
+
+        let isTester = section === 'tester';
+        let subcategory = updatedProduct.subcategory;
+        let subcategoryLabel = updatedProduct.subcategoryLabel;
+        let slugSuffix = section === 'tester' ? 'tester' : section === 'original' ? 'original' : 'master-copy';
+        let price = typeof draft.price === 'number' && draft.price > 0 ? draft.price : updatedProduct.price;
+        let stock = typeof draft.stock === 'number' ? draft.stock : 10;
+
+        if (section === 'master-copier') {
+          isTester = false;
+          subcategory = 'master-copier';
+          subcategoryLabel = 'Master Copy 1:1';
+        } else if (section === 'original') {
+          isTester = false;
+          if (subcategory === 'master-copier' || subcategory === 'coffrets') {
+            subcategory = 'floral';
+            subcategoryLabel = 'Floral';
+          }
+        } else if (section === 'tester') {
+          isTester = true;
+          if (subcategory === 'master-copier' || subcategory === 'coffrets') {
+            subcategory = 'floral';
+            subcategoryLabel = 'Floral';
+          }
+        }
+
+        const cleanBaseSlug = updatedProduct.slug
+          .replace(/-(tester|original|master-copy|master-copier|coffret)(-\d+)?$/g, '')
+          .replace(/-+$/, '');
+
+        let candidateSlug = `${cleanBaseSlug}-${slugSuffix}`;
+        let counter = 1;
+        while (await prisma.product.findUnique({ where: { slug: candidateSlug } })) {
+          candidateSlug = `${cleanBaseSlug}-${slugSuffix}-${counter}`;
+          counter++;
+        }
+
+        const prefix = section === 'tester' ? 'TST' : section === 'original' ? 'ORI' : 'MST';
+        const candidateSku = `NAY-${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        await prisma.product.create({
+          data: {
+            slug: candidateSlug,
+            sku: candidateSku,
+            name: updatedProduct.name,
+            brandId: updatedProduct.brandId,
+            brandLabel: updatedProduct.brandLabel,
+            gender: updatedProduct.gender,
+            subcategory,
+            subcategoryLabel,
+            tagline: updatedProduct.tagline || '',
+            description: updatedProduct.description || '',
+            longDescription: updatedProduct.longDescription || '',
+            ingredients: updatedProduct.ingredients || '',
+            bottleColor: updatedProduct.bottleColor || 'transparent',
+            bottleColorLabel: updatedProduct.bottleColorLabel || 'Transparent',
+            bottleMaterial: updatedProduct.bottleMaterial || 'glass',
+            bottleMaterialLabel: updatedProduct.bottleMaterialLabel || 'Verre',
+            perfectSeason: updatedProduct.perfectSeason || 'Toutes Saisons',
+            images: updatedProduct.images,
+            notes: updatedProduct.notes,
+            sizes: updatedProduct.sizes,
+            tags: updatedProduct.tags,
+            price,
+            originalPrice: updatedProduct.originalPrice,
+            testerPrice: section === 'tester' ? price : updatedProduct.testerPrice,
+            rating: updatedProduct.rating || 5.0,
+            reviewCount: updatedProduct.reviewCount || 0,
+            releaseDate: new Date().toISOString(),
+            inStock: stock > 0,
+            stock,
+            isTester,
+            published: true,
+          },
+        }).catch((err) => console.error('Failed to auto-create section copy on PUT:', err));
+      }
+    }
 
     return NextResponse.json(updatedProduct);
   } catch (error) {

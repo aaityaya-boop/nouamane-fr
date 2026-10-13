@@ -6,6 +6,7 @@ import { OLFACTIVE_FAMILIES, getBaseSubcategoryFromFamily } from '@/lib/olfactiv
 import { Plus, Edit2, Trash2, Search, X, Upload } from 'lucide-react';
 import Image from 'next/image';
 import SeasonSelector from '@/components/admin/SeasonSelector';
+import CatalogSectionsCard from '@/components/admin/CatalogSectionsCard';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -16,6 +17,14 @@ export default function AdminProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
+  // Multi-section duplication draft state
+  const [pendingSections, setPendingSections] = useState({
+    tester: { enabled: false, price: 0, stock: 0 },
+    original: { enabled: false, price: 0, stock: 0 },
+    masterCopy: { enabled: false, price: 0, stock: 0 },
+    coffret: { enabled: false, price: 0, stock: 0 },
+  });
+
   // Form state
   const [formData, setFormData] = useState<any>({});
   const [isUploading, setIsUploading] = useState(false);
@@ -45,7 +54,7 @@ export default function AdminProductsPage() {
         notes: typeof p.notes === 'string' ? JSON.parse(p.notes) : p.notes,
         tags: typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags,
       }));
-      setProducts(parsedData.filter((p: any) => p.subcategory !== 'coffrets' && p.subcategory !== 'master-copier' && p.subcategory !== 'arabic'));
+      setProducts(parsedData.filter((p: any) => p.isTester === true && p.subcategory !== 'coffrets' && p.subcategory !== 'master-copier'));
     } catch (error) {
       console.error(error);
     } finally {
@@ -124,6 +133,12 @@ export default function AdminProductsPage() {
 
   const openAddModal = () => {
     setEditingProduct(null);
+    setPendingSections({
+      tester: { enabled: true, price: 0, stock: 10 },
+      original: { enabled: false, price: 0, stock: 0 },
+      masterCopy: { enabled: false, price: 0, stock: 0 },
+      coffret: { enabled: false, price: 0, stock: 0 },
+    });
     setFormData({
       id: `p-${Date.now()}`,
       slug: '',
@@ -150,6 +165,7 @@ export default function AdminProductsPage() {
       tagline: '',
       releaseDate: new Date().toISOString(),
       inStock: true,
+      stock: 10,
       isTester: true,
     });
     setIsModalOpen(true);
@@ -157,6 +173,12 @@ export default function AdminProductsPage() {
 
   const openEditModal = (product: Product) => {
     setEditingProduct(product);
+    setPendingSections({
+      tester: { enabled: true, price: product.price || 0, stock: product.stock || 10 },
+      original: { enabled: false, price: 0, stock: 0 },
+      masterCopy: { enabled: false, price: 0, stock: 0 },
+      coffret: { enabled: false, price: 0, stock: 0 },
+    });
     setFormData({ ...product });
     setIsModalOpen(true);
   };
@@ -223,17 +245,26 @@ export default function AdminProductsPage() {
       const method = editingProduct ? 'PUT' : 'POST';
       const url = editingProduct ? `/api/admin/products/${editingProduct.id}` : '/api/admin/products';
       
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          isTester: true,
+          pendingSections,
+        }),
       });
       
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Erreur lors de la sauvegarde');
+      }
+
       setIsModalOpen(false);
       fetchProducts();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Erreur lors de la sauvegarde');
+      alert(error.message || 'Erreur lors de la sauvegarde');
     }
   };
 
@@ -355,29 +386,34 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex gap-2 items-center flex-wrap">
+                      <div className="flex gap-1.5 items-center flex-wrap">
                         {p.inStock ? (
-                          <button onClick={() => handleQuickUpdate(p.id, 'inStock', false)} className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer">EN STOCK</button>
+                          <button onClick={() => handleQuickUpdate(p.id, 'inStock', false)} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer">
+                            EN STOCK ({p.stock !== undefined ? p.stock : 10})
+                          </button>
                         ) : (
-                          <button onClick={() => handleQuickUpdate(p.id, 'inStock', true)} className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer">RUPTURE</button>
+                          <button onClick={() => handleQuickUpdate(p.id, 'inStock', true)} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer">
+                            RUPTURE
+                          </button>
                         )}
-                        {(p as any).isTester && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">TESTEUR</span>
-                        )}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                          🧪 TESTEUR
+                        </span>
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => openEditModal(p)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors border border-neutral-200 shadow-2xs"
-                          aria-label="Modifier"
+                          className="px-2 py-1 flex items-center gap-1 rounded-lg bg-white text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 transition-colors border border-neutral-200 shadow-2xs text-[11px] font-semibold cursor-pointer"
+                          title="Gérer les déclinaisons (Original, Master Copy...)"
                         >
-                          <Edit2 size={13} />
+                          <Edit2 size={12} />
+                          <span>Modifier</span>
                         </button>
                         <button 
                           onClick={() => handleDelete(p.id)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white text-neutral-600 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-neutral-200 shadow-2xs"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white text-neutral-600 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-neutral-200 shadow-2xs cursor-pointer"
                           aria-label="Supprimer"
                         >
                           <Trash2 size={13} />
@@ -585,6 +621,16 @@ export default function AdminProductsPage() {
                         placeholder="Prix barré..." />
                     </div>
                     
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-600 uppercase mb-1.5">Stock Disponible (Unités)</label>
+                      <input type="number" min="0" className="w-full bg-[#f8fafc] border border-neutral-200 rounded-xl p-2.5 text-xs sm:text-[13px] focus:outline-none focus:border-neutral-900 transition-all font-semibold text-neutral-900"
+                        value={formData.stock !== undefined ? formData.stock : 10} onChange={e => {
+                          const val = Number(e.target.value);
+                          setFormData({...formData, stock: val, inStock: val > 0});
+                        }} 
+                        placeholder="Ex: 10" />
+                    </div>
+
                     <div className="col-span-2 flex items-center justify-between bg-neutral-50 p-4 rounded-xl border border-neutral-200">
                       <div>
                         <h4 className="text-xs font-bold text-neutral-900">État du Stock</h4>
@@ -596,15 +642,18 @@ export default function AdminProductsPage() {
                       </label>
                     </div>
 
-                    <div className="col-span-2 flex items-center justify-between bg-neutral-50 p-4 rounded-xl border border-neutral-200">
-                      <div>
-                        <h4 className="text-xs font-bold text-neutral-900">Format Testeur</h4>
-                        <p className="text-[11px] text-neutral-500 mt-0.5">Cochez si ce produit est vendu sans la boîte d'origine scellée.</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" className="sr-only peer" checked={formData.isTester} onChange={e => setFormData({...formData, isTester: e.target.checked})} />
-                        <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                      </label>
+                    <div className="col-span-2 pt-1">
+                      <CatalogSectionsCard
+                        currentProductId={editingProduct ? Number(editingProduct.id) : undefined}
+                        currentProductName={formData.name || ''}
+                        currentBrand={formData.brand || ''}
+                        currentSection="tester"
+                        currentPrice={formData.price || 0}
+                        currentStock={formData.stock !== undefined ? formData.stock : 10}
+                        pendingSections={pendingSections}
+                        setPendingSections={setPendingSections}
+                        onSiblingCreated={fetchProducts}
+                      />
                     </div>
 
                     <div className="col-span-2 border-t border-neutral-200 pt-5">

@@ -18,7 +18,8 @@ import {
   ExternalLink,
   ArrowUpRight,
   Filter,
-  DollarSign
+  DollarSign,
+  Layers
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -29,6 +30,7 @@ export default function AdminInventoryPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Toutes');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK'>('ALL');
+  const [sectionFilter, setSectionFilter] = useState<'ALL' | 'TESTER' | 'ORIGINAL' | 'MASTER_COPY' | 'COFFRET'>('ALL');
   
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editStockValue, setEditStockValue] = useState<number>(0);
@@ -135,6 +137,16 @@ export default function AdminInventoryPage() {
     if (stockFilter === 'IN_STOCK') return (p.stock || 0) > 5;
     if (stockFilter === 'LOW_STOCK') return (p.stock || 0) > 0 && (p.stock || 0) <= 5;
     if (stockFilter === 'OUT_OF_STOCK') return (p.stock || 0) === 0;
+
+    if (sectionFilter === 'TESTER') {
+      if (!p.isTester || p.subcategory === 'master-copier' || p.subcategory === 'coffrets') return false;
+    } else if (sectionFilter === 'ORIGINAL') {
+      if (p.isTester || p.subcategory === 'master-copier' || p.subcategory === 'coffrets') return false;
+    } else if (sectionFilter === 'MASTER_COPY') {
+      if (p.subcategory !== 'master-copier') return false;
+    } else if (sectionFilter === 'COFFRET') {
+      if (p.subcategory !== 'coffrets') return false;
+    }
 
     return true;
   });
@@ -295,6 +307,32 @@ export default function AdminInventoryPage() {
           </div>
         </div>
 
+        {/* Section Catalog Filters */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs">
+          <span className="text-slate-500 font-bold flex items-center gap-1 text-[11px] mr-1">
+            <Layers size={13} className="text-sky-500" /> Rayon :
+          </span>
+          {[
+            { id: 'ALL', label: 'Tous les Rayons' },
+            { id: 'TESTER', label: '🧪 Testeurs' },
+            { id: 'ORIGINAL', label: '👑 Parfums Originaux' },
+            { id: 'MASTER_COPY', label: '✨ Master Copy' },
+            { id: 'COFFRET', label: '🎁 Coffrets Cadeaux' },
+          ].map((sec) => (
+            <button
+              key={sec.id}
+              onClick={() => setSectionFilter(sec.id as any)}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                sectionFilter === sec.id
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              {sec.label}
+            </button>
+          ))}
+        </div>
+
         {/* Category Pills */}
         {categories.length > 2 && (
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
@@ -338,6 +376,15 @@ export default function AdminInventoryPage() {
                 const isEditing = editingId === product.id;
                 const imageSrc = Array.isArray(product.images) && product.images[0] ? product.images[0] : '/placeholder-perfume.jpg';
 
+                const sectionBadge =
+                  product.subcategory === 'master-copier'
+                    ? { label: '✨ Master Copy', color: 'bg-amber-50 text-amber-800 border-amber-200' }
+                    : product.subcategory === 'coffrets'
+                    ? { label: '🎁 Coffret', color: 'bg-indigo-50 text-indigo-800 border-indigo-200' }
+                    : product.isTester
+                    ? { label: '🧪 Testeur', color: 'bg-purple-50 text-purple-800 border-purple-200' }
+                    : { label: '👑 Original', color: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
+
                 return (
                   <tr key={product.id} className="hover:bg-slate-50/60 transition-colors group">
                     {/* Product & Thumbnail */}
@@ -367,10 +414,15 @@ export default function AdminInventoryPage() {
                       </div>
                     </td>
 
-                    {/* Brand & Subcategory */}
-                    <td className="px-5 py-3.5">
-                      <div className="font-semibold text-slate-800">{product.brandLabel || 'NAY'}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">{product.subcategoryLabel || 'Parfumerie'}</div>
+                    {/* Brand & Subcategory & Section Badge */}
+                    <td className="px-5 py-3.5 space-y-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-slate-800">{product.brandLabel || 'NAY'}</span>
+                        <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold border ${sectionBadge.color}`}>
+                          {sectionBadge.label}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-400">{product.subcategoryLabel || 'Parfumerie'}</div>
                     </td>
 
                     {/* Price */}
