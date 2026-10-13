@@ -18,7 +18,8 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Zap,
-  Check
+  Check,
+  Info
 } from 'lucide-react';
 import { formatDateGMT } from '@/lib/dateUtils';
 
@@ -259,8 +260,9 @@ export default function SitemapClient({
           </div>
 
           <div className="pt-2 border-t border-slate-100">
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              💡 Le sitemap de la Maison NAY Parfums est mis à jour dynamiquement à chaque ajout de produit, marque ou article de blog.
+            <p className="text-[11px] text-slate-500 leading-relaxed flex items-start gap-1.5">
+              <Info size={13} className="text-sky-500 shrink-0 mt-0.5" />
+              <span>Le sitemap de la Maison NAY Parfums est mis à jour dynamiquement à chaque ajout de produit, marque ou article de blog.</span>
             </p>
           </div>
         </div>

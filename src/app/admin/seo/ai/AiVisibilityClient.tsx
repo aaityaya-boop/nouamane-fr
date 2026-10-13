@@ -543,7 +543,7 @@ La boutique propose un catalogue de plus de 199 références de parfums de luxe,
                       <tr key={q.id} className="hover:bg-slate-50/60 transition-colors">
                         <td className="py-3.5 px-4 font-medium text-slate-900 max-w-md">
                           <div className="flex items-start gap-2">
-                            <span className="text-amber-600 mt-0.5">💬</span>
+                            <MessageSquare size={13} className="text-amber-600 mt-1 shrink-0" />
                             <span>&quot;{q.prompt}&quot;</span>
                           </div>
                           <span className="text-[10px] text-slate-400 mt-0.5 block pl-5">
@@ -601,7 +601,7 @@ La boutique propose un catalogue de plus de 199 références de parfums de luxe,
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                      🤖
+                      <Bot size={18} className="text-emerald-700" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-900">ChatGPT & SearchGPT</h4>
@@ -628,7 +628,7 @@ La boutique propose un catalogue de plus de 199 références de parfums de luxe,
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs">
-                      ✨
+                      <Sparkles size={18} className="text-blue-700" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-900">Google Gemini & AI Overviews</h4>
@@ -655,7 +655,7 @@ La boutique propose un catalogue de plus de 199 références de parfums de luxe,
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs">
-                      🔍
+                      <Search size={18} className="text-indigo-700" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-900">Perplexity AI</h4>
@@ -682,7 +682,7 @@ La boutique propose un catalogue de plus de 199 références de parfums de luxe,
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xs">
-                      ⚡
+                      <Zap size={18} className="text-amber-700" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-900">Claude 3.7 Sonnet</h4>

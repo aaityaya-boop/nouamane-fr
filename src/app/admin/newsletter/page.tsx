@@ -35,7 +35,8 @@ import {
   Globe,
   Share2,
   X,
-  ChevronDown
+  ChevronDown,
+  Truck
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 
@@ -1258,7 +1259,7 @@ export default function AdminNewsletter() {
                   }`}
                 >
                   <div className="text-xs font-bold flex items-center justify-between">
-                    <span>⚡ OFFRE NAYDAY : −10% dès 2 Parfums (Email Automatique)</span>
+                    <span className="flex items-center gap-1.5"><Zap size={12} className="text-amber-500" /> OFFRE NAYDAY : −10% dès 2 Parfums (Email Automatique)</span>
                     <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#0ea5e9] text-white">Actif & Officiel</span>
                   </div>
                   <div className="text-[10px] text-neutral-500 font-normal mt-0.5">
@@ -1275,7 +1276,7 @@ export default function AdminNewsletter() {
                       : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                   }`}
                 >
-                  <div className="text-xs">⚡ Offre -10% dès 3 flacons</div>
+                  <div className="text-xs flex items-center gap-1.5"><Zap size={12} className="text-amber-500" /> Offre -10% dès 3 flacons</div>
                   <div className="text-[10px] text-neutral-400 font-normal">Code PARFUM10</div>
                 </button>
 
@@ -1288,7 +1289,7 @@ export default function AdminNewsletter() {
                       : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                   }`}
                 >
-                  <div className="text-xs">👑 Vente Privée VIP</div>
+                  <div className="text-xs flex items-center gap-1.5"><Crown size={12} className="text-amber-600" /> Vente Privée VIP</div>
                   <div className="text-[10px] text-neutral-400 font-normal">Échantillon offert</div>
                 </button>
 
@@ -1301,7 +1302,7 @@ export default function AdminNewsletter() {
                       : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                   }`}
                 >
-                  <div className="text-xs">✦ Nouveau Parfum Niche</div>
+                  <div className="text-xs flex items-center gap-1.5"><Sparkles size={12} className="text-purple-600" /> Nouveau Parfum Niche</div>
                   <div className="text-[10px] text-neutral-400 font-normal">Lancement exclusif</div>
                 </button>
 
@@ -1314,7 +1315,7 @@ export default function AdminNewsletter() {
                       : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                   }`}
                 >
-                  <div className="text-xs">🚚 Livraison 0 DH Flash</div>
+                  <div className="text-xs flex items-center gap-1.5"><Truck size={12} className="text-sky-600" /> Livraison 0 DH Flash</div>
                   <div className="text-[10px] text-neutral-400 font-normal">Spécial week-end</div>
                 </button>
               </div>

@@ -310,8 +310,9 @@ export default async function SeoOverviewPage() {
                   </span>
                   <h3 className="text-xs font-bold text-slate-900 dark:text-white">{opp.title}</h3>
                 </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 shrink-0">
-                  Impact {opp.impact === 'HIGH' ? 'Élevé 🚀' : 'Moyen'}
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 shrink-0">
+                  {opp.impact === 'HIGH' && <TrendingUp size={11} className="text-emerald-600" />}
+                  <span>Impact {opp.impact === 'HIGH' ? 'Élevé' : 'Moyen'}</span>
                 </span>
               </div>
 

@@ -1581,10 +1581,10 @@ export default function SavClient({ currentAdmin }: SavClientProps) {
                                 onChange={(e) => setInspectionDecision(e.target.value)}
                                 className="w-full p-2 rounded-xl bg-white border border-slate-200 font-bold text-xs"
                               >
-                                <option value="RESTOCK_SELLABLE">✅ Remise en stock vendable (+ stock)</option>
-                                <option value="DAMAGED_DISCARD">❌ Produit endommagé / Rebut (Pas de stock)</option>
-                                <option value="NOT_RESALEABLE">⚠️ Non revendable / Ouvert (Pas de stock)</option>
-                                <option value="OTHER_JUSTIFIED">📋 Autre disposition justifiée</option>
+                                <option value="RESTOCK_SELLABLE">Remise en stock vendable (+ stock)</option>
+                                <option value="DAMAGED_DISCARD">Produit endommagé / Rebut (Pas de stock)</option>
+                                <option value="NOT_RESALEABLE">Non revendable / Ouvert (Pas de stock)</option>
+                                <option value="OTHER_JUSTIFIED">Autre disposition justifiée</option>
                               </select>
 
                               <textarea
@@ -1983,8 +1983,9 @@ export default function SavClient({ currentAdmin }: SavClientProps) {
                         {selectedNewOrder.customerName} ({selectedNewOrder.total} MAD)
                       </span>
                       {selectedNewOrder.claims?.length > 0 && (
-                        <div className="text-[10px] text-amber-700 font-bold mt-0.5">
-                          ⚠️ Attention : {selectedNewOrder.claims.length} dossier(s) déjà ouvert(s) sur cette commande.
+                        <div className="text-[10px] text-amber-700 font-bold mt-0.5 flex items-center gap-1">
+                          <AlertTriangle size={11} className="text-amber-600 shrink-0" />
+                          <span>Attention : {selectedNewOrder.claims.length} dossier(s) déjà ouvert(s) sur cette commande.</span>
                         </div>
                       )}
                     </div>

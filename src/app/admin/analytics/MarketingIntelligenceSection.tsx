@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import {
   Sparkles, Target, TrendingUp, DollarSign, Lightbulb, Zap,
   ShoppingBag, ArrowRight, CheckCircle2, AlertTriangle, ShieldCheck,
-  Flame, Award, Layers, HelpCircle, BarChart3, Calculator
+  Flame, Award, Layers, HelpCircle, BarChart3, Calculator, Smartphone
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 import { MarketingInsight } from './types';
@@ -326,7 +326,11 @@ export default function MarketingIntelligenceSection({
                 {estimatedRoas}x
               </div>
               <p className="text-[10px] text-neutral-500">
-                {estimatedRoas >= 3.5 ? '🔥 Excellent retour' : 'Bonne rentabilité'}
+                {estimatedRoas >= 3.5 ? (
+                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                    <TrendingUp size={11} /> Excellent retour
+                  </span>
+                ) : 'Bonne rentabilité'}
               </p>
             </div>
 
@@ -388,10 +392,10 @@ export default function MarketingIntelligenceSection({
                 </span>
               </div>
 
-              <div className="text-[11px] text-neutral-500 space-y-1">
-                <div>🎯 <strong>Cible :</strong> {angle.target}</div>
-                <div>📱 <strong>Format recommandé :</strong> {angle.formats}</div>
-                <div>💎 <strong>Parfums stars :</strong> {angle.perfumes}</div>
+              <div className="text-[11px] text-neutral-500 space-y-1.5">
+                <div className="flex items-center gap-1.5"><Target size={12} className="text-purple-500 shrink-0" /> <span><strong>Cible :</strong> {angle.target}</span></div>
+                <div className="flex items-center gap-1.5"><Smartphone size={12} className="text-sky-500 shrink-0" /> <span><strong>Format recommandé :</strong> {angle.formats}</span></div>
+                <div className="flex items-center gap-1.5"><Sparkles size={12} className="text-amber-500 shrink-0" /> <span><strong>Parfums stars :</strong> {angle.perfumes}</span></div>
               </div>
 
               <div className="p-3 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 text-[11px] text-neutral-800 dark:text-neutral-200 italic">

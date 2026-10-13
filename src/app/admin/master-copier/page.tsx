@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '@/lib/products';
 import { OLFACTIVE_FAMILIES } from '@/lib/olfactiveFamilies';
-import { Plus, Edit2, Trash2, Search, X, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Upload, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import SeasonSelector from '@/components/admin/SeasonSelector';
 import CatalogSectionsCard from '@/components/admin/CatalogSectionsCard';
@@ -379,8 +379,9 @@ export default function AdminMasterCopierPage() {
                             RUPTURE
                           </button>
                         )}
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                          ✨ MASTER COPY
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          <Sparkles size={11} className="text-amber-600" />
+                          <span>MASTER COPY</span>
                         </span>
                       </div>
                     </td>
@@ -516,7 +517,7 @@ export default function AdminMasterCopierPage() {
                           });
                         }}
                       >
-                        <option value="" disabled>✨ Sélectionnez une famille olfactive...</option>
+                        <option value="" disabled>Sélectionnez une famille olfactive...</option>
                         {OLFACTIVE_FAMILIES.map(group => (
                           <optgroup key={group.group} label={group.group}>
                             {group.options.map(opt => (

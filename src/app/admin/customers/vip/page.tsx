@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Star, ArrowRight, Diamond, Crown, Award, Phone, MessageSquare, MapPin } from 'lucide-react';
+import { Star, ArrowRight, Diamond, Crown, Award, Phone, MessageSquare, MapPin, ShoppingCart, User } from 'lucide-react';
 import { getUnifiedCustomers } from '@/lib/unifiedCustomers';
 import { formatMAD } from '@/lib/products';
 
@@ -110,8 +110,12 @@ export default async function VipCustomersPage() {
 
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-neutral-900">{customer.name}</div>
-                        <span className="text-[10px] text-neutral-500 font-medium">
-                          {customer.source === 'COMMANDE' ? '🛒 Commande directe' : '👤 Compte créé'}
+                        <span className="text-[10px] text-neutral-500 font-medium inline-flex items-center gap-1">
+                          {customer.source === 'COMMANDE' ? (
+                            <><ShoppingCart size={10} className="text-sky-600" /> Commande directe</>
+                          ) : (
+                            <><User size={10} className="text-neutral-500" /> Compte créé</>
+                          )}
                         </span>
                       </td>
 

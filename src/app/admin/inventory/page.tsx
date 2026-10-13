@@ -19,7 +19,10 @@ import {
   ArrowUpRight,
   Filter,
   DollarSign,
-  Layers
+  Layers,
+  FlaskConical,
+  Crown,
+  Gift
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -313,22 +316,23 @@ export default function AdminInventoryPage() {
             <Layers size={13} className="text-sky-500" /> Rayon :
           </span>
           {[
-            { id: 'ALL', label: 'Tous les Rayons' },
-            { id: 'TESTER', label: '🧪 Testeurs' },
-            { id: 'ORIGINAL', label: '👑 Parfums Originaux' },
-            { id: 'MASTER_COPY', label: '✨ Master Copy' },
-            { id: 'COFFRET', label: '🎁 Coffrets Cadeaux' },
+            { id: 'ALL', label: 'Tous les Rayons', icon: null },
+            { id: 'TESTER', label: 'Testeurs', icon: <FlaskConical size={12} className="text-purple-600" /> },
+            { id: 'ORIGINAL', label: 'Parfums Originaux', icon: <Crown size={12} className="text-emerald-600" /> },
+            { id: 'MASTER_COPY', label: 'Master Copy', icon: <Sparkles size={12} className="text-amber-600" /> },
+            { id: 'COFFRET', label: 'Coffrets Cadeaux', icon: <Gift size={12} className="text-indigo-600" /> },
           ].map((sec) => (
             <button
               key={sec.id}
               onClick={() => setSectionFilter(sec.id as any)}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 sectionFilter === sec.id
                   ? 'bg-slate-900 text-white shadow-2xs'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              {sec.label}
+              {sec.icon}
+              <span>{sec.label}</span>
             </button>
           ))}
         </div>
@@ -378,12 +382,12 @@ export default function AdminInventoryPage() {
 
                 const sectionBadge =
                   product.subcategory === 'master-copier'
-                    ? { label: '✨ Master Copy', color: 'bg-amber-50 text-amber-800 border-amber-200' }
+                    ? { label: 'Master Copy', icon: <Sparkles size={10} className="text-amber-700" />, color: 'bg-amber-50 text-amber-800 border-amber-200' }
                     : product.subcategory === 'coffrets'
-                    ? { label: '🎁 Coffret', color: 'bg-indigo-50 text-indigo-800 border-indigo-200' }
+                    ? { label: 'Coffret', icon: <Gift size={10} className="text-indigo-700" />, color: 'bg-indigo-50 text-indigo-800 border-indigo-200' }
                     : product.isTester
-                    ? { label: '🧪 Testeur', color: 'bg-purple-50 text-purple-800 border-purple-200' }
-                    : { label: '👑 Original', color: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
+                    ? { label: 'Testeur', icon: <FlaskConical size={10} className="text-purple-700" />, color: 'bg-purple-50 text-purple-800 border-purple-200' }
+                    : { label: 'Original', icon: <Crown size={10} className="text-emerald-700" />, color: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
 
                 return (
                   <tr key={product.id} className="hover:bg-slate-50/60 transition-colors group">
@@ -418,8 +422,9 @@ export default function AdminInventoryPage() {
                     <td className="px-5 py-3.5 space-y-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-semibold text-slate-800">{product.brandLabel || 'NAY'}</span>
-                        <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold border ${sectionBadge.color}`}>
-                          {sectionBadge.label}
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${sectionBadge.color}`}>
+                          {sectionBadge.icon}
+                          <span>{sectionBadge.label}</span>
                         </span>
                       </div>
                       <div className="text-[10px] text-slate-400">{product.subcategoryLabel || 'Parfumerie'}</div>

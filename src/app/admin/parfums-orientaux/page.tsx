@@ -488,7 +488,7 @@ export default function AdminArabicPage() {
                           });
                         }}
                       >
-                        <option value="" disabled>✨ Sélectionnez une famille olfactive...</option>
+                        <option value="" disabled>Sélectionnez une famille olfactive...</option>
                         {OLFACTIVE_FAMILIES.map(group => (
                           <optgroup key={group.group} label={group.group}>
                             {group.options.map(opt => (

@@ -92,7 +92,7 @@ const PRIORITY_MAP: Record<string, { label: string; badge: string; dot: string }
   LOW: { label: 'Basse', badge: 'bg-slate-100 text-slate-700 border-slate-200', dot: 'bg-slate-400' },
   MEDIUM: { label: 'Moyenne', badge: 'bg-sky-50 text-sky-800 border-sky-200', dot: 'bg-sky-500' },
   HIGH: { label: 'Haute Priorité', badge: 'bg-amber-50 text-amber-800 border-amber-300 font-bold', dot: 'bg-amber-500' },
-  CRITICAL: { label: '🚨 Urgence Critique', badge: 'bg-rose-50 text-rose-800 border-rose-300 font-bold', dot: 'bg-rose-500 animate-ping' },
+  CRITICAL: { label: 'Urgence Critique', badge: 'bg-rose-50 text-rose-800 border-rose-300 font-bold', dot: 'bg-rose-500 animate-ping' },
 };
 
 const STATUS_MAP: Record<string, { label: string; badge: string; dot: string }> = {
@@ -687,7 +687,7 @@ export default function ReclamationsClient({ currentAdmin }: { currentAdmin: any
                     <option value="LOW">Basse (Non bloquant)</option>
                     <option value="MEDIUM">Moyenne (À traiter sous 48h)</option>
                     <option value="HIGH">Haute Priorité (Impacte le travail)</option>
-                    <option value="CRITICAL">🚨 Urgence Critique (Bloquant)</option>
+                    <option value="CRITICAL">Urgence Critique (Bloquant)</option>
                   </select>
                 </div>
               </div>

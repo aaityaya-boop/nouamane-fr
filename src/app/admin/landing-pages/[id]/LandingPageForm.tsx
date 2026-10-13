@@ -25,7 +25,11 @@ import {
   Tag,
   MessageSquare,
   Package,
-  Wand2
+  Wand2,
+  ShoppingBag,
+  Crown,
+  Zap,
+  Gift
 } from 'lucide-react';
 import { PRODUCTS } from '@/lib/products';
 
@@ -932,7 +936,7 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
                         bundles: prev.bundles.map((b: any, i: number) => i === idx ? { ...b, badge: val } : b)
                       }));
                     }}
-                    placeholder="ex: 🔥 LE PLUS VENDU · Livraison Gratuite"
+                    placeholder="ex: LE PLUS VENDU · Livraison Gratuite"
                     className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-white"
                   />
                 </div>
@@ -1208,20 +1212,22 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
                   <button
                     type="button"
                     onClick={() => setProductMode('catalog')}
-                    className={`p-3 rounded-xl border text-left text-xs font-bold transition-all ${
+                    className={`p-3 rounded-xl border text-left text-xs font-bold transition-all flex items-center gap-2 ${
                       productMode === 'catalog' ? 'border-amber-600 bg-amber-50 text-amber-900 ring-2 ring-amber-600/20' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    🛍️ Parfum du Catalogue
+                    <ShoppingBag size={14} className="text-amber-600 shrink-0" />
+                    <span>Parfum du Catalogue</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setProductMode('custom')}
-                    className={`p-3 rounded-xl border text-left text-xs font-bold transition-all ${
+                    className={`p-3 rounded-xl border text-left text-xs font-bold transition-all flex items-center gap-2 ${
                       productMode === 'custom' ? 'border-amber-600 bg-amber-50 text-amber-900 ring-2 ring-amber-600/20' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    🧪 Cosmétique / Sur-Mesure
+                    <Sparkles size={14} className="text-purple-600 shrink-0" />
+                    <span>Cosmétique / Sur-Mesure</span>
                   </button>
                 </div>
               </div>
@@ -1306,11 +1312,11 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
                 </label>
                 <div className="space-y-2">
                   {[
-                    { id: 'LUXURY_GLAMOUR', title: '🌟 Haute Parfumerie & Prestige', desc: 'Sillage d’exception, compliments, élégance intemporelle' },
-                    { id: 'FLASH_PROMO', title: '⚡ Vente Flash & Urgence Choc', desc: 'Réduction agressive, compte à rebours, stock très limité' },
-                    { id: 'SKINCARE_TRANSFORMATION', title: '💆‍♀️ Transformation Cosmétique & Soin', desc: 'Rajeunissement 7 jours, éclat immédiat, actifs purs' },
-                    { id: 'GIFT_EXPERIENCE', title: '🎁 Cadeau d’Exception pour Proche', desc: 'Coffret soigné, surprise garantie pour conjoint ou fête' },
-                    { id: 'MOROCCAN_COD_DIRECT', title: '🚚 Confiance & Zéro Risque Maroc', desc: 'Paiement à la livraison, colis vérifiable avant de payer' }
+                    { id: 'LUXURY_GLAMOUR', icon: <Crown size={14} className="text-amber-600" />, title: 'Haute Parfumerie & Prestige', desc: 'Sillage d’exception, compliments, élégance intemporelle' },
+                    { id: 'FLASH_PROMO', icon: <Zap size={14} className="text-rose-500" />, title: 'Vente Flash & Urgence Choc', desc: 'Réduction agressive, compte à rebours, stock très limité' },
+                    { id: 'SKINCARE_TRANSFORMATION', icon: <Sparkles size={14} className="text-purple-500" />, title: 'Transformation Cosmétique & Soin', desc: 'Rajeunissement 7 jours, éclat immédiat, actifs purs' },
+                    { id: 'GIFT_EXPERIENCE', icon: <Gift size={14} className="text-indigo-500" />, title: 'Cadeau d’Exception pour Proche', desc: 'Coffret soigné, surprise garantie pour conjoint ou fête' },
+                    { id: 'MOROCCAN_COD_DIRECT', icon: <Truck size={14} className="text-emerald-600" />, title: 'Confiance & Zéro Risque Maroc', desc: 'Paiement à la livraison, colis vérifiable avant de payer' }
                   ].map(angle => (
                     <label
                       key={angle.id}
@@ -1329,8 +1335,11 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
                         className="mt-1 text-amber-600"
                       />
                       <div>
-                        <div className="text-xs font-bold text-gray-900">{angle.title}</div>
-                        <div className="text-[11px] text-gray-500">{angle.desc}</div>
+                        <div className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                          {angle.icon}
+                          <span>{angle.title}</span>
+                        </div>
+                        <div className="text-[11px] text-gray-500 mt-0.5">{angle.desc}</div>
                       </div>
                     </label>
                   ))}

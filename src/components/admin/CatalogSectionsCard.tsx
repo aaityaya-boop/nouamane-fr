@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Layers, CheckCircle2, Plus, ExternalLink, Sparkles, Package, Gift, AlertCircle, ArrowUpRight } from 'lucide-react';
+import { Layers, CheckCircle2, Plus, ExternalLink, Sparkles, Package, Gift, AlertCircle, ArrowUpRight, FlaskConical, Crown } from 'lucide-react';
 import Link from 'next/link';
 
 export interface SiblingEditions {
@@ -151,7 +151,8 @@ export default function CatalogSectionsCard({
     {
       id: 'tester' as const,
       name: 'Testeur de Parfum',
-      badge: '🧪 Format Testeur',
+      badgeLabel: 'Format Testeur',
+      badgeIcon: <FlaskConical size={11} className="text-purple-600 dark:text-purple-400" />,
       badgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border-purple-200 dark:border-purple-800',
       description: 'Flacon de démonstration authentique, vendu en boîte neutre ou sans boîte scellée. Tarif accessible.',
       adminUrl: '/admin/products',
@@ -167,7 +168,8 @@ export default function CatalogSectionsCard({
     {
       id: 'original' as const,
       name: 'Parfum Original Scellé',
-      badge: '👑 100% Original Neuf',
+      badgeLabel: '100% Original Neuf',
+      badgeIcon: <Crown size={11} className="text-emerald-600 dark:text-emerald-400" />,
       badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
       description: 'Boîte et packaging officiel scellé sous cellophane d\'origine avec code-barres et scellé de garantie. Tarif prestige.',
       adminUrl: '/admin/parfums-originaux',
@@ -183,7 +185,8 @@ export default function CatalogSectionsCard({
     {
       id: 'master-copier' as const,
       name: 'Master Copy 1:1',
-      badge: '✨ Master Copy Miroir',
+      badgeLabel: 'Master Copy Miroir',
+      badgeIcon: <Sparkles size={11} className="text-amber-600 dark:text-amber-400" />,
       badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-amber-200 dark:border-amber-800',
       description: 'Finition 1:1 haute fidélité avec packaging complet, flacon gravé et sillage haute tenue. Tarif intermédiaire.',
       adminUrl: '/admin/master-copier',
@@ -244,8 +247,9 @@ export default function CatalogSectionsCard({
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-1">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black border ${sec.badgeColor}`}>
-                      {sec.badge}
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black border ${sec.badgeColor}`}>
+                      {sec.badgeIcon}
+                      <span>{sec.badgeLabel}</span>
                     </span>
                     <h4 className="text-xs font-bold text-neutral-900 dark:text-white">
                       {sec.name}

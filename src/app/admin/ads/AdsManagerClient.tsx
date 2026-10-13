@@ -32,7 +32,9 @@ import {
   Radio,
   Check,
   Building2,
-  FileText
+  FileText,
+  PauseCircle,
+  Clock
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 
@@ -935,14 +937,14 @@ export default function AdsManagerClient({
                       ? 'bg-rose-50 text-rose-700 border-rose-200'
                       : 'bg-neutral-100 text-neutral-700 border-neutral-200';
 
-                  const recText =
+                  const recConfig =
                     camp.recommendation === 'SCALE'
-                      ? '🚀 SCALE UP'
+                      ? { text: 'SCALE UP', icon: <TrendingUp size={11} className="text-emerald-600" /> }
                       : camp.recommendation === 'OPTIMIZE'
-                      ? '⚡ OPTIMISER'
+                      ? { text: 'OPTIMISER', icon: <Zap size={11} className="text-amber-600" /> }
                       : camp.recommendation === 'PAUSE'
-                      ? '🛑 STOP / PAUSE'
-                      : '⏳ EN TEST';
+                      ? { text: 'STOP / PAUSE', icon: <PauseCircle size={11} className="text-rose-600" /> }
+                      : { text: 'EN TEST', icon: <Clock size={11} className="text-neutral-600" /> };
 
                   return (
                     <tr key={camp.id} className="hover:bg-neutral-50/70 transition-colors">
@@ -993,8 +995,9 @@ export default function AdsManagerClient({
                       </td>
 
                       <td className="py-3 px-4 text-center">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${recBadge}`}>
-                          {recText}
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md border ${recBadge}`}>
+                          {recConfig.icon}
+                          <span>{recConfig.text}</span>
                         </span>
                       </td>
                     </tr>

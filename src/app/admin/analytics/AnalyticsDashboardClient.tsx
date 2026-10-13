@@ -14,7 +14,7 @@ import {
   Eye, ShieldCheck, Heart, Search, HelpCircle, Flame, ExternalLink,
   Radio, Target, Compass, Droplets, Zap, Share2, MessageCircle,
   UserCheck, ArrowRight, BarChart3, ShoppingCart, MousePointerClick,
-  Tablet, Video, AtSign, Gauge
+  Tablet, Video, AtSign, Gauge, Lightbulb
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -546,11 +546,11 @@ export default function AnalyticsDashboardClient() {
           {/* Sub Navigation Bar */}
           <div className="flex items-center gap-2 overflow-x-auto p-1.5 bg-neutral-100 dark:bg-neutral-800/80 rounded-2xl max-w-full" style={{ scrollbarWidth: 'none' }}>
             {[
-              { id: 'cities', label: '📍 Villes du Maroc', icon: <MapPin size={14} className="text-rose-500" /> },
-              { id: 'sources', label: '🌐 Sources d\'Acquisition', icon: <Share2 size={14} className="text-sky-500" /> },
-              { id: 'devices', label: '📱 Appareils & Systèmes', icon: <Smartphone size={14} className="text-purple-500" /> },
-              { id: 'pages', label: '📄 Pages & Fiches Parfums', icon: <Eye size={14} className="text-indigo-500" /> },
-              { id: 'stream', label: '🔴 Flux Télémesure Live', icon: <Radio size={14} className="text-emerald-500 animate-pulse" /> },
+              { id: 'cities', label: 'Villes du Maroc', icon: <MapPin size={14} className="text-rose-500" /> },
+              { id: 'sources', label: 'Sources d\'Acquisition', icon: <Share2 size={14} className="text-sky-500" /> },
+              { id: 'devices', label: 'Appareils & Systèmes', icon: <Smartphone size={14} className="text-purple-500" /> },
+              { id: 'pages', label: 'Pages & Fiches Parfums', icon: <Eye size={14} className="text-indigo-500" /> },
+              { id: 'stream', label: 'Flux Télémesure Live', icon: <Radio size={14} className="text-emerald-500 animate-pulse" /> },
             ].map((sub) => {
               const isSelected =
                 (geoSubTab === sub.id && activeTab === 'geography') ||
@@ -906,7 +906,7 @@ export default function AnalyticsDashboardClient() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-800 space-y-2">
                   <div className="font-bold text-xs text-neutral-900 dark:text-white flex items-center justify-between">
-                    <span>📱 iOS & iPhone (Apple)</span>
+                    <span className="inline-flex items-center gap-1.5"><Smartphone size={14} className="text-purple-600" /> iOS & iPhone (Apple)</span>
                     <span className="text-purple-600 font-extrabold">~58%</span>
                   </div>
                   <p className="text-[11px] text-neutral-500">
@@ -916,7 +916,7 @@ export default function AnalyticsDashboardClient() {
 
                 <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-800 space-y-2">
                   <div className="font-bold text-xs text-neutral-900 dark:text-white flex items-center justify-between">
-                    <span>🤖 Android (Samsung, Xiaomi...)</span>
+                    <span className="inline-flex items-center gap-1.5"><Smartphone size={14} className="text-emerald-600" /> Android (Samsung, Xiaomi...)</span>
                     <span className="text-emerald-600 font-extrabold">~42%</span>
                   </div>
                   <p className="text-[11px] text-neutral-500">
@@ -1125,8 +1125,9 @@ export default function AnalyticsDashboardClient() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 text-[11px] text-amber-900 dark:text-amber-300">
-                💡 <strong>Analyse d&apos;Audience</strong> : L&apos;audience est particulièrement active en soirée entre <strong>20h00 et 23h30</strong>, avec un deuxième pic en début d&apos;après-midi (13h-15h).
+              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 text-[11px] text-amber-900 dark:text-amber-300 flex items-center gap-2">
+                <Lightbulb size={14} className="text-amber-600 shrink-0" />
+                <span><strong>Analyse d&apos;Audience</strong> : L&apos;audience est particulièrement active en soirée entre <strong>20h00 et 23h30</strong>, avec un deuxième pic en début d&apos;après-midi (13h-15h).</span>
               </div>
             </div>
           </div>

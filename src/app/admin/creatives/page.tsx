@@ -84,7 +84,7 @@ const CATEGORIES = [
 ];
 
 const STATUSES = [
-  { id: 'WINNER', label: 'Winner 🔥', badge: 'bg-amber-50 text-amber-800 border-amber-200' },
+  { id: 'WINNER', label: 'Winner', badge: 'bg-amber-50 text-amber-800 border-amber-200' },
   { id: 'TESTING', label: 'En Test', badge: 'bg-sky-50 text-sky-800 border-sky-200' },
   { id: 'ACTIVE', label: 'Actif', badge: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
   { id: 'PAUSED', label: 'En Pause', badge: 'bg-neutral-100 text-neutral-600 border-neutral-200' },
@@ -350,8 +350,9 @@ export default function AdminCreativesPage() {
   const getStatusBadge = (status: CreativeItem['status']) => {
     const s = STATUSES.find((item) => item.id === status);
     return (
-      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider border ${s?.badge || 'bg-neutral-100 text-neutral-700'}`}>
-        {s?.label || status}
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider border ${s?.badge || 'bg-neutral-100 text-neutral-700'}`}>
+        {status === 'WINNER' && <Flame size={10} className="text-amber-600" />}
+        <span>{s?.label || status}</span>
       </span>
     );
   };
@@ -470,7 +471,7 @@ export default function AdminCreativesPage() {
             className="w-full px-2.5 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-xs text-neutral-700 font-medium focus:bg-white focus:outline-none focus:border-neutral-900"
           >
             <option value="ALL">Tous les statuts</option>
-            <option value="WINNER">Winners 🔥</option>
+            <option value="WINNER">Winners</option>
             <option value="TESTING">En Test</option>
             <option value="ACTIVE">Actifs</option>
             <option value="PAUSED">En Pause</option>
@@ -855,7 +856,7 @@ export default function AdminCreativesPage() {
                     className="w-full px-2.5 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-xs text-neutral-800 font-medium focus:bg-white focus:outline-none focus:border-neutral-900"
                   >
                     <option value="TESTING">En Test</option>
-                    <option value="WINNER">Winner 🔥</option>
+                    <option value="WINNER">Winner</option>
                     <option value="ACTIVE">Actif</option>
                     <option value="PAUSED">En Pause</option>
                     <option value="ARCHIVED">Archivé</option>

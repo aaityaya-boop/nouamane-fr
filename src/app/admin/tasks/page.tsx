@@ -1005,7 +1005,7 @@ export default function AdminTasksPage() {
                     <option value="LOW">Basse</option>
                     <option value="MEDIUM">Moyenne</option>
                     <option value="HIGH">Haute</option>
-                    <option value="URGENT">Urgente 🔥</option>
+                    <option value="URGENT">Urgente</option>
                   </select>
                 </div>
 

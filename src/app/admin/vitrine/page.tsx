@@ -20,7 +20,8 @@ import {
   Copy,
   ExternalLink,
   Filter,
-  Package
+  Package,
+  Target
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 
@@ -589,13 +590,14 @@ export default function VitrinePage() {
                   <button
                     type="button"
                     onClick={() => setFilterScope('category')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                       filterScope === 'category'
                         ? 'bg-white text-neutral-900 shadow-2xs'
                         : 'text-neutral-600 hover:text-neutral-900'
                     }`}
                   >
-                    🎯 Filtre {currentTabConfig.label} ({categoryCount})
+                    <Target size={12} className="text-sky-600" />
+                    <span>Filtre {currentTabConfig.label} ({categoryCount})</span>
                   </button>
 
                   <button
@@ -614,13 +616,14 @@ export default function VitrinePage() {
                   <button
                     type="button"
                     onClick={() => setFilterScope('all')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                       filterScope === 'all'
                         ? 'bg-neutral-900 text-white shadow-2xs'
                         : 'text-neutral-600 hover:text-neutral-900'
                     }`}
                   >
-                    📦 Tout l'inventaire ({allProducts.length})
+                    <Package size={12} />
+                    <span>Tout l&apos;inventaire ({allProducts.length})</span>
                   </button>
                 </div>
 

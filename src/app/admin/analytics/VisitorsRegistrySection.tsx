@@ -329,10 +329,10 @@ export default function VisitorsRegistrySection({
               }}
               className="px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 focus:outline-none cursor-pointer"
             >
-              <option value="ALL">📍 Toutes les villes du Maroc</option>
+              <option value="ALL">Toutes les villes du Maroc</option>
               {uniqueCities.map((city) => (
                 <option key={city} value={city}>
-                  🇲🇦 {city}
+                  {city}
                 </option>
               ))}
             </select>
@@ -343,10 +343,10 @@ export default function VisitorsRegistrySection({
               onChange={(e) => setSortBy(e.target.value as any)}
               className="px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 focus:outline-none cursor-pointer"
             >
-              <option value="recent">⏱️ Plus récents d&apos;abord</option>
-              <option value="pages">📄 Plus de pages consultées</option>
-              <option value="duration">⏳ Plus longue durée</option>
-              <option value="cartValue">🛒 Panier le plus élevé</option>
+              <option value="recent">Plus récents d&apos;abord</option>
+              <option value="pages">Plus de pages consultées</option>
+              <option value="duration">Plus longue durée</option>
+              <option value="cartValue">Panier le plus élevé</option>
             </select>
           </div>
         </div>
@@ -354,12 +354,12 @@ export default function VisitorsRegistrySection({
         {/* Status Filter Chips */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-semibold" style={{ scrollbarWidth: 'none' }}>
           {[
-            { id: 'ALL', label: `Tous (${visitors.length})` },
-            { id: 'ONLINE', label: `🟢 En Ligne (${stats.online})` },
-            { id: 'CART', label: `🛒 Panier Actif (${stats.withCart})` },
-            { id: 'PURCHASED', label: `🛍️ Acheteurs (${stats.purchased})` },
-            { id: 'MOBILE', label: `📱 Mobiles (${stats.mobile})` },
-            { id: 'DESKTOP', label: `💻 PC (${stats.desktop})` },
+            { id: 'ALL', label: `Tous (${visitors.length})`, icon: null },
+            { id: 'ONLINE', label: `En Ligne (${stats.online})`, icon: <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> },
+            { id: 'CART', label: `Panier Actif (${stats.withCart})`, icon: <ShoppingCart size={13} className="text-amber-500" /> },
+            { id: 'PURCHASED', label: `Acheteurs (${stats.purchased})`, icon: <CheckCircle2 size={13} className="text-emerald-500" /> },
+            { id: 'MOBILE', label: `Mobiles (${stats.mobile})`, icon: <Smartphone size={13} className="text-purple-500" /> },
+            { id: 'DESKTOP', label: `PC (${stats.desktop})`, icon: <Monitor size={13} className="text-sky-500" /> },
           ].map((pill) => (
             <button
               key={pill.id}
@@ -367,13 +367,14 @@ export default function VisitorsRegistrySection({
                 setStatusFilter(pill.id as any);
                 setCurrentPage(1);
               }}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap text-xs font-bold ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap text-xs font-bold ${
                 statusFilter === pill.id
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-sm'
                   : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
               }`}
             >
-              {pill.label}
+              {pill.icon}
+              <span>{pill.label}</span>
             </button>
           ))}
         </div>
@@ -707,13 +708,23 @@ export default function VisitorsRegistrySection({
                 <div>
                   <div className="text-[10px] text-neutral-400 uppercase font-semibold">Statut</div>
                   <div className="text-xs font-black text-neutral-900 dark:text-white mt-1">
-                    {selectedVisitor.hasPurchased
-                      ? '🏆 Converti'
-                      : selectedVisitor.hasCart
-                      ? '🛒 Panier'
-                      : selectedVisitor.isOnline
-                      ? '🟢 En direct'
-                      : '⚪ Terminé'}
+                    {selectedVisitor.hasPurchased ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 size={13} /> Converti
+                      </span>
+                    ) : selectedVisitor.hasCart ? (
+                      <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                        <ShoppingCart size={13} /> Panier
+                      </span>
+                    ) : selectedVisitor.isOnline ? (
+                      <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> En direct
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-neutral-500">
+                        <Clock size={13} /> Terminé
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

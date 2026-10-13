@@ -34,7 +34,12 @@ import {
   Mail,
   Users,
   CheckCheck,
-  RefreshCw
+  RefreshCw,
+  Gift,
+  Zap,
+  Banknote,
+  Landmark,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminPushNotificationSettings from '@/components/admin/AdminPushNotificationSettings';
@@ -679,7 +684,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                             </div>
                             <p className="text-xs font-mono text-slate-600 mt-0.5">{staff.email}</p>
                             {staff.phone && (
-                              <p className="text-[11px] text-slate-400 mt-0.5">📞 {staff.phone}</p>
+                              <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1"><Phone size={11} /> {staff.phone}</p>
                             )}
                           </div>
                         </div>
@@ -752,9 +757,9 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                           Visiteur s&apos;inscrit sur la boutique.
                         </p>
                       </div>
-                      <div className="text-[11px] text-slate-700 space-y-1 pt-2 border-t border-slate-200/60 font-medium">
-                        <div className="text-emerald-700">🎁 Client reçoit son code NAYDAY (−10%)</div>
-                        <div className="text-slate-800">⚡ Managers reçoivent l&apos;alerte email</div>
+                      <div className="text-[11px] text-slate-700 space-y-1.5 pt-2 border-t border-slate-200/60 font-medium">
+                        <div className="text-emerald-700 flex items-center gap-1.5"><Gift size={12} className="shrink-0" /> Client reçoit son code NAYDAY (−10%)</div>
+                        <div className="text-slate-800 flex items-center gap-1.5"><Zap size={12} className="text-amber-500 shrink-0" /> Managers reçoivent l&apos;alerte email</div>
                       </div>
                     </div>
 
@@ -772,9 +777,9 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                           Formulaire soumis depuis <code className="bg-white px-1 rounded">/contact</code>.
                         </p>
                       </div>
-                      <div className="text-[11px] text-slate-700 space-y-1 pt-2 border-t border-slate-200/60 font-medium">
-                        <div className="text-emerald-700">✉️ Accusé de réception client</div>
-                        <div className="text-slate-800">💬 Boutons réponse WhatsApp & Email en 1-clic</div>
+                      <div className="text-[11px] text-slate-700 space-y-1.5 pt-2 border-t border-slate-200/60 font-medium">
+                        <div className="text-emerald-700 flex items-center gap-1.5"><Mail size={12} className="shrink-0" /> Accusé de réception client</div>
+                        <div className="text-slate-800 flex items-center gap-1.5"><MessageCircle size={12} className="text-sky-500 shrink-0" /> Boutons réponse WhatsApp & Email en 1-clic</div>
                       </div>
                     </div>
 
@@ -792,9 +797,9 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                           Panier validé par un acheteur au Maroc.
                         </p>
                       </div>
-                      <div className="text-[11px] text-slate-700 space-y-1 pt-2 border-t border-slate-200/60 font-medium">
-                        <div className="text-emerald-700">📦 Notification confirmation client</div>
-                        <div className="text-slate-800">📋 Bordereau et fiche préparateur prêts</div>
+                      <div className="text-[11px] text-slate-700 space-y-1.5 pt-2 border-t border-slate-200/60 font-medium">
+                        <div className="text-emerald-700 flex items-center gap-1.5"><Package size={12} className="shrink-0" /> Notification confirmation client</div>
+                        <div className="text-slate-800 flex items-center gap-1.5"><FileText size={12} className="text-slate-600 shrink-0" /> Bordereau et fiche préparateur prêts</div>
                       </div>
                     </div>
                   </div>
@@ -1012,7 +1017,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                   <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
-                        💵
+                        <Banknote size={16} className="text-emerald-700" />
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-900">Paiement à la Livraison (Cash on Delivery)</p>
@@ -1027,7 +1032,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                   <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
-                        🏦
+                        <Landmark size={16} className="text-blue-700" />
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-900">Virement Bancaire Instantané</p>
@@ -1619,8 +1624,9 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-500 leading-relaxed">
-                  🔒 <strong>Conseil sécurité :</strong> Utilisez un mot de passe d&apos;au moins 12 caractères combinant majuscules, chiffres et caractères spéciaux.
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-500 leading-relaxed flex items-start gap-2">
+                  <Lock size={13} className="text-slate-600 shrink-0 mt-0.5" />
+                  <span><strong>Conseil sécurité :</strong> Utilisez un mot de passe d&apos;au moins 12 caractères combinant majuscules, chiffres et caractères spéciaux.</span>
                 </div>
               </div>
             </div>

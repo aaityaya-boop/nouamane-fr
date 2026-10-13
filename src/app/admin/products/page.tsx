@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '@/lib/products';
 import { OLFACTIVE_FAMILIES, getBaseSubcategoryFromFamily } from '@/lib/olfactiveFamilies';
-import { Plus, Edit2, Trash2, Search, X, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Upload, FlaskConical } from 'lucide-react';
 import Image from 'next/image';
 import SeasonSelector from '@/components/admin/SeasonSelector';
 import CatalogSectionsCard from '@/components/admin/CatalogSectionsCard';
@@ -396,8 +396,9 @@ export default function AdminProductsPage() {
                             RUPTURE
                           </button>
                         )}
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                          🧪 TESTEUR
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                          <FlaskConical size={11} className="text-purple-600" />
+                          <span>TESTEUR</span>
                         </span>
                       </div>
                     </td>
@@ -535,7 +536,7 @@ export default function AdminProductsPage() {
                           });
                         }}
                       >
-                        <option value="" disabled>✨ Sélectionnez une famille olfactive...</option>
+                        <option value="" disabled>Sélectionnez une famille olfactive...</option>
                         {OLFACTIVE_FAMILIES.map(group => (
                           <optgroup key={group.group} label={group.group}>
                             {group.options.map(opt => (

@@ -17,7 +17,8 @@ import {
   Package, 
   Sparkles, 
   AlertCircle,
-  TrendingDown
+  TrendingDown,
+  Flame
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 
@@ -148,43 +149,47 @@ export default function AbandonedCartsView({
           </button>
           <button
             onClick={() => setFilter('WITH_CONTACT')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               filter === 'WITH_CONTACT'
                 ? 'bg-emerald-600 text-white shadow-xs'
                 : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/80'
             }`}
           >
-            📱 Avec Contact WhatsApp ({withContactCarts})
+            <Phone size={12} />
+            <span>Avec Contact WhatsApp ({withContactCarts})</span>
           </button>
           <button
             onClick={() => setFilter('HOT')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               filter === 'HOT'
                 ? 'bg-rose-600 text-white shadow-xs'
                 : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'
             }`}
           >
-            🔥 Chauds &lt;24h ({hotCarts})
+            <Flame size={12} className={filter === 'HOT' ? 'text-white' : 'text-rose-500'} />
+            <span>Chauds &lt;24h ({hotCarts})</span>
           </button>
           <button
             onClick={() => setFilter('ABANDONED')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               filter === 'ABANDONED'
                 ? 'bg-neutral-900 text-white shadow-xs'
                 : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'
             }`}
           >
-            ⏳ Abandonnés &gt;1h ({abandonedCount})
+            <Clock size={12} />
+            <span>Abandonnés &gt;1h ({abandonedCount})</span>
           </button>
           <button
             onClick={() => setFilter('ACTIVE')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
               filter === 'ACTIVE'
                 ? 'bg-sky-600 text-white shadow-xs'
                 : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'
             }`}
           >
-            🟢 En Session Active ({activeCount})
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>En Session Active ({activeCount})</span>
           </button>
         </div>
 

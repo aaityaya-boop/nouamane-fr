@@ -36,7 +36,9 @@ import {
   RefreshCw,
   Sliders,
   CheckCheck,
-  Lock
+  Lock,
+  Target,
+  FlaskConical
 } from 'lucide-react';
 
 interface ProductItem {
@@ -458,7 +460,7 @@ export default function AdminPromos() {
 
       if (res.ok) {
         fetchDeals();
-        alert('🎉 Offre créée avec succès !');
+        alert('Offre créée avec succès !');
       } else {
         const d = await res.json();
         alert(d.error || 'Erreur lors de la création de l\'offre');
@@ -1367,7 +1369,10 @@ export default function AdminPromos() {
                                 : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                             }`}
                           >
-                            <div className="text-xs font-bold mb-0.5">🌟 Tous les Testeurs</div>
+                            <div className="text-xs font-bold mb-0.5 flex items-center gap-1.5">
+                              <FlaskConical size={13} className={dealFreeGiftType === 'CLIENT_CHOICE_TESTERS' ? 'text-white' : 'text-purple-600'} />
+                              <span>Tous les Testeurs</span>
+                            </div>
                             <div className={`text-[10px] ${dealFreeGiftType === 'CLIENT_CHOICE_TESTERS' ? 'text-sky-100' : 'text-neutral-400'}`}>
                               Le client choisit parmi tous les testeurs en stock ({testerProducts.length})
                             </div>
@@ -1382,7 +1387,10 @@ export default function AdminPromos() {
                                 : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                             }`}
                           >
-                            <div className="text-xs font-bold mb-0.5">🎯 Sélection Manuelle</div>
+                            <div className="text-xs font-bold mb-0.5 flex items-center gap-1.5">
+                              <Target size={13} className={dealFreeGiftType === 'CLIENT_CHOICE_CUSTOM' ? 'text-white' : 'text-sky-600'} />
+                              <span>Sélection Manuelle</span>
+                            </div>
                             <div className={`text-[10px] ${dealFreeGiftType === 'CLIENT_CHOICE_CUSTOM' ? 'text-sky-100' : 'text-neutral-400'}`}>
                               Vous choisissez la liste des testeurs offerts ({dealFreeGiftProductIds.length} choisis)
                             </div>
@@ -1397,7 +1405,10 @@ export default function AdminPromos() {
                                 : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                             }`}
                           >
-                            <div className="text-xs font-bold mb-0.5">🎁 Cadeau Prédéfini</div>
+                            <div className="text-xs font-bold mb-0.5 flex items-center gap-1.5">
+                              <Gift size={13} className={dealFreeGiftType === 'FIXED' ? 'text-white' : 'text-amber-600'} />
+                              <span>Cadeau Prédéfini</span>
+                            </div>
                             <div className={`text-[10px] ${dealFreeGiftType === 'FIXED' ? 'text-sky-100' : 'text-neutral-400'}`}>
                               Cadeau ou miniature fixe sans choix client
                             </div>
@@ -1583,9 +1594,9 @@ export default function AdminPromos() {
                     )}
 
                     {dealFreeGiftName && (
-                      <div className="flex justify-between text-[11px] text-[#0ea5e9] font-semibold">
+                      <div className="flex justify-between text-[11px] text-[#0ea5e9] font-semibold items-center">
                         <span>Cadeau débloqué</span>
-                        <span>🎁 {dealFreeGiftName}</span>
+                        <span className="inline-flex items-center gap-1"><Gift size={12} /> {dealFreeGiftName}</span>
                       </div>
                     )}
 

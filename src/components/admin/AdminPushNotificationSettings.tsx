@@ -535,11 +535,11 @@ export default function AdminPushNotificationSettings() {
               onChange={(e) => setTestCategory(e.target.value as any)}
               className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 cursor-pointer focus:outline-none"
             >
-              <option value="ORDER">🛍️ Commande (420 DH)</option>
-              <option value="STOCK">⚠️ Alerte Stock (2 restants)</option>
-              <option value="FINANCE">💳 Encaissement (1 250 DH)</option>
-              <option value="SECURITY">🛡️ Alerte Sécurité</option>
-              <option value="SYSTEM">📢 Message Système</option>
+              <option value="ORDER">Commande (420 DH)</option>
+              <option value="STOCK">Alerte Stock (2 restants)</option>
+              <option value="FINANCE">Encaissement (1 250 DH)</option>
+              <option value="SECURITY">Alerte Sécurité</option>
+              <option value="SYSTEM">Message Système</option>
             </select>
 
             <button

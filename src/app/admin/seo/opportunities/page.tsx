@@ -54,12 +54,13 @@ export default async function OpportunitiesPage() {
                 </div>
               </div>
 
-              <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border shrink-0 ${
+              <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border shrink-0 ${
                 opp.impact === 'HIGH'
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200/60'
                   : 'bg-sky-50 text-sky-800 border-sky-200/60'
               }`}>
-                Impact {opp.impact === 'HIGH' ? 'Élevé 🚀' : 'Moyen'}
+                {opp.impact === 'HIGH' && <TrendingUp size={11} className="text-emerald-600" />}
+                <span>Impact {opp.impact === 'HIGH' ? 'Élevé' : 'Moyen'}</span>
               </span>
             </div>
 

@@ -484,7 +484,7 @@ export default function AdminCoffretsPage() {
                           });
                         }}
                       >
-                        <option value="" disabled>✨ Sélectionnez un type ou une famille...</option>
+                        <option value="" disabled>Sélectionnez un type ou une famille...</option>
                         <optgroup label="Types de Coffrets">
                           <option value="Coffrets Cadeaux">Coffrets Cadeaux</option>
                           <option value="Coffrets Découverte">Coffrets Découverte</option>

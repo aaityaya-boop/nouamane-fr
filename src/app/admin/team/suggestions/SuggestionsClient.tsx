@@ -82,7 +82,7 @@ const IMPACT_MAP: Record<string, { label: string; badge: string }> = {
   LOW: { label: 'Impact Modeste', badge: 'bg-slate-100 text-slate-700 border-slate-200' },
   MEDIUM: { label: 'Impact Moyen', badge: 'bg-sky-50 text-sky-700 border-sky-200' },
   HIGH: { label: 'Fort Impact', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  GAME_CHANGER: { label: '⚡ Game Changer', badge: 'bg-amber-50 text-amber-800 border-amber-300 font-bold' },
+  GAME_CHANGER: { label: 'Game Changer', badge: 'bg-amber-50 text-amber-800 border-amber-300 font-bold' },
 };
 
 const STATUS_MAP: Record<string, { label: string; badge: string; dot: string }> = {
@@ -523,8 +523,9 @@ export default function SuggestionsClient({ currentAdmin }: { currentAdmin: any 
                     </span>
 
                     <div className="flex items-center gap-1.5">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${imp.badge}`}>
-                        {imp.label}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${imp.badge}`}>
+                        {suggestion.impact === 'GAME_CHANGER' && <Zap size={11} className="text-amber-600" />}
+                        <span>{imp.label}</span>
                       </span>
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${st.badge}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>
@@ -703,7 +704,7 @@ export default function SuggestionsClient({ currentAdmin }: { currentAdmin: any 
                     <option value="LOW">Modeste (Confort)</option>
                     <option value="MEDIUM">Moyen (Amélioration)</option>
                     <option value="HIGH">Fort (Croissance Ventes / Gain Temps)</option>
-                    <option value="GAME_CHANGER">⚡ Game Changer (Impact Majeur)</option>
+                    <option value="GAME_CHANGER">Game Changer (Impact Majeur)</option>
                   </select>
                 </div>
               </div>

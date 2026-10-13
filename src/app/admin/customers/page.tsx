@@ -18,7 +18,8 @@ import {
   Sparkles,
   MapPin,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  User
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 import { getUnifiedCustomers, UnifiedCustomer } from '@/lib/unifiedCustomers';
@@ -367,11 +368,13 @@ export default async function CustomersDashboardPage({
                                     : 'bg-neutral-100 text-neutral-600 border-neutral-200'
                                 }`}
                               >
-                                {isBoth
-                                  ? '⭐ Compte + Acheteur'
-                                  : isGuestOrder
-                                  ? '🛒 Commande Directe'
-                                  : '👤 Compte Créé'}
+                                {isBoth ? (
+                                  <span className="inline-flex items-center gap-1"><Crown size={10} className="text-amber-600" /> Compte + Acheteur</span>
+                                ) : isGuestOrder ? (
+                                  <span className="inline-flex items-center gap-1"><ShoppingCart size={10} className="text-sky-600" /> Commande Directe</span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1"><User size={10} className="text-neutral-500" /> Compte Créé</span>
+                                )}
                               </span>
                             </div>
                           </div>
