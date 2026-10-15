@@ -133,6 +133,18 @@ export default async function BrandPage({
     },
   };
 
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Catalogue Parfums ${brand.label} au Maroc`,
+    itemListElement: products.slice(0, 12).map((p, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: p.name,
+      url: `https://nayparfum.ma/${locale}/product/${p.slug}`,
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-[#f8f7f5] selection:bg-[#0ea5e9]/20 selection:text-[#1A1A1A]">
       <script
@@ -142,6 +154,10 @@ export default async function BrandPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
       <Header />
       

@@ -128,6 +128,18 @@ export default async function CategoryPage({
     url: `https://nayparfum.ma/${locale}/shop/${category.slug}`,
   };
 
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${category.label} au Maroc`,
+    itemListElement: products.slice(0, 12).map((p, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: p.name,
+      url: `https://nayparfum.ma/${locale}/product/${p.slug}`,
+    })),
+  };
+
   return (
     <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen">
       <script
@@ -137,6 +149,10 @@ export default async function CategoryPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
       <Header />
 
