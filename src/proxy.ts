@@ -130,8 +130,9 @@ export default async function proxy(request: NextRequest) {
   );
 
   if (pathnameIsMissingLocale) {
-    const url = new URL(`/${defaultLocale}${pathname}`, request.url);
-    return NextResponse.redirect(url);
+    const targetPath = pathname === '/' ? `/${defaultLocale}` : `/${defaultLocale}${pathname}`;
+    const url = new URL(targetPath, request.url);
+    return NextResponse.redirect(url, 308);
   }
 
   const res = NextResponse.next();
