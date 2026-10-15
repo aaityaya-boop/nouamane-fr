@@ -4,8 +4,11 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 function BrandCard({ brand, i, totalBrands, smoothProgress }: { brand: any, i: number, totalBrands: number, smoothProgress: any }) {
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1] || 'fr';
   // Map the global scroll progress to each specific card's animation window
   const startSlide = i * (1 / Math.max(1, totalBrands));
   const endSlide = startSlide + (1 / Math.max(1, totalBrands)) * 0.8;
@@ -74,7 +77,7 @@ function BrandCard({ brand, i, totalBrands, smoothProgress }: { brand: any, i: n
         
         {/* Premium Glassmorphism Link */}
         <Link 
-          href={`/brands/${brand.slug}`}
+          href={`/${locale}/brands/${brand.slug}`}
           className="mt-8 group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white/10 backdrop-blur-xl border border-white/20 px-8 py-4 shadow-2xl transition-all duration-500 hover:bg-white/20 hover:scale-105"
         >
           <span className="relative z-10 text-[11px] font-bold tracking-[0.25em] uppercase text-white">

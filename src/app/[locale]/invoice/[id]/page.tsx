@@ -8,7 +8,7 @@ import { verifyInvoiceToken } from '@/lib/orderAuth';
 import InvoiceClient from './InvoiceClient';
 
 export const metadata: Metadata = {
-  title: 'Facture | NAY Parfums',
+  title: 'Facture',
   referrer: 'no-referrer',
   robots: {
     index: false,

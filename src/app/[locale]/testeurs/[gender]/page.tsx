@@ -23,12 +23,12 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { locale, gender } = await params;
   const category = getCategoryBySlug(gender);
 
-  if (!category) return { title: 'Catégorie introuvable | NAY Parfums' };
+  if (!category) return { title: 'Catégorie introuvable' };
 
   const currentLocale = locale || 'fr';
 
   return {
-    title: `Testeurs Parfums ${category.label} 100% Originaux | NAY Parfums`,
+    title: `Testeurs Parfums ${category.label} 100% Originaux`,
     description: `Découvrez notre sélection exclusive de testeurs de parfums ${category.label} 100% authentiques au Maroc. Grandes marques, livraison express.`,
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/testeurs/${category.slug}`,

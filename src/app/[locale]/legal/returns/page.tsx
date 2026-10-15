@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Politique de Retours et Remboursements | NAY Parfums',
+    title: 'Politique de Retours et Remboursements',
     description: 'Politique de retour sous 7 jours et conditions d’échange chez NAY Parfums au Maroc.',
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/legal/returns`,

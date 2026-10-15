@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Panier | NAY Parfums',
+  title: 'Panier',
   robots: {
     index: false,
     follow: false,

@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Politique de Confidentialité | NAY Parfums',
+    title: 'Politique de Confidentialité',
     description: 'Politique de confidentialité et protection des données personnelles de NAY Parfums.',
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/legal/privacy`,

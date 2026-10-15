@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Confirmation de Commande | NAY Parfums',
+  title: 'Confirmation de Commande',
   robots: {
     index: false,
     follow: false,

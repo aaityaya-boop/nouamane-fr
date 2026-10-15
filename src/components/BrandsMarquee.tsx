@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface Brand {
   id: string;
@@ -12,6 +13,8 @@ interface Brand {
 }
 
 export default function BrandsMarquee({ brands }: { brands: Brand[] }) {
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1] || 'fr';
   if (!brands || brands.length === 0) return null;
 
   // We duplicate the list to create a seamless infinite scrolling effect
@@ -54,7 +57,7 @@ export default function BrandsMarquee({ brands }: { brands: Brand[] }) {
           {marqueeItems.map((brand, idx) => (
             <Link 
               key={`${brand.id}-${idx}`} 
-              href={`/brands/${brand.slug}`}
+              href={`/${locale}/brands/${brand.slug}`}
               className="flex-shrink-0 flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-500 opacity-60 hover:opacity-100 px-4 group/item"
             >
               {brand.image ? (

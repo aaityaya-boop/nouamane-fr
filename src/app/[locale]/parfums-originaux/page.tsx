@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Parfums Originaux Scellés 100% Authentiques Maroc | NAY Parfums',
+    title: 'Parfums Originaux Scellés 100% Authentiques Maroc',
     description: 'Découvrez notre collection de parfums 100% originaux dans leur packaging et boîte scellée d\'origine au Maroc. Livraison rapide partout au royaume.',
     openGraph: {
       title: 'Parfums Originaux Scellés 100% Authentiques Maroc | NAY Parfums',

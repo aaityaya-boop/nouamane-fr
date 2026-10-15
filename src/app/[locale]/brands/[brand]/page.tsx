@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     where: { slug: decodedBrandSlug }
   });
 
-  if (!brand) return { title: 'Marque introuvable | NAY Parfums' };
+  if (!brand) return { title: 'Marque introuvable' };
 
   const currentLocale = locale || 'fr';
 
@@ -79,10 +79,15 @@ export default async function BrandPage({
     originalPrice: p.originalPrice ?? undefined,
   }));
 
-  const dbBrands = await prisma.brand.findMany();
+  const dbBrands = await prisma.brand.findMany({
+    where: { products: { some: { published: true } } }
+  });
 
   const otherBrands = await prisma.brand.findMany({
-    where: { slug: { not: brand.slug } },
+    where: {
+      slug: { not: brand.slug },
+      products: { some: { published: true } }
+    },
     take: 4
   });
 
@@ -145,7 +150,7 @@ export default async function BrandPage({
             {otherBrands.map((b) => (
               <Link
                 key={b.slug}
-                href={`/brands/${b.slug}`}
+                href={`/${locale}/brands/${b.slug}`}
                 className="group border border-[#e0ddd4] bg-white rounded-xl overflow-hidden hover:border-[#0ea5e9] transition-all hover:shadow-lg flex flex-col h-40"
               >
                 <div className="relative h-full w-full flex flex-col items-center justify-center p-6">

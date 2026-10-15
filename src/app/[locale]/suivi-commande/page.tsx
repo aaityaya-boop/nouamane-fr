@@ -5,7 +5,7 @@ import SuiviClient from './SuiviClient';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Suivi de Commande en Direct | NAY Parfums',
+  title: 'Suivi de Commande en Direct',
   description: 'Suivez l’acheminement de votre colis NAY Parfums en temps réel partout au Maroc.',
   robots: {
     index: false,

@@ -7,6 +7,7 @@
 
 import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '@/components/ProductCard';
 import {
@@ -15,7 +16,7 @@ import {
   type Brand,
   type Gender,
 } from '@/lib/products';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { SlidersHorizontal, X, Star, ChevronDown, Check, Search } from 'lucide-react';
 
 const QuickViewModal = dynamic(() => import('@/components/QuickViewModal'), { ssr: false });
@@ -73,7 +74,11 @@ function ShopCatalogInner({
   lockedIsTester,
   recommendedSlugs,
 }: Props) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const pageParam = parseInt(searchParams?.get('page') || '1', 10);
+  const initialPage = isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
+
   const initialSub = searchParams?.get('sub') || 'all';
   const initialType = searchParams?.get('type') || 'all';
   const initialSort = searchParams?.get('sort') as SortKey || 'featured';
@@ -94,7 +99,7 @@ function ShopCatalogInner({
   const [sortBy, setSortBy] = useState<SortKey>(initialSort);
   const [specialFilter, setSpecialFilter] = useState<string>(initialSpecial);
   const [filtersOpenMobile, setFiltersOpenMobile] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -106,6 +111,7 @@ function ShopCatalogInner({
       const special = searchParams.get('special');
       const type = searchParams.get('type');
       const seasonsStr = searchParams.get('seasons');
+      const p = parseInt(searchParams.get('page') || '1', 10);
       
       if (sub && sub !== subcategory && !lockedSubcategory) setSubcategory(sub);
       if (type && type !== typeFilter) setTypeFilter(type);
@@ -117,9 +123,21 @@ function ShopCatalogInner({
           setSelectedSeasons(seasons);
         }
       }
-      setCurrentPage(1); // Reset page on navigation
+      const validP = isNaN(p) || p < 1 ? 1 : p;
+      setCurrentPage(validP);
     }
   }, [searchParams]);
+
+  const buildPageHref = (targetPage: number) => {
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
+    if (targetPage > 1) {
+      params.set('page', targetPage.toString());
+    } else {
+      params.delete('page');
+    }
+    const qs = params.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
+  };
 
   // Reset page when any filter changes
   useEffect(() => {
@@ -368,27 +386,90 @@ function ShopCatalogInner({
               </div>
               
               {/* Pagination UI */}
-              {Math.ceil(filtered.length / 20) > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-12 border-t border-[#e0ddd4] pt-8">
-                  <button 
-                    onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    disabled={currentPage === 1}
-                    className="px-5 py-2 border border-[#e0ddd4] rounded-full text-[11px] font-semibold tracking-[0.1em] uppercase disabled:opacity-30 hover:border-[#0ea5e9] transition-colors"
-                  >
-                    Précédent
-                  </button>
-                  <div className="text-[12px] text-[#6B6B6B] px-4 font-semibold tracking-widest uppercase">
-                    Page {currentPage} / {Math.ceil(filtered.length / 20)}
-                  </div>
-                  <button 
-                    onClick={() => { setCurrentPage(p => Math.min(Math.ceil(filtered.length / 20), p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    disabled={currentPage === Math.ceil(filtered.length / 20)}
-                    className="px-5 py-2 border border-[#e0ddd4] rounded-full text-[11px] font-semibold tracking-[0.1em] uppercase disabled:opacity-30 hover:border-[#0ea5e9] transition-colors"
-                  >
-                    Suivant
-                  </button>
-                </div>
-              )}
+              {Math.ceil(filtered.length / 20) > 1 && (() => {
+                const totalPages = Math.ceil(filtered.length / 20);
+                const getPaginationItems = () => {
+                  if (totalPages <= 7) {
+                    return Array.from({ length: totalPages }, (_, i) => i + 1);
+                  }
+                  if (currentPage <= 4) {
+                    return [1, 2, 3, 4, 5, 'ellipsis', totalPages];
+                  }
+                  if (currentPage >= totalPages - 3) {
+                    return [1, 'ellipsis', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                  }
+                  return [1, 'ellipsis', currentPage - 1, currentPage, currentPage + 1, 'ellipsis', totalPages];
+                };
+
+                return (
+                  <nav aria-label="Pagination du catalogue" className="flex flex-wrap justify-center items-center gap-2 mt-12 border-t border-[#e0ddd4] pt-8">
+                    {currentPage > 1 ? (
+                      <Link 
+                        href={buildPageHref(currentPage - 1)}
+                        onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        className="px-4 py-2 border border-[#e0ddd4] rounded-full text-[11px] font-semibold tracking-[0.1em] uppercase hover:border-[#0ea5e9] transition-colors"
+                        rel="prev"
+                      >
+                        Précédent
+                      </Link>
+                    ) : (
+                      <span 
+                        className="px-4 py-2 border border-[#e0ddd4] rounded-full text-[11px] font-semibold tracking-[0.1em] uppercase opacity-30 cursor-not-allowed"
+                        aria-disabled="true"
+                      >
+                        Précédent
+                      </span>
+                    )}
+
+                    <div className="flex items-center gap-1.5 mx-2">
+                      {getPaginationItems().map((item, idx) => {
+                        if (item === 'ellipsis') {
+                          return (
+                            <span key={`ellipsis-${idx}`} className="px-2 text-[#9A9A9A] text-[13px]">
+                              …
+                            </span>
+                          );
+                        }
+                        const pageNum = item as number;
+                        const isCurrent = pageNum === currentPage;
+                        return (
+                          <Link
+                            key={pageNum}
+                            href={buildPageHref(pageNum)}
+                            onClick={() => { setCurrentPage(pageNum); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                            className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-semibold transition-colors ${
+                              isCurrent
+                                ? 'bg-[#1A1A1A] text-white border border-[#1A1A1A]'
+                                : 'border border-[#e0ddd4] text-[#1A1A1A] hover:border-[#0ea5e9]'
+                            }`}
+                            aria-current={isCurrent ? 'page' : undefined}
+                          >
+                            {pageNum}
+                          </Link>
+                        );
+                      })}
+                    </div>
+
+                    {currentPage < totalPages ? (
+                      <Link 
+                        href={buildPageHref(currentPage + 1)}
+                        onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        className="px-4 py-2 border border-[#e0ddd4] rounded-full text-[11px] font-semibold tracking-[0.1em] uppercase hover:border-[#0ea5e9] transition-colors"
+                        rel="next"
+                      >
+                        Suivant
+                      </Link>
+                    ) : (
+                      <span 
+                        className="px-4 py-2 border border-[#e0ddd4] rounded-full text-[11px] font-semibold tracking-[0.1em] uppercase opacity-30 cursor-not-allowed"
+                        aria-disabled="true"
+                      >
+                        Suivant
+                      </span>
+                    )}
+                  </nav>
+                );
+              })()}
             </>
           )}
         </div>

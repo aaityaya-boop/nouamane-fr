@@ -3,8 +3,11 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function BrandMarquee({ brands }: { brands: any[] }) {
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1] || 'fr';
   // Duplicate array to ensure seamless infinite scroll
   const scrollerBrands = [...brands, ...brands];
 
@@ -18,7 +21,7 @@ export default function BrandMarquee({ brands }: { brands: any[] }) {
         <div className="flex w-max animate-marquee space-x-12 px-6 group-hover:[animation-play-state:paused]">
           {scrollerBrands.map((brand, i) => (
             <Link 
-              href={`/brands/${brand.slug}`} 
+              href={`/${locale}/brands/${brand.slug}`} 
               key={`${brand.slug}-${i}`}
               className="relative w-32 h-16 md:w-40 md:h-20 flex-shrink-0 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300 mix-blend-multiply"
             >

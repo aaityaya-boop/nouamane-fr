@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata() {
   return {
-    title: 'Portail Ambassadeurs & VIP | NAY Parfums Maroc',
+    title: 'Portail Ambassadeurs & VIP',
     description: 'Espace officiel dédié aux partenaires, créateurs de contenu et influenceurs de NAY Parfums.',
     robots: {
       index: false,

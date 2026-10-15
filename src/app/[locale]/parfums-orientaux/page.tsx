@@ -10,7 +10,7 @@ import { Product, MAIN_CATEGORIES } from '@/lib/products';
 import { ShieldCheck, Truck, Clock } from 'lucide-react';
 
 export const metadata = {
-  title: 'Parfums Orientaux | NAY Parfums',
+  title: 'Parfums Orientaux',
   description: 'Découvrez une sélection de parfums orientaux intenses, élégants et longue tenue.',
   openGraph: {
     title: 'Parfums Orientaux | NAY Parfums',

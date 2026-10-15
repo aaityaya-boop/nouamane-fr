@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Conditions Générales de Vente | NAY Parfums',
+    title: 'Conditions Générales de Vente',
     description: 'Conditions générales de vente de la boutique en ligne NAY Parfums au Maroc.',
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/legal/terms`,

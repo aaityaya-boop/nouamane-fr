@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Coffrets Duo & Cadeaux | NAY Parfums',
+    title: 'Coffrets Duo & Cadeaux',
     description: 'Découvrez nos coffrets cadeaux et duos. Célébrez l\'amour avec nos fragrances couplées.',
     openGraph: {
       title: 'Coffrets Duo & Cadeaux | NAY Parfums',

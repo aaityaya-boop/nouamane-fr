@@ -44,12 +44,12 @@ const FAQ_DATA = {
       {
         category: 'Returns',
         question: 'What is your return policy?',
-        answer: 'You can return unopened items within 14 days of delivery for a full refund. Opened perfumes cannot be returned for hygiene reasons, unless the product is damaged or incorrect. Contact us via WhatsApp for a fast resolution.',
+        answer: 'You have 7 days from delivery to report any issue. Returns are accepted for defective, damaged, or incorrect items delivered, with return shipping costs fully covered by NAY Parfum. For hygiene and authenticity reasons, opened and used perfumes cannot be returned for change of mind.',
       },
       {
         category: 'Returns',
         question: 'What if my order arrives damaged or wrong?',
-        answer: 'Report it within 24 hours with a photo of the damage or wrong item. We will send a replacement at no cost or issue a full refund — whichever you prefer.',
+        answer: 'Report it within 24 to 48 hours with a photo of the damage or wrong item. NAY Parfum covers all return shipping fees and will send an immediate replacement or issue a full refund — whichever you prefer.',
       },
       {
         category: 'Payment',
@@ -106,12 +106,12 @@ const FAQ_DATA = {
       {
         category: 'Retours',
         question: 'Quelle est votre politique de retour ?',
-        answer: 'Vous pouvez retourner les articles non ouverts dans les 14 jours suivant la livraison pour un remboursement complet. Les parfums ouverts ne peuvent être retournés pour des raisons d\'hygiène, sauf s\'ils sont endommagés.',
+        answer: 'Vous disposez d\'un délai de 7 jours après livraison pour signaler un problème avec votre parfum. Les retours sont acceptés en cas de produit défectueux, endommagé ou non conforme, et les frais de retour sont intégralement pris en charge par NAY Parfum. Pour des raisons évidentes d\'hygiène, les parfums ouverts et utilisés ne peuvent faire l\'objet d\'un retour de convenance.',
       },
       {
         category: 'Retours',
         question: 'Que faire si ma commande arrive endommagée ou incorrecte ?',
-        answer: 'Signalez-le dans les 24 heures avec une photo. Nous enverrons un remplacement gratuitement ou procéderons à un remboursement intégral — selon votre préférence.',
+        answer: 'Signalez-le dans les 24 à 48 heures avec une photo. NAY Parfum prend en charge l\'intégralité des frais de retour et vous propose au choix le renvoi immédiat d\'un produit conforme ou le remboursement intégral.',
       },
       {
         category: 'Paiement',
@@ -168,12 +168,12 @@ const FAQ_DATA = {
       {
         category: 'الإرجاع',
         question: 'ما هي سياسة الإرجاع الخاصة بكم؟',
-        answer: 'يمكنك إرجاع العناصر غير المفتوحة خلال 14 يومًا من التسليم لاسترداد المبلغ بالكامل. لا يمكن إرجاع العطور المفتوحة لأسباب صحية، ما لم يكن المنتج تالفًا.',
+        answer: 'لديك مهلة 7 أيام من تاريخ الاستلام للإبلاغ عن أي مشكلة في العطر. يُقبل الإرجاع في حال استلام منتج معيب أو تالف أو غير مطابق للطلب، وتتحمل NAY Parfum مصاريف الشحن للإرجاع بالكامل. ولأسباب صحية، لا يمكن إرجاع العطور المفتوحة والمستعملة لمجرد تغيير الرأي.',
       },
       {
         category: 'الإرجاع',
         question: 'ماذا لو وصل طلبي تالفًا أو خاطئًا؟',
-        answer: 'أبلغ عن ذلك خلال 24 ساعة مع صورة للتلف أو العنصر الخاطئ. سنرسل بديلاً مجانًا أو نرد المبلغ بالكامل — أيهما تفضل.',
+        answer: 'أبلغ عن ذلك خلال 24 إلى 48 ساعة مع صورة للتلف أو العنصر الخاطئ. تتكفل NAY Parfum بكافة مصاريف الشحن للإرجاع، ونوفر لك فوراً إما استبدال المنتج أو استرداد المبلغ بالكامل — وفقاً لاختيارك.',
       },
       {
         category: 'الدفع',

@@ -17,21 +17,24 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
   });
 
   if (!product) {
-    return { title: 'Produit introuvable - NAY Parfums' };
+    return { title: 'Produit introuvable' };
   }
 
   const locale = resolvedParams.locale || 'fr';
   const images = JSON.parse(product.images);
+  const displayName = product.name.toLowerCase().startsWith(product.brandLabel.toLowerCase())
+    ? product.name
+    : `${product.brandLabel} ${product.name}`;
 
   return {
-    title: `${product.brandLabel} ${product.name} | Testeur Original Prix Maroc | NAY Parfums`,
+    title: `${displayName} | Testeur Original Prix Maroc`,
     description: `Achetez ${product.name} de ${product.brandLabel} au meilleur prix au Maroc. Testeur 100% authentique garanti. Commandez maintenant, payez à la livraison !`,
     keywords: [product.name, product.brandLabel, 'testeur parfum original maroc', 'acheter parfum maroc', 'عطور أصلية', 'تستر عطور', product.subcategoryLabel || ''],
     alternates: {
       canonical: `https://nayparfum.ma/${locale}/product/${product.slug}`,
     },
     openGraph: {
-      title: `${product.brandLabel} ${product.name} | Testeur Original Prix Maroc | NAY Parfums`,
+      title: `${displayName} | Testeur Original Prix Maroc | NAY Parfums`,
       description: `Achetez ${product.name} de ${product.brandLabel} au meilleur prix au Maroc. Testeur 100% authentique garanti. Commandez maintenant, payez à la livraison !`,
       url: `https://nayparfum.ma/${locale}/product/${product.slug}`,
       images: images.length > 0 ? [{ url: images[0] }] : [],
@@ -42,9 +45,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
 export default async function ProductPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale?: string; slug: string }>;
 }) {
   const resolvedParams = await params;
+  const currentLocale = resolvedParams.locale || 'fr';
   const decodedSlug = decodeURIComponent(resolvedParams.slug);
   
   const standardProducts = await prisma.product.findMany({ where: { published: true, subcategory: { not: 'coffrets' } } });
@@ -58,13 +62,26 @@ export default async function ProductPage({
   }
 
   // Get related products (same brand, excluding self)
-  const dbRelated = await prisma.product.findMany({
+  const dbRelatedSameBrand = await prisma.product.findMany({
     where: { 
       brandId: dbProduct.brandId, published: true,
       id: { not: dbProduct.id }
     },
     take: 4
   });
+
+  let dbRelated = [...dbRelatedSameBrand];
+  if (dbRelated.length < 4) {
+    const filler = await prisma.product.findMany({
+      where: {
+        published: true,
+        gender: dbProduct.gender,
+        id: { notIn: [dbProduct.id, ...dbRelated.map(p => p.id)] }
+      },
+      take: 4 - dbRelated.length
+    });
+    dbRelated = [...dbRelated, ...filler];
+  }
 
   // Get reviews
   const dbReviews = await prisma.review.findMany({
@@ -136,7 +153,7 @@ export default async function ProductPage({
     },
     offers: {
       '@type': 'Offer',
-      url: `https://nayparfum.ma/fr/product/${transformedProduct.slug}`,
+      url: `https://nayparfum.ma/${currentLocale}/product/${transformedProduct.slug}`,
       priceCurrency: 'MAD',
       price: transformedProduct.price,
       itemCondition: 'https://schema.org/NewCondition',
@@ -148,10 +165,12 @@ export default async function ProductPage({
       hasMerchantReturnPolicy: {
         '@type': 'MerchantReturnPolicy',
         applicableCountry: 'MA',
+        returnPolicyCountry: 'MA',
         returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-        merchantReturnDays: 14,
+        merchantReturnDays: 7,
         returnMethod: 'https://schema.org/ReturnByMail',
-        returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility'
+        returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+        itemDefectReturnFees: 'https://schema.org/FreeReturn'
       }
     },
     aggregateRating: transformedProduct.reviewCount > 0 ? {
@@ -161,9 +180,48 @@ export default async function ProductPage({
     } : undefined,
   };
 
+  const genderLabels: Record<string, string> = {
+    men: 'Homme',
+    women: 'Femme',
+    unisex: 'Unisexe',
+  };
+  const genderLabel = genderLabels[transformedProduct.gender] || 'Boutique';
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Accueil',
+        item: `https://nayparfum.ma/${currentLocale}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Boutique',
+        item: `https://nayparfum.ma/${currentLocale}/shop`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: `Parfums ${genderLabel}`,
+        item: `https://nayparfum.ma/${currentLocale}/shop/${transformedProduct.gender}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 4,
+        name: transformedProduct.name,
+        item: `https://nayparfum.ma/${currentLocale}/product/${transformedProduct.slug}`,
+      },
+    ],
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <ProductClient 
         product={transformedProduct} 
         relatedProducts={dbRelated.map(transformProduct)} 

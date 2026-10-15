@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Le Mag | Conseils & Tendances Parfums | NAY Parfums',
+    title: 'Le Mag | Conseils & Tendances Parfums',
     description: "Plongez dans l'univers de la parfumerie au Maroc : guides, conseils, secrets de fabrication et tendances olfactives.",
     openGraph: {
       title: 'Le Mag | Conseils & Tendances Parfums | NAY Parfums',

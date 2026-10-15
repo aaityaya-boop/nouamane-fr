@@ -365,8 +365,19 @@ export default function ProductClient({
             href={`/${locale}/shop/${product.gender}`}
             className="hover:text-[#0ea5e9]"
           >
-            {product.subcategoryLabel}
+            {t.genderMap[product.gender as keyof typeof t.genderMap] ? `Parfums ${t.genderMap[product.gender as keyof typeof t.genderMap]}` : product.subcategoryLabel}
           </Link>
+          {product.brand && (
+            <>
+              <Chev size={12} />
+              <Link
+                href={`/${locale}/brands/${product.brand}`}
+                className="hover:text-[#0ea5e9]"
+              >
+                {product.brandLabel}
+              </Link>
+            </>
+          )}
           <Chev size={12} />
           <span className="text-[#1A1A1A]">{product.name}</span>
         </nav>

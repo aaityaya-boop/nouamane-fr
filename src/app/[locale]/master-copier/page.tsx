@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Parfums Master Copy | NAY Parfums',
+    title: 'Parfums Master Copy',
     description: 'Découvrez notre collection exclusive de parfums d\'inspiration Master Copy. L\'excellence olfactive accessible à tous.',
     openGraph: {
       title: 'Parfums Master Copy | NAY Parfums',

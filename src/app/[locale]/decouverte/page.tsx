@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Découverte | NAY Parfums',
+    title: 'Découverte',
     description: 'Choisissez votre univers olfactif : Parfums Originaux, Master Copy, ou Testeurs Originaux.',
     openGraph: {
       title: 'Découverte | NAY Parfums',

@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { locale, gender } = await params;
   const category = getCategoryBySlug(gender);
 
-  if (!category) return { title: 'Catégorie introuvable | NAY Parfums' };
+  if (!category) return { title: 'Catégorie introuvable' };
 
   const currentLocale = locale || 'fr';
 
@@ -133,13 +133,13 @@ export default async function CategoryPage({
               Famille :
             </span>
             {category.subcategories.map((sc) => (
-              <a
+              <Link
                 key={sc.slug}
-                href={`#${sc.slug}`}
+                href={`/${locale}/shop/${category.slug}?sub=${sc.slug}`}
                 className="text-[11px] font-semibold tracking-[0.15em] uppercase border border-[#e0ddd4] hover:border-[#0ea5e9] hover:text-[#0ea5e9] text-[#6B6B6B] rounded-full px-4 py-2 transition-all"
               >
                 {sc.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'Testeurs de Parfums 100% Originaux au Maroc | NAY Parfums',
+    title: 'Testeurs de Parfums 100% Originaux au Maroc',
     description: "Découvrez notre collection exclusive de testeurs de grandes marques 100% authentiques au Maroc. Même sillage, flacon d'origine, prix exceptionnels. عطور تيستر أصلية",
     openGraph: {
       title: 'Testeurs de Parfums 100% Originaux au Maroc | NAY Parfums',

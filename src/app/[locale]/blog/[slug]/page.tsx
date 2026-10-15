@@ -17,12 +17,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
   const decodedSlug = decodeURIComponent(slug);
   const post = await prisma.blogPost.findUnique({ where: { slug: decodedSlug } });
   
-  if (!post || post.status !== 'published') return { title: 'Article non trouvé | NAY Parfums' };
+  if (!post || post.status !== 'published') return { title: 'Article non trouvé' };
 
   const currentLocale = locale || 'fr';
 
   return {
-    title: post.metaTitle || `${post.title} | NAY Parfums`,
+    title: post.metaTitle ? { absolute: post.metaTitle } : post.title,
     description: post.metaDescription || post.excerpt,
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/blog/${post.slug}`,

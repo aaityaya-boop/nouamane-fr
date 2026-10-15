@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const currentLocale = locale || 'fr';
   return {
-    title: 'La Boutique Complète | Tous les Parfums & Testeurs Maroc | NAY Parfums',
+    title: 'La Boutique Complète | Tous les Parfums & Testeurs Maroc',
     description: 'Découvrez l\'ensemble de nos parfums au Maroc : Testeurs de grandes marques, Parfums Originaux scellés, Fragrances Orientales et Coffrets de prestige.',
     openGraph: {
       title: 'La Boutique Complète | Tous les Parfums & Testeurs Maroc | NAY Parfums',
