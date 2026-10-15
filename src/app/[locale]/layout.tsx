@@ -133,7 +133,7 @@ export default async function LocaleLayout({
         <link rel="manifest" href="/site.webmanifest" />
         <Script
           id="microsoft-clarity"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
               (function(c,l,a,r,i,t,y){
@@ -226,13 +226,17 @@ export default async function LocaleLayout({
           strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
+              var gcrAttempts = 0;
               var gcrInterval = setInterval(function() {
+                gcrAttempts++;
                 if (typeof merchantwidget !== 'undefined') {
                   clearInterval(gcrInterval);
                   merchantwidget.start({
                     merchant_id: 5828480552,
                     position: 'BOTTOM_LEFT'
                   });
+                } else if (gcrAttempts >= 20) {
+                  clearInterval(gcrInterval);
                 }
               }, 500);
             `

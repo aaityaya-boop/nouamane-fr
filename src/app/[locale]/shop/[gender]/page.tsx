@@ -21,7 +21,7 @@ import { ChevronRight } from 'lucide-react';
 
 type Params = { locale: string; gender: string };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 import { Metadata } from 'next';
 

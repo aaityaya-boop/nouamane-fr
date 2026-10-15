@@ -87,8 +87,6 @@ export default async function ProductPage({
   const currentLocale = resolvedParams.locale || 'fr';
   const decodedSlug = decodeURIComponent(resolvedParams.slug);
   
-  const standardProducts = await prisma.product.findMany({ where: { published: true, subcategory: { not: 'coffrets' } } });
-  
   const dbProduct = await prisma.product.findFirst({
     where: { slug: decodedSlug, published: true },
   });
@@ -168,6 +166,9 @@ export default async function ProductPage({
   
   let includedProducts: Product[] = [];
   if (dbProduct.subcategory === 'coffrets') {
+    const standardProducts = await prisma.product.findMany({
+      where: { published: true, subcategory: { not: 'coffrets' } }
+    });
     const tags = typeof dbProduct.tags === 'string' ? JSON.parse(dbProduct.tags) : dbProduct.tags;
     includedProducts = (tags || []).map((slug: string) => {
       const p = standardProducts.find(sp => sp.slug === slug);

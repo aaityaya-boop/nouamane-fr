@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    unoptimized: true,
+    unoptimized: false,
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2592000, // 30 days
     remotePatterns: [
@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
         hostname: '*.public.blob.vercel-storage.com',
       }
     ],
+  },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
   serverExternalPackages: ['firebase-admin'],
   compress: true,
