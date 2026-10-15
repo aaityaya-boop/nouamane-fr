@@ -9,6 +9,31 @@ import { Metadata } from 'next';
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 
+function getCleanDisplayName(productName: string, brandLabel: string): string {
+  const nameTrimmed = productName.trim();
+  const nameLower = nameTrimmed.toLowerCase();
+  const brandLower = brandLabel.trim().toLowerCase();
+
+  if (nameLower.startsWith(brandLower) || nameLower.includes(brandLower)) {
+    return nameTrimmed;
+  }
+
+  const brandNorm = brandLower.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const nameNorm = nameLower.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (nameNorm.startsWith(brandNorm) || nameNorm.includes(brandNorm)) {
+    return nameTrimmed;
+  }
+
+  const stopWords = new Set(['pour', 'with', 'from', 'sans', 'dans', 'and']);
+  const brandTokens = brandNorm.split(' ').filter(w => w.length >= 4 && !stopWords.has(w));
+  const firstWordName = nameNorm.split(' ')[0];
+  if (brandTokens.some(token => firstWordName === token)) {
+    return nameTrimmed;
+  }
+
+  return `${brandLabel.trim()} ${nameTrimmed}`;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ locale?: string; slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const decodedSlug = decodeURIComponent(resolvedParams.slug);
@@ -22,19 +47,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
 
   const locale = resolvedParams.locale || 'fr';
   const images = JSON.parse(product.images);
-  const nameLower = product.name.toLowerCase();
-  const brandLower = product.brandLabel.toLowerCase();
-  const displayName = (nameLower.startsWith(brandLower) || nameLower.includes(brandLower))
-    ? product.name
-    : `${product.brandLabel} ${product.name}`;
+  const displayName = getCleanDisplayName(product.name, product.brandLabel);
 
   const isTester = product.isTester ?? true;
   const productTypeLabel = isTester ? 'Testeur Original' : 'Parfum Original Scellé';
-  const productGuarantee = isTester ? 'Testeur 100% authentique garanti' : 'Flacon 100% original et scellé';
+  const productGuarantee = isTester ? 'Testeur 100% authentique' : '100% original scellé';
+  const metaDescription = `Achetez ${displayName} (${productTypeLabel}) au Maroc à ${product.price} DH. ${productGuarantee}. Livraison rapide 24/48h & paiement à la livraison !`;
 
   return {
     title: `${displayName} | ${productTypeLabel} Prix Maroc`,
-    description: `Achetez ${displayName} au meilleur prix au Maroc. ${productGuarantee}. Commandez maintenant, payez à la livraison !`,
+    description: metaDescription,
     keywords: [
       product.name,
       product.brandLabel,
@@ -49,7 +71,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
     },
     openGraph: {
       title: `${displayName} | ${productTypeLabel} Prix Maroc | NAY Parfums`,
-      description: `Achetez ${displayName} au meilleur prix au Maroc. ${productGuarantee}. Commandez maintenant, payez à la livraison !`,
+      description: metaDescription,
       url: `https://nayparfum.ma/${locale}/product/${product.slug}`,
       images: images.length > 0 ? [{ url: images[0] }] : [],
     }
@@ -106,6 +128,7 @@ export default async function ProductPage({
   const transformProduct = (p: any): Product => ({
     id: p.id,
     slug: p.slug,
+    sku: p.sku ?? null,
     name: p.name,
     brand: p.brandId,
     brandLabel: p.brandLabel,
@@ -161,6 +184,7 @@ export default async function ProductPage({
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: transformedProduct.name,
+    sku: transformedProduct.sku || undefined,
     image: transformedProduct.images[0],
     description: `${productTypeDescription} de ${transformedProduct.name}. Authentique à 100%. Livraison rapide partout au Maroc et paiement à la livraison.`,
     brand: {
@@ -187,6 +211,33 @@ export default async function ProductPage({
         returnMethod: 'https://schema.org/ReturnByMail',
         returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
         itemDefectReturnFees: 'https://schema.org/FreeReturn'
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: 35,
+          currency: 'MAD'
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'MA'
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 0,
+            maxValue: 1,
+            unitCode: 'DAY'
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'DAY'
+          }
+        }
       }
     },
     aggregateRating: transformedProduct.reviewCount > 0 ? {

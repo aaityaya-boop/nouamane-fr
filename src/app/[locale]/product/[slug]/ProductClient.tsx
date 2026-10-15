@@ -475,30 +475,50 @@ export default function ProductClient({
             </div>
 
             {/* Rating */}
-            <div className="mt-5 flex items-center gap-3">
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={16}
-                    className={
-                      i < Math.floor(product.rating)
-                        ? 'text-[#0ea5e9] fill-[#0ea5e9]'
-                        : 'text-[#e0ddd4] fill-[#e0ddd4]'
-                    }
-                  />
-                ))}
-              </div>
+            {product.reviewCount > 0 ? (
+              <div className="mt-5 flex items-center gap-3">
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={16}
+                      className={
+                        i < Math.floor(product.rating)
+                          ? 'text-[#0ea5e9] fill-[#0ea5e9]'
+                          : 'text-[#e0ddd4] fill-[#e0ddd4]'
+                      }
+                    />
+                  ))}
+                </div>
                 <span className="text-[13px] font-bold text-[#1A1A1A] mr-1">
                   {product.rating.toFixed(1)}
                 </span>
-              <a
-                href="#reviews"
-                className="text-[13px] text-[#9A9A9A] underline hover:text-[#0ea5e9]"
-              >
-                {product.reviewCount} avis vérifiés
-              </a>
-            </div>
+                <a
+                  href="#reviews"
+                  className="text-[13px] text-[#9A9A9A] underline hover:text-[#0ea5e9]"
+                >
+                  {product.reviewCount} avis vérifiés
+                </a>
+              </div>
+            ) : (
+              <div className="mt-5 flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={16}
+                      className="text-[#e0ddd4] fill-[#e0ddd4]"
+                    />
+                  ))}
+                </div>
+                <a
+                  href="#reviews"
+                  className="text-[13px] text-[#9A9A9A] hover:text-[#0ea5e9]"
+                >
+                  {t.reviews.noReviews}
+                </a>
+              </div>
+            )}
 
             <div className="mt-8 flex flex-col gap-3">
               <div className="flex items-baseline gap-3">
