@@ -1,6 +1,19 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
+    title: 'Politique de Confidentialité | NAY Parfums',
+    description: 'Politique de confidentialité et protection des données personnelles de NAY Parfums.',
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/legal/privacy`,
+    },
+  };
+}
 
 export default function PrivacyPage() {
   return (

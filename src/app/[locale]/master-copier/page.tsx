@@ -7,10 +7,28 @@ import prisma from '@/lib/prisma';
 import { Product } from '@/lib/products';
 import { ShieldCheck, Truck, Clock } from 'lucide-react';
 
-export const metadata = {
-  title: 'Parfums Master Copy | NAY Parfums',
-  description: 'Découvrez notre collection exclusive de parfums d\'inspiration Master Copy. L\'excellence olfactive accessible à tous.',
-};
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
+    title: 'Parfums Master Copy | NAY Parfums',
+    description: 'Découvrez notre collection exclusive de parfums d\'inspiration Master Copy. L\'excellence olfactive accessible à tous.',
+    openGraph: {
+      title: 'Parfums Master Copy | NAY Parfums',
+      description: 'Découvrez notre collection exclusive de parfums d\'inspiration Master Copy. L\'excellence olfactive accessible à tous.',
+      url: `https://nayparfum.ma/${currentLocale}/master-copier`,
+    },
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/master-copier`,
+    },
+    robots: {
+      index: false,
+      follow: true,
+    },
+  };
+}
 
 export const revalidate = 3600;
 

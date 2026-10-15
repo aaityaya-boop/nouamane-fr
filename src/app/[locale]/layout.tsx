@@ -53,9 +53,6 @@ export const metadata: Metadata = {
   authors: [{ name: "NAY Parfums" }],
   creator: "NAY Parfums",
   publisher: "NAY Parfums",
-  alternates: {
-    canonical: "https://nayparfum.ma",
-  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },

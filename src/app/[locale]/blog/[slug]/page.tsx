@@ -8,21 +8,29 @@ import prisma from '@/lib/prisma';
 import { ArrowLeft, ArrowRight, Sparkles, Tag, ShoppingBag } from 'lucide-react';
 import { PRODUCTS, formatMAD } from '@/lib/products';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale?: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   const post = await prisma.blogPost.findUnique({ where: { slug: decodedSlug } });
   
-  if (!post) return { title: 'Article non trouvé | NAY Parfums' };
+  if (!post || post.status !== 'published') return { title: 'Article non trouvé | NAY Parfums' };
+
+  const currentLocale = locale || 'fr';
 
   return {
     title: post.metaTitle || `${post.title} | NAY Parfums`,
     description: post.metaDescription || post.excerpt,
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/blog/${post.slug}`,
+    },
     openGraph: {
       title: post.metaTitle || post.title,
       description: post.metaDescription || post.excerpt,
+      url: `https://nayparfum.ma/${currentLocale}/blog/${post.slug}`,
       images: post.coverImage ? [post.coverImage] : undefined,
     }
   };

@@ -44,9 +44,17 @@ export default function InvoiceClient({ order }: { order: any }) {
     year: 'numeric'
   });
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('token=')) {
+      // 🔒 Strip token from address bar and history to prevent token leakage
+      const cleanPath = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanPath);
+    }
+  }, []);
+
   const invoiceUrl = typeof window !== 'undefined'
-    ? window.location.href
-    : `https://nayparfum.ma/invoice/${order.orderNumber}`;
+    ? `${window.location.origin}/fr/invoice/${order.orderNumber}`
+    : `https://nayparfum.ma/fr/invoice/${order.orderNumber}`;
 
   const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   const trackingPath = `/fr/suivi-commande?order=${order.orderNumber}`;

@@ -26,17 +26,23 @@ export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const { gender } = await params;
+  const { locale, gender } = await params;
   const category = getCategoryBySlug(gender);
 
   if (!category) return { title: 'Catégorie introuvable | NAY Parfums' };
 
+  const currentLocale = locale || 'fr';
+
   return {
     title: `Parfums ${category.label} | Acheter au Maroc`,
     description: `Découvrez notre collection de parfums ${category.label}. ${category.description} 100% authentique. Livraison rapide.`,
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/shop/${category.slug}`,
+    },
     openGraph: {
       title: `Parfums ${category.label} | Acheter au Maroc`,
       description: `Découvrez notre collection de parfums ${category.label}. ${category.description} 100% authentique. Livraison rapide.`,
+      url: `https://nayparfum.ma/${currentLocale}/shop/${category.slug}`,
       images: [{ url: category.heroImage }]
     }
   };

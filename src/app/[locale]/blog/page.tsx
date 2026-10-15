@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/Header';
@@ -7,6 +8,23 @@ import prisma from '@/lib/prisma';
 import { ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
+    title: 'Le Mag | Conseils & Tendances Parfums | NAY Parfums',
+    description: "Plongez dans l'univers de la parfumerie au Maroc : guides, conseils, secrets de fabrication et tendances olfactives.",
+    openGraph: {
+      title: 'Le Mag | Conseils & Tendances Parfums | NAY Parfums',
+      description: "Plongez dans l'univers de la parfumerie au Maroc : guides, conseils, secrets de fabrication et tendances olfactives.",
+      url: `https://nayparfum.ma/${currentLocale}/blog`,
+    },
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/blog`,
+    },
+  };
+}
 
 export default async function BlogListingPage() {
   const posts = await prisma.blogPost.findMany({

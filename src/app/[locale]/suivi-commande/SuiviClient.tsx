@@ -41,6 +41,7 @@ export default function SuiviClient({
   const [isVerifying, setIsVerifying] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [verifiedOrder, setVerifiedOrder] = useState<any>(initialOrder);
+  const [invoiceToken, setInvoiceToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (urlOrder && !orderNumber) {
@@ -53,6 +54,10 @@ export default function SuiviClient({
     const targetOrder = (orderNumber || urlOrder || initialOrderNumber || '').trim().toUpperCase();
     if (targetOrder && typeof window !== 'undefined') {
       const saved = sessionStorage.getItem(`tracking_verified_${targetOrder}`);
+      const savedToken = sessionStorage.getItem(`invoice_token_${targetOrder}`);
+      if (savedToken) {
+        setInvoiceToken(savedToken);
+      }
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -96,12 +101,21 @@ export default function SuiviClient({
       }
 
       setVerifiedOrder(data.order);
+      if (data.invoiceToken) {
+        setInvoiceToken(data.invoiceToken);
+      }
       // Cache verification in sessionStorage
       if (typeof window !== 'undefined') {
         sessionStorage.setItem(
           `tracking_verified_${data.order.orderNumber.toUpperCase()}`,
           JSON.stringify(data.order)
         );
+        if (data.invoiceToken) {
+          sessionStorage.setItem(
+            `invoice_token_${data.order.orderNumber.toUpperCase()}`,
+            data.invoiceToken
+          );
+        }
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Erreur lors de la vérification');
@@ -171,6 +185,15 @@ export default function SuiviClient({
                 <span className="text-slate-500">Numéro de Commande :</span>
                 <span className="font-mono font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
                   {orderNumber}
+                </span>
+              </div>
+            )}
+
+            {searchParams?.get('auth') === 'required' && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200/80 rounded-2xl flex items-center gap-2.5 text-xs text-amber-800">
+                <ShieldCheck size={18} className="text-amber-600 shrink-0" />
+                <span>
+                  <strong>Accès Facture Sécurisé :</strong> Veuillez confirmer le numéro de téléphone utilisé lors de votre commande pour afficher et imprimer votre facture.
                 </span>
               </div>
             )}
@@ -268,7 +291,8 @@ export default function SuiviClient({
                 </div>
 
                 <Link
-                  href={`/invoice/${verifiedOrder.orderNumber}`}
+                  href={`/invoice/${verifiedOrder.orderNumber}${invoiceToken ? `?token=${encodeURIComponent(invoiceToken)}` : ''}`}
+                  target="_blank"
                   className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5"
                 >
                   <FileText size={14} />

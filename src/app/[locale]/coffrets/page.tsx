@@ -5,10 +5,24 @@ import prisma from '@/lib/prisma';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-export const metadata = {
-  title: 'Coffrets Duo & Cadeaux | NAY Parfums',
-  description: 'Découvrez nos coffrets cadeaux et duos. Célébrez l\'amour avec nos fragrances couplées.',
-};
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
+    title: 'Coffrets Duo & Cadeaux | NAY Parfums',
+    description: 'Découvrez nos coffrets cadeaux et duos. Célébrez l\'amour avec nos fragrances couplées.',
+    openGraph: {
+      title: 'Coffrets Duo & Cadeaux | NAY Parfums',
+      description: 'Découvrez nos coffrets cadeaux et duos. Célébrez l\'amour avec nos fragrances couplées.',
+      url: `https://nayparfum.ma/${currentLocale}/coffrets`,
+    },
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/coffrets`,
+    },
+  };
+}
 
 export const dynamic = 'force-dynamic';
 

@@ -7,6 +7,13 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Suivi de Commande en Direct | NAY Parfums',
   description: 'Suivez l’acheminement de votre colis NAY Parfums en temps réel partout au Maroc.',
+  robots: {
+    index: false,
+    follow: true,
+  },
+  alternates: {
+    canonical: 'https://nayparfum.ma/fr/suivi-commande',
+  },
 };
 
 export default async function SuiviCommandePage({

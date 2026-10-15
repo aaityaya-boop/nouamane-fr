@@ -23,6 +23,7 @@ import {
 
 type OrderConfirmation = {
   orderNumber: string;
+  invoiceToken?: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -126,7 +127,7 @@ function OrderConfirmationInner() {
             {(order?.orderNumber || orderNumber) && (
               <div className="mt-6">
                 <Link
-                  href={`/invoice/${order?.orderNumber || orderNumber}`}
+                  href={`/invoice/${order?.orderNumber || orderNumber}${order?.invoiceToken ? `?token=${encodeURIComponent(order.invoiceToken)}` : ''}`}
                   target="_blank"
                   className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors"
                 >

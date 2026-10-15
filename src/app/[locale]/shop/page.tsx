@@ -9,18 +9,24 @@ import prisma from '@/lib/prisma';
 import { Product, MAIN_CATEGORIES } from '@/lib/products';
 import { ShieldCheck, Truck, Clock } from 'lucide-react';
 
-export const metadata = {
-  title: 'La Boutique Complète | Tous les Parfums & Testeurs Maroc | NAY Parfums',
-  description: 'Découvrez l\'ensemble de nos parfums au Maroc : Testeurs de grandes marques, Parfums Originaux scellés, Fragrances Orientales et Coffrets de prestige.',
-  openGraph: {
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
     title: 'La Boutique Complète | Tous les Parfums & Testeurs Maroc | NAY Parfums',
     description: 'Découvrez l\'ensemble de nos parfums au Maroc : Testeurs de grandes marques, Parfums Originaux scellés, Fragrances Orientales et Coffrets de prestige.',
-    url: 'https://nayparfum.ma/shop',
-  },
-  alternates: {
-    canonical: 'https://nayparfum.ma/shop',
-  },
-};
+    openGraph: {
+      title: 'La Boutique Complète | Tous les Parfums & Testeurs Maroc | NAY Parfums',
+      description: 'Découvrez l\'ensemble de nos parfums au Maroc : Testeurs de grandes marques, Parfums Originaux scellés, Fragrances Orientales et Coffrets de prestige.',
+      url: `https://nayparfum.ma/${currentLocale}/shop`,
+    },
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/shop`,
+    },
+  };
+}
 
 export const revalidate = 3600;
 

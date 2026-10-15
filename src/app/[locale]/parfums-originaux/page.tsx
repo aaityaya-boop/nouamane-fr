@@ -9,18 +9,24 @@ import prisma from '@/lib/prisma';
 import { Product, MAIN_CATEGORIES } from '@/lib/products';
 import { ShieldCheck, Truck, Clock } from 'lucide-react';
 
-export const metadata = {
-  title: 'Parfums Originaux Scellés 100% Authentiques Maroc | NAY Parfums',
-  description: 'Découvrez notre collection de parfums 100% originaux dans leur packaging et boîte scellée d\'origine au Maroc. Livraison rapide partout au royaume.',
-  openGraph: {
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
     title: 'Parfums Originaux Scellés 100% Authentiques Maroc | NAY Parfums',
     description: 'Découvrez notre collection de parfums 100% originaux dans leur packaging et boîte scellée d\'origine au Maroc. Livraison rapide partout au royaume.',
-    url: 'https://nayparfum.ma/parfums-originaux',
-  },
-  alternates: {
-    canonical: 'https://nayparfum.ma/parfums-originaux',
-  },
-};
+    openGraph: {
+      title: 'Parfums Originaux Scellés 100% Authentiques Maroc | NAY Parfums',
+      description: 'Découvrez notre collection de parfums 100% originaux dans leur packaging et boîte scellée d\'origine au Maroc. Livraison rapide partout au royaume.',
+      url: `https://nayparfum.ma/${currentLocale}/parfums-originaux`,
+    },
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/parfums-originaux`,
+    },
+  };
+}
 
 export const revalidate = 3600;
 

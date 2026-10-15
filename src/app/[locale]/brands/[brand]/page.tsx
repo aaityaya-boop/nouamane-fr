@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const { brand: brandSlug } = await params;
+  const { locale, brand: brandSlug } = await params;
   const decodedBrandSlug = decodeURIComponent(brandSlug);
   const brand = await prisma.brand.findUnique({
     where: { slug: decodedBrandSlug }
@@ -26,12 +26,18 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
   if (!brand) return { title: 'Marque introuvable | NAY Parfums' };
 
+  const currentLocale = locale || 'fr';
+
   return {
     title: `Parfums ${brand.name} | Acheter au Maroc`,
     description: `Découvrez la collection de parfums ${brand.name} chez NAY Parfums. 100% authentique. Livraison rapide partout au Maroc.`,
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/brands/${brand.slug}`,
+    },
     openGraph: {
       title: `Parfums ${brand.name} | Acheter au Maroc`,
       description: `Découvrez la collection de parfums ${brand.name} chez NAY Parfums. 100% authentique. Livraison rapide partout au Maroc.`,
+      url: `https://nayparfum.ma/${currentLocale}/brands/${brand.slug}`,
       images: [{ url: `/images/brands/${brand.slug}-hero.jpg` }]
     }
   };

@@ -1,6 +1,19 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
+    title: 'Conditions Générales de Vente | NAY Parfums',
+    description: 'Conditions générales de vente de la boutique en ligne NAY Parfums au Maroc.',
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/legal/terms`,
+    },
+  };
+}
 
 export default function TermsPage() {
   return (

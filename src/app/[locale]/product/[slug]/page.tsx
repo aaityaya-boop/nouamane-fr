@@ -9,7 +9,7 @@ import { Metadata } from 'next';
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ locale?: string; slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const decodedSlug = decodeURIComponent(resolvedParams.slug);
   const product = await prisma.product.findFirst({
@@ -20,15 +20,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: 'Produit introuvable - NAY Parfums' };
   }
 
+  const locale = resolvedParams.locale || 'fr';
   const images = JSON.parse(product.images);
 
   return {
     title: `${product.brandLabel} ${product.name} | Testeur Original Prix Maroc | NAY Parfums`,
     description: `Achetez ${product.name} de ${product.brandLabel} au meilleur prix au Maroc. Testeur 100% authentique garanti. Commandez maintenant, payez à la livraison !`,
     keywords: [product.name, product.brandLabel, 'testeur parfum original maroc', 'acheter parfum maroc', 'عطور أصلية', 'تستر عطور', product.subcategoryLabel || ''],
+    alternates: {
+      canonical: `https://nayparfum.ma/${locale}/product/${product.slug}`,
+    },
     openGraph: {
       title: `${product.brandLabel} ${product.name} | Testeur Original Prix Maroc | NAY Parfums`,
       description: `Achetez ${product.name} de ${product.brandLabel} au meilleur prix au Maroc. Testeur 100% authentique garanti. Commandez maintenant, payez à la livraison !`,
+      url: `https://nayparfum.ma/${locale}/product/${product.slug}`,
       images: images.length > 0 ? [{ url: images[0] }] : [],
     }
   };

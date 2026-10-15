@@ -89,7 +89,13 @@ export default async function proxy(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.includes('.')
   ) {
-    return NextResponse.next();
+    const res = NextResponse.next();
+    if (pathname.startsWith('/api/orders')) {
+      res.headers.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+      res.headers.set('Pragma', 'no-cache');
+      res.headers.set('Referrer-Policy', 'no-referrer');
+    }
+    return res;
   }
 
   // --- 2.5. PERMANENT 301 REDIRECTS (OBSOLETE / LEGACY PRODUCT URLS) ---
@@ -124,7 +130,13 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+  if (pathname.includes('/invoice')) {
+    res.headers.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+    res.headers.set('Pragma', 'no-cache');
+    res.headers.set('Referrer-Policy', 'no-referrer');
+  }
+  return res;
 }
 
 export const config = {

@@ -1,36 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { arePhonesMatching, createInvoiceToken } from '@/lib/orderAuth';
 
 export const dynamic = 'force-dynamic';
-
-/**
- * Normalizes phone numbers (handles Moroccan format variations: +212, 00212, 06, spaces, dashes)
- */
-function normalizeMoroccanPhone(phone: string): string {
-  if (!phone) return '';
-  // Strip non-digits
-  let cleaned = phone.replace(/\D/g, '');
-  // Strip country codes
-  if (cleaned.startsWith('00212')) cleaned = cleaned.slice(5);
-  else if (cleaned.startsWith('212')) cleaned = cleaned.slice(3);
-  // Strip leading 0
-  if (cleaned.startsWith('0')) cleaned = cleaned.slice(1);
-  return cleaned;
-}
-
-function arePhonesMatching(phoneA: string, phoneB: string): boolean {
-  const normA = normalizeMoroccanPhone(phoneA);
-  const normB = normalizeMoroccanPhone(phoneB);
-  if (!normA || !normB) return false;
-  // Match exact normalized or last 8-9 digits
-  if (normA === normB) return true;
-  if (normA.endsWith(normB) || normB.endsWith(normA)) return true;
-  // Check last 8 digits match
-  if (normA.length >= 8 && normB.length >= 8) {
-    return normA.slice(-8) === normB.slice(-8);
-  }
-  return false;
-}
 
 export async function POST(req: Request) {
   try {
@@ -89,9 +61,13 @@ export async function POST(req: Request) {
       parsedItems = [];
     }
 
-    return NextResponse.json({
+    // Generate secure, time-limited invoice access token
+    const invoiceToken = await createInvoiceToken(cleanOrderNumber);
+
+    const response = NextResponse.json({
       success: true,
       verified: true,
+      invoiceToken,
       order: {
         orderNumber: order.orderNumber,
         customerName: order.customerName,
@@ -109,7 +85,22 @@ export async function POST(req: Request) {
         items: parsedItems,
         timeline: order.timeline || [],
       },
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+      },
     });
+
+    response.cookies.set(`order_access_${cleanOrderNumber}`, invoiceToken, {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24, // 24 hours (short-lived access)
+    });
+
+    return response;
   } catch (error) {
     console.error('Error verifying order tracking:', error);
     return NextResponse.json(

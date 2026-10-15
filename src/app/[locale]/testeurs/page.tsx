@@ -9,18 +9,24 @@ import prisma from '@/lib/prisma';
 import { Product } from '@/lib/products';
 import { ShieldCheck, Truck, Clock, Sparkles } from 'lucide-react';
 
-export const metadata = {
-  title: 'Testeurs de Parfums 100% Originaux au Maroc | NAY Parfums',
-  description: "Découvrez notre collection exclusive de testeurs de grandes marques 100% authentiques au Maroc. Même sillage, flacon d'origine, prix exceptionnels. عطور تيستر أصلية",
-  openGraph: {
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
     title: 'Testeurs de Parfums 100% Originaux au Maroc | NAY Parfums',
     description: "Découvrez notre collection exclusive de testeurs de grandes marques 100% authentiques au Maroc. Même sillage, flacon d'origine, prix exceptionnels. عطور تيستر أصلية",
-    url: 'https://nayparfum.ma/testeurs',
-  },
-  alternates: {
-    canonical: 'https://nayparfum.ma/testeurs',
-  },
-};
+    openGraph: {
+      title: 'Testeurs de Parfums 100% Originaux au Maroc | NAY Parfums',
+      description: "Découvrez notre collection exclusive de testeurs de grandes marques 100% authentiques au Maroc. Même sillage, flacon d'origine, prix exceptionnels. عطور تيستر أصلية",
+      url: `https://nayparfum.ma/${currentLocale}/testeurs`,
+    },
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/testeurs`,
+    },
+  };
+}
 
 export const revalidate = 3600;
 

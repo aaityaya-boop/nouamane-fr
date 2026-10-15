@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
 import { createAdminNotification } from '@/lib/notificationService';
+import { createInvoiceToken } from '@/lib/orderAuth';
 
 /**
  * POST /api/orders — Create a new order.
@@ -331,11 +332,25 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({
+    // Generate secure invoice access token for the customer
+    const invoiceToken = await createInvoiceToken(created.orderNumber);
+
+    const response = NextResponse.json({
       success: true,
       orderNumber: created.orderNumber,
       id: created.id,
+      invoiceToken,
     });
+
+    response.cookies.set(`order_access_${created.orderNumber}`, invoiceToken, {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24, // 24 hours (short-lived access)
+    });
+
+    return response;
   } catch (error: any) {
     if (error?.message?.startsWith('RUPTURE_STOCK:')) {
       const prodName = error.message.replace('RUPTURE_STOCK:', '');

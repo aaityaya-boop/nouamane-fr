@@ -4,10 +4,24 @@ import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-export const metadata = {
-  title: 'Découverte | NAY Parfums',
-  description: 'Choisissez votre univers olfactif : Parfums Originaux, Master Copy, ou Testeurs Originaux.',
-};
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
+    title: 'Découverte | NAY Parfums',
+    description: 'Choisissez votre univers olfactif : Parfums Originaux, Master Copy, ou Testeurs Originaux.',
+    openGraph: {
+      title: 'Découverte | NAY Parfums',
+      description: 'Choisissez votre univers olfactif : Parfums Originaux, Master Copy, ou Testeurs Originaux.',
+      url: `https://nayparfum.ma/${currentLocale}/decouverte`,
+    },
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}/decouverte`,
+    },
+  };
+}
 
 export default async function DecouvertePage({ params }: { params: Promise<{ locale: string }> }) {
   const resolvedParams = await params;

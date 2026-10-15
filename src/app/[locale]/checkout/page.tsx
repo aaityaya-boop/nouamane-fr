@@ -241,7 +241,7 @@ export default function CheckoutPage() {
         throw new Error('Order failed');
       }
 
-      const { orderNumber } = await res.json();
+      const { orderNumber, invoiceToken } = await res.json();
 
       // Clear the live cart session cookie now that order is confirmed
       Cookies.remove('nouamaneSession');
@@ -249,6 +249,7 @@ export default function CheckoutPage() {
       // Persist order info for confirmation page
       const confirmationData = {
         orderNumber,
+        invoiceToken: invoiceToken || null,
         customerName: `${form.firstName} ${form.lastName}`,
         customerEmail: form.email,
         customerPhone: form.phone,

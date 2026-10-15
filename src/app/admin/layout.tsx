@@ -26,6 +26,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Admin | NAY Parfums",
   description: "Console d'administration officielle Maison NAY Parfums",
+  robots: {
+    index: false,
+    follow: false,
+  },
   manifest: '/admin.webmanifest',
   appleWebApp: {
     capable: true,

@@ -1,9 +1,23 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import HomePageClient from './HomePageClient';
 import prisma from '@/lib/prisma';
 import { Product } from '@/lib/products';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const currentLocale = locale || 'fr';
+  return {
+    alternates: {
+      canonical: `https://nayparfum.ma/${currentLocale}`,
+    },
+    openGraph: {
+      url: `https://nayparfum.ma/${currentLocale}`,
+    },
+  };
+}
 
 export default async function HomePage() {
   const [dbProducts, siteConfigDb, dbReviewsDb, brandsDb, blogPostsDb] = await Promise.all([
