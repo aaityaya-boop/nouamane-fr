@@ -24,6 +24,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     },
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/testeurs`,
+      languages: {
+        'fr-MA': 'https://nayparfum.ma/fr/testeurs',
+        'ar-MA': 'https://nayparfum.ma/ar/testeurs',
+        'x-default': 'https://nayparfum.ma/fr/testeurs',
+      },
     },
   };
 }
@@ -71,8 +76,64 @@ export default async function TesteursPage({
     isTester: true,
   }));
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Accueil',
+        item: `https://nayparfum.ma/${currentLocale}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Testeurs de Luxe',
+        item: `https://nayparfum.ma/${currentLocale}/testeurs`,
+      },
+    ],
+  };
+
+  const collectionJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Testeurs de Parfums 100% Originaux au Maroc',
+    description: "Découvrez notre collection exclusive de testeurs de grandes marques 100% authentiques au Maroc. Flacon d'origine, même sillage, prix exceptionnels.",
+    url: `https://nayparfum.ma/${currentLocale}/testeurs`,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'NAY Parfums',
+      url: 'https://nayparfum.ma',
+    },
+  };
+
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Testeurs de Parfums Originaux',
+    itemListElement: products.slice(0, 24).map((p, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: p.name,
+      url: `https://nayparfum.ma/${currentLocale}/product/${p.slug}`,
+    })),
+  };
+
   return (
     <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen relative overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       {/* Background Aura */}
       <div className="absolute top-0 left-1/2 w-[800px] h-[800px] bg-[#0ea5e9]/5 rounded-full blur-[150px] pointer-events-none -translate-x-1/2 -translate-y-1/2" />
       

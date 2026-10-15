@@ -100,26 +100,62 @@ export default async function ProductPage({
     notFound();
   }
 
-  // Get related products (same brand, excluding self)
-  const dbRelatedSameBrand = await prisma.product.findMany({
+  // Get related products (prioritize in-stock from same brand, then in-stock from same subcategory/gender)
+  const dbRelatedInStockSameBrand = await prisma.product.findMany({
     where: { 
-      brandId: dbProduct.brandId, published: true,
+      brandId: dbProduct.brandId,
+      published: true,
+      inStock: true,
+      stock: { gt: 0 },
       id: { not: dbProduct.id }
     },
     take: 4
   });
 
-  let dbRelated = [...dbRelatedSameBrand];
+  let dbRelated = [...dbRelatedInStockSameBrand];
+
   if (dbRelated.length < 4) {
-    const filler = await prisma.product.findMany({
+    // Fill with in-stock products from the same subcategory and gender
+    const fillerInStock = await prisma.product.findMany({
       where: {
         published: true,
+        inStock: true,
+        stock: { gt: 0 },
+        gender: dbProduct.gender,
+        subcategory: dbProduct.subcategory,
+        id: { notIn: [dbProduct.id, ...dbRelated.map(p => p.id)] }
+      },
+      take: 4 - dbRelated.length
+    });
+    dbRelated = [...dbRelated, ...fillerInStock];
+  }
+
+  if (dbRelated.length < 4) {
+    // Fill with general in-stock products of the same gender
+    const generalInStock = await prisma.product.findMany({
+      where: {
+        published: true,
+        inStock: true,
+        stock: { gt: 0 },
         gender: dbProduct.gender,
         id: { notIn: [dbProduct.id, ...dbRelated.map(p => p.id)] }
       },
       take: 4 - dbRelated.length
     });
-    dbRelated = [...dbRelated, ...filler];
+    dbRelated = [...dbRelated, ...generalInStock];
+  }
+
+  if (dbRelated.length < 4) {
+    // Fallback to any published product of the same brand if in-stock exhausted
+    const fallbackSameBrand = await prisma.product.findMany({
+      where: {
+        brandId: dbProduct.brandId,
+        published: true,
+        id: { notIn: [dbProduct.id, ...dbRelated.map(p => p.id)] }
+      },
+      take: 4 - dbRelated.length
+    });
+    dbRelated = [...dbRelated, ...fallbackSameBrand];
   }
 
   // Get reviews

@@ -176,13 +176,35 @@ export default async function LocaleLayout({
               logo: "https://nayparfum.ma/android-chrome-512x512.png",
               image: "https://nayparfum.ma/android-chrome-512x512.png",
               telephone: "+212 663-380011",
-              priceRange: "$$",
+              priceRange: "299 MAD - 450 MAD",
+              currenciesAccepted: "MAD",
+              paymentAccepted: "Cash, Cash on Delivery, Carte Bancaire",
               address: {
                 "@type": "PostalAddress",
                 addressCountry: "MA",
                 addressLocality: "Casablanca",
                 addressRegion: "Casablanca-Settat"
               },
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: 33.5731,
+                longitude: -7.5898
+              },
+              openingHoursSpecification: [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  dayOfWeek: [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday"
+                  ],
+                  opens: "09:00",
+                  closes: "20:00"
+                }
+              ],
               contactPoint: {
                 "@type": "ContactPoint",
                 telephone: "+212 663-380011",
