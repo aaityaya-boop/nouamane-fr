@@ -9,7 +9,7 @@ import ShopCatalog from '@/components/ShopCatalog';
 import BrandLogo from '@/components/BrandLogo';
 import { type Brand } from '@/lib/products';
 import prisma from '@/lib/prisma';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ShieldCheck, Truck, Clock } from 'lucide-react';
 
 type Params = { locale: string; brand: string };
 
@@ -91,8 +91,53 @@ export default async function BrandPage({
     take: 4
   });
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Accueil',
+        item: `https://nayparfum.ma/${locale}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Marques',
+        item: `https://nayparfum.ma/${locale}/shop`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: brand.label,
+        item: `https://nayparfum.ma/${locale}/brands/${brand.slug}`,
+      },
+    ],
+  };
+
+  const collectionJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Parfums ${brand.label} au Maroc`,
+    description: `Achetez vos parfums et testeurs ${brand.label} 100% originaux au Maroc. Flacons authentiques, livraison rapide et paiement à la livraison.`,
+    url: `https://nayparfum.ma/${locale}/brands/${brand.slug}`,
+    about: {
+      '@type': 'Brand',
+      name: brand.label,
+    },
+  };
+
   return (
     <div className="min-h-screen bg-[#f8f7f5] selection:bg-[#0ea5e9]/20 selection:text-[#1A1A1A]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
       <Header />
       
       <main className="pt-24 lg:pt-32 pb-24">
@@ -122,12 +167,16 @@ export default async function BrandPage({
               </div>
             </div>
 
+            <h1 className="heading-font text-3xl md:text-5xl font-bold tracking-tight text-[#1A1A1A] mb-4 text-center">
+              Parfums {brand.label}
+            </h1>
+
             <p className="text-[14px] md:text-[16px] text-[#6B6B6B] leading-relaxed font-light mb-8 max-w-2xl text-center">
               {brand.description}
             </p>
 
             <div className="inline-flex items-center justify-center px-6 py-2.5 border border-[#e0ddd4] rounded-full text-[11px] font-bold uppercase tracking-widest text-[#1A1A1A] bg-white shadow-sm">
-              {products.length} parfums disponibles
+              {products.length} {products.length === 1 ? 'parfum disponible' : 'parfums disponibles'}
             </div>
           </div>
         </section>
@@ -135,6 +184,56 @@ export default async function BrandPage({
         <Suspense fallback={<div className="text-center text-[#9A9A9A]">Chargement…</div>}>
           <ShopCatalog products={products} brands={dbBrands} lockedBrand={brand.slug as Brand} />
         </Suspense>
+
+        {/* Brand Guide & Reassurance for Moroccan Shoppers */}
+        <section className="mt-20 max-w-4xl mx-auto px-6">
+          <div className="bg-white border border-[#e0ddd4] rounded-2xl p-8 lg:p-10 shadow-sm">
+            <h2 className="heading-font text-2xl lg:text-3xl text-[#1A1A1A] mb-4 tracking-wide text-center">
+              Acheter vos Parfums {brand.label} au Maroc chez NAY Parfums
+            </h2>
+            <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-8 text-center max-w-2xl mx-auto">
+              NAY Parfums vous propose une sélection rigoureuse de fragrances {brand.label} 100% originaux. Profitez des meilleurs prix au Maroc avec une garantie totale d'authenticité et un service client dédié.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-[#f0eee6]">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-[#0ea5e9]/10 text-[#0ea5e9] flex items-center justify-center mb-3">
+                  <ShieldCheck size={22} />
+                </div>
+                <h3 className="text-[13px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1">
+                  100% Authentique
+                </h3>
+                <p className="text-[12px] text-[#7A7A7A] leading-relaxed">
+                  Produits authentiques vérifiables par code de lot, issus de distributeurs agréés.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-[#0ea5e9]/10 text-[#0ea5e9] flex items-center justify-center mb-3">
+                  <Truck size={22} />
+                </div>
+                <h3 className="text-[13px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1">
+                  Livraison Express Maroc
+                </h3>
+                <p className="text-[12px] text-[#7A7A7A] leading-relaxed">
+                  Livraison rapide en 24/48h à Casablanca, Rabat, Marrakech, Fès, Tanger et tout le Maroc.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-[#0ea5e9]/10 text-[#0ea5e9] flex items-center justify-center mb-3">
+                  <Clock size={22} />
+                </div>
+                <h3 className="text-[13px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1">
+                  Paiement à la Livraison
+                </h3>
+                <p className="text-[12px] text-[#7A7A7A] leading-relaxed">
+                  Réglez votre commande en espèces à la livraison (Cash on Delivery) après réception de votre colis.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Other Brands Section */}
         <section className="mt-32 max-w-7xl mx-auto px-6">

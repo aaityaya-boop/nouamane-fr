@@ -22,20 +22,34 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
 
   const locale = resolvedParams.locale || 'fr';
   const images = JSON.parse(product.images);
-  const displayName = product.name.toLowerCase().startsWith(product.brandLabel.toLowerCase())
+  const nameLower = product.name.toLowerCase();
+  const brandLower = product.brandLabel.toLowerCase();
+  const displayName = (nameLower.startsWith(brandLower) || nameLower.includes(brandLower))
     ? product.name
     : `${product.brandLabel} ${product.name}`;
 
+  const isTester = product.isTester ?? true;
+  const productTypeLabel = isTester ? 'Testeur Original' : 'Parfum Original Scellé';
+  const productGuarantee = isTester ? 'Testeur 100% authentique garanti' : 'Flacon 100% original et scellé';
+
   return {
-    title: `${displayName} | Testeur Original Prix Maroc`,
-    description: `Achetez ${product.name} de ${product.brandLabel} au meilleur prix au Maroc. Testeur 100% authentique garanti. Commandez maintenant, payez à la livraison !`,
-    keywords: [product.name, product.brandLabel, 'testeur parfum original maroc', 'acheter parfum maroc', 'عطور أصلية', 'تستر عطور', product.subcategoryLabel || ''],
+    title: `${displayName} | ${productTypeLabel} Prix Maroc`,
+    description: `Achetez ${displayName} au meilleur prix au Maroc. ${productGuarantee}. Commandez maintenant, payez à la livraison !`,
+    keywords: [
+      product.name,
+      product.brandLabel,
+      isTester ? 'testeur parfum original maroc' : 'parfum original maroc',
+      'acheter parfum maroc',
+      'عطور أصلية',
+      isTester ? 'تستر عطور' : 'عطور أصلية مغلفة',
+      product.subcategoryLabel || ''
+    ],
     alternates: {
       canonical: `https://nayparfum.ma/${locale}/product/${product.slug}`,
     },
     openGraph: {
-      title: `${displayName} | Testeur Original Prix Maroc | NAY Parfums`,
-      description: `Achetez ${product.name} de ${product.brandLabel} au meilleur prix au Maroc. Testeur 100% authentique garanti. Commandez maintenant, payez à la livraison !`,
+      title: `${displayName} | ${productTypeLabel} Prix Maroc | NAY Parfums`,
+      description: `Achetez ${displayName} au meilleur prix au Maroc. ${productGuarantee}. Commandez maintenant, payez à la livraison !`,
       url: `https://nayparfum.ma/${locale}/product/${product.slug}`,
       images: images.length > 0 ? [{ url: images[0] }] : [],
     }
@@ -141,12 +155,14 @@ export default async function ProductPage({
     }).filter(Boolean);
   }
 
+  const productTypeDescription = transformedProduct.isTester ? 'Testeur original' : 'Parfum original scellé';
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: transformedProduct.name,
     image: transformedProduct.images[0],
-    description: `Testeur original de ${transformedProduct.name}. Authentique à 100%. Livraison rapide partout au Maroc et paiement à la livraison.`,
+    description: `${productTypeDescription} de ${transformedProduct.name}. Authentique à 100%. Livraison rapide partout au Maroc et paiement à la livraison.`,
     brand: {
       '@type': 'Brand',
       name: transformedProduct.brandLabel,
@@ -187,35 +203,52 @@ export default async function ProductPage({
   };
   const genderLabel = genderLabels[transformedProduct.gender] || 'Boutique';
 
+  const breadcrumbElements: Array<{
+    '@type': string;
+    position: number;
+    name: string;
+    item: string;
+  }> = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Accueil',
+      item: `https://nayparfum.ma/${currentLocale}`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Boutique',
+      item: `https://nayparfum.ma/${currentLocale}/shop`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: `Parfums ${genderLabel}`,
+      item: `https://nayparfum.ma/${currentLocale}/shop/${transformedProduct.gender}`,
+    },
+  ];
+
+  if (transformedProduct.brand) {
+    breadcrumbElements.push({
+      '@type': 'ListItem',
+      position: breadcrumbElements.length + 1,
+      name: transformedProduct.brandLabel,
+      item: `https://nayparfum.ma/${currentLocale}/brands/${transformedProduct.brand}`,
+    });
+  }
+
+  breadcrumbElements.push({
+    '@type': 'ListItem',
+    position: breadcrumbElements.length + 1,
+    name: transformedProduct.name,
+    item: `https://nayparfum.ma/${currentLocale}/product/${transformedProduct.slug}`,
+  });
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Accueil',
-        item: `https://nayparfum.ma/${currentLocale}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Boutique',
-        item: `https://nayparfum.ma/${currentLocale}/shop`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: `Parfums ${genderLabel}`,
-        item: `https://nayparfum.ma/${currentLocale}/shop/${transformedProduct.gender}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 4,
-        name: transformedProduct.name,
-        item: `https://nayparfum.ma/${currentLocale}/product/${transformedProduct.slug}`,
-      },
-    ],
+    itemListElement: breadcrumbElements,
   };
 
   return (
