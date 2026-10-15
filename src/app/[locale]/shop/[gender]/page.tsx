@@ -114,7 +114,7 @@ export default async function CategoryPage({
       {
         '@type': 'ListItem',
         position: 3,
-        name: `Parfums ${category.label}`,
+        name: category.label,
         item: `https://nayparfum.ma/${locale}/shop/${category.slug}`,
       },
     ],
@@ -123,8 +123,8 @@ export default async function CategoryPage({
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `Parfums ${category.label} au Maroc`,
-    description: `Découvrez notre collection de parfums ${category.label}. 100% authentique. Livraison rapide partout au Maroc.`,
+    name: `${category.label} au Maroc`,
+    description: `Découvrez notre collection de ${category.label.toLowerCase()}. 100% authentique. Livraison rapide partout au Maroc.`,
     url: `https://nayparfum.ma/${locale}/shop/${category.slug}`,
   };
 
