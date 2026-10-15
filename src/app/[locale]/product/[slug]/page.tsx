@@ -68,6 +68,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
     ],
     alternates: {
       canonical: `https://nayparfum.ma/${locale}/product/${product.slug}`,
+      languages: {
+        'fr-MA': `https://nayparfum.ma/fr/product/${product.slug}`,
+        'ar-MA': `https://nayparfum.ma/ar/product/${product.slug}`,
+        'x-default': `https://nayparfum.ma/fr/product/${product.slug}`,
+      },
     },
     openGraph: {
       title: `${displayName} | ${productTypeLabel} Prix Maroc | NAY Parfums`,

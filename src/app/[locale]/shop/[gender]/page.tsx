@@ -38,6 +38,11 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     description: `Découvrez notre collection de parfums ${category.label}. ${category.description} 100% authentique. Livraison rapide.`,
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/shop/${category.slug}`,
+      languages: {
+        'fr-MA': `https://nayparfum.ma/fr/shop/${category.slug}`,
+        'ar-MA': `https://nayparfum.ma/ar/shop/${category.slug}`,
+        'x-default': `https://nayparfum.ma/fr/shop/${category.slug}`,
+      },
     },
     openGraph: {
       title: `Parfums ${category.label} | Acheter au Maroc`,
@@ -90,8 +95,49 @@ export default async function CategoryPage({
     originalPrice: p.originalPrice ?? undefined,
   }));
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Accueil',
+        item: `https://nayparfum.ma/${locale}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Boutique',
+        item: `https://nayparfum.ma/${locale}/shop`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: `Parfums ${category.label}`,
+        item: `https://nayparfum.ma/${locale}/shop/${category.slug}`,
+      },
+    ],
+  };
+
+  const collectionJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Parfums ${category.label} au Maroc`,
+    description: `Découvrez notre collection de parfums ${category.label}. 100% authentique. Livraison rapide partout au Maroc.`,
+    url: `https://nayparfum.ma/${locale}/shop/${category.slug}`,
+  };
+
   return (
     <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
       <Header />
 
       {/* HERO */}

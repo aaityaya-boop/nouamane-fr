@@ -12,6 +12,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}`,
+      languages: {
+        'fr-MA': 'https://nayparfum.ma/fr',
+        'ar-MA': 'https://nayparfum.ma/ar',
+        'x-default': 'https://nayparfum.ma/fr',
+      },
     },
     openGraph: {
       url: `https://nayparfum.ma/${currentLocale}`,

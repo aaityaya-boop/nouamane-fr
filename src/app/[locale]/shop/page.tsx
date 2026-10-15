@@ -24,6 +24,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     },
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/shop`,
+      languages: {
+        'fr-MA': 'https://nayparfum.ma/fr/shop',
+        'ar-MA': 'https://nayparfum.ma/ar/shop',
+        'x-default': 'https://nayparfum.ma/fr/shop',
+      },
     },
   };
 }

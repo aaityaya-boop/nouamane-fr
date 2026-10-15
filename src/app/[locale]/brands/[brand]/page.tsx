@@ -33,6 +33,11 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     description: `Découvrez la collection de parfums ${brand.name} chez NAY Parfums. 100% authentique. Livraison rapide partout au Maroc.`,
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/brands/${brand.slug}`,
+      languages: {
+        'fr-MA': `https://nayparfum.ma/fr/brands/${brand.slug}`,
+        'ar-MA': `https://nayparfum.ma/ar/brands/${brand.slug}`,
+        'x-default': `https://nayparfum.ma/fr/brands/${brand.slug}`,
+      },
     },
     openGraph: {
       title: `Parfums ${brand.name} | Acheter au Maroc`,
