@@ -212,9 +212,28 @@ export default async function BrandPage({
             <h2 className="heading-font text-2xl lg:text-3xl text-[#1A1A1A] mb-4 tracking-wide text-center">
               Acheter vos Parfums {brand.label} au Maroc chez NAY Parfums
             </h2>
-            <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-8 text-center max-w-2xl mx-auto">
+            <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 text-center max-w-2xl mx-auto">
               NAY Parfums vous propose une sélection rigoureuse de fragrances {brand.label} 100% originaux. Profitez des meilleurs prix au Maroc avec une garantie totale d'authenticité et un service client dédié.
             </p>
+
+            {products.filter(p => p.inStock && (p.stock ?? 0) > 0).length > 0 && (
+              <div className="mb-8 pt-4 pb-2 border-t border-[#f0eee6]">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9] mb-3 text-center">
+                  Créations {brand.label} disponibles immédiatement au Maroc :
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {products.filter(p => p.inStock && (p.stock ?? 0) > 0).slice(0, 4).map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/${locale}/product/${item.slug}`}
+                      className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-[#f8f7f5] hover:bg-[#0ea5e9]/10 px-3.5 py-1.5 rounded-full border border-[#e0ddd4] transition-all"
+                    >
+                      {item.name} · {item.price} MAD
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-[#f0eee6]">
               <div className="flex flex-col items-center text-center">

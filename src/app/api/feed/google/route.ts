@@ -22,28 +22,30 @@ export async function GET() {
   <channel>
     <title>NAY Parfum</title>
     <link>${siteUrl}</link>
-    <description>Parfumerie en ligne - Master Copies et Décants au Maroc</description>
+    <description>NAY Parfums - Parfumerie de luxe et testeurs originaux au Maroc</description>
 `;
 
     products.forEach((product) => {
-      // Handle images (get the first one, ensure absolute URL)
-      const imagesArray = product.images.split(',');
-      let mainImage = imagesArray[0].trim();
+      // Parse JSON images array properly to avoid percent-encoded brackets
+      let mainImage = '';
+      try {
+        const parsed = JSON.parse(product.images);
+        mainImage = Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : '';
+      } catch {
+        mainImage = (product.images || '').split(',')[0].trim();
+      }
+
       if (mainImage.startsWith('/')) {
         mainImage = `${siteUrl}${mainImage}`;
       }
-      
-      // Google Merchant XML requires valid URLs (no spaces)
       mainImage = encodeURI(mainImage);
 
-      // Format description to be plain text without HTML tags for Google if needed, though basic HTML is okay.
-      const description = product.description.replace(/<[^>]*>?/gm, '').substring(0, 5000);
+      // Plain text description
+      const description = (product.description || '').replace(/<[^>]*>?/gm, '').substring(0, 5000);
 
       // Condition and Availability
       const availability = product.inStock && product.stock > 0 ? 'in_stock' : 'out_of_stock';
-      
-      // We use product ID as the required g:id
-      const id = product.sku || product.id.toString();
+      const id = product.sku || `REF-PRD-${product.id}`;
 
       xml += `    <item>
       <g:id>${id}</g:id>
@@ -54,8 +56,15 @@ export async function GET() {
       <g:brand><![CDATA[${product.brandLabel}]]></g:brand>
       <g:condition>new</g:condition>
       <g:availability>${availability}</g:availability>
-      <g:price>${product.price} MAD</g:price>
+      <g:price>${product.price}.00 MAD</g:price>
+      <g:google_product_category>479</g:google_product_category>
       <g:identifier_exists>no</g:identifier_exists>
+      <g:mpn><![CDATA[${id}]]></g:mpn>
+      <g:shipping>
+        <g:country>MA</g:country>
+        <g:service>Livraison Express 24-48h</g:service>
+        <g:price>35.00 MAD</g:price>
+      </g:shipping>
     </item>
 `;
     });

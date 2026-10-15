@@ -30,7 +30,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export const revalidate = 3600;
 
-export default async function TesteursPage() {
+export default async function TesteursPage({
+  params,
+}: {
+  params?: Promise<{ locale?: string }>;
+}) {
+  const { locale } = (await params) || { locale: 'fr' };
+  const currentLocale = locale || 'fr';
+
   const [dbProducts, dbBrands, config] = await Promise.all([
     prisma.product.findMany({
       where: { 
@@ -124,6 +131,29 @@ export default async function TesteursPage() {
               <span className="text-[11px] font-semibold tracking-widest uppercase text-[#111]">Livraison 24-48h</span>
             </div>
           </div>
+
+          {/* Contextual links to high-demand in-stock testers */}
+          {products.filter(p => p.inStock && (p.stock ?? 0) > 0).length > 0 && (
+            <div className="mt-8 pt-5 pb-2 border-t border-[#e0ddd4] max-w-2xl w-full">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9] mb-3 text-center">
+                Testeurs de luxe très demandés au Maroc :
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {products
+                  .filter(p => p.inStock && (p.stock ?? 0) > 0)
+                  .slice(0, 5)
+                  .map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/${currentLocale}/product/${item.slug}`}
+                      className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-white hover:bg-[#0ea5e9]/10 px-3.5 py-1.5 rounded-full border border-[#e0ddd4] transition-all shadow-sm"
+                    >
+                      {item.name} · {item.price} MAD
+                    </Link>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

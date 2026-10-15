@@ -205,6 +205,28 @@ export default async function CategoryPage({
             ))}
           </div>
         </div>
+
+        {products.filter(p => p.inStock && (p.stock ?? 0) > 0).length > 0 && (
+          <div className="mt-8 pt-6 border-t border-[#e0ddd4]">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9] mb-3">
+              Coups de cœur {category.label} disponibles au Maroc :
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {products
+                .filter(p => p.inStock && (p.stock ?? 0) > 0)
+                .slice(0, 5)
+                .map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`/${locale}/product/${item.slug}`}
+                    className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-[#f8f7f5] hover:bg-[#0ea5e9]/10 px-3.5 py-1.5 rounded-full border border-[#e0ddd4] transition-all"
+                  >
+                    {item.name} · {item.price} MAD
+                  </Link>
+                ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* CATALOG (locked to gender) */}
