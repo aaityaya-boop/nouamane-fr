@@ -108,6 +108,10 @@ export default async function proxy(request: NextRequest) {
     "/fr/product/chanel-bleu-de-chanel-tester": "/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester",
     "/product/pack-decouverte-luxe": "/fr/decouverte",
     "/fr/product/pack-decouverte-luxe": "/fr/decouverte",
+    "/fr/product/Pack-louis-Vuitton-Imagination L'Immensité": "/fr/brands/Louis-Vuitton",
+    "/fr/product/Pack-louis-Vuitton-Imagination%20L'Immensit%C3%A9": "/fr/brands/Louis-Vuitton",
+    "/product/Pack-louis-Vuitton-Imagination L'Immensité": "/fr/brands/Louis-Vuitton",
+    "/product/Pack-louis-Vuitton-Imagination%20L'Immensit%C3%A9": "/fr/brands/Louis-Vuitton",
   };
 
   let decodedPath = pathname;
