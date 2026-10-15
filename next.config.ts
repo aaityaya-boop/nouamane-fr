@@ -55,6 +55,42 @@ const nextConfig: NextConfig = {
         destination: '/fr/suivi-commande',
         permanent: false,
       },
+      // SEO 301 Permanent Redirects for obsolete product URLs
+      {
+        source: "/fr/product/Yves-Saint-Laurent-La-Nuit-De-L\\'Homme-Bleu-Électrique-Eau-de-Toilette",
+        destination: '/fr/product/YSL-La-Nuit-De-L-Homme-Bleu-Électrique-Eau-de-Toilette',
+        statusCode: 301,
+      },
+      {
+        source: '/product/Absolu-Aventus-Creed',
+        destination: '/fr/product/Creed-Absolu-Aventus-Tester',
+        statusCode: 301,
+      },
+      {
+        source: '/fr/product/Absolu-Aventus-Creed',
+        destination: '/fr/product/Creed-Absolu-Aventus-Tester',
+        statusCode: 301,
+      },
+      {
+        source: '/product/chanel-bleu-de-chanel-tester',
+        destination: '/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester',
+        statusCode: 301,
+      },
+      {
+        source: '/fr/product/chanel-bleu-de-chanel-tester',
+        destination: '/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester',
+        statusCode: 301,
+      },
+      {
+        source: '/product/pack-decouverte-luxe',
+        destination: '/fr/decouverte',
+        statusCode: 301,
+      },
+      {
+        source: '/fr/product/pack-decouverte-luxe',
+        destination: '/fr/decouverte',
+        statusCode: 301,
+      },
     ];
   },
   async headers() {

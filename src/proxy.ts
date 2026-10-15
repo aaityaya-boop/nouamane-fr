@@ -92,6 +92,28 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // --- 2.5. PERMANENT 301 REDIRECTS (OBSOLETE / LEGACY PRODUCT URLS) ---
+  const legacyProductRedirects: Record<string, string> = {
+    "/fr/product/Yves-Saint-Laurent-La-Nuit-De-L'Homme-Bleu-Électrique-Eau-de-Toilette": "/fr/product/YSL-La-Nuit-De-L-Homme-Bleu-Électrique-Eau-de-Toilette",
+    "/product/Yves-Saint-Laurent-La-Nuit-De-L'Homme-Bleu-Électrique-Eau-de-Toilette": "/fr/product/YSL-La-Nuit-De-L-Homme-Bleu-Électrique-Eau-de-Toilette",
+    "/product/Absolu-Aventus-Creed": "/fr/product/Creed-Absolu-Aventus-Tester",
+    "/fr/product/Absolu-Aventus-Creed": "/fr/product/Creed-Absolu-Aventus-Tester",
+    "/product/chanel-bleu-de-chanel-tester": "/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester",
+    "/fr/product/chanel-bleu-de-chanel-tester": "/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester",
+    "/product/pack-decouverte-luxe": "/fr/decouverte",
+    "/fr/product/pack-decouverte-luxe": "/fr/decouverte",
+  };
+
+  let decodedPath = pathname;
+  try {
+    decodedPath = decodeURIComponent(pathname);
+  } catch {}
+
+  const matchedRedirect = legacyProductRedirects[pathname] || legacyProductRedirects[decodedPath];
+  if (matchedRedirect) {
+    return NextResponse.redirect(new URL(matchedRedirect, request.url), 301);
+  }
+
   // --- 3. LOCALE REDIRECTION ---
   const pathnameIsMissingLocale = locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
