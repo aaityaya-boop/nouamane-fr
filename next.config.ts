@@ -34,14 +34,9 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
-        source: '/:locale/parfums-orientaux',
-        destination: '/:locale/parfums-originaux',
-        permanent: true,
-      },
-      {
         source: '/parfums-orientaux',
-        destination: '/fr/parfums-originaux',
-        permanent: true,
+        destination: '/fr/parfums-orientaux',
+        permanent: false,
       },
       {
         source: '/suivi-commande',
