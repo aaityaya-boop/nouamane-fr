@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
@@ -21,11 +21,26 @@ import { Metadata } from 'next';
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, brand: brandSlug } = await params;
   const decodedBrandSlug = decodeURIComponent(brandSlug);
-  const brand = await prisma.brand.findUnique({
+  let brand = await prisma.brand.findUnique({
     where: { slug: decodedBrandSlug }
   });
 
-  if (!brand) return { title: 'Marque introuvable' };
+  if (!brand) {
+    const matchedBrand = await prisma.brand.findFirst({
+      where: {
+        slug: {
+          equals: decodedBrandSlug,
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    if (matchedBrand) {
+      permanentRedirect(`/${locale || 'fr'}/brands/${matchedBrand.slug}`);
+    }
+
+    return { title: 'Marque introuvable' };
+  }
 
   const currentLocale = locale || 'fr';
   const title = `Testeurs & Parfums ${brand.label} Originaux au Maroc | Prix en MAD - NAY Parfum`;
@@ -67,11 +82,26 @@ export default async function BrandPage({
   const { locale, brand: brandSlug } = await params;
   const decodedBrandSlug = decodeURIComponent(brandSlug);
   
-  const brand = await prisma.brand.findUnique({
+  let brand = await prisma.brand.findUnique({
     where: { slug: decodedBrandSlug }
   });
   
-  if (!brand) notFound();
+  if (!brand) {
+    const matchedBrand = await prisma.brand.findFirst({
+      where: {
+        slug: {
+          equals: decodedBrandSlug,
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    if (matchedBrand) {
+      permanentRedirect(`/${locale || 'fr'}/brands/${matchedBrand.slug}`);
+    }
+
+    notFound();
+  }
 
   const dbProducts = await prisma.product.findMany({
     where: { 

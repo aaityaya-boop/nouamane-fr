@@ -33,9 +33,31 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
   const currentLocale = locale || 'fr';
 
+  let title = '';
+  let description = '';
+
+  if (category.key === 'men') {
+    title = 'Parfums Homme au Maroc : Grandes Marques & Testeurs 100% Originaux | NAY Parfum';
+    description = 'Achetez votre parfum homme au Maroc chez NAY Parfum : sélection de grandes marques de luxe (Dior, Creed, Chanel, Tom Ford), flacons scellés et testeurs 100% originaux. Prix en MAD, paiement à la livraison (COD) et livraison express 24/48h.';
+  } else if (category.key === 'women') {
+    title = 'Parfums Femme au Maroc : Grandes Marques & Testeurs 100% Originaux | NAY Parfum';
+    description = 'Achetez votre parfum femme au Maroc chez NAY Parfum : sélection de grandes marques iconiques (Chanel, YSL, Kayali, Lancôme), flacons scellés et testeurs 100% originaux. Prix en MAD, paiement à la livraison (COD) et livraison express 24/48h.';
+  } else {
+    title = 'Parfums Mixtes & Niche au Maroc : Testeurs Originaux | NAY Parfum';
+    description = 'Sélection exclusive de parfums unisexes et de niche au Maroc : flacons et testeurs d\'exception (Tom Ford, Montale, Xerjoff). Prix en MAD, livraison rapide 24/48h et paiement à la livraison (COD).';
+  }
+
   return {
-    title: `Parfums ${category.label} | Acheter au Maroc`,
-    description: `Découvrez notre collection de parfums ${category.label}. ${category.description} 100% authentique. Livraison rapide.`,
+    title: { absolute: title },
+    description,
+    keywords: [
+      category.key === 'men' ? 'parfum homme maroc' : 'parfum femme maroc',
+      category.key === 'men' ? 'acheter parfum homme maroc' : 'acheter parfum femme maroc',
+      `testeurs ${category.slug} maroc`,
+      `parfums de luxe ${category.slug} maroc`,
+      `prix parfum ${category.slug} maroc`,
+      'عطور أصلية المغرب'
+    ],
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/shop/${category.slug}`,
       languages: {
@@ -45,8 +67,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
       },
     },
     openGraph: {
-      title: `Parfums ${category.label} | Acheter au Maroc`,
-      description: `Découvrez notre collection de parfums ${category.label}. ${category.description} 100% authentique. Livraison rapide.`,
+      title,
+      description,
       url: `https://nayparfum.ma/${currentLocale}/shop/${category.slug}`,
       images: [{ url: category.heroImage }]
     }
@@ -123,8 +145,12 @@ export default async function CategoryPage({
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `${category.label} au Maroc`,
-    description: `Découvrez notre collection de ${category.label.toLowerCase()}. 100% authentique. Livraison rapide partout au Maroc.`,
+    name: `${category.label} au Maroc - Testeurs & Flacons 100% Originaux`,
+    description: category.key === 'men'
+      ? 'Sélection exclusive de parfums et testeurs pour homme au Maroc. 100% originaux, grandes marques de luxe, prix en MAD et paiement à la livraison.'
+      : category.key === 'women'
+      ? 'Sélection exclusive de parfums et testeurs pour femme au Maroc. 100% originaux, grands classiques de luxe, prix en MAD et paiement à la livraison.'
+      : 'Sélection exclusive de parfums et testeurs de niche au Maroc. 100% originaux, prix en MAD et paiement à la livraison.',
     url: `https://nayparfum.ma/${locale}/shop/${category.slug}`,
   };
 
@@ -177,7 +203,7 @@ export default async function CategoryPage({
             {category.label}
           </h1>
           <p className="mt-4 text-[#6B6B6B] text-[14px] max-w-md">
-            {products.length} fragrances · Valentino · YSL · Armani
+            {products.length} fragrances {category.key === 'men' ? 'masculines' : category.key === 'women' ? 'féminines' : 'mixtes'} d&apos;exception · Dior · Chanel · Creed · Tom Ford · YSL
           </p>
         </div>
       </section>
