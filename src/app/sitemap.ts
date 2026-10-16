@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 
-export const revalidate = 86400;
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nayparfum.ma';
