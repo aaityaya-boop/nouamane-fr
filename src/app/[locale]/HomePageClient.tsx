@@ -15,7 +15,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import ProductCard from '@/components/ProductCard';
-import BestsellersDirectory from '@/components/BestsellersDirectory';
 import SplitTypographyHero from '@/components/SplitTypographyHero';
 import BrandsMarquee from '@/components/BrandsMarquee';
 import FAQ from '@/components/FAQ';
@@ -62,14 +61,12 @@ export default function HomePageClient({
   products, 
   config, 
   latestReviews = [],
-  initialBrands = [],
-  initialBlogPosts = []
+  initialBrands = []
 }: { 
   products: Product[], 
   config?: any, 
   latestReviews?: any[],
-  initialBrands?: any[],
-  initialBlogPosts?: any[]
+  initialBrands?: any[]
 }) {
   const { scrollY } = useScroll();
   const pathname = usePathname();
@@ -80,7 +77,6 @@ export default function HomePageClient({
   const isFallWinter = currentMonth >= 8 || currentMonth <= 1;
 
   const [brands, setBrands] = useState<any[]>(initialBrands);
-  const [blogPosts, setBlogPosts] = useState<any[]>(initialBlogPosts);
   const [homepageConfig, setHomepageConfig] = useState<any>(config || null);
 
   const seasonalTitleFull = homepageConfig?.seasonalTrendTitle || (isFallWinter ? 'Tendances Automne-Hiver' : 'Tendances Printemps-Été');
@@ -111,15 +107,6 @@ export default function HomePageClient({
         .then(data => setBrands(data))
         .catch(console.error);
     }
-      
-    if (initialBlogPosts.length === 0) {
-      fetch('/api/blog')
-        .then(res => res.json())
-        .then(data => {
-          if(Array.isArray(data)) setBlogPosts(data);
-        })
-        .catch(console.error);
-    }
 
     if (!config) {
       fetch('/api/settings')
@@ -127,7 +114,7 @@ export default function HomePageClient({
         .then(data => setHomepageConfig(data))
         .catch(console.error);
     }
-  }, [initialBrands.length, initialBlogPosts.length, config]);
+  }, [initialBrands.length, config]);
 
   // Use admin-configured products if set, else fallback to tag-based
   const bestsellersDisplay = (() => {
@@ -301,7 +288,7 @@ export default function HomePageClient({
         {/* Background Image / Cover */}
         <div className="absolute inset-0 z-0">
           <Image 
-            src={config.coffretsCoverImage || "/images/category/pack-decouverte-luxe.jpg"} 
+            src={config?.coffretsCoverImage || "/images/category/pack-decouverte-luxe.jpg"} 
             alt="L'Art d'Offrir" 
             fill 
             className="object-cover scale-105"

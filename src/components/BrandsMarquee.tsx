@@ -17,8 +17,8 @@ export default function BrandsMarquee({ brands }: { brands: Brand[] }) {
   const locale = pathname?.split('/')[1] || 'fr';
   if (!brands || brands.length === 0) return null;
 
-  // We duplicate the list to create a seamless infinite scrolling effect
-  const marqueeItems = [...brands, ...brands, ...brands, ...brands];
+  // We duplicate the list once to create an exact seamless infinite scrolling loop with translateX(-50%)
+  const marqueeItems = [...brands, ...brands];
 
   return (
     <section className="relative w-full py-16 lg:py-24 bg-white overflow-hidden border-t border-[#EAEAEA]">
@@ -61,13 +61,14 @@ export default function BrandsMarquee({ brands }: { brands: Brand[] }) {
               className="flex-shrink-0 flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-500 opacity-60 hover:opacity-100 px-4 group/item"
             >
               {brand.image ? (
-                <div className="relative w-40 h-20 md:w-56 md:h-28">
+                <div className="relative w-36 h-16 md:w-52 md:h-24 flex items-center justify-center">
                   <Image 
                     src={brand.image} 
                     alt={brand.name} 
-                    fill 
-                    sizes="(max-width: 768px) 160px, 224px"
-                    className="object-contain mix-blend-multiply" 
+                    width={180}
+                    height={70}
+                    className="object-contain max-h-16 md:max-h-20 w-auto mix-blend-multiply" 
+                    loading="lazy"
                   />
                 </div>
               ) : (
