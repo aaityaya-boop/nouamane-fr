@@ -46,7 +46,7 @@ export default function CartDrawer() {
           </h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
+            className="text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
             aria-label="Fermer"
           >
             <X size={22} strokeWidth={1.5} />
@@ -106,6 +106,7 @@ export default function CartDrawer() {
                       src={item.image}
                       alt={item.name}
                       fill
+                      sizes="96px"
                       className="object-cover"
                     />
                   </Link>
@@ -135,18 +136,20 @@ export default function CartDrawer() {
                           onClick={() =>
                             updateQuantity(item.id, item.size, item.quantity - 1)
                           }
-                          className="w-9 h-9 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
+                          className="w-10 h-10 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
+                          aria-label="Diminuer la quantité"
                         >
                           <Minus size={13} />
                         </button>
-                        <div className="px-4 text-sm font-mono text-[#1A1A1A]">
+                        <div className="px-3 text-sm font-mono text-[#1A1A1A]">
                           {item.quantity}
                         </div>
                         <button
                           onClick={() =>
                             updateQuantity(item.id, item.size, item.quantity + 1)
                           }
-                          className="w-9 h-9 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
+                          className="w-10 h-10 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
+                          aria-label="Augmenter la quantité"
                         >
                           <Plus size={13} />
                         </button>
@@ -154,7 +157,7 @@ export default function CartDrawer() {
 
                       <button
                         onClick={() => removeFromCart(item.id, item.size)}
-                        className="text-[#D4D4D4] hover:text-red-400 transition-colors"
+                        className="text-[#D4D4D4] hover:text-red-400 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
                         aria-label="Retirer"
                       >
                         <Trash2 size={16} />

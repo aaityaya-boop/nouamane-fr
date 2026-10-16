@@ -118,14 +118,14 @@ export default function Header() {
               <Link
                 id="header-cart-icon"
                 href={`/${locale}/cart`}
-                className={`transition-colors duration-300 relative ${
+                className={`transition-colors duration-300 relative flex items-center justify-center min-w-[44px] min-h-[44px] -mr-1 ${
                   isSolid ? 'text-[#1A1A1A] hover:text-[#0ea5e9]' : 'text-white hover:text-white/80'
                 }`}
                 aria-label={`Panier (${cartCount} articles)`}
               >
                 <ShoppingBag className="w-[18px] h-[18px]" strokeWidth={1.5} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-[#0ea5e9] text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full leading-none">
+                  <span className="absolute top-1.5 right-1.5 bg-[#0ea5e9] text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full leading-none">
                     {cartCount}
                   </span>
                 )}
@@ -147,7 +147,7 @@ export default function Header() {
 
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`lg:hidden ${isSolid ? 'text-[#1A1A1A]' : 'text-white'}`}
+                className={`lg:hidden flex items-center justify-center min-w-[44px] min-h-[44px] -mr-2 ${isSolid ? 'text-[#1A1A1A]' : 'text-white'}`}
                 aria-label="Menu"
               >
                 {isMobileMenuOpen ? <X size={24} strokeWidth={1.5} /> : <Menu size={24} strokeWidth={1.5} />}

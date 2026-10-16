@@ -416,7 +416,7 @@ export default function CheckoutPage() {
                       value={form.city}
                       onChange={(e) => update('city', e.target.value)}
                       required
-                      className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[14px] bg-white border border-[#e0ddd4] focus:outline-none focus:border-[#0ea5e9]"
+                      className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[16px] md:text-[14px] bg-white border border-[#e0ddd4] focus:outline-none focus:border-[#0ea5e9]"
                     >
                       {MOROCCAN_CITIES.map((c) => (
                         <option key={c} value={c}>
@@ -441,7 +441,7 @@ export default function CheckoutPage() {
                     onChange={(e) => update('notes', e.target.value)}
                     rows={3}
                     placeholder="Ex : Appeler avant livraison, étage 3, digicode…"
-                    className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-[#0ea5e9] resize-none"
+                    className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[16px] md:text-[14px] focus:outline-none focus:border-[#0ea5e9] resize-none"
                   />
                 </div>
 
@@ -532,7 +532,7 @@ export default function CheckoutPage() {
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                         placeholder="Code promo" 
-                        className="flex-1 border border-[#e0ddd4] rounded-lg px-4 py-2.5 text-[13px] bg-white focus:outline-none focus:border-[#0ea5e9] uppercase"
+                        className="flex-1 border border-[#e0ddd4] rounded-lg px-4 py-2.5 text-[16px] md:text-[13px] bg-white focus:outline-none focus:border-[#0ea5e9] uppercase"
                       />
                       <button 
                         type="button" 
@@ -728,7 +728,7 @@ function TextField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required={required}
-        className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[14px] focus:outline-none focus:border-[#0ea5e9] transition-colors bg-white border border-[#e0ddd4]"
+        className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[16px] md:text-[14px] focus:outline-none focus:border-[#0ea5e9] transition-colors bg-white border border-[#e0ddd4]"
       />
     </div>
   );

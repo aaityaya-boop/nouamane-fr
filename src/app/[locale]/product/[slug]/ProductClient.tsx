@@ -398,7 +398,7 @@ export default function ProductClient({
                 src={product.images[selectedImage]}
                 alt={product.name}
                 fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 55vw, 600px"
                 className="object-cover"
                 priority
               />
@@ -454,7 +454,7 @@ export default function ProductClient({
                   }`}
                 >
                   <div className="relative w-full h-full bg-transparent">
-                    <Image src={img} alt="" fill className="object-cover" />
+                    <Image src={img} alt="" fill sizes="80px" className="object-cover" />
                   </div>
                 </button>
               ))}
@@ -1337,7 +1337,7 @@ export default function ProductClient({
           >
             <div className="hidden md:flex items-center gap-4">
               <div className="w-12 h-12 relative rounded bg-[#f8fafc] overflow-hidden">
-                <Image src={product.images[0]} alt="" fill className="object-cover" />
+                <Image src={product.images[0]} alt="" fill sizes="48px" className="object-cover" />
               </div>
               <div>
                 <div className="text-[14px] font-bold text-[#1A1A1A] line-clamp-1">{product.name}</div>
