@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 
+// Revalidate sitemap hourly for rapid indexing of new catalog items and Phase 5 SEO editorial guides
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
