@@ -653,6 +653,66 @@ export default function ProductClient({
               )}
             </div>
 
+            {!inStock && (
+              <div className="mt-5 p-4 rounded-xl bg-[#fbfaf8] border border-[#e8e5dc] space-y-3">
+                <div className="flex items-center gap-2 text-amber-800 font-bold text-[12px] uppercase tracking-wider">
+                  <Clock size={16} className="text-amber-600 shrink-0" />
+                  <span>Flacon momentanément en rupture de stock</span>
+                </div>
+                <p className="text-[13px] text-[#555] leading-relaxed">
+                  Cette référence est temporairement indisponible. Vous pouvez explorer les créations de la maison{' '}
+                  <Link href={`/${locale}/brands/${product.brand}`} className="font-bold text-[#1A1A1A] underline hover:text-[#0ea5e9]">
+                    {product.brandLabel}
+                  </Link>{' '}
+                  ou découvrir les alternatives similaires actuellement disponibles chez NAY Parfum.
+                </p>
+
+                {relatedProducts.filter(p => isProductInStock(p)).length > 0 && (
+                  <div className="pt-2 border-t border-[#ede9df]">
+                    <p className="text-[11px] font-bold text-[#0ea5e9] uppercase tracking-wider mb-2">
+                      Alternatives disponibles en stock au Maroc :
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {relatedProducts.filter(p => isProductInStock(p)).slice(0, 2).map((alt) => (
+                        <Link
+                          key={alt.id}
+                          href={`/${locale}/product/${alt.slug}`}
+                          className="flex items-center justify-between p-2.5 rounded-lg bg-white border border-[#e0ddd4] hover:border-[#0ea5e9] transition-all group"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <p className="text-[12px] font-bold text-[#1A1A1A] group-hover:text-[#0ea5e9] truncate transition-colors">
+                              {alt.name}
+                            </p>
+                            <p className="text-[11px] text-[#777]">
+                              {alt.brandLabel} · {formatMAD(alt.price)}
+                            </p>
+                          </div>
+                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded shrink-0">
+                            En Stock
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-[#ede9df] flex flex-wrap items-center justify-between gap-2 text-[12px]">
+                  <Link
+                    href={`/${locale}/brands/${product.brand}`}
+                    className="text-[#0ea5e9] font-bold hover:underline flex items-center gap-1"
+                  >
+                    Explorer la collection {product.brandLabel} <Chev size={14} />
+                  </Link>
+                  <Link
+                    href={`/${locale}/shop/${product.gender}`}
+                    className="text-[#666] hover:text-[#1A1A1A] transition-colors"
+                  >
+                    Voir tous les parfums {product.gender === 'men' ? 'homme' : product.gender === 'women' ? 'femme' : 'mixtes'}
+                  </Link>
+                </div>
+              </div>
+            )}
+
             
             {/* GIFT OPTION */}
             <div className="mt-4">

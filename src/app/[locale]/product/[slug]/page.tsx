@@ -50,10 +50,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
   const displayName = getCleanDisplayName(product.name, product.brandLabel);
 
   const isTester = product.isTester ?? true;
-  const productTypeLabel = isTester ? 'Testeur Original' : 'Parfum Original Scellé';
-  const productGuarantee = isTester ? 'Testeur 100% authentique' : '100% original scellé';
+  const productTypeLabel = isTester ? 'Testeur Original' : 'Parfum Original';
+  const isInStock = (product.inStock ?? true) && (product.stock ?? 1) > 0;
   const title = `${displayName} - ${productTypeLabel} au Maroc | Prix en MAD - NAY Parfum`;
-  const metaDescription = `Achetez le ${productTypeLabel.toLowerCase()} ${displayName} de ${product.brandLabel} au Maroc à ${product.price} MAD. ${productGuarantee}, même jus & tenue garantie. Livraison express 24/48h & paiement à la livraison (COD) !`;
+  
+  let metaDescription = '';
+  if (isInStock) {
+    metaDescription = `Commandez ${displayName} de ${product.brandLabel} au Maroc à ${product.price} MAD chez NAY Parfum. ${isTester ? 'Testeur 100% authentique' : 'Parfum 100% original'}, même tenue olfactive. Livraison partout au Maroc et paiement à la livraison (COD).`;
+  } else {
+    metaDescription = `Découvrez ${displayName} de ${product.brandLabel} au Maroc chez NAY Parfum. Fragrance 100% authentique, actuellement en rupture de stock. Consultez la fiche pour découvrir les alternatives disponibles.`;
+  }
 
   return {
     title: { absolute: title },
@@ -234,7 +240,7 @@ export default async function ProductPage({
     sku: transformedProduct.sku || `NAY-${transformedProduct.id}`,
     mpn: transformedProduct.sku || `NAY-${transformedProduct.id}`,
     image: transformedProduct.images[0],
-    description: `${productTypeDescription} de ${transformedProduct.name} par ${transformedProduct.brandLabel}. Authentique à 100%. Livraison rapide 24-48h partout au Maroc et paiement à la livraison.`,
+    description: `${productTypeDescription} de ${transformedProduct.name} par ${transformedProduct.brandLabel}. Authentique à 100%. Livraison partout au Maroc et paiement à la livraison (COD).`,
     brand: {
       '@type': 'Brand',
       name: transformedProduct.brandLabel,

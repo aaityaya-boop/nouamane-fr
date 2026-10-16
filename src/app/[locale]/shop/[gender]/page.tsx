@@ -38,13 +38,13 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
   if (category.key === 'men') {
     title = 'Parfums Homme au Maroc : Grandes Marques & Testeurs 100% Originaux | NAY Parfum';
-    description = 'Achetez votre parfum homme au Maroc chez NAY Parfum : sélection de grandes marques de luxe (Dior, Creed, Chanel, Tom Ford), flacons scellés et testeurs 100% originaux. Prix en MAD, paiement à la livraison (COD) et livraison express 24/48h.';
+    description = 'Découvrez notre sélection de parfums pour homme au Maroc chez NAY Parfum : grandes marques de luxe (Dior, Creed, Chanel, Tom Ford) et testeurs 100% originaux. Tarifs en MAD, livraison partout au Maroc et paiement à la livraison (COD).';
   } else if (category.key === 'women') {
     title = 'Parfums Femme au Maroc : Grandes Marques & Testeurs 100% Originaux | NAY Parfum';
-    description = 'Achetez votre parfum femme au Maroc chez NAY Parfum : sélection de grandes marques iconiques (Chanel, YSL, Kayali, Lancôme), flacons scellés et testeurs 100% originaux. Prix en MAD, paiement à la livraison (COD) et livraison express 24/48h.';
+    description = 'Découvrez notre sélection de parfums pour femme au Maroc chez NAY Parfum : grandes marques de luxe (Chanel, YSL, Kayali, Lancôme) et testeurs 100% originaux. Tarifs en MAD, livraison partout au Maroc et paiement à la livraison (COD).';
   } else {
     title = 'Parfums Mixtes & Niche au Maroc : Testeurs Originaux | NAY Parfum';
-    description = 'Sélection exclusive de parfums unisexes et de niche au Maroc : flacons et testeurs d\'exception (Tom Ford, Montale, Xerjoff). Prix en MAD, livraison rapide 24/48h et paiement à la livraison (COD).';
+    description = 'Sélection exclusive de parfums unisexes et de niche au Maroc chez NAY Parfum : fragrances d\'exception (Tom Ford, Montale, Xerjoff) et testeurs 100% originaux. Tarifs en MAD, livraison partout au Maroc et paiement à la livraison (COD).';
   }
 
   return {
@@ -145,12 +145,12 @@ export default async function CategoryPage({
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `${category.label} au Maroc - Testeurs & Flacons 100% Originaux`,
+    name: `${category.label} au Maroc - Testeurs & Parfums 100% Originaux`,
     description: category.key === 'men'
-      ? 'Sélection exclusive de parfums et testeurs pour homme au Maroc. 100% originaux, grandes marques de luxe, prix en MAD et paiement à la livraison.'
+      ? 'Sélection exclusive de parfums et testeurs pour homme au Maroc. 100% originaux, grandes marques de luxe, prix en MAD, livraison partout au Maroc et paiement à la livraison.'
       : category.key === 'women'
-      ? 'Sélection exclusive de parfums et testeurs pour femme au Maroc. 100% originaux, grands classiques de luxe, prix en MAD et paiement à la livraison.'
-      : 'Sélection exclusive de parfums et testeurs de niche au Maroc. 100% originaux, prix en MAD et paiement à la livraison.',
+      ? 'Sélection exclusive de parfums et testeurs pour femme au Maroc. 100% originaux, grandes marques de luxe, prix en MAD, livraison partout au Maroc et paiement à la livraison.'
+      : 'Sélection exclusive de parfums et testeurs de niche au Maroc. 100% originaux, prix en MAD, livraison partout au Maroc et paiement à la livraison.',
     url: `https://nayparfum.ma/${locale}/shop/${category.slug}`,
   };
 
