@@ -104,6 +104,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: makeAlternates('/fr/parfums-originaux', '/ar/parfums-originaux'),
     },
     {
+      url: `${baseUrl}/fr/parfums-orientaux`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.9,
+      alternates: makeAlternates('/fr/parfums-orientaux', '/ar/parfums-orientaux'),
+    },
+    {
       url: `${baseUrl}/fr/coffrets`,
       lastModified: now,
       changeFrequency: 'weekly',

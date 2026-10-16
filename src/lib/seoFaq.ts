@@ -89,6 +89,54 @@ export function getCategoryFaq(categoryLabel: string, isTester: boolean = true):
 }
 
 /**
+ * Generates dynamic FAQ items for Parfums Originaux (scellés) collection page.
+ */
+export function getOriginauxCategoryFaq(): FaqItem[] {
+  return [
+    {
+      question: "Vos parfums scellés sont-ils 100% originaux et garantis ?",
+      answer: "Absolument. Tous les parfums proposés sur NAY Parfum proviennent de circuits de distribution agréés en Europe. Chaque flacon est livré dans son emballage d'origine scellé sous cellophane avec code de lot (batch code) officiel vérifiable."
+    },
+    {
+      question: "Quelle est la différence entre un parfum original scellé et un testeur ?",
+      answer: "Le jus, la concentration d'essence et le flacon en verre sont strictement identiques. Le parfum original scellé comprend le coffret commercial complet de luxe, idéal pour offrir en cadeau. Le testeur est livré dans un carton neutre, offrant une économie de 30% à 50% pour un usage personnel."
+    },
+    {
+      question: "Quels sont les délais et tarifs de livraison au Maroc ?",
+      answer: "La livraison est effectuée en 24h à 48h ouvrables à Casablanca, Rabat, Marrakech, Tanger, Fès, Agadir et partout au Maroc. Les frais de port s'élèvent à 35 MAD et la livraison est 100% gratuite dès 800 MAD d'achat."
+    },
+    {
+      question: "Comment régler ma commande en toute sécurité ?",
+      answer: "Vous bénéficiez du paiement en espèces à la livraison (Cash on Delivery). Vous réglez directement auprès du transporteur après avoir reçu et inspecté votre colis."
+    }
+  ];
+}
+
+/**
+ * Generates dynamic FAQ items for Parfums Orientaux collection page.
+ */
+export function getOrientalCategoryFaq(): FaqItem[] {
+  return [
+    {
+      question: "Pourquoi les parfums orientaux sont-ils si populaires au Maroc ?",
+      answer: "La parfumerie orientale est intimement liée à l'art de vivre marocain. Riches en bois de oud noble, ambre chaud, fève tonka et épices précieuses, les parfums orientaux offrent une signature olfactive envoûtante, un sillage affirmé et une tenue remarquable de plus de 12 heures."
+    },
+    {
+      question: "Quelle est la différence entre un parfum occidental et un parfum oriental ?",
+      answer: "Les créations occidentales privilégient généralement les notes de tête hespéridées ou florales légères, tandis que les parfums orientaux s'appuient sur des matières premières denses et chaleureuses (résines, encens, cuir, vanille, ambre gris) qui projettent avec puissance et évoluent harmonieusement sur la peau."
+    },
+    {
+      question: "Comment porter un parfum oriental sous le climat marocain ?",
+      answer: "Durant les saisons fraîches (automne et hiver) ou en soirée, les parfums orientaux s'expriment à merveille. Lors des fortes chaleurs estivales, privilégiez une application modérée sur les vêtements ou choisissez des compositions équilibrées avec des notes fraîches (rose, bergamote, fruits méditerranéens)."
+    },
+    {
+      question: "Quelles sont les conditions de commande et de paiement au Maroc ?",
+      answer: "NAY Parfum expédie votre commande en 24h à 48h partout au Maroc avec suivi de livraison et paiement en espèces à la réception (Cash on Delivery) pour une tranquillité d'esprit absolue."
+    }
+  ];
+}
+
+/**
  * Builds Schema.org FAQPage JSON-LD.
  */
 export function createFaqJsonLd(faqItems: FaqItem[]) {
