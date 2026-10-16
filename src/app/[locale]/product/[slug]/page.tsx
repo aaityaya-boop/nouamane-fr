@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import ProductClient from './ProductClient';
 import { Product } from '@/lib/products';
-
+import { getProductFaq, createFaqJsonLd } from '@/lib/seoFaq';
 import { Metadata } from 'next';
 
 export const revalidate = 0;
@@ -46,25 +46,27 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
   }
 
   const locale = resolvedParams.locale || 'fr';
-  const images = JSON.parse(product.images);
+  const images = JSON.parse(product.images || '[]');
   const displayName = getCleanDisplayName(product.name, product.brandLabel);
 
   const isTester = product.isTester ?? true;
   const productTypeLabel = isTester ? 'Testeur Original' : 'Parfum Original Scellé';
   const productGuarantee = isTester ? 'Testeur 100% authentique' : '100% original scellé';
-  const metaDescription = `Achetez ${displayName} (${productTypeLabel}) au Maroc à ${product.price} DH. ${productGuarantee}. Livraison rapide 24/48h & paiement à la livraison !`;
+  const title = `${displayName} - ${productTypeLabel} au Maroc | Prix en MAD - NAY Parfum`;
+  const metaDescription = `Achetez le ${productTypeLabel.toLowerCase()} ${displayName} de ${product.brandLabel} au Maroc à ${product.price} MAD. ${productGuarantee}, même jus & tenue garantie. Livraison express 24/48h & paiement à la livraison (COD) !`;
 
   return {
-    title: `${displayName} | ${productTypeLabel} Prix Maroc`,
+    title: { absolute: title },
     description: metaDescription,
     keywords: [
       product.name,
       product.brandLabel,
       isTester ? 'testeur parfum original maroc' : 'parfum original maroc',
       'acheter parfum maroc',
-      'عطور أصلية',
-      isTester ? 'تستر عطور' : 'عطور أصلية مغلفة',
-      product.subcategoryLabel || ''
+      'prix parfum maroc',
+      'عطور أصلية المغرب',
+      isTester ? 'تستر عطور أصلية' : 'عطور أصلية مغلفة',
+      product.subcategoryLabel || 'parfum de luxe'
     ],
     alternates: {
       canonical: `https://nayparfum.ma/${locale}/product/${product.slug}`,
@@ -75,7 +77,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
       },
     },
     openGraph: {
-      title: `${displayName} | ${productTypeLabel} Prix Maroc | NAY Parfums`,
+      title,
       description: metaDescription,
       url: `https://nayparfum.ma/${locale}/product/${product.slug}`,
       images: images.length > 0 ? [{ url: images[0] }] : [],
@@ -222,13 +224,17 @@ export default async function ProductPage({
 
   const productTypeDescription = transformedProduct.isTester ? 'Testeur original' : 'Parfum original scellé';
 
-  const jsonLd = {
+  const priceValidUntil = new Date();
+  priceValidUntil.setFullYear(priceValidUntil.getFullYear() + 1);
+
+  const jsonLd: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: transformedProduct.name,
-    sku: transformedProduct.sku || undefined,
+    sku: transformedProduct.sku || `NAY-${transformedProduct.id}`,
+    mpn: transformedProduct.sku || `NAY-${transformedProduct.id}`,
     image: transformedProduct.images[0],
-    description: `${productTypeDescription} de ${transformedProduct.name}. Authentique à 100%. Livraison rapide partout au Maroc et paiement à la livraison.`,
+    description: `${productTypeDescription} de ${transformedProduct.name} par ${transformedProduct.brandLabel}. Authentique à 100%. Livraison rapide 24-48h partout au Maroc et paiement à la livraison.`,
     brand: {
       '@type': 'Brand',
       name: transformedProduct.brandLabel,
@@ -238,6 +244,7 @@ export default async function ProductPage({
       url: `https://nayparfum.ma/${currentLocale}/product/${transformedProduct.slug}`,
       priceCurrency: 'MAD',
       price: transformedProduct.price,
+      priceValidUntil: priceValidUntil.toISOString().split('T')[0],
       itemCondition: 'https://schema.org/NewCondition',
       availability: transformedProduct.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
@@ -276,7 +283,7 @@ export default async function ProductPage({
           transitTime: {
             '@type': 'QuantitativeValue',
             minValue: 1,
-            maxValue: 2,
+            maxValue: 3,
             unitCode: 'DAY'
           }
         }
@@ -288,6 +295,27 @@ export default async function ProductPage({
       reviewCount: transformedProduct.reviewCount,
     } : undefined,
   };
+
+  if (serializedReviews && serializedReviews.length > 0) {
+    jsonLd.review = serializedReviews.slice(0, 5).map((r: any) => ({
+      '@type': 'Review',
+      author: {
+        '@type': 'Person',
+        name: r.author || 'Client NAY'
+      },
+      datePublished: r.createdAt ? r.createdAt.split('T')[0] : '2026-01-01',
+      reviewBody: r.comment || '',
+      reviewRating: {
+        '@type': 'Rating',
+        ratingValue: r.rating || 5,
+        bestRating: 5,
+        worstRating: 1
+      }
+    }));
+  }
+
+  const faqItems = getProductFaq(transformedProduct);
+  const faqJsonLd = createFaqJsonLd(faqItems);
 
   const genderLabels: Record<string, string> = {
     men: 'Homme',
@@ -348,6 +376,7 @@ export default async function ProductPage({
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <ProductClient 
         product={transformedProduct} 
         relatedProducts={dbRelated.map(transformProduct)} 

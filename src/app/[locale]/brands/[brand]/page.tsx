@@ -9,7 +9,8 @@ import ShopCatalog from '@/components/ShopCatalog';
 import BrandLogo from '@/components/BrandLogo';
 import { type Brand } from '@/lib/products';
 import prisma from '@/lib/prisma';
-import { ChevronRight, ShieldCheck, Truck, Clock } from 'lucide-react';
+import { ChevronRight, ShieldCheck, Truck, Clock, HelpCircle } from 'lucide-react';
+import { getBrandFaq, createFaqJsonLd } from '@/lib/seoFaq';
 
 type Params = { locale: string; brand: string };
 
@@ -27,10 +28,20 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!brand) return { title: 'Marque introuvable' };
 
   const currentLocale = locale || 'fr';
+  const title = `Testeurs & Parfums ${brand.label} Originaux au Maroc | Prix en MAD - NAY Parfum`;
+  const description = `Découvrez tous les testeurs et parfums ${brand.label} 100% originaux au Maroc chez NAY Parfums. Prix exceptionnels en MAD, flacons authentiques, livraison rapide 24/48h et paiement à la livraison (COD).`;
 
   return {
-    title: `Parfums ${brand.name} | Acheter au Maroc`,
-    description: `Découvrez la collection de parfums ${brand.name} chez NAY Parfums. 100% authentique. Livraison rapide partout au Maroc.`,
+    title: { absolute: title },
+    description,
+    keywords: [
+      `parfums ${brand.label} maroc`,
+      `testeur ${brand.label} original`,
+      `prix parfum ${brand.label} maroc`,
+      `acheter ${brand.label} maroc`,
+      'parfums de luxe maroc',
+      'عطور أصلية المغرب'
+    ],
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/brands/${brand.slug}`,
       languages: {
@@ -40,8 +51,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
       },
     },
     openGraph: {
-      title: `Parfums ${brand.name} | Acheter au Maroc`,
-      description: `Découvrez la collection de parfums ${brand.name} chez NAY Parfums. 100% authentique. Livraison rapide partout au Maroc.`,
+      title,
+      description,
       url: `https://nayparfum.ma/${currentLocale}/brands/${brand.slug}`,
       images: [{ url: `/images/brands/${brand.slug}-hero.jpg` }]
     }
@@ -145,6 +156,9 @@ export default async function BrandPage({
     })),
   };
 
+  const brandFaqItems = getBrandFaq(brand.label);
+  const brandFaqJsonLd = createFaqJsonLd(brandFaqItems);
+
   return (
     <div className="min-h-screen bg-[#f8f7f5] selection:bg-[#0ea5e9]/20 selection:text-[#1A1A1A]">
       <script
@@ -158,6 +172,10 @@ export default async function BrandPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(brandFaqJsonLd) }}
       />
       <Header />
       
@@ -216,13 +234,26 @@ export default async function BrandPage({
               NAY Parfums vous propose une sélection rigoureuse de fragrances {brand.label} 100% originaux. Profitez des meilleurs prix au Maroc avec une garantie totale d'authenticité et un service client dédié.
             </p>
 
+            {/* Editorial Content Block - SEO Silo & Authority */}
+            <div className="mt-6 mb-8 space-y-4 text-[14px] text-[#6B6B6B] leading-relaxed border-t border-[#f0eee6] pt-6">
+              <p>
+                Vous recherchez les créations olfactives emblématiques de la maison <strong>{brand.label} au Maroc</strong> au meilleur prix ? Chez NAY Parfums, nous mettons à votre disposition des <strong>testeurs de parfums {brand.label} 100% originaux</strong> ainsi que des flacons neufs sous emballage d'origine. Chaque flacon provient directement de circuits de distribution officiels et agréés en Europe, garantissant une concentration d'essence identique, une projection remarquable et une tenue irréprochable adaptée au climat marocain.
+              </p>
+              <p>
+                Contrairement aux contrefaçons qui inondent le marché, un testeur authentique {brand.label} est fabriqué dans les mêmes ateliers et chaînes de production que le format commercial de détail. La seule différence réside dans le packaging extérieur (boîte blanche ou kraft neutre) et occasionnellement l'absence de capuchon décoratif, ce qui vous permet de réaliser une économie substantielle de 30% à 50% sur le tarif boutique officiel à Casablanca, Rabat ou Marrakech.
+              </p>
+              <p>
+                Tous nos produits {brand.label} disposent d'un numéro de lot (batch code) gravé sur le flacon, permettant une traçabilité intégrale. Commandez en toute sérénité grâce à notre service de <strong>livraison express sécurisée dans toutes les villes du Maroc</strong> avec <strong>paiement à la livraison (Cash on Delivery)</strong> et droit de rétractation sous 7 jours.
+              </p>
+            </div>
+
             {products.filter(p => p.inStock && (p.stock ?? 0) > 0).length > 0 && (
               <div className="mb-8 pt-4 pb-2 border-t border-[#f0eee6]">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9] mb-3 text-center">
                   Créations {brand.label} disponibles immédiatement au Maroc :
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  {products.filter(p => p.inStock && (p.stock ?? 0) > 0).slice(0, 4).map((item) => (
+                  {products.filter(p => p.inStock && (p.stock ?? 0) > 0).slice(0, 6).map((item) => (
                     <Link
                       key={item.id}
                       href={`/${locale}/product/${item.slug}`}
@@ -271,6 +302,54 @@ export default async function BrandPage({
                   Réglez votre commande en espèces à la livraison (Cash on Delivery) après réception de votre colis.
                 </p>
               </div>
+            </div>
+
+            {/* Dynamic FAQ Section */}
+            <div className="mt-10 pt-8 border-t border-[#f0eee6]">
+              <div className="text-center mb-6">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9]">Guide Acheteur & FAQ</span>
+                <h3 className="heading-font text-xl lg:text-2xl text-[#1A1A1A] mt-1">
+                  Questions fréquentes sur {brand.label} au Maroc
+                </h3>
+              </div>
+              <div className="space-y-4 max-w-3xl mx-auto">
+                {brandFaqItems.map((faq, idx) => (
+                  <div key={idx} className="bg-[#f8f7f5] border border-[#e0ddd4] rounded-xl p-5 text-left">
+                    <h4 className="text-[14px] font-bold text-[#1A1A1A] flex items-start gap-2.5 mb-2">
+                      <HelpCircle size={18} className="text-[#0ea5e9] shrink-0 mt-0.5" />
+                      <span>{faq.question}</span>
+                    </h4>
+                    <p className="text-[13px] text-[#6B6B6B] leading-relaxed pl-7">
+                      {faq.answer}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Contextual Category Silo Links */}
+            <div className="mt-8 pt-6 border-t border-[#f0eee6] flex flex-wrap items-center justify-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A7A7A] w-full text-center mb-2">
+                Explorer nos rayons testeurs originaux :
+              </span>
+              <Link
+                href={`/${locale}/testeurs/men`}
+                className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-[#f8f7f5] hover:bg-[#0ea5e9]/10 px-4 py-2 rounded-full border border-[#e0ddd4] transition-all"
+              >
+                Testeurs Homme au Maroc →
+              </Link>
+              <Link
+                href={`/${locale}/testeurs/women`}
+                className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-[#f8f7f5] hover:bg-[#0ea5e9]/10 px-4 py-2 rounded-full border border-[#e0ddd4] transition-all"
+              >
+                Testeurs Femme au Maroc →
+              </Link>
+              <Link
+                href={`/${locale}/testeurs/unisex`}
+                className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-[#f8f7f5] hover:bg-[#0ea5e9]/10 px-4 py-2 rounded-full border border-[#e0ddd4] transition-all"
+              >
+                Testeurs Mixtes / Unisexe au Maroc →
+              </Link>
             </div>
           </div>
         </section>

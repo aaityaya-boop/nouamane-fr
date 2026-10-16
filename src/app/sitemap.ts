@@ -89,6 +89,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: makeAlternates('/fr/testeurs/women', '/ar/testeurs/women'),
     },
     {
+      url: `${baseUrl}/fr/testeurs/unisex`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.9,
+      alternates: makeAlternates('/fr/testeurs/unisex', '/ar/testeurs/unisex'),
+    },
+    {
       url: `${baseUrl}/fr/parfums-originaux`,
       lastModified: now,
       changeFrequency: 'daily',

@@ -9,7 +9,12 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const currentLocale = locale || 'fr';
+  const title = "NAY Parfum Maroc - Testeurs de Parfums 100% Originaux & Parfumerie de Luxe";
+  const description = "Parfumerie en ligne de référence au Maroc. Achetez vos testeurs de parfums 100% originaux et fragrances de luxe au meilleur prix en MAD. Livraison express 24/48h partout au Maroc et paiement à la livraison (COD).";
+
   return {
+    title: { absolute: title },
+    description,
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}`,
       languages: {
@@ -19,6 +24,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       },
     },
     openGraph: {
+      title,
+      description,
       url: `https://nayparfum.ma/${currentLocale}`,
     },
   };

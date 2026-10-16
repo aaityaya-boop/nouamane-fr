@@ -1116,8 +1116,13 @@ export const getProductBySlug = (slug: string) =>
 export const getBrandBySlug = (slug: string) =>
   BRANDS.find((b) => b.slug === slug);
 
-export const getCategoryBySlug = (slug: string) =>
-  MAIN_CATEGORIES.find((c) => c.slug === slug);
+export const getCategoryBySlug = (slug: string) => {
+  const normalized = slug?.toLowerCase();
+  if (normalized === 'homme') return MAIN_CATEGORIES.find((c) => c.slug === 'men');
+  if (normalized === 'femme') return MAIN_CATEGORIES.find((c) => c.slug === 'women');
+  if (normalized === 'unisexe') return MAIN_CATEGORIES.find((c) => c.slug === 'unisex');
+  return MAIN_CATEGORIES.find((c) => c.slug === normalized);
+};
 
 /**
  * FEATURED PRODUCTS LOGIC for homepage.

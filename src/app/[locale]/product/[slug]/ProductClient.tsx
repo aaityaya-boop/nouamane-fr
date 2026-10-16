@@ -32,6 +32,9 @@ import {
   BadgeCheck,
   Sparkles,
   ShoppingBag,
+  HelpCircle,
+  Info,
+  Clock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -40,6 +43,7 @@ import { useCart } from '@/context/CartContext';
 import { usePreferences } from '@/context/PreferencesContext';
 import ReactMarkdown from 'react-markdown';
 import { translations, Locale } from './translations';
+import { getProductFaq } from '@/lib/seoFaq';
 
 /* ============================================================
    PRODUCT DETAIL PAGE
@@ -688,6 +692,62 @@ export default function ProductClient({
       <section className="bg-white border-y border-[#e0ddd4]">
         <div className="max-w-[1000px] mx-auto px-6 lg:px-10 py-16 lg:py-24 space-y-20">
           
+          {/* ====== 1. GEO SUMMARY: FICHE TECHNIQUE & RÉSUMÉ FACTUEL ====== */}
+          <div className="bg-[#fafaf7] rounded-3xl border border-[#e0ddd4] p-6 lg:p-10 shadow-sm">
+            <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9] mb-2">
+              <BadgeCheck size={16} /> Fiche Technique & Spécifications Officielles
+            </div>
+            <h2 className="heading-font text-2xl lg:text-3xl text-[#1A1A1A] mb-6">
+              Résumé & Caractéristiques Clés — {product.name}
+            </h2>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-[14px]">
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Maison / Marque</dt>
+                <dd>
+                  <Link href={`/${locale}/brands/${product.brand}`} className="font-semibold text-[#0ea5e9] hover:underline">
+                    {product.brandLabel}
+                  </Link>
+                </dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Nom de la Fragrance</dt>
+                <dd className="font-semibold text-[#1A1A1A]">{product.name}</dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Type de Flacon</dt>
+                <dd className="font-semibold text-[#1A1A1A]">{product.isTester ? 'Testeur Original Authentique (Même Jus)' : 'Parfum Original Scellé'}</dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Concentration</dt>
+                <dd className="text-[#1A1A1A] font-medium">{product.subcategoryLabel?.includes('Extrait') ? 'Extrait de Parfum' : 'Eau de Parfum (Haute Concentration)'}</dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Famille Olfactive</dt>
+                <dd className="text-[#1A1A1A] font-medium">{product.subcategoryLabel || 'Fragrance de Prestige'}</dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Genre & Profil</dt>
+                <dd className="text-[#1A1A1A] font-medium">{product.gender === 'women' ? 'Parfum Femme' : product.gender === 'men' ? 'Parfum Homme' : 'Parfum Mixte / Unisexe'}</dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Formats Disponibles</dt>
+                <dd className="text-[#1A1A1A] font-medium">{product.sizes?.map(s => s.label).join(' · ') || 'Format Standard'}</dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Prix au Maroc</dt>
+                <dd className="font-bold text-[#1A1A1A] text-base">{formatMAD(currentPrice)} (TTC)</dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5]">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Tenue Estimée</dt>
+                <dd className="text-[#1A1A1A] font-medium">8h à 12h+ sur peau et vêtements</dd>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-[#eeece5] sm:col-span-2 lg:col-span-3">
+                <dt className="text-[10px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] mb-1">Livraison & Paiement au Maroc</dt>
+                <dd className="text-[#1A1A1A] font-medium">Livraison express en 24h à 48h (Casablanca, Rabat, Marrakech, Fès, Tanger, Agadir et tout le Maroc) · Paiement en espèces à la livraison (Cash on Delivery)</dd>
+              </div>
+            </dl>
+          </div>
+
           {/* L'Histoire (Description) */}
           <div className="text-left md:text-center prose prose-lg prose-[#555] max-w-none mx-auto">
             {product.longDescription ? (
@@ -782,25 +842,121 @@ export default function ProductClient({
             </div>
           </div>
 
-          {/* Pourquoi Choisir */}
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="heading-font text-3xl text-[#1A1A1A] tracking-wide mb-6">{t.whyChoose.title} {product.name} ?</h2>
-              <p className="text-[15px] text-[#555] leading-relaxed mb-6">{t.whyChoose.desc}</p>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <Check size={18} className="text-[#0ea5e9] mt-1 shrink-0" />
-                  <span className="text-[#1A1A1A] font-medium text-[14px]">{t.whyChoose.bullet1}</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check size={18} className="text-[#0ea5e9] mt-1 shrink-0" />
-                  <span className="text-[#1A1A1A] font-medium text-[14px]">{product.isTester ? t.whyChoose.bullet2 : 'Qualité Premium Supérieure'} {product.brandLabel}</span>
-                </li>
-              </ul>
+          {/* Authenticité Garantie & Origine des Testeurs */}
+          <div className="bg-white rounded-3xl p-8 lg:p-12 border border-[#e0ddd4] shadow-sm">
+            <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9] mb-3">
+              <ShieldCheck size={18} /> Engagement Qualité & Traçabilité Maroc
             </div>
-            <div className="bg-[#f8fafc] p-8 rounded-[32px] border border-[#e0ddd4]">
-              <h3 className="heading-font text-2xl text-[#1A1A1A] tracking-wide mb-4">{t.whenToWear.title}</h3>
-              <p className="text-[14px] text-[#555] leading-relaxed mb-0">{t.whenToWear.desc}</p>
+            <h2 className="heading-font text-3xl md:text-4xl text-[#1A1A1A] tracking-wide mb-6">
+              Authenticité Garantie : Pourquoi Choisir Nos Testeurs Originaux ?
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8 text-[15px] text-[#555] leading-relaxed">
+              <div>
+                <p className="mb-4">
+                  Chez NAY Parfum, la transparence est notre premier engagement. Les testeurs de parfums proviennent directement des circuits de distribution agréés des grandes maisons de luxe.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Check size={18} className="text-[#0ea5e9] mt-1 shrink-0" />
+                    <span><strong className="text-[#1A1A1A]">Même Formulation & Tenue :</strong> La concentration en huiles parfumées et les notes olfactives sont rigoureusement identiques au flacon commercial sous blister.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check size={18} className="text-[#0ea5e9] mt-1 shrink-0" />
+                    <span><strong className="text-[#1A1A1A]">Flacon et Vaporisateur d'Origine :</strong> Le flacon en verre lourd et le spray sont fabriqués par la maison créatrice officielle.</span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Check size={18} className="text-[#0ea5e9] mt-1 shrink-0" />
+                    <span><strong className="text-[#1A1A1A]">Économie Substantielle :</strong> Sans le surcoût de l'emballage publicitaire scellé, vous bénéficiez de 30% à 50% de réduction sur les prix pratiqués en parfumerie au Maroc.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check size={18} className="text-[#0ea5e9] mt-1 shrink-0" />
+                    <span><strong className="text-[#1A1A1A]">Code de Lot Vérifiable (Batch Code) :</strong> Chaque flacon possède son numéro de lot officiel gravé sous la bouteille, garantissant sa traçabilité et sa fraîcheur.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Tenue, Sillage & Climat Marocain */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="bg-[#f8fafc] p-8 lg:p-10 rounded-[32px] border border-[#e0ddd4]">
+              <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.25em] uppercase text-[#0ea5e9] mb-3">
+                <Clock size={16} /> Performance & Sillage
+              </div>
+              <h2 className="heading-font text-2xl lg:text-3xl text-[#1A1A1A] tracking-wide mb-4">
+                Tenue & Recommandations au Climat Marocain
+              </h2>
+              <p className="text-[14px] text-[#555] leading-relaxed mb-4">
+                La tenue d'une fragrance dépend de la chaleur et du taux d'humidité. Au Maroc, le climat varie entre l'air marin côtier (Casablanca, Rabat, Tanger) et la chaleur sèche de l'intérieur (Marrakech, Fès, Oujda).
+              </p>
+              <p className="text-[14px] text-[#555] leading-relaxed">
+                Pour une projection optimale, vaporisez {product.name} sur les zones de pulsation (cou, poignets, torse) et légèrement sur les revers de vos vêtements. Sa concentration assure une présence olfactive élégante sans jamais être envahissante.
+              </p>
+            </div>
+            
+            <div className="bg-[#f8fafc] p-8 lg:p-10 rounded-[32px] border border-[#e0ddd4]">
+              <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.25em] uppercase text-[#0ea5e9] mb-3">
+                <Sparkles size={16} /> Signature Olfactive
+              </div>
+              <h3 className="heading-font text-2xl text-[#1A1A1A] tracking-wide mb-4">
+                {t.whenToWear.title}
+              </h3>
+              <p className="text-[14px] text-[#555] leading-relaxed mb-4">
+                {t.whyChoose.desc}
+              </p>
+              <div className="inline-flex items-center gap-2 text-[12px] font-bold text-[#0ea5e9] bg-white px-4 py-2 rounded-full border border-[#e0ddd4]">
+                <span>Saison idéale : {product.perfectSeason || t.essence.allSeasons}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ====== PARENT BRAND SILO INTERNAL LINKING BLOCK ====== */}
+          <div className="bg-[#fafaf7] border border-[#e0ddd4] rounded-3xl p-8 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+            <div className="max-w-2xl">
+              <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9] block mb-2">
+                Silo & Maison Officielle
+              </span>
+              <h3 className="heading-font text-2xl lg:text-3xl text-[#1A1A1A]">
+                Tous les testeurs de parfums {product.brandLabel} originaux au Maroc
+              </h3>
+              <p className="text-[14px] text-[#6B6B6B] mt-2 leading-relaxed">
+                Explorez l'ensemble des créations de la prestigieuse maison {product.brandLabel} disponibles en stock chez NAY Parfum avec livraison express et paiement à la livraison.
+              </p>
+            </div>
+            <Link
+              href={`/${locale}/brands/${product.brand}`}
+              className="btn-blue px-8 py-4 text-[12px] font-bold rounded-xl whitespace-nowrap shadow-md hover:shadow-lg transition-all"
+            >
+              Découvrir la collection {product.brandLabel} →
+            </Link>
+          </div>
+
+          {/* ====== DYNAMIC PRODUCT FAQ SECTION (GEO & RICH SNIPPETS) ====== */}
+          <div className="pt-6">
+            <div className="text-center mb-10">
+              <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9] mb-3 block flex items-center justify-center gap-2">
+                <HelpCircle size={15} /> Guide & Questions Fréquentes
+              </span>
+              <h2 className="heading-font text-3xl md:text-4xl text-[#1A1A1A] tracking-wide">
+                Questions Fréquentes sur {product.name} (FAQ Maroc)
+              </h2>
+            </div>
+            <div className="space-y-4 max-w-3xl mx-auto">
+              {getProductFaq(product).map((faq) => (
+                <div key={faq.question} className="bg-white border border-[#e0ddd4] rounded-2xl p-6 lg:p-7 shadow-sm">
+                  <h3 className="text-[15px] font-bold text-[#1A1A1A] mb-3 flex items-start gap-2.5">
+                    <span className="text-[#0ea5e9] mt-0.5">✦</span>
+                    <span>{faq.question}</span>
+                  </h3>
+                  <p className="text-[14px] text-[#555] leading-relaxed pl-5">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -942,11 +1098,30 @@ export default function ProductClient({
             <div className="text-center mb-12">
               <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">{t.related.title}</span>
               <h2 className="heading-font text-3xl lg:text-4xl mt-2 tracking-wide">{t.related.subtitle}</h2>
+              <p className="text-[14px] text-[#6B6B6B] mt-2 max-w-xl mx-auto">
+                Explorez également notre sélection de testeurs et fragrances de prestige de même famille olfactive disponibles au Maroc.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} showRating={false} />
+              ))}
+            </div>
+
+            {/* Contextual internal link pills for SEO Siloing */}
+            <div className="mt-12 pt-8 border-t border-[#e0ddd4] flex flex-wrap items-center justify-center gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#9A9A9A]">
+                Découvrez aussi :
+              </span>
+              {relatedProducts.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/${locale}/product/${p.slug}`}
+                  className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-white hover:bg-[#0ea5e9]/10 px-4 py-2 rounded-full border border-[#e0ddd4] transition-all shadow-sm"
+                >
+                  Testeur {p.name} ({p.brandLabel}) au Maroc →
+                </Link>
               ))}
             </div>
           </div>
