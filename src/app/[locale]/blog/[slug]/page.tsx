@@ -36,8 +36,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale?: 
   };
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string; locale?: string }> }) {
+  const { slug, locale } = await params;
+  const currentLocale = locale || 'fr';
   const decodedSlug = decodeURIComponent(slug);
   
   const post = await prisma.blogPost.findUnique({
@@ -108,7 +109,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     dateModified: new Date(post.updatedAt).toISOString(),
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://nayparfum.ma/fr/blog/${post.slug}`
+      '@id': `https://nayparfum.ma/${currentLocale}/blog/${post.slug}`
     }
   };
 
@@ -121,7 +122,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <div className="max-w-[860px] mx-auto px-6">
           
           <Link 
-            href="/blog" 
+            href={`/${currentLocale}/blog`} 
             className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.15em] uppercase text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors mb-10"
           >
             <ArrowLeft size={14} /> Retour au Mag
@@ -230,7 +231,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   const img = Array.isArray(product.images) ? product.images[0] : product.images;
                   return (
                     <Link 
-                      href={`/shop/product/${product.slug}`} 
+                      href={`/${currentLocale}/product/${product.slug}`} 
                       key={product.id || product.slug} 
                       className="group block bg-[#fafaf7] rounded-2xl p-5 hover:shadow-xl transition-all duration-300 border border-gray-100"
                     >

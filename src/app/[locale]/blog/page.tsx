@@ -26,7 +26,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function BlogListingPage() {
+export default async function BlogListingPage({
+  params,
+}: {
+  params?: Promise<{ locale?: string }>;
+}) {
+  const { locale } = (await params) || { locale: 'fr' };
+  const currentLocale = locale || 'fr';
+
   const posts = await prisma.blogPost.findMany({
     where: { status: 'published' },
     orderBy: { publishedAt: 'desc' }
@@ -55,7 +62,7 @@ export default async function BlogListingPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
               {posts.map((post) => (
-                <Link href={`/blog/${post.slug}`} key={post.id} className="group flex flex-col h-full">
+                <Link href={`/${currentLocale}/blog/${post.slug}`} key={post.id} className="group flex flex-col h-full">
                   <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden mb-6">
                     <Image 
                       src={post.coverImage} 
