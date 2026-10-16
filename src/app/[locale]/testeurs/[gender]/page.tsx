@@ -205,11 +205,29 @@ export default async function TesteursGenderPage({
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 {(() => {
-                  const prioritySlugs = [
-                    'Creed-Absolu-Aventus-Tester',
-                    'kayali-elixir-eau-de-parfum-tester',
-                    'tom-ford-tobacco-vanille-tester'
-                  ];
+                  let prioritySlugs: string[] = [];
+                  if (category.key === 'men') {
+                    prioritySlugs = [
+                      'Creed-Absolu-Aventus-Tester',
+                      'Sauvage-Eau-De-Parfum',
+                      'chanel-bleu-de-chanel-eau-de-parfum-tester',
+                      'tom-ford-tobacco-vanille-tester'
+                    ];
+                  } else if (category.key === 'women') {
+                    prioritySlugs = [
+                      'la-vie-est-belle-tester',
+                      'delina-edp-tester',
+                      'burberry-goddess-eau-de-parfum-tester',
+                      'si-fiori-tester'
+                    ];
+                  } else {
+                    prioritySlugs = [
+                      'xerjoff-erba-pura-tester',
+                      'TOM-FORD-Black-Orchid-Reserve',
+                      'vert-malachite-armani-prive-eau-de-parfum-tester',
+                      'kayali-elixir-eau-de-parfum-tester'
+                    ];
+                  }
                   const inStock = products.filter(p => p.inStock && (p.stock ?? 0) > 0);
                   const sorted = [...inStock].sort((a, b) => {
                     const aIdx = prioritySlugs.indexOf(a.slug);
@@ -340,6 +358,69 @@ export default async function TesteursGenderPage({
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Contextual Buyer Guides & Editorial Silo */}
+          <div className="mt-10 pt-8 border-t border-[#f0eee6]">
+            <div className="text-center mb-6">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9]">
+                Guides d&apos;Achat &amp; Conseils d&apos;Experts
+              </span>
+              <h3 className="heading-font text-xl lg:text-2xl text-[#1A1A1A] mt-1">
+                Tout savoir sur les testeurs {category.label.toLowerCase()} au Maroc
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link
+                href={`/${locale}/blog/guide-testeur-parfum-vs-flacon-retail`}
+                className="group p-5 bg-[#f8f7f5] hover:bg-[#0ea5e9]/5 rounded-xl border border-[#e0ddd4] hover:border-[#0ea5e9] transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0ea5e9] block mb-1">Guide Comparatif</span>
+                  <h4 className="text-[14px] font-bold text-[#1A1A1A] group-hover:text-[#0ea5e9] transition-colors mb-2">
+                    Testeur vs Flacon Commercial : Ce Qu&apos;il Faut Savoir
+                  </h4>
+                  <p className="text-[12px] text-[#6B6B6B] leading-relaxed">
+                    Même jus authentique, même tenue : découvrez pourquoi les testeurs sont l&apos;option préférée des connaisseurs au Maroc.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#1A1A1A] group-hover:text-[#0ea5e9] mt-3 inline-flex items-center gap-1">
+                  Lire le guide →
+                </span>
+              </Link>
+
+              <Link
+                href={
+                  category.key === 'men'
+                    ? `/${locale}/blog/meilleur-parfum-homme-longue-tenue-maroc`
+                    : category.key === 'women'
+                    ? `/${locale}/blog/meilleur-parfum-femme-sillage-maroc`
+                    : `/${locale}/blog/quel-parfum-choisir-selon-la-saison-maroc`
+                }
+                className="group p-5 bg-[#f8f7f5] hover:bg-[#0ea5e9]/5 rounded-xl border border-[#e0ddd4] hover:border-[#0ea5e9] transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0ea5e9] block mb-1">Sélection Signature</span>
+                  <h4 className="text-[14px] font-bold text-[#1A1A1A] group-hover:text-[#0ea5e9] transition-colors mb-2">
+                    {category.key === 'men'
+                      ? 'Les Meilleurs Parfums Homme à Longue Tenue au Maroc'
+                      : category.key === 'women'
+                      ? 'Les Meilleurs Parfums Femme au Sillage Remarquable'
+                      : 'Quel Parfum Choisir Selon la Saison au Maroc ?'}
+                  </h4>
+                  <p className="text-[12px] text-[#6B6B6B] leading-relaxed">
+                    {category.key === 'men'
+                      ? 'Fragrances masculines à forte projection et sillage puissant testées sous le climat marocain.'
+                      : category.key === 'women'
+                      ? 'Sélection de sillages féminins envoûtants, floraux et vanillés plébiscités au Maroc.'
+                      : 'Notre guide climatique complet pour choisir les notes adaptées à chaque saison au Maroc.'}
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#1A1A1A] group-hover:text-[#0ea5e9] mt-3 inline-flex items-center gap-1">
+                  Lire le guide →
+                </span>
+              </Link>
             </div>
           </div>
 

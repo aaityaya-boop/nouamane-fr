@@ -141,6 +141,8 @@ export default async function BrandPage({
     about: {
       '@type': 'Brand',
       name: brand.label,
+      image: brand.image ? (brand.image.startsWith('http') ? brand.image : `https://nayparfum.ma${brand.image}`) : undefined,
+      url: `https://nayparfum.ma/${locale}/brands/${brand.slug}`,
     },
   };
 
@@ -324,6 +326,54 @@ export default async function BrandPage({
                     </p>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Contextual Editorial & Buyer Guides */}
+            <div className="mt-8 pt-6 border-t border-[#f0eee6]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9] block text-center mb-3">
+                Conseils d&apos;Experts pour vos Parfums {brand.label} au Maroc :
+              </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-left">
+                <Link
+                  href={`/${locale}/blog/guide-testeur-parfum-vs-flacon-retail`}
+                  className="p-4 bg-[#f8f7f5] hover:bg-[#0ea5e9]/5 rounded-xl border border-[#e0ddd4] hover:border-[#0ea5e9] transition-all group"
+                >
+                  <span className="text-[10px] font-bold uppercase text-[#0ea5e9] block mb-1">Rassurance &amp; Authenticité</span>
+                  <h4 className="text-[13px] font-bold text-[#1A1A1A] group-hover:text-[#0ea5e9] transition-colors mb-1">
+                    Pourquoi choisir un testeur {brand.label} original ?
+                  </h4>
+                  <p className="text-[12px] text-[#6B6B6B] leading-relaxed">
+                    Découvrez pourquoi le jus est 100% identique au flacon commercial et comment économiser jusqu&apos;à 50% au Maroc.
+                  </p>
+                </Link>
+
+                <Link
+                  href={
+                    ['dior', 'chanel', 'creed', 'yves-saint-laurent'].includes(brand.slug)
+                      ? `/${locale}/blog/meilleur-parfum-homme-longue-tenue-maroc`
+                      : ['parfums-de-marly', 'lancome', 'burberry'].includes(brand.slug)
+                      ? `/${locale}/blog/meilleur-parfum-femme-sillage-maroc`
+                      : ['tom-ford', 'montale'].includes(brand.slug)
+                      ? `/${locale}/blog/guide-parfums-orientaux-maroc-oud-ambre`
+                      : `/${locale}/blog/quel-parfum-choisir-selon-la-saison-maroc`
+                  }
+                  className="p-4 bg-[#f8f7f5] hover:bg-[#0ea5e9]/5 rounded-xl border border-[#e0ddd4] hover:border-[#0ea5e9] transition-all group"
+                >
+                  <span className="text-[10px] font-bold uppercase text-[#0ea5e9] block mb-1">Guide Olfactif Recommandé</span>
+                  <h4 className="text-[13px] font-bold text-[#1A1A1A] group-hover:text-[#0ea5e9] transition-colors mb-1">
+                    {['dior', 'chanel', 'creed', 'yves-saint-laurent'].includes(brand.slug)
+                      ? 'Les Meilleurs Parfums à Longue Tenue au Maroc'
+                      : ['parfums-de-marly', 'lancome', 'burberry'].includes(brand.slug)
+                      ? 'Les Meilleurs Parfums Féminins au Sillage Captivant'
+                      : ['tom-ford', 'montale'].includes(brand.slug)
+                      ? 'Guide Parfums Orientaux : Oud, Ambre & Sillage Intense'
+                      : 'Quel Parfum Choisir Selon la Saison au Maroc ?'}
+                  </h4>
+                  <p className="text-[12px] text-[#6B6B6B] leading-relaxed">
+                    Sélection d&apos;experts pour choisir les fragrances les plus adaptées au climat et aux occasions au Maroc.
+                  </p>
+                </Link>
               </div>
             </div>
 

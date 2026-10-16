@@ -302,6 +302,73 @@ export default async function TesteursPage({
             </div>
           </div>
 
+          {/* Editorial Authority & Buyer Guides Silo */}
+          <div className="mt-10 pt-8 border-t border-[#f0eee6]">
+            <div className="text-center mb-6">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9]">
+                Guides d&apos;Experts &amp; Conseils d&apos;Achat
+              </span>
+              <h3 className="heading-font text-xl lg:text-2xl text-[#1A1A1A] mt-1">
+                Tout savoir avant d&apos;acheter votre testeur au Maroc
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Link
+                href={`/${currentLocale}/blog/guide-testeur-parfum-vs-flacon-retail`}
+                className="group p-5 bg-[#f8f7f5] hover:bg-[#0ea5e9]/5 rounded-xl border border-[#e0ddd4] hover:border-[#0ea5e9] transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0ea5e9] block mb-1">Guide Comparatif</span>
+                  <h4 className="text-[14px] font-bold text-[#1A1A1A] group-hover:text-[#0ea5e9] transition-colors mb-2">
+                    Testeur vs Flacon Commercial : La Vérité
+                  </h4>
+                  <p className="text-[12px] text-[#6B6B6B] leading-relaxed">
+                    Comprendre la différence de packaging, le jus identique et les raisons d&apos;un prix 50% moins cher au Maroc.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#1A1A1A] group-hover:text-[#0ea5e9] mt-3 inline-flex items-center gap-1">
+                  Lire le guide →
+                </span>
+              </Link>
+
+              <Link
+                href={`/${currentLocale}/blog/comment-reconnaitre-un-parfum-original-maroc`}
+                className="group p-5 bg-[#f8f7f5] hover:bg-[#0ea5e9]/5 rounded-xl border border-[#e0ddd4] hover:border-[#0ea5e9] transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0ea5e9] block mb-1">Authenticité</span>
+                  <h4 className="text-[14px] font-bold text-[#1A1A1A] group-hover:text-[#0ea5e9] transition-colors mb-2">
+                    Comment Reconnaître un Parfum Original ?
+                  </h4>
+                  <p className="text-[12px] text-[#6B6B6B] leading-relaxed">
+                    Vérification du batch code, contrôle de l&apos;atomiseur, verre et conseils pour éviter les contrefaçons au Maroc.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#1A1A1A] group-hover:text-[#0ea5e9] mt-3 inline-flex items-center gap-1">
+                  Lire le guide →
+                </span>
+              </Link>
+
+              <Link
+                href={`/${currentLocale}/blog/quel-parfum-choisir-selon-la-saison-maroc`}
+                className="group p-5 bg-[#f8f7f5] hover:bg-[#0ea5e9]/5 rounded-xl border border-[#e0ddd4] hover:border-[#0ea5e9] transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0ea5e9] block mb-1">Conseil Saisonnier</span>
+                  <h4 className="text-[14px] font-bold text-[#1A1A1A] group-hover:text-[#0ea5e9] transition-colors mb-2">
+                    Quel Parfum Selon la Saison au Maroc ?
+                  </h4>
+                  <p className="text-[12px] text-[#6B6B6B] leading-relaxed">
+                    Adapter sa fragrance au climat marocain : fraîcheur hespéridée en été et sillages chauds en hiver.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#1A1A1A] group-hover:text-[#0ea5e9] mt-3 inline-flex items-center gap-1">
+                  Lire le guide →
+                </span>
+              </Link>
+            </div>
+          </div>
+
           {/* Category Silo Links */}
           <div className="mt-10 pt-8 border-t border-[#f0eee6]">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A7A7A] block text-center mb-4">
