@@ -27,16 +27,16 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!category) return { title: 'Catégorie introuvable' };
 
   const currentLocale = locale || 'fr';
-  const title = `Testeurs Parfums ${category.label} 100% Originaux au Maroc | Prix en MAD - NAY Parfum`;
-  const description = `Découvrez notre sélection exclusive de testeurs de parfums ${category.label.toLowerCase()} 100% originaux au Maroc chez NAY Parfums. Grandes marques, flacons authentiques, prix réduits en MAD, livraison express 24/48h et paiement à la livraison (COD).`;
+  const title = `Testeurs ${category.label} 100% Originaux au Maroc | Prix en MAD - NAY Parfum`;
+  const description = `Découvrez notre sélection exclusive de testeurs de ${category.label.toLowerCase()} 100% originaux au Maroc chez NAY Parfums. Grandes marques, flacons authentiques, prix réduits en MAD, livraison express 24/48h et paiement à la livraison (COD).`;
 
   return {
     title: { absolute: title },
     description,
     keywords: [
-      `testeurs parfums ${category.slug} maroc`,
-      `parfums testeurs ${category.slug} original`,
-      `testeur parfum ${category.label.toLowerCase()} maroc`,
+      `testeurs ${category.slug} maroc`,
+      `testeurs parfums ${category.slug} original`,
+      `testeur ${category.label.toLowerCase()} maroc`,
       `prix parfum ${category.slug} maroc`,
       'عطور تيستر أصلية المغرب'
     ],
@@ -130,8 +130,8 @@ export default async function TesteursGenderPage({
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `Testeurs Parfums ${category.label} 100% Originaux au Maroc`,
-    description: `Achetez vos testeurs de parfums ${category.label.toLowerCase()} de grandes marques au Maroc. Flacons authentiques, même sillage, prix réduits en MAD.`,
+    name: `Testeurs ${category.label} 100% Originaux au Maroc`,
+    description: `Achetez vos testeurs de ${category.label.toLowerCase()} de grandes marques au Maroc. Flacons authentiques, même sillage, prix réduits en MAD.`,
     url: `https://nayparfum.ma/${locale}/testeurs/${category.slug}`,
     isPartOf: {
       '@type': 'WebSite',
@@ -143,7 +143,7 @@ export default async function TesteursGenderPage({
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: `Catalogue Testeurs Parfums ${category.label} au Maroc`,
+    name: `Catalogue Testeurs ${category.label} au Maroc`,
     itemListElement: products.slice(0, 24).map((p, idx) => ({
       '@type': 'ListItem',
       position: idx + 1,
