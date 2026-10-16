@@ -1117,19 +1117,31 @@ export default function ProductClient({
               
               {inStock ? (
                 <button
-                  onClick={() => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    setTimeout(() => handleAddToCart(), 300);
-                  }}
-                  className={`btn-blue px-8 py-3.5 text-[12px] rounded-xl flex items-center justify-center gap-2 transition-all ${
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={isAdding}
+                  aria-label={isAdded ? t.actions.added : t.actions.add}
+                  className={`btn-blue px-8 py-3.5 text-[12px] rounded-xl flex items-center justify-center gap-2 transition-all relative ${
                     isAdded ? '!bg-green-600' : 'hover:shadow-lg'
-                  }`}
+                  } ${isAdding ? 'opacity-80 cursor-wait' : ''}`}
                 >
-                  {isAdded ? <><Check size={16} /> {t.actions.added}</> : <><ShoppingBag size={16} /> {t.actions.add}</>}
+                  {isAdding ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : isAdded ? (
+                    <>
+                      <Check size={16} /> {t.actions.added}
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag size={16} /> {t.actions.add}
+                    </>
+                  )}
                 </button>
               ) : (
                 <button
+                  type="button"
                   disabled
+                  aria-disabled="true"
                   className="bg-red-50 text-red-600 border border-red-200 px-8 py-3.5 text-[12px] rounded-xl flex items-center justify-center gap-2 cursor-not-allowed font-bold uppercase tracking-wider"
                 >
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
