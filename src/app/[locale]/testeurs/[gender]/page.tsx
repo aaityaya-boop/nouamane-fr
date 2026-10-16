@@ -113,6 +113,41 @@ export default async function TesteursGenderPage({
           <p className="mt-4 text-[#6B6B6B] text-[14px] max-w-md">
             {products.length} testeurs authentiques de grandes maisons · Même tenue et sillage
           </p>
+
+          {products.filter(p => p.inStock && (p.stock ?? 0) > 0).length > 0 && (
+            <div className="mt-8 pt-5 pb-2 border-t border-[#e0ddd4] max-w-2xl w-full">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9] mb-3">
+                Sélections testeurs {category.label} en stock au Maroc :
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {(() => {
+                  const prioritySlugs = [
+                    'Creed-Absolu-Aventus-Tester',
+                    'kayali-elixir-eau-de-parfum-tester',
+                    'tom-ford-tobacco-vanille-tester'
+                  ];
+                  const inStock = products.filter(p => p.inStock && (p.stock ?? 0) > 0);
+                  const sorted = [...inStock].sort((a, b) => {
+                    const aIdx = prioritySlugs.indexOf(a.slug);
+                    const bIdx = prioritySlugs.indexOf(b.slug);
+                    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                    if (aIdx !== -1) return -1;
+                    if (bIdx !== -1) return 1;
+                    return 0;
+                  });
+                  return sorted.slice(0, 4).map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/${locale}/product/${item.slug}`}
+                      className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-white hover:bg-[#0ea5e9]/10 px-3.5 py-1.5 rounded-full border border-[#e0ddd4] transition-all shadow-sm"
+                    >
+                      {item.name} · {item.price} MAD
+                    </Link>
+                  ));
+                })()}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

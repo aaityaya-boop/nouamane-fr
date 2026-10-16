@@ -341,7 +341,7 @@ export default function CartPage() {
                   </div>
 
                   <Link
-                    href="/checkout"
+                    href={`/${locale}/checkout`}
                     className="btn-blue w-full inline-flex items-center justify-center gap-2 py-4 mt-6 text-[11px] rounded-full"
                   >
                     Passer commande

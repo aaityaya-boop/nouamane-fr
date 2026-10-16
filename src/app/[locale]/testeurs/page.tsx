@@ -200,10 +200,22 @@ export default async function TesteursPage({
                 Testeurs de luxe très demandés au Maroc :
               </p>
               <div className="flex flex-wrap items-center justify-center gap-2">
-                {products
-                  .filter(p => p.inStock && (p.stock ?? 0) > 0)
-                  .slice(0, 5)
-                  .map((item) => (
+                {(() => {
+                  const prioritySlugs = [
+                    'Creed-Absolu-Aventus-Tester',
+                    'kayali-elixir-eau-de-parfum-tester',
+                    'tom-ford-tobacco-vanille-tester'
+                  ];
+                  const inStock = products.filter(p => p.inStock && (p.stock ?? 0) > 0);
+                  const sorted = [...inStock].sort((a, b) => {
+                    const aIdx = prioritySlugs.indexOf(a.slug);
+                    const bIdx = prioritySlugs.indexOf(b.slug);
+                    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                    if (aIdx !== -1) return -1;
+                    if (bIdx !== -1) return 1;
+                    return 0;
+                  });
+                  return sorted.slice(0, 5).map((item) => (
                     <Link
                       key={item.id}
                       href={`/${currentLocale}/product/${item.slug}`}
@@ -211,7 +223,8 @@ export default async function TesteursPage({
                     >
                       {item.name} · {item.price} MAD
                     </Link>
-                  ))}
+                  ));
+                })()}
               </div>
             </div>
           )}

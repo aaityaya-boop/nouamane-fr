@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/Header';
@@ -32,6 +32,8 @@ export default function CheckoutPage() {
   const { cart, getSubtotal, clearCart, shippingFee, appliedPromo, applyPromo, removePromo, appliedDeal, dealDiscount, selectedFreeGift } = useCart();
   const { customer } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1] || 'fr';
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Promo Code State
@@ -289,7 +291,7 @@ export default function CheckoutPage() {
         });
       }
 
-      router.push(`/order-confirmation?order=${orderNumber}`);
+      router.push(`/${locale}/order-confirmation?order=${orderNumber}`);
     } catch (err) {
       console.error(err);
       alert('Une erreur est survenue. Veuillez réessayer.');
@@ -310,7 +312,7 @@ export default function CheckoutPage() {
             Ajoutez au moins un produit à votre panier avant de passer commande.
           </p>
           <Link
-            href="/shop"
+            href={`/${locale}/shop`}
             className="btn-blue inline-block px-10 py-4 text-[11px] rounded-full"
           >
             Voir la boutique
@@ -330,7 +332,7 @@ export default function CheckoutPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-10">
             <Link
-              href="/cart"
+              href={`/${locale}/cart`}
               className="text-[#9A9A9A] hover:text-[#0ea5e9] flex items-center gap-1 text-[13px]"
             >
               <ChevronLeft size={16} /> Retour au panier
