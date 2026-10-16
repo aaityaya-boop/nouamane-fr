@@ -121,6 +121,18 @@ export default async function LocaleLayout({
   const dictionary = await getDictionary(validLocale);
   const dir = validLocale === 'ar' ? 'rtl' : 'ltr';
 
+  const storeDescriptions = {
+    fr: "Boutique en ligne spécialisée dans la vente de parfums de luxe et testeurs 100% originaux au Maroc. Livraison rapide et paiement à la livraison.",
+    ar: "متجر إلكتروني متخصص في بيع العطور الفاخرة وتسترات أصلية 100% في المغرب. توصيل سريع والدفع عند الاستلام.",
+    en: "Online boutique specializing in luxury perfumes and authentic testers in Morocco. Fast nationwide delivery and cash on delivery.",
+  };
+
+  const storeNames = {
+    fr: "NAY Parfums",
+    ar: "NAY Parfums - عطور أصلية بالمغرب",
+    en: "NAY Parfums",
+  };
+
   return (
     <html lang={validLocale} dir={dir} className={`${montserrat.variable} ${tajawal.variable}`}>
       <head>
@@ -169,48 +181,33 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "Store",
-              name: "NAY Parfums",
-              description: "Vente de parfums de luxe et testeurs originaux au Maroc",
+              "@type": "OnlineStore",
+              "@id": "https://nayparfum.ma/#store",
+              name: storeNames[validLocale],
+              description: storeDescriptions[validLocale],
               url: "https://nayparfum.ma",
               logo: "https://nayparfum.ma/android-chrome-512x512.png",
               image: "https://nayparfum.ma/android-chrome-512x512.png",
               telephone: "+212 663-380011",
               priceRange: "299 MAD - 450 MAD",
               currenciesAccepted: "MAD",
-              paymentAccepted: "Cash, Cash on Delivery, Carte Bancaire",
+              paymentAccepted: "Cash on Delivery",
               address: {
                 "@type": "PostalAddress",
                 addressCountry: "MA",
                 addressLocality: "Casablanca",
                 addressRegion: "Casablanca-Settat"
               },
-              geo: {
-                "@type": "GeoCoordinates",
-                latitude: 33.5731,
-                longitude: -7.5898
+              areaServed: {
+                "@type": "Country",
+                name: "Morocco"
               },
-              openingHoursSpecification: [
-                {
-                  "@type": "OpeningHoursSpecification",
-                  dayOfWeek: [
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday"
-                  ],
-                  opens: "09:00",
-                  closes: "20:00"
-                }
-              ],
               contactPoint: {
                 "@type": "ContactPoint",
                 telephone: "+212 663-380011",
                 contactType: "customer service",
                 areaServed: "MA",
-                availableLanguage: ["fr", "en", "ar"]
+                availableLanguage: ["fr", "ar", "en"]
               },
               sameAs: [
                 "https://www.instagram.com/nayparfum",
