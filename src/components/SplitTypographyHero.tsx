@@ -1,109 +1,46 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Sparkles } from 'lucide-react';
 
 export default function SplitTypographyHero({ config }: { config?: any }) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
-  const [mounted, setMounted] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const springConfig = { damping: 25, stiffness: 50 };
-  const mouseX = useSpring(0, springConfig);
-  const mouseY = useSpring(0, springConfig);
-
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches) {
-      const handleMouseMove = (e: MouseEvent) => {
-        const { clientX, clientY } = e;
-        const { innerWidth, innerHeight } = window;
-        const x = (clientX / innerWidth - 0.5) * 60;
-        const y = (clientY / innerHeight - 0.5) * 60;
-        mouseX.set(x);
-        mouseY.set(y);
-      };
-      window.addEventListener('mousemove', handleMouseMove, { passive: true });
-      return () => window.removeEventListener('mousemove', handleMouseMove);
-    }
-  }, [mouseX, mouseY]);
-  
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end start'],
-  });
-
-  // Sophisticated Parallax Scrolling Effects
-  const opacityContent = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  
-  // Background Elements Parallax
-  const bgY1 = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
-  const bgY2 = useTransform(scrollYProgress, [0, 1], ['0%', '-30%']);
-  
-  // Watermark Parallax
-  const watermarkY = useTransform(scrollYProgress, [0, 1], ['20%', '-80%']);
 
   return (
     <section 
-      ref={containerRef} 
       className="relative h-[100dvh] min-h-[650px] w-full bg-[#FCFCFC] overflow-hidden flex items-center justify-center selection:bg-[#111] selection:text-white"
     >
-      {/* 1. LUXURY BACKGROUND: Animated Glass Shapes & Mouse Parallax */}
+      {/* 1. LUXURY BACKGROUND: Subtle Editorial Atmosphere */}
       <div className="absolute inset-0 bg-[#FCFCFC] z-0" />
       
-      {/* Huge Background Watermark */}
-      <motion.div 
-        style={{ y: watermarkY, opacity: opacityContent }}
-        className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none z-0 overflow-hidden"
+      {/* Huge Background Watermark (Pure CSS - Zero Reflow) */}
+      <div 
+        className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none z-0 overflow-hidden select-none"
       >
         <span className="font-serif italic text-[15vw] leading-none text-[#111]/[0.02] whitespace-nowrap rotate-[-5deg] scale-150">
           NAY PARFUMS
         </span>
-      </motion.div>
+      </div>
       
-      {/* Interactive Shape 1 */}
-      <motion.div 
-        style={{ y: bgY1, x: mouseX }}
-        className="hidden md:block absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] rounded-full blur-[90px] opacity-30 mix-blend-multiply pointer-events-none"
-      >
-        <div className="w-full h-full bg-gradient-to-br from-[#0ea5e9] to-transparent rounded-full animate-glow-1" />
-      </motion.div>
+      {/* Luxury Radial Aura 1 (Sky Glow) */}
+      <div 
+        className="hidden md:block absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.12)_0%,rgba(14,165,233,0.03)_50%,transparent_70%)] pointer-events-none" 
+      />
 
-      {/* Interactive Shape 2 */}
-      <motion.div 
-        style={{ y: bgY2, x: useTransform(mouseX, (v) => -v) }}
-        className="hidden md:block absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[100px] opacity-20 mix-blend-multiply pointer-events-none"
-      >
-        <div className="w-full h-full bg-gradient-to-tl from-[#111] via-[#333] to-transparent rounded-full animate-glow-2" />
-      </motion.div>
+      {/* Luxury Radial Aura 2 (Dark Luxury Glow) */}
+      <div 
+        className="hidden md:block absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[1000px] max-h-[1000px] rounded-full bg-[radial-gradient(circle_at_center,rgba(17,17,17,0.06)_0%,rgba(17,17,17,0.02)_50%,transparent_70%)] pointer-events-none" 
+      />
 
-      {/* Floating Sparkles/Dust */}
+      {/* Ambient Micro-Glow Accents */}
       <div className="hidden md:block absolute inset-0 z-0 pointer-events-none">
-        {mounted && [...Array(10)].map((_, i) => {
-            const r7 = (i * 41) % 3 + 1;
-            const r8 = (i * 43) % 3 + 1;
-            const r9 = (i * 47) % 100;
-            const r10 = (i * 53) % 100;
-            const delay = (i * 1.2) % 6;
-            return (
-            <div
-              key={i}
-              className="absolute rounded-full bg-[#111]/10 animate-dust"
-              style={{
-                width: r7 + "px",
-                height: r8 + "px",
-                left: r9 + "%",
-                top: r10 + "%",
-                animationDelay: `${delay}s`,
-              }}
-            />
-          );
-        })}
+        <div className="absolute top-[25%] left-[20%] w-1.5 h-1.5 rounded-full bg-[#111]/15" />
+        <div className="absolute top-[65%] left-[15%] w-1 h-1 rounded-full bg-[#0ea5e9]/20" />
+        <div className="absolute top-[35%] right-[22%] w-1 h-1 rounded-full bg-[#111]/15" />
+        <div className="absolute top-[75%] right-[18%] w-1.5 h-1.5 rounded-full bg-[#0ea5e9]/25" />
       </div>
 
       <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 text-center flex flex-col items-center justify-center">
@@ -128,7 +65,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
           <span className="w-[1px] h-10 bg-gradient-to-b from-[#111]/20 to-transparent" />
         </div>
 
-        {/* Main Headline with Split Parallax Effect */}
+        {/* Main Headline with Split Editorial Typography */}
         <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[120px] xl:text-[140px] leading-[1] tracking-[-0.02em] mb-10 flex flex-col items-center justify-center w-full">
           <div className="font-light text-[#111] pr-0 sm:pr-12 md:pr-24 self-center md:self-end text-center md:text-right mix-blend-darken relative">
             L'Empreinte
@@ -147,8 +84,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
         </p>
         
         {/* Call to Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
-        >
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
           {/* Découvrir Button - Luxury Minimalist Version */}
           <Link
             href={`/${locale}/decouverte`}
@@ -163,11 +99,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
       </div>
 
       {/* 3. SCROLL INDICATOR */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.5, delay: 1.2 }}
-        style={{ opacity: opacityContent }}
+      <div
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4 cursor-pointer hover:opacity-70 transition-opacity"
         onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}
       >
@@ -175,13 +107,9 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
           Scroll
         </span>
         <div className="w-[1px] h-16 bg-gradient-to-b from-[#111]/20 to-transparent overflow-hidden relative">
-          <motion.div
-            animate={{ y: ['-100%', '200%'] }}
-            transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
-            className="absolute top-0 bottom-0 left-0 right-0 h-1/2 bg-[#111]/60"
-          />
+          <div className="w-full h-1/2 bg-[#111]/50 animate-pulse" />
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

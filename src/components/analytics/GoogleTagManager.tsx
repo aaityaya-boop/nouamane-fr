@@ -1,24 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Script from "next/script";
+import { useUserInteraction } from "@/hooks/useUserInteraction";
 
 export function GoogleTagManager() {
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
-  const [mounted, setMounted] = useState(false);
+  const ready = useUserInteraction(15000);
 
-  useEffect(() => {
-    // Bypass on Lighthouse / PageSpeed audit bots to eliminate TBT penalty
-    if (
-      navigator.webdriver === true ||
-      /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent)
-    ) {
-      return;
-    }
-    setMounted(true);
-  }, []);
-
-  if (!gtmId || !mounted) {
+  if (!gtmId || !ready) {
     return null;
   }
 

@@ -197,11 +197,11 @@ export default async function LocaleLayout({
                   } catch(e) {}
                 }
 
-                ['scroll', 'touchstart', 'click', 'keydown'].forEach(function(evt) {
+                ['scroll', 'wheel', 'touchstart', 'pointerdown', 'click', 'keydown', 'mousemove'].forEach(function(evt) {
                   window.addEventListener(evt, startThirdParty, { once: true, passive: true });
                 });
 
-                setTimeout(startThirdParty, 8000);
+                setTimeout(startThirdParty, 15000);
               })();
             `
           }}

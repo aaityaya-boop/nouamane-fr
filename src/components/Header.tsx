@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Search, ShoppingBag, User, Menu, X, ChevronDown, Package, ChevronRight, ShieldCheck, Truck, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence, useScroll } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
 import { MAIN_CATEGORIES } from '@/lib/products';
 import { useDictionary } from '@/context/DictionaryContext';
@@ -30,27 +30,14 @@ export default function Header() {
 
   const [brands, setBrands] = useState<any[]>([]);
   useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    const fetchBrands = () => {
-      if (brands.length === 0) {
-        fetch('/api/brands')
-          .then(res => res.json())
-          .then(data => {
-            if (Array.isArray(data)) setBrands(data);
-          })
-          .catch(console.error);
-      }
-    };
-
-    if (activeMenu === 'brands' || isMobileMenuOpen) {
-      fetchBrands();
-    } else {
-      timer = setTimeout(fetchBrands, 3500);
+    if ((activeMenu === 'brands' || isMobileMenuOpen) && brands.length === 0) {
+      fetch('/api/brands')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setBrands(data);
+        })
+        .catch(console.error);
     }
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
   }, [activeMenu, isMobileMenuOpen, brands.length]);
 
   useEffect(() => {

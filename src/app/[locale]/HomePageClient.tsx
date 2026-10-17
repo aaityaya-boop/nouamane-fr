@@ -9,8 +9,8 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -70,7 +70,6 @@ export default function HomePageClient({
   latestReviews?: any[],
   initialBrands?: any[]
 }) {
-  const { scrollY } = useScroll();
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const newArrivalsDefault = [...products].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()).slice(0, 4);

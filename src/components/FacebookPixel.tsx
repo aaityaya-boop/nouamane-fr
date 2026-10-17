@@ -12,33 +12,23 @@ declare global {
   }
 }
 
+import { useUserInteraction } from '@/hooks/useUserInteraction';
+
 function FacebookPixelInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const ready = useUserInteraction(15000);
 
   useEffect(() => {
     // Déclencher un PageView à chaque changement de route
-    if (typeof window !== 'undefined' && window.fbq) {
+    if (ready && typeof window !== 'undefined' && window.fbq) {
       window.fbq('track', 'PageView');
     }
-  }, [pathname, searchParams]);
-
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    // Bypass on Lighthouse / PageSpeed audit bots to prevent TBT degradation
-    if (
-      navigator.webdriver === true ||
-      /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent)
-    ) {
-      return;
-    }
-    setMounted(true);
-  }, []);
+  }, [pathname, searchParams, ready]);
 
   const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
 
-  if (!FB_PIXEL_ID || !mounted) {
+  if (!FB_PIXEL_ID || !ready) {
     return null;
   }
 

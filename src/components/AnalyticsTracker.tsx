@@ -3,16 +3,16 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
+import { useUserInteraction } from '@/hooks/useUserInteraction';
+
 export default function AnalyticsTracker() {
   const pathname = usePathname();
   const visitorIdRef = useRef<string>('');
+  const ready = useUserInteraction(15000);
 
   useEffect(() => {
-    // Avoid tracking inside the admin panel or during audit bots to prevent skewing customer metrics
-    if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
-    if (typeof navigator !== 'undefined' && (navigator.webdriver === true || /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent))) {
-      return;
-    }
+    // Avoid tracking inside the admin panel or before user interaction
+    if (!ready || !pathname || pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
 
     // Retrieve or create persistent anonymous visitor identifier
     if (!visitorIdRef.current) {
@@ -75,7 +75,7 @@ export default function AnalyticsTracker() {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
       }
     };
-  }, [pathname]);
+  }, [pathname, ready]);
 
   return null;
 }
