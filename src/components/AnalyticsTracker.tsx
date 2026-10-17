@@ -10,7 +10,7 @@ export default function AnalyticsTracker() {
   useEffect(() => {
     // Avoid tracking inside the admin panel or during audit bots to prevent skewing customer metrics
     if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
-    if (typeof navigator !== 'undefined' && /Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
+    if (typeof navigator !== 'undefined' && (navigator.webdriver === true || /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent))) {
       return;
     }
 

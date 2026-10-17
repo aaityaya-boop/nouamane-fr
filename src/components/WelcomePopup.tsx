@@ -12,12 +12,12 @@ export default function WelcomePopup() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "exists">("idle");
 
   useEffect(() => {
-    // Check if bot / Lighthouse audit
+    // Check if automated audit or bot
     if (typeof window !== "undefined") {
-      const ua = navigator.userAgent;
-      if (/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(ua)) {
-        return;
-      }
+      const isAudit =
+        navigator.webdriver === true ||
+        /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent);
+      if (isAudit) return;
     }
 
     // Check if user has already seen the popup

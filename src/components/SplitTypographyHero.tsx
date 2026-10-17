@@ -40,11 +40,6 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
 
   // Sophisticated Parallax Scrolling Effects
   const opacityContent = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  const scaleContent = useTransform(scrollYProgress, [0, 1], [1, 0.85]);
-  
-  // Text Splitting Parallax
-  const leftTextX = useTransform(scrollYProgress, [0, 1], ['0%', '-30%']);
-  const rightTextX = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
   
   // Background Elements Parallax
   const bgY1 = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
@@ -74,7 +69,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
       {/* Interactive Shape 1 */}
       <motion.div 
         style={{ y: bgY1, x: mouseX }}
-        className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] rounded-full blur-[90px] opacity-30 mix-blend-multiply pointer-events-none"
+        className="hidden md:block absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[800px] max-h-[800px] rounded-full blur-[90px] opacity-30 mix-blend-multiply pointer-events-none"
       >
         <div className="w-full h-full bg-gradient-to-br from-[#0ea5e9] to-transparent rounded-full animate-glow-1" />
       </motion.div>
@@ -82,7 +77,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
       {/* Interactive Shape 2 */}
       <motion.div 
         style={{ y: bgY2, x: useTransform(mouseX, (v) => -v) }}
-        className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[100px] opacity-20 mix-blend-multiply pointer-events-none"
+        className="hidden md:block absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[1000px] max-h-[1000px] rounded-full blur-[100px] opacity-20 mix-blend-multiply pointer-events-none"
       >
         <div className="w-full h-full bg-gradient-to-tl from-[#111] via-[#333] to-transparent rounded-full animate-glow-2" />
       </motion.div>
@@ -111,15 +106,9 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
         })}
       </div>
 
-      <motion.div 
-        className="relative z-10 w-full max-w-[1400px] mx-auto px-6 text-center flex flex-col items-center justify-center"
-        style={{ opacity: opacityContent, scale: scaleContent }}
-      >
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 text-center flex flex-col items-center justify-center">
         {/* Typo Logo */}
-        <motion.div
-          initial={false}
-          className="mb-12 flex flex-col items-center justify-center relative group"
-        >
+        <div className="mb-12 flex flex-col items-center justify-center relative group">
           <Image
             src="/images/nay/nay-logo-new.png"
             alt="NAY Parfums"
@@ -129,7 +118,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
             fetchPriority="high"
             className="w-32 sm:w-40 md:w-48 lg:w-56 h-auto object-contain transition-transform duration-1000 group-hover:scale-105"
           />
-        </motion.div>
+        </div>
 
         {/* Eyebrow */}
         <div className="flex flex-col items-center gap-5 mb-8">
@@ -141,21 +130,13 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
 
         {/* Main Headline with Split Parallax Effect */}
         <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[120px] xl:text-[140px] leading-[1] tracking-[-0.02em] mb-10 flex flex-col items-center justify-center w-full">
-          <motion.div
-            initial={false}
-            style={{ x: leftTextX }}
-            className="font-light text-[#111] pr-4 sm:pr-12 md:pr-24 self-center md:self-end text-center md:text-right mix-blend-darken relative"
-          >
+          <div className="font-light text-[#111] pr-0 sm:pr-12 md:pr-24 self-center md:self-end text-center md:text-right mix-blend-darken relative">
             L'Empreinte
-          </motion.div>
-          <motion.div
-            initial={false}
-            style={{ x: rightTextX }}
-            className="flex items-center gap-4 sm:gap-6 pl-4 sm:pl-12 md:pl-24 self-center md:self-start mt-2 sm:mt-0 mix-blend-darken relative"
-          >
+          </div>
+          <div className="flex items-center gap-4 sm:gap-6 pl-0 sm:pl-12 md:pl-24 self-center md:self-start mt-2 sm:mt-0 mix-blend-darken relative">
             <span className="font-serif italic font-light text-[#0ea5e9] text-5xl sm:text-7xl md:text-8xl lg:text-[130px] xl:text-[150px] drop-shadow-sm">&</span>
             <span className="font-serif italic font-light text-[#111]">l'Inoubliable</span>
-          </motion.div>
+          </div>
         </h1>
 
         {/* Sub-headline */}
@@ -179,7 +160,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
             </span>
           </Link>
         </div>
-      </motion.div>
+      </div>
 
       {/* 3. SCROLL INDICATOR */}
       <motion.div

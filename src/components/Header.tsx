@@ -53,12 +53,13 @@ export default function Header() {
     };
   }, [activeMenu, isMobileMenuOpen, brands.length]);
 
-  const { scrollY } = useScroll();
   useEffect(() => {
-    return scrollY.on('change', (latest) => {
-      setIsScrolled(latest > 30);
-    });
-  }, [scrollY]);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Determine if header should be solid white
   const isSolid = !isHome || isScrolled || activeMenu !== null || isMobileMenuOpen;

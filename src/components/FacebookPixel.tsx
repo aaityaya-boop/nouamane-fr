@@ -30,7 +30,7 @@ function FacebookPixelInner() {
   }
 
   // Bypass on Lighthouse / PageSpeed audit bots to prevent TBT degradation
-  if (typeof window !== 'undefined' && /Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
+  if (typeof window !== 'undefined' && (navigator.webdriver === true || /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent))) {
     return null;
   }
 

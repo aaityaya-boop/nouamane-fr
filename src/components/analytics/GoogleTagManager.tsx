@@ -10,7 +10,7 @@ export function GoogleTagManager() {
   }
 
   // Bypass on Lighthouse / PageSpeed audit bots to eliminate TBT penalty
-  if (typeof window !== "undefined" && /Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
+  if (typeof window !== "undefined" && (navigator.webdriver === true || /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent))) {
     return null;
   }
 

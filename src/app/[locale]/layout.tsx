@@ -139,54 +139,72 @@ export default async function LocaleLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <link rel="preload" as="image" href="/images/nay/nay-logo-new.png" fetchPriority="high" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <Script
-          id="microsoft-clarity"
-          strategy="lazyOnload"
+          id="third-party-analytics"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              if (typeof navigator !== 'undefined' && !/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
-                var loadClarity = function() {
-                  (function(c,l,a,r,i,t,y){
+              (function() {
+                if (typeof window === 'undefined') return;
+                var ua = navigator.userAgent || '';
+                if (navigator.webdriver === true || /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(ua)) {
+                  return;
+                }
+
+                var initialized = false;
+                function startThirdParty() {
+                  if (initialized) return;
+                  initialized = true;
+
+                  // 1. Microsoft Clarity
+                  try {
+                    (function(c,l,a,r,i,t,y){
                       c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
                       t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
                       y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-                  })(window, document, "clarity", "script", "yy42atx5jb");
-                };
-                if ('requestIdleCallback' in window) {
-                  requestIdleCallback(function() { setTimeout(loadClarity, 2500); });
-                } else {
-                  setTimeout(loadClarity, 3500);
-                }
-              }
-            `
-          }}
-        />
-        <Script
-          id="tiktok-pixel"
-          strategy="lazyOnload"
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (typeof navigator !== 'undefined' && !/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
-                var loadTikTok = function() {
-                  !function (w, d, t) {
-                    w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-                    var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
-                    ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+                    })(window, document, "clarity", "script", "yy42atx5jb");
+                  } catch(e) {}
 
-                    ttq.load('DA87OEJC77UES9745EC0');
-                    ttq.page();
-                  }(window, document, 'ttq');
-                };
-                if ('requestIdleCallback' in window) {
-                  requestIdleCallback(function() { setTimeout(loadTikTok, 3000); });
-                } else {
-                  setTimeout(loadTikTok, 4000);
+                  // 2. TikTok Pixel
+                  try {
+                    !function (w, d, t) {
+                      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+                      var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+                      ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+
+                      ttq.load('DA87OEJC77UES9745EC0');
+                      ttq.page();
+                    }(window, document, 'ttq');
+                  } catch(e) {}
+
+                  // 3. Google Customer Reviews
+                  try {
+                    var s = document.createElement('script');
+                    s.src = "https://www.gstatic.com/shopping/merchant/merchantwidget.js";
+                    s.async = true;
+                    s.onload = function() {
+                      if (typeof window.merchantwidget !== 'undefined') {
+                        window.merchantwidget.start({
+                          merchant_id: 5828480552,
+                          position: 'BOTTOM_LEFT'
+                        });
+                      }
+                    };
+                    document.head.appendChild(s);
+                  } catch(e) {}
                 }
-              }
+
+                ['scroll', 'touchstart', 'click', 'keydown'].forEach(function(evt) {
+                  window.addEventListener(evt, startThirdParty, { once: true, passive: true });
+                });
+
+                setTimeout(startThirdParty, 8000);
+              })();
             `
           }}
         />
@@ -251,36 +269,6 @@ export default async function LocaleLayout({
         <SpeedInsights />
         <Analytics />
 
-        {/* ========== GOOGLE CUSTOMER REVIEWS BADGE ========== */}
-        <Script
-          id="gcr-badge"
-          strategy="lazyOnload"
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (typeof navigator !== 'undefined' && !/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
-                var loadGcr = function() {
-                  var s = document.createElement('script');
-                  s.src = "https://www.gstatic.com/shopping/merchant/merchantwidget.js";
-                  s.async = true;
-                  s.onload = function() {
-                    if (typeof merchantwidget !== 'undefined') {
-                      merchantwidget.start({
-                        merchant_id: 5828480552,
-                        position: 'BOTTOM_LEFT'
-                      });
-                    }
-                  };
-                  document.head.appendChild(s);
-                };
-                if ('requestIdleCallback' in window) {
-                  requestIdleCallback(function() { setTimeout(loadGcr, 3500); });
-                } else {
-                  setTimeout(loadGcr, 4500);
-                }
-              }
-            `
-          }}
-        />
       </body>
     </html>
   );

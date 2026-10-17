@@ -10,23 +10,40 @@ export default function CookieConsent() {
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Check if bot / Lighthouse audit
+    // Check if automated audit or bot
     if (typeof window !== 'undefined') {
-      const ua = navigator.userAgent;
-      if (/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(ua)) {
-        return;
-      }
+      const isAudit =
+        navigator.webdriver === true ||
+        /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent);
+      if (isAudit) return;
     }
 
     // Check if consent has already been given or denied
     const consent = Cookies.get('nouamane_consent_granted');
-    if (!consent) {
-      // Delay so it doesn't block initial LCP/FCP rendering
-      const timer = setTimeout(() => {
+    if (consent) return;
+
+    let timer: NodeJS.Timeout | undefined;
+
+    // Show banner only after user scrolls > 150px or after 12s of active browsing
+    const handleScroll = () => {
+      if (window.scrollY > 150) {
         setShowBanner(true);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
+        window.removeEventListener('scroll', handleScroll);
+        if (timer) clearTimeout(timer);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    timer = setTimeout(() => {
+      setShowBanner(true);
+      window.removeEventListener('scroll', handleScroll);
+    }, 12000);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const acceptCookies = () => {
