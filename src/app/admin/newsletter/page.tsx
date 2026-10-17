@@ -144,7 +144,7 @@ export default function AdminNewsletter() {
       setCampaignCtaText('Découvrir la Collection');
       setCampaignCtaLink('https://nayparfum.ma/fr/shop');
     } else if (tpl === 'newLaunch') {
-      setCampaignSubject('✦ Nouveauté Privée : Découvrez notre dernière fragrance de niche');
+      setCampaignSubject('Nouveauté Privée : Découvrez notre dernière fragrance de niche');
       setCampaignPreheader('Une création olfactive rare réservée à nos abonnés privilégiés.');
       setCampaignHeadline('Une Nouvelle Signature Olfactive est Née');
       setCampaignMessage(
@@ -164,7 +164,7 @@ export default function AdminNewsletter() {
       setCampaignCtaText('Accéder à la Vente Privée');
       setCampaignCtaLink('https://nayparfum.ma/fr/shop');
     } else if (tpl === 'weekendSpecial') {
-      setCampaignSubject('⚡ Flash Week-end : Livraison Gratuite + Cadeau Offert');
+      setCampaignSubject('Flash Week-end : Livraison Gratuite + Cadeau Offert');
       setCampaignPreheader('Offre limitée ce week-end uniquement sur nayparfum.ma.');
       setCampaignHeadline('Privilège du Week-end : Livraison 0 DH Partout au Maroc');
       setCampaignMessage(
@@ -1570,7 +1570,7 @@ export default function AdminNewsletter() {
                   {/* Email Banner / Badge */}
                   <div className="bg-sky-50 p-4 border-b border-sky-100 text-center">
                     <span className="inline-block px-3 py-1 bg-[#0ea5e9] text-white font-extrabold text-[11px] rounded-full uppercase tracking-wider shadow-2xs">
-                      ✦ PRIVILÈGE ABONNÉ EXCLUSIF ✦
+                      PRIVILÈGE ABONNÉ EXCLUSIF
                     </span>
                   </div>
 

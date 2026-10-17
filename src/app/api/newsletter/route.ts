@@ -20,7 +20,15 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
-      return NextResponse.json({ error: 'Cet email est déjà inscrit' }, { status: 400 });
+      try {
+        await sendNaydayWelcomeEmail(cleanEmail);
+      } catch (emailErr) {
+        console.error('Error re-sending welcome email to subscriber:', emailErr);
+      }
+      return NextResponse.json({
+        success: true,
+        message: 'Votre e-mail exclusif NAYDAY vous a été renvoyé avec succès !',
+      });
     }
 
     const subscriber = await prisma.newsletterSubscriber.create({

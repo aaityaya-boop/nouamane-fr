@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MAIN_CATEGORIES } from '@/lib/products';
 import { useDictionary } from '@/context/DictionaryContext';
+import { Phone, Mail, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
 export default function Footer() {
   const dict = useDictionary();
@@ -54,9 +55,15 @@ export default function Footer() {
               {dict.footer.aboutText}
             </p>
 
-            <div className="mt-8 space-y-2 text-[13px] text-[#1A1A1A]/85">
-              <div>✆ {config.contactPhone || '+212 663-380011'}</div>
-              <div>✉ {config.contactEmail || 'contact@nayparfum.ma'}</div>
+            <div className="mt-8 space-y-2.5 text-[13px] text-[#1A1A1A]/85">
+              <div className="flex items-center gap-2.5">
+                <Phone size={14} className="text-[#0ea5e9]" />
+                <span>{config.contactPhone || '+212 663-380011'}</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Mail size={14} className="text-[#0ea5e9]" />
+                <span>{config.contactEmail || 'contact@nayparfum.ma'}</span>
+              </div>
             </div>
 
             <div className="flex gap-6 mt-8">
@@ -99,8 +106,9 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link href={`/${locale}/testeurs`} className="text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors">
-                  ✨ Testeurs de Luxe
+                <Link href={`/${locale}/testeurs`} className="text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors inline-flex items-center gap-1.5">
+                  <Sparkles size={13} className="text-[#0ea5e9]" />
+                  <span>Testeurs de Luxe</span>
                 </Link>
               </li>
               <li>
@@ -177,20 +185,21 @@ export default function Footer() {
                   const data = await res.json();
                   if (res.ok) {
                     setStatus('success');
-                    setMessage('Merci pour votre inscription !');
+                    setMessage(data.message || 'Inscription réussie ! Votre e-mail avec -10% vous a été envoyé.');
                     setEmail('');
                   } else {
                     setStatus('error');
-                    setMessage(data.error || 'Erreur');
+                    setMessage(data.error || 'Erreur lors de l\'inscription');
                   }
                 } catch {
                   setStatus('error');
                   setMessage('Erreur réseau');
                 }
               }}
-              className="flex flex-col gap-2"
+              className="flex flex-col gap-2.5"
             >
-              <div className="flex items-center border-b border-[#1A1A1A]/20 pb-3 gap-4">
+              <div className="flex items-center border-b border-[#1A1A1A]/20 pb-3 gap-3 group focus-within:border-[#0ea5e9] transition-colors">
+                <Mail size={15} className="text-[#1A1A1A]/40 group-focus-within:text-[#0ea5e9] transition-colors" />
                 <input
                   type="email"
                   required
@@ -203,14 +212,16 @@ export default function Footer() {
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="text-[#0ea5e9] text-[10px] font-bold tracking-[0.2em] uppercase hover:text-[#38bdf8] transition-colors disabled:opacity-50"
+                  className="text-[#0ea5e9] text-[10px] font-bold tracking-[0.2em] uppercase hover:text-[#0284c7] transition-colors disabled:opacity-50 inline-flex items-center gap-1"
                 >
-                  {status === 'loading' ? '...' : "S'inscrire"}
+                  <span>{status === 'loading' ? 'Envoi...' : "S'inscrire"}</span>
+                  <ArrowRight size={12} />
                 </button>
               </div>
               {message && (
-                <div className={`text-[10px] ${status === 'success' ? 'text-green-600' : 'text-red-500'}`}>
-                  {message}
+                <div className={`text-[11px] flex items-center gap-1.5 pt-1 ${status === 'success' ? 'text-emerald-600 font-medium' : 'text-red-500'}`}>
+                  {status === 'success' && <CheckCircle2 size={13} />}
+                  <span>{message}</span>
                 </div>
               )}
             </form>
