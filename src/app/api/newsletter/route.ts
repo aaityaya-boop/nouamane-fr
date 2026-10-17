@@ -42,6 +42,26 @@ export async function POST(req: Request) {
       console.error('Error sending welcome email to subscriber:', emailErr);
     }
 
+    // Auto-sync contact into official Resend.com Audience (General)
+    try {
+      const apiKey = process.env.RESEND_API_KEY;
+      if (apiKey) {
+        await fetch('https://api.resend.com/audiences/69d22517-8e97-4d6f-a423-72f90e106bde/contacts', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: cleanEmail,
+            unsubscribed: false,
+          }),
+        });
+      }
+    } catch (resendSyncErr) {
+      console.warn('Error auto-syncing subscriber to Resend audience:', resendSyncErr);
+    }
+
     // Send internal alert to managers and targeted staff
     try {
       await sendAdminNewsletterAlert(cleanEmail);

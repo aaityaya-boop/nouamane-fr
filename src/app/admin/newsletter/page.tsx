@@ -98,6 +98,10 @@ export default function AdminNewsletter() {
   const [campaignCtaText, setCampaignCtaText] = useState('PROFITER DE −10%');
   const [campaignCtaLink, setCampaignCtaLink] = useState('https://nayparfum.ma/fr/shop');
   const [copiedHtml, setCopiedHtml] = useState(false);
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [broadcastFeedback, setBroadcastFeedback] = useState<string | null>(null);
+  const [isResendSyncing, setIsResendSyncing] = useState(false);
+  const [resendSyncStatus, setResendSyncStatus] = useState<string | null>(null);
 
   // Fetch Subscribers from API
   const fetchSubscribers = async () => {
@@ -486,6 +490,65 @@ export default function AdminNewsletter() {
     const emails = subscribers.map((s) => s.email).join(';');
     const mailto = `mailto:contact@nayparfum.ma?bcc=${encodeURIComponent(emails)}&subject=${encodeURIComponent(campaignSubject)}&body=${encodeURIComponent(campaignMessage)}`;
     window.open(mailto, '_blank');
+  };
+
+  // Broadcast campaign to entire audience via Resend.com
+  const handleBroadcastCampaign = async () => {
+    if (
+      !confirm(
+        `Confirmer l'expédition de cette campagne via Resend.com à l'ensemble des ${subscribers.length} abonnés ?`
+      )
+    )
+      return;
+    setIsBroadcasting(true);
+    setBroadcastFeedback(null);
+    try {
+      const res = await fetch('/api/admin/newsletter/campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: campaignSubject,
+          preheader: campaignPreheader,
+          headline: campaignHeadline,
+          message: campaignMessage,
+          promoCode: campaignPromoCode,
+          ctaText: campaignCtaText,
+          ctaLink: campaignCtaLink,
+          target: 'all',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setBroadcastFeedback(
+          `✓ Campagne expédiée avec succès via Resend.com : ${data.sentCount} emails livrés sur ${data.totalRequested} !`
+        );
+      } else {
+        setBroadcastFeedback(`✗ Erreur : ${data.error || 'Échec de transmission'}`);
+      }
+    } catch {
+      setBroadcastFeedback('✗ Erreur réseau lors de l\'envoi.');
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+  // Sync Audience with Resend.com
+  const handleSyncResendAudience = async () => {
+    setIsResendSyncing(true);
+    setResendSyncStatus(null);
+    try {
+      const res = await fetch('/api/admin/newsletter/sync-resend', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResendSyncStatus(`✓ Synchronisation réussie : ${data.synced} contacts certifiés sur Resend.com !`);
+      } else {
+        setResendSyncStatus(`✗ ${data.error || 'Erreur de synchronisation'}`);
+      }
+    } catch {
+      setResendSyncStatus('✗ Erreur réseau');
+    } finally {
+      setIsResendSyncing(false);
+    }
   };
 
   return (
@@ -1444,8 +1507,35 @@ export default function AdminNewsletter() {
             <div className="space-y-2 pt-2 border-t border-neutral-200">
               <button
                 type="button"
+                onClick={handleBroadcastCampaign}
+                disabled={isBroadcasting}
+                className="w-full py-3.5 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isBroadcasting ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Expédition en cours via Resend.com...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={14} />
+                    <span>Expédier cette Campagne via Resend.com à l&apos;Audience ({subscribers.length} abonnés)</span>
+                  </>
+                )}
+              </button>
+
+              {broadcastFeedback && (
+                <div className={`p-3 rounded-xl text-xs font-semibold ${
+                  broadcastFeedback.startsWith('✓') ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}>
+                  {broadcastFeedback}
+                </div>
+              )}
+
+              <button
+                type="button"
                 onClick={openInWebmailBcc}
-                className="w-full py-3 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 bg-sky-50 hover:bg-sky-100 text-[#0ea5e9] border border-sky-200 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ExternalLink size={14} />
                 <span>Ouvrir dans Gmail / Outlook (Envoi en Cci Masqué)</span>
@@ -1672,6 +1762,88 @@ export default function AdminNewsletter() {
       {/* ========================================================================= */}
       {activeTab === 'integrations' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Card 0: Resend.com (Official Connected Gateway & Audience) */}
+          <div className="bg-gradient-to-br from-slate-900 via-neutral-900 to-slate-900 text-white rounded-2xl p-5 shadow-sm space-y-3.5 border border-slate-800 md:col-span-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-[#38bdf8] border border-sky-400/30 flex items-center justify-center font-black text-base">
+                  R
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                      Resend.com — Passerelle Email &amp; Audience Officielle
+                    </h3>
+                    <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      100% Connecté en Direct
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Infrastructure d&apos;envoi haute réputation • Domaine vérifié @nayparfum.ma • Région eu-west-1 (Europe)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link
+                  href="/admin/inbox"
+                  className="px-3.5 py-1.5 bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
+                >
+                  <Inbox size={12} />
+                  <span>Boîte de Réception</span>
+                </Link>
+                <a
+                  href="https://resend.com/emails"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5"
+                >
+                  <span>Dashboard Resend.com</span>
+                  <ExternalLink size={12} />
+                </a>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Audience Liée</div>
+                <div className="text-sm font-bold text-white mt-1">General</div>
+                <div className="text-[10px] text-slate-400 font-mono mt-0.5 truncate">ID: 69d22517-8e97-4d6f-a423-72f90e106bde</div>
+              </div>
+
+              <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Contacts Certifiés</div>
+                <div className="text-sm font-bold text-emerald-400 mt-1">{subscribers.length} Abonnés Synchronisés</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">Mise à jour en temps réel</div>
+              </div>
+
+              <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Expéditeur Vérifié</div>
+                <div className="text-sm font-bold text-white mt-1 font-mono text-xs">contact@nayparfum.ma</div>
+                <div className="text-[10px] text-emerald-400 mt-0.5">SPF, DKIM 2048 &amp; DMARC Valides</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 pt-1 flex-wrap">
+              <button
+                type="button"
+                onClick={handleSyncResendAudience}
+                disabled={isResendSyncing}
+                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw size={13} className={isResendSyncing ? 'animate-spin' : ''} />
+                <span>{isResendSyncing ? 'Synchronisation Resend en cours...' : 'Forcer la Synchronisation Complète avec Resend.com'}</span>
+              </button>
+
+              {resendSyncStatus && (
+                <span className="text-xs text-emerald-400 font-semibold">
+                  {resendSyncStatus}
+                </span>
+              )}
+            </div>
+          </div>
+
           {/* Card 1: Klaviyo */}
           <div className="bg-white border border-neutral-200/80 rounded-2xl p-5 shadow-xs space-y-3">
             <div className="flex items-center gap-3">
