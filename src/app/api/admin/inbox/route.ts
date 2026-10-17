@@ -112,6 +112,13 @@ export async function GET() {
     const receivedUnreadCount = receivedMessages.filter((m) => m.status === 'unread').length;
     const sentDeliveredCount = sentEmails.filter((m) => m.lastEvent === 'delivered').length;
     const sentBouncedCount = sentEmails.filter((m) => m.lastEvent === 'bounced').length;
+    const sentDelayedCount = sentEmails.filter((m) => m.lastEvent === 'delivery_delayed').length;
+    const sentSuppressedCount = sentEmails.filter((m) => m.lastEvent === 'suppressed').length;
+    const sentCount = sentEmails.filter((m) => m.lastEvent === 'sent').length;
+
+    const totalSent = sentEmails.length;
+    const deliveryRate = totalSent > 0 ? Number(((sentDeliveredCount / totalSent) * 100).toFixed(1)) : 100;
+    const bounceRate = totalSent > 0 ? Number(((sentBouncedCount / totalSent) * 100).toFixed(1)) : 0;
 
     return NextResponse.json({
       success: true,
@@ -121,10 +128,14 @@ export async function GET() {
       contacts: audienceContacts,
       audienceId: RESEND_AUDIENCE_ID,
       stats: {
-        totalSent: sentEmails.length,
+        totalSent,
         delivered: sentDeliveredCount,
         bounced: sentBouncedCount,
-        deliveryRate: sentEmails.length > 0 ? Math.round((sentDeliveredCount / sentEmails.length) * 100) : 100,
+        delayed: sentDelayedCount,
+        suppressed: sentSuppressedCount,
+        sent: sentCount,
+        deliveryRate,
+        bounceRate,
         totalContacts: audienceContacts.length || subscribersCount,
         receivedTotal: receivedMessages.length,
         receivedUnread: receivedUnreadCount,
