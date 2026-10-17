@@ -17,6 +17,7 @@ import {
   Bookmark, 
   Archive, 
   MessageSquare, 
+  Inbox,
   Ticket, 
   BookOpen, 
   UserCheck, 
@@ -115,6 +116,7 @@ const MARKETING_ITEMS: MenuItem[] = [
 ];
 
 const SYSTEM_ITEMS: MenuItem[] = [
+  { href: '/admin/inbox', label: 'Boîte de Réception', icon: <Inbox size={16} />, permission: 'messages.view' },
   { href: '/admin/messages', label: 'Messages Formulaire', icon: <MessageSquare size={16} />, permission: 'messages.view' },
   { href: '/admin/vitrine', label: 'Vitrine Recommandée', icon: <Sparkles size={16} />, permission: 'products.edit' },
   { href: '/admin/system/health', label: 'Santé & Intégrations', icon: <HeartPulse size={16} />, permission: 'settings.view' },

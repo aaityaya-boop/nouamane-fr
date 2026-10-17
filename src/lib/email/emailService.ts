@@ -854,7 +854,7 @@ async function updateSubscriberStatus(
 ) {
   try {
     await prisma.newsletterSubscriber.updateMany({
-      where: { email },
+      where: { email: { equals: email, mode: 'insensitive' } },
       data: {
         welcomeEmailSent: sent,
         welcomeEmailSentAt: sent ? new Date() : null,

@@ -67,13 +67,22 @@ export default function AdminMessages() {
           </p>
         </div>
 
-        <button
-          onClick={fetchMessages}
-          className="flex items-center gap-2 px-3.5 py-2 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors text-xs font-medium text-neutral-800 shadow-2xs cursor-pointer"
-        >
-          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-          <span>Actualiser</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href="/admin/inbox"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-neutral-900 hover:bg-black text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+          >
+            <Mail size={13} />
+            <span>Ouvrir la Boîte de Réception Complète</span>
+          </a>
+          <button
+            onClick={fetchMessages}
+            className="flex items-center gap-2 px-3.5 py-2 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors text-xs font-medium text-neutral-800 shadow-2xs cursor-pointer"
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+            <span>Actualiser</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
