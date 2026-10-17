@@ -1,6 +1,20 @@
 import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
+
+async function getEffectiveResendKey(): Promise<string | null> {
+  if (process.env.RESEND_API_KEY) return process.env.RESEND_API_KEY;
+  try {
+    const config = await prisma.siteConfig.findFirst({
+      select: { resendApiKey: true },
+    });
+    if (config?.resendApiKey) return config.resendApiKey;
+  } catch (e) {
+    console.warn('Could not read SiteConfig resendApiKey:', e);
+  }
+  return null;
+}
 
 export async function GET(
   req: Request,
@@ -8,7 +22,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const resendApiKey = process.env.RESEND_API_KEY;
+    const resendApiKey = await getEffectiveResendKey();
 
     if (!resendApiKey) {
       return NextResponse.json({ error: 'Clé Resend non configurée' }, { status: 500 });

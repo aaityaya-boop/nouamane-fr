@@ -4,16 +4,32 @@ import { dispatchGenericEmail } from '@/lib/email/emailService';
 
 export const dynamic = 'force-dynamic';
 
+const RESEND_AUDIENCE_ID = '69d22517-8e97-4d6f-a423-72f90e106bde';
+const RESEND_DOMAIN_ID = '8d1c3457-c2f3-4f97-81a9-55d939c65b42';
+
+async function getEffectiveResendKey(): Promise<string | null> {
+  if (process.env.RESEND_API_KEY) return process.env.RESEND_API_KEY;
+  try {
+    const config = await prisma.siteConfig.findFirst({
+      select: { resendApiKey: true },
+    });
+    if (config?.resendApiKey) return config.resendApiKey;
+  } catch (e) {
+    console.warn('Could not read SiteConfig resendApiKey:', e);
+  }
+  return null;
+}
+
 function categorizeSubject(subject: string): { type: string; label: string; color: string } {
   const s = (subject || '').toLowerCase();
   if (s.includes('nayday') || s.includes('bienvenue') || s.includes('privilège') || s.includes('-10%')) {
-    return { type: 'WELCOME_NAYDAY', label: 'Offre NAYDAY (-10%)', color: 'sky' };
+    return { type: 'WELCOME_NAYDAY', label: 'NAYDAY (-10%)', color: 'sky' };
   }
   if (s.includes('code de vérification') || s.includes('réinitialisation') || s.includes('sécurité') || s.includes('mot de passe')) {
     return { type: 'SECURITY', label: 'Sécurité & Accès', color: 'amber' };
   }
   if (s.includes('nouvel abonné') || s.includes('nouveau message') || s.includes('alerte direction') || s.includes('notification')) {
-    return { type: 'ADMIN_ALERT', label: 'Alerte Interne', color: 'purple' };
+    return { type: 'ADMIN_ALERT', label: 'Alerte Direction', color: 'purple' };
   }
   if (s.includes('commande') || s.includes('facture') || s.includes('livraison')) {
     return { type: 'ORDER', label: 'Commande & Facture', color: 'emerald' };
@@ -26,27 +42,37 @@ function categorizeSubject(subject: string): { type: string; label: string; colo
 
 export async function GET() {
   try {
-    const resendApiKey = process.env.RESEND_API_KEY;
+    const resendApiKey = await getEffectiveResendKey();
 
-    // 1. Fetch Contact Messages (Inbound)
+    // 1. Inbound Contact Messages from Neon DB
     const receivedMessages = await prisma.contactMessage.findMany({
       orderBy: { createdAt: 'desc' },
     });
 
-    // 2. Fetch Sent Emails (Outbound) from Resend API
+    // 2. Outbound Sent Emails from Resend.com
     let sentEmails: any[] = [];
-    let domainStatus = 'verified';
+    let domainData: any = null;
+    let audienceContacts: any[] = [];
 
     if (resendApiKey) {
       try {
-        const res = await fetch('https://api.resend.com/emails?limit=100', {
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-          },
-          cache: 'no-store',
-        });
-        if (res.ok) {
-          const resData = await res.json();
+        const [emailsRes, domainRes, contactsRes] = await Promise.all([
+          fetch('https://api.resend.com/emails?limit=100', {
+            headers: { Authorization: `Bearer ${resendApiKey}` },
+            cache: 'no-store',
+          }),
+          fetch(`https://api.resend.com/domains/${RESEND_DOMAIN_ID}`, {
+            headers: { Authorization: `Bearer ${resendApiKey}` },
+            cache: 'no-store',
+          }).catch(() => null),
+          fetch(`https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`, {
+            headers: { Authorization: `Bearer ${resendApiKey}` },
+            cache: 'no-store',
+          }).catch(() => null),
+        ]);
+
+        if (emailsRes.ok) {
+          const resData = await emailsRes.json();
           if (Array.isArray(resData.data)) {
             sentEmails = resData.data.map((item: any) => {
               const cat = categorizeSubject(item.subject);
@@ -64,43 +90,44 @@ export async function GET() {
             });
           }
         }
+
+        if (domainRes && domainRes.ok) {
+          domainData = await domainRes.json();
+        }
+
+        if (contactsRes && contactsRes.ok) {
+          const cData = await contactsRes.json();
+          if (Array.isArray(cData.data)) {
+            audienceContacts = cData.data;
+          }
+        }
       } catch (resendErr) {
-        console.warn('Could not fetch sent emails from Resend:', resendErr);
+        console.warn('Could not fetch data from Resend API:', resendErr);
       }
     }
 
-    // 3. Subscribers and Admins info
-    const [subscribersCount, adminUsers] = await Promise.all([
-      prisma.newsletterSubscriber.count(),
-      prisma.adminUser.findMany({
-        where: { status: 'ACTIVE' },
-        select: { id: true, name: true, email: true, role: true },
-      }),
-    ]);
+    // 3. Fallback database subscribers info
+    const subscribersCount = await prisma.newsletterSubscriber.count();
 
-    // Statistics
     const receivedUnreadCount = receivedMessages.filter((m) => m.status === 'unread').length;
     const sentDeliveredCount = sentEmails.filter((m) => m.lastEvent === 'delivered').length;
+    const sentBouncedCount = sentEmails.filter((m) => m.lastEvent === 'bounced').length;
 
     return NextResponse.json({
       success: true,
+      emails: sentEmails,
       received: receivedMessages,
-      sent: sentEmails,
-      proMailInfo: {
-        email: 'contact@nayparfum.ma',
-        domain: 'nayparfum.ma',
-        domainStatus,
-        region: 'eu-west-1 (Europe)',
-        provider: 'Resend API • Domaine nayparfum.ma Authentifié',
-        subscribersCount,
-        adminUsers,
-      },
+      domain: domainData,
+      contacts: audienceContacts,
+      audienceId: RESEND_AUDIENCE_ID,
       stats: {
+        totalSent: sentEmails.length,
+        delivered: sentDeliveredCount,
+        bounced: sentBouncedCount,
+        deliveryRate: sentEmails.length > 0 ? Math.round((sentDeliveredCount / sentEmails.length) * 100) : 100,
+        totalContacts: audienceContacts.length || subscribersCount,
         receivedTotal: receivedMessages.length,
         receivedUnread: receivedUnreadCount,
-        sentTotal: sentEmails.length,
-        sentDelivered: sentDeliveredCount,
-        deliveryRate: sentEmails.length > 0 ? Math.round((sentDeliveredCount / sentEmails.length) * 100) : 100,
       },
     });
   } catch (error: any) {
@@ -127,7 +154,6 @@ export async function POST(req: Request) {
     const cleanTo = to.trim().toLowerCase();
     const cleanSubject = subject.trim();
 
-    // Generate Luxury Branded HTML if only plain message provided
     const formattedHtml =
       html ||
       `<!doctype html>

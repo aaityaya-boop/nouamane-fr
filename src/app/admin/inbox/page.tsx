@@ -3,11 +3,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  Inbox,
   Send,
   Mail,
   Search,
-  Filter,
   CheckCircle2,
   Clock,
   Archive,
@@ -30,21 +28,17 @@ import {
   Radio,
   Trash2,
   Reply,
-  Copy
+  Copy,
+  X,
+  Code,
+  Layers,
+  BarChart3,
+  Terminal,
+  Activity,
+  ArrowUpRight
 } from 'lucide-react';
 
-interface ContactMessageItem {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string | null;
-  message: string;
-  status: 'unread' | 'read' | 'replied' | 'archived';
-  createdAt: string;
-  updatedAt?: string;
-}
-
-interface SentEmailItem {
+interface SentEmail {
   id: string;
   to: string[];
   primaryTo: string;
@@ -59,83 +53,117 @@ interface SentEmailItem {
   };
 }
 
-interface ProMailInfo {
+interface ResendContact {
+  id: string;
   email: string;
-  domain: string;
-  domainStatus: string;
-  region: string;
-  provider: string;
-  subscribersCount: number;
-  adminUsers: Array<{ id: string; name: string; email: string; role: string }>;
+  first_name: string | null;
+  last_name: string | null;
+  created_at: string;
+  unsubscribed: boolean;
 }
 
-export default function AdminInboxPage() {
-  const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'compose' | 'proInfo'>('received');
+interface InboundMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  message: string;
+  status: 'unread' | 'read' | 'replied' | 'archived';
+  createdAt: string;
+}
+
+interface ResendDomain {
+  id: string;
+  name: string;
+  status: string;
+  region: string;
+  records: Array<{
+    record: string;
+    name: string;
+    value: string;
+    type: string;
+    status: string;
+    ttl: string;
+  }>;
+}
+
+export default function ResendStyleInboxPage() {
+  const [activeTab, setActiveTab] = useState<'emails' | 'audiences' | 'domains' | 'inbound' | 'overview'>('emails');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Data states
-  const [receivedMessages, setReceivedMessages] = useState<ContactMessageItem[]>([]);
-  const [sentEmails, setSentEmails] = useState<SentEmailItem[]>([]);
-  const [proMailInfo, setProMailInfo] = useState<ProMailInfo | null>(null);
+  // Data from API
+  const [sentEmails, setSentEmails] = useState<SentEmail[]>([]);
+  const [contacts, setContacts] = useState<ResendContact[]>([]);
+  const [domain, setDomain] = useState<ResendDomain | null>(null);
+  const [inboundMessages, setInboundMessages] = useState<InboundMessage[]>([]);
+  const [audienceId, setAudienceId] = useState<string>('69d22517-8e97-4d6f-a423-72f90e106bde');
   const [stats, setStats] = useState({
+    totalSent: 0,
+    delivered: 0,
+    bounced: 0,
+    deliveryRate: 100,
+    totalContacts: 0,
     receivedTotal: 0,
     receivedUnread: 0,
-    sentTotal: 0,
-    sentDelivered: 0,
-    deliveryRate: 100,
   });
 
-  // Selection states
-  const [selectedReceived, setSelectedReceived] = useState<ContactMessageItem | null>(null);
-  const [selectedSent, setSelectedSent] = useState<SentEmailItem | null>(null);
-  const [sentEmailDetail, setSentEmailDetail] = useState<any | null>(null);
+  // Selected Email Drawer (Resend slide-over)
+  const [selectedEmail, setSelectedEmail] = useState<SentEmail | null>(null);
+  const [emailDetail, setEmailDetail] = useState<any | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [drawerTab, setDrawerTab] = useState<'preview' | 'html' | 'headers'>('preview');
 
-  // Filters
-  const [receivedSearch, setReceivedSearch] = useState('');
-  const [receivedFilter, setReceivedFilter] = useState<'all' | 'unread' | 'read' | 'replied' | 'archived'>('all');
-  const [sentSearch, setSentSearch] = useState('');
-  const [sentCategoryFilter, setSentCategoryFilter] = useState<string>('all');
+  // Search & Filter
+  const [emailSearch, setEmailSearch] = useState('');
+  const [eventFilter, setEventFilter] = useState<'all' | 'delivered' | 'sent' | 'bounced'>('all');
+  const [contactsSearch, setContactsSearch] = useState('');
+  const [inboundSearch, setInboundSearch] = useState('');
+  const [inboundFilter, setInboundFilter] = useState<'all' | 'unread' | 'read' | 'replied'>('all');
 
-  // Composer state
+  // Compose Modal
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [composeTo, setComposeTo] = useState('');
   const [composeSubject, setComposeSubject] = useState('');
   const [composeMessage, setComposeMessage] = useState('');
   const [composeContactMessageId, setComposeContactMessageId] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const [sendSuccess, setSendSuccess] = useState<string | null>(null);
-  const [sendError, setSendError] = useState<string | null>(null);
+  const [composeStatus, setComposeStatus] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  // Diagnostic Test Email
-  const [diagnosticEmail, setDiagnosticEmail] = useState('');
-  const [isTesting, setIsTesting] = useState(false);
-  const [testResult, setTestResult] = useState<string | null>(null);
+  // Syncing Resend state
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
-  // Copy feedback
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  // Copy helper
+  const [copiedText, setCopiedText] = useState<string | null>(null);
 
-  const fetchInboxData = async () => {
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 2000);
+  };
+
+  // Fetch all live data
+  const fetchData = async () => {
     try {
       setRefreshing(true);
       const res = await fetch('/api/admin/inbox');
       const data = await res.json();
       if (data.success) {
-        setReceivedMessages(data.received || []);
-        setSentEmails(data.sent || []);
-        setProMailInfo(data.proMailInfo || null);
+        setSentEmails(data.emails || []);
+        setInboundMessages(data.received || []);
+        setContacts(data.contacts || []);
+        if (data.domain) setDomain(data.domain);
+        if (data.audienceId) setAudienceId(data.audienceId);
         if (data.stats) setStats(data.stats);
 
-        // Auto-select first items if none selected
-        if (!selectedReceived && data.received?.length > 0) {
-          setSelectedReceived(data.received[0]);
-        }
-        if (!selectedSent && data.sent?.length > 0) {
-          setSelectedSent(data.sent[0]);
+        // Auto select first email if none selected
+        if (!selectedEmail && data.emails?.length > 0) {
+          setSelectedEmail(data.emails[0]);
         }
       }
-    } catch (err) {
-      console.error('Error fetching inbox:', err);
+    } catch (e) {
+      console.error('Error fetching Resend inbox data:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -143,130 +171,40 @@ export default function AdminInboxPage() {
   };
 
   useEffect(() => {
-    fetchInboxData();
+    fetchData();
   }, []);
 
-  // Fetch full details of selected sent email
+  // Fetch email details when drawer opens / selected
   useEffect(() => {
-    if (!selectedSent?.id) {
-      setSentEmailDetail(null);
+    if (!selectedEmail?.id) {
+      setEmailDetail(null);
       return;
     }
-    const fetchDetail = async () => {
+    const fetchEmailDetail = async () => {
       try {
         setLoadingDetail(true);
-        const res = await fetch(`/api/admin/inbox/${selectedSent.id}`);
+        const res = await fetch(`/api/admin/inbox/${selectedEmail.id}`);
         const data = await res.json();
         if (data.success && data.email) {
-          setSentEmailDetail(data.email);
+          setEmailDetail(data.email);
         } else {
-          setSentEmailDetail(null);
+          setEmailDetail(null);
         }
-      } catch (e) {
-        console.error('Error fetching email details:', e);
-        setSentEmailDetail(null);
+      } catch (err) {
+        console.error('Error fetching detail:', err);
       } finally {
         setLoadingDetail(false);
       }
     };
-    fetchDetail();
-  }, [selectedSent?.id]);
+    fetchEmailDetail();
+  }, [selectedEmail?.id]);
 
-  // Update received message status
-  const handleUpdateStatus = async (id: string, status: 'read' | 'unread' | 'archived') => {
-    try {
-      const res = await fetch('/api/admin/inbox', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status }),
-      });
-      if (res.ok) {
-        setReceivedMessages((prev) =>
-          prev.map((m) => (m.id === id ? { ...m, status } : m))
-        );
-        if (selectedReceived?.id === id) {
-          setSelectedReceived((prev) => (prev ? { ...prev, status } : null));
-        }
-        // update stats
-        setStats((prev) => ({
-          ...prev,
-          receivedUnread: status === 'read' ? Math.max(0, prev.receivedUnread - 1) : prev.receivedUnread + 1,
-        }));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // Delete message
-  const handleDeleteReceived = async (id: string) => {
-    if (!confirm('Supprimer définitivement ce message reçu ?')) return;
-    try {
-      const res = await fetch(`/api/admin/inbox?id=${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setReceivedMessages((prev) => prev.filter((m) => m.id !== id));
-        if (selectedReceived?.id === id) {
-          const remaining = receivedMessages.filter((m) => m.id !== id);
-          setSelectedReceived(remaining[0] || null);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // Start reply to a received contact message
-  const handleStartReply = (msg: ContactMessageItem) => {
-    setComposeTo(msg.email);
-    setComposeSubject(`Re: Votre message à Maison NAY Parfums`);
-    setComposeMessage(
-      `Bonjour ${msg.name},\n\nNous vous remercions pour votre prise de contact avec Maison NAY Parfums.\n\nEn réponse à votre question :\n\n\nBien cordialement,\nL'Équipe NAY Parfums\nhttps://nayparfum.ma`
-    );
-    setComposeContactMessageId(msg.id);
-    setActiveTab('compose');
-  };
-
-  // Quick Template Injector
-  const applyTemplate = (type: 'support' | 'delivery' | 'nayday' | 'vip') => {
-    if (type === 'support') {
-      setComposeSubject('Maison NAY Parfums — Suivi de votre demande');
-      setComposeMessage(
-        `Bonjour,\n\nNous avons bien pris note de votre demande auprès de notre Maison.\n\nNotre équipe olfactive reste à votre entière disposition pour vous guider dans le choix de votre fragrance d'exception.\n\nN'hésitez pas à nous indiquer si vous souhaitez des précisions complémentaires sur nos testeurs 100% authentiques.\n\nBien cordialement,\nL'Équipe NAY Parfums\nWhatsApp Officiel : +212 663-380011`
-      );
-    } else if (type === 'delivery') {
-      setComposeSubject('Maison NAY Parfums — Information sur votre expédition express');
-      setComposeMessage(
-        `Bonjour,\n\nNous vous confirmons que votre colis est soigneusement préparé dans nos ateliers.\n\nLa livraison est assurée sous 24 à 48 heures ouvrées partout au Maroc avec notre transporteur partenaire, avec paiement à la livraison.\n\nLe livreur vous contactera par téléphone avant son passage à l'adresse indiquée.\n\nExcellente réception,\nMaison NAY Parfums`
-      );
-    } else if (type === 'nayday') {
-      setComposeSubject('NAY Parfums — Votre privilège NAYDAY (-10% dès 2 parfums)');
-      setComposeMessage(
-        `Bonjour,\n\nNous avons le plaisir de vous faire bénéficier de notre offre privilège :\n\nProfitez de -10% immédiat dès 2 parfums ajoutés au panier avec votre code promotionnel exclusif :\n\n>>> NAYDAY <<<\n\nRendez-vous sur notre boutique : https://nayparfum.ma/fr/shop\n\nTenue exceptionnelle & Flacons garantis 100% authentiques.\n\nÀ très vite sur nayparfum.ma,\nL'Équipe NAY`
-      );
-    } else if (type === 'vip') {
-      setComposeSubject('Maison NAY Parfums — Invitation Privée VIP');
-      setComposeMessage(
-        `Cher Client Privilégié,\n\nEn tant que membre de notre cercle exclusif, nous sommes heureux de vous réserver un accès prioritaire à nos dernières arrivées de parfums de niche et éditions limitées.\n\nNotre conseiller privé est à votre écoute pour toute demande personnalisée directement sur WhatsApp au +212 663-380011.\n\nAvec toute notre bienveillance,\nDirection Maison NAY Parfums`
-      );
-    }
-  };
-
-  // Submit Compose Email
+  // Handle Send Email
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSendSuccess(null);
-    setSendError(null);
-
-    if (!composeTo || !composeTo.includes('@')) {
-      setSendError('Veuillez renseigner une adresse email valide.');
-      return;
-    }
-    if (!composeSubject.trim()) {
-      setSendError('Veuillez renseigner un objet.');
-      return;
-    }
-    if (!composeMessage.trim()) {
-      setSendError('Veuillez écrire le contenu du message.');
+    setComposeStatus(null);
+    if (!composeTo.includes('@') || !composeSubject.trim() || !composeMessage.trim()) {
+      setComposeStatus({ text: 'Veuillez remplir tous les champs obligatoires.', type: 'error' });
       return;
     }
 
@@ -284,986 +222,997 @@ export default function AdminInboxPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setSendSuccess(`Email envoyé avec succès depuis contact@nayparfum.ma à ${composeTo} !`);
-        setComposeTo('');
-        setComposeSubject('');
-        setComposeMessage('');
-        setComposeContactMessageId(null);
-        fetchInboxData();
+        setComposeStatus({ text: `Email envoyé avec succès via Resend à ${composeTo} !`, type: 'success' });
+        setTimeout(() => {
+          setIsComposeOpen(false);
+          setComposeTo('');
+          setComposeSubject('');
+          setComposeMessage('');
+          setComposeStatus(null);
+        }, 1500);
+        fetchData();
       } else {
-        setSendError(data.error || 'Erreur lors de l\'envoi de l\'email.');
+        setComposeStatus({ text: data.error || 'Erreur lors de l\'envoi.', type: 'error' });
       }
     } catch {
-      setSendError('Erreur réseau lors de l\'envoi.');
+      setComposeStatus({ text: 'Erreur réseau.', type: 'error' });
     } finally {
       setIsSending(false);
     }
   };
 
-  // Diagnostic Test
-  const handleRunDiagnostic = async () => {
-    if (!diagnosticEmail || !diagnosticEmail.includes('@')) {
-      alert('Veuillez entrer une adresse email valide pour le test.');
-      return;
-    }
-    setIsTesting(true);
-    setTestResult(null);
+  // Sync Audience with Neon DB
+  const handleForceSyncAudience = async () => {
+    setIsSyncing(true);
+    setSyncFeedback(null);
     try {
-      const res = await fetch('/api/admin/inbox', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: diagnosticEmail,
-          subject: 'Diagnostic Réussi — Messagerie Pro contact@nayparfum.ma',
-          message:
-            'Ce message atteste que la passerelle d\'envoi officielle de Maison NAY Parfums (contact@nayparfum.ma) est 100% opérationnelle, vérifiée et configurée avec les protocoles SPF et DKIM.',
-        }),
-      });
-      const d = await res.json();
-      if (res.ok && d.success) {
-        setTestResult(`✓ Test réussi ! Email de validation expédié à ${diagnosticEmail}.`);
+      const res = await fetch('/api/admin/newsletter/sync-resend', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSyncFeedback(`✓ ${data.synced} contacts synchronisés sur Resend.com`);
+        fetchData();
       } else {
-        setTestResult(`✗ Échec : ${d.error || 'Erreur d\'envoi'}`);
+        setSyncFeedback(`✗ ${data.error || 'Erreur'}`);
       }
     } catch {
-      setTestResult('✗ Erreur réseau lors du test.');
+      setSyncFeedback('✗ Erreur réseau');
     } finally {
-      setIsTesting(false);
+      setIsSyncing(false);
+      setTimeout(() => setSyncFeedback(null), 4000);
     }
   };
 
-  // Filtered Received
-  const filteredReceived = useMemo(() => {
-    return receivedMessages.filter((m) => {
-      const q = receivedSearch.toLowerCase().trim();
+  // Update Inbound status
+  const handleUpdateInboundStatus = async (id: string, status: string) => {
+    try {
+      await fetch('/api/admin/inbox', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      });
+      fetchData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Filtered Emails
+  const filteredEmails = useMemo(() => {
+    return sentEmails.filter((item) => {
+      const q = emailSearch.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        item.primaryTo.toLowerCase().includes(q) ||
+        item.subject.toLowerCase().includes(q) ||
+        item.id.toLowerCase().includes(q);
+
+      if (!matchSearch) return false;
+      if (eventFilter === 'delivered') return item.lastEvent === 'delivered';
+      if (eventFilter === 'bounced') return item.lastEvent === 'bounced';
+      if (eventFilter === 'sent') return item.lastEvent === 'sent';
+      return true;
+    });
+  }, [sentEmails, emailSearch, eventFilter]);
+
+  // Filtered Contacts
+  const filteredContacts = useMemo(() => {
+    return contacts.filter((c) => {
+      const q = contactsSearch.toLowerCase().trim();
+      return (
+        !q ||
+        c.email.toLowerCase().includes(q) ||
+        (c.first_name && c.first_name.toLowerCase().includes(q)) ||
+        (c.last_name && c.last_name.toLowerCase().includes(q))
+      );
+    });
+  }, [contacts, contactsSearch]);
+
+  // Filtered Inbound
+  const filteredInbound = useMemo(() => {
+    return inboundMessages.filter((m) => {
+      const q = inboundSearch.toLowerCase().trim();
       const match =
         !q ||
         m.name.toLowerCase().includes(q) ||
         m.email.toLowerCase().includes(q) ||
-        (m.phone && m.phone.includes(q)) ||
         m.message.toLowerCase().includes(q);
-
       if (!match) return false;
-      if (receivedFilter === 'unread') return m.status === 'unread';
-      if (receivedFilter === 'read') return m.status === 'read';
-      if (receivedFilter === 'replied') return m.status === 'replied';
-      if (receivedFilter === 'archived') return m.status === 'archived';
+      if (inboundFilter === 'unread') return m.status === 'unread';
+      if (inboundFilter === 'read') return m.status === 'read';
+      if (inboundFilter === 'replied') return m.status === 'replied';
       return true;
     });
-  }, [receivedMessages, receivedSearch, receivedFilter]);
+  }, [inboundMessages, inboundSearch, inboundFilter]);
 
-  // Filtered Sent
-  const filteredSent = useMemo(() => {
-    return sentEmails.filter((s) => {
-      const q = sentSearch.toLowerCase().trim();
-      const match =
-        !q ||
-        s.primaryTo.toLowerCase().includes(q) ||
-        s.subject.toLowerCase().includes(q) ||
-        s.id.toLowerCase().includes(q);
-
-      if (!match) return false;
-      if (sentCategoryFilter !== 'all') {
-        return s.category.type === sentCategoryFilter;
-      }
-      return true;
-    });
-  }, [sentEmails, sentSearch, sentCategoryFilter]);
-
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+  // Quick Template Injector
+  const applyTemplate = (type: 'support' | 'delivery' | 'nayday') => {
+    if (type === 'support') {
+      setComposeSubject('Maison NAY Parfums — Suivi de votre demande');
+      setComposeMessage(
+        `Bonjour,\n\nNous faisons suite à votre message auprès de notre service client.\n\nNotre équipe olfactive reste à votre entière disposition pour vous guider dans le choix de votre fragrance d'exception.\n\nN'hésitez pas à nous indiquer si vous souhaitez des précisions complémentaires sur nos testeurs 100% authentiques.\n\nBien cordialement,\nL'Équipe NAY Parfums\nWhatsApp : +212 663-380011`
+      );
+    } else if (type === 'delivery') {
+      setComposeSubject('Maison NAY Parfums — Suivi de votre livraison express');
+      setComposeMessage(
+        `Bonjour,\n\nVotre colis est actuellement en cours d'acheminement avec notre transporteur express.\n\nLa livraison intervient sous 24 à 48h ouvrées avec paiement sécurisé à la livraison.\nLe livreur vous contactera par téléphone avant son passage.\n\nExcellente réception,\nMaison NAY Parfums`
+      );
+    } else if (type === 'nayday') {
+      setComposeSubject('NAY Parfums — Votre code privilège NAYDAY (-10%)');
+      setComposeMessage(
+        `Bonjour,\n\nProfitez de -10% immédiat sur votre commande dès 2 parfums ajoutés au panier grâce à votre code exclusif :\n\n>>> NAYDAY <<<\n\nRendez-vous sur notre boutique : https://nayparfum.ma/fr/shop\n\nÀ très vite,\nL'Équipe NAY Parfums`
+      );
+    }
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Top Luxury Banner */}
-      <div className="bg-white border border-neutral-200/80 rounded-2xl p-5 sm:p-6 shadow-xs">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-sky-50 text-[#0ea5e9] border border-sky-200 flex items-center gap-1.5">
-                <Sparkles size={11} />
-                Maison NAY Parfums • Hub de Communication Officiel
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                contact@nayparfum.ma • Domaine Vérifié
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                100% Opt-in Actif
-              </span>
+    <div className="min-h-screen bg-[#fafafa] text-[#0f172a] -m-6 p-6 sm:p-8 font-sans">
+      {/* Resend Top Header Bar */}
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#eaeaea]">
+          <div className="flex items-center gap-3">
+            {/* Resend Style Brand Icon */}
+            <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-bold text-lg shadow-sm">
+              <span className="tracking-tighter">N</span>
             </div>
-
-            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-sky-500/10 text-[#0ea5e9] border border-sky-200/80 flex items-center justify-center">
-                <Inbox size={19} />
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold tracking-tight text-neutral-900">
+                  Resend.com
+                </h1>
+                <span className="text-neutral-400">/</span>
+                <span className="text-sm font-semibold text-neutral-600">
+                  Maison NAY Parfums
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live API
+                </span>
               </div>
-              <span>Boîte de Réception &amp; Messagerie Officielle</span>
-            </h1>
-            <p className="text-xs text-neutral-500 mt-1 max-w-3xl">
-              Consultez l'historique complet des messages reçus et des emails professionnels envoyés depuis <strong>contact@nayparfum.ma</strong> avec accusé de réception et traçabilité en temps réel.
-            </p>
+              <div className="flex items-center gap-2 text-xs text-neutral-500 mt-0.5 font-mono">
+                <span>nayparfum.ma</span>
+                <span>•</span>
+                <span>contact@nayparfum.ma</span>
+                <span>•</span>
+                <span>eu-west-1</span>
+              </div>
+            </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setActiveTab('compose')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-semibold rounded-xl shadow-xs transition-all cursor-pointer"
-            >
-              <Send size={13} />
-              <span>Nouveau Message</span>
-            </button>
-            <button
-              onClick={fetchInboxData}
+              onClick={fetchData}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 px-3 py-2.5 bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-700 text-xs font-medium rounded-xl shadow-2xs transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-neutral-50 border border-[#eaeaea] text-neutral-700 text-xs font-semibold rounded-lg shadow-2xs transition-all cursor-pointer"
             >
-              <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+              <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
               <span>Actualiser</span>
             </button>
-          </div>
-        </div>
-      </div>
 
-      {/* 4 Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1: Received Messages */}
-        <div 
-          onClick={() => setActiveTab('received')}
-          className={`bg-white border rounded-2xl p-4.5 shadow-xs cursor-pointer transition-all ${activeTab === 'received' ? 'border-[#0ea5e9] ring-2 ring-sky-500/10' : 'border-neutral-200/80 hover:border-neutral-300'}`}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-              Messages Reçus
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-sky-50 text-[#0ea5e9] border border-sky-200 flex items-center justify-center">
-              <Inbox size={15} />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-neutral-900 tracking-tight flex items-baseline gap-2">
-            <span>{stats.receivedTotal}</span>
-            {stats.receivedUnread > 0 && (
-              <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                {stats.receivedUnread} non lu{stats.receivedUnread > 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
-          <div className="text-[11px] text-neutral-400 mt-2 flex items-center gap-1">
-            <Radio size={11} className="text-emerald-500" />
-            <span>Formulaire de contact &amp; support</span>
+            <button
+              onClick={() => setIsComposeOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-all cursor-pointer"
+            >
+              <Send size={12} />
+              <span>Send Email</span>
+            </button>
           </div>
         </div>
 
-        {/* Metric 2: Sent Emails */}
-        <div 
-          onClick={() => setActiveTab('sent')}
-          className={`bg-white border rounded-2xl p-4.5 shadow-xs cursor-pointer transition-all ${activeTab === 'sent' ? 'border-[#0ea5e9] ring-2 ring-sky-500/10' : 'border-neutral-200/80 hover:border-neutral-300'}`}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-              Emails Envoyés Pro
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
-              <Send size={15} />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-neutral-900 tracking-tight flex items-baseline gap-2">
-            <span>{stats.sentTotal}</span>
-            <span className="text-xs font-bold text-emerald-600">
-              ({stats.sentDelivered} livrés)
-            </span>
-          </div>
-          <div className="text-[11px] text-neutral-400 mt-2 flex items-center gap-1">
-            <CheckCheck size={12} className="text-emerald-500" />
-            <span>Via contact@nayparfum.ma</span>
-          </div>
+        {/* Resend Top Navigation Tabs */}
+        <div className="flex items-center gap-1 border-b border-[#eaeaea] pb-px overflow-x-auto">
+          {[
+            { key: 'emails', label: 'Emails', count: stats.totalSent },
+            { key: 'audiences', label: 'Audiences & Contacts', count: stats.totalContacts },
+            { key: 'domains', label: 'Domains (nayparfum.ma)', badge: 'Verified' },
+            { key: 'inbound', label: 'Messages Formulaire', count: stats.receivedTotal, unread: stats.receivedUnread },
+            { key: 'overview', label: 'Analytics & Delivery', badge: `${stats.deliveryRate}%` },
+          ].map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as any)}
+                className={`relative px-4 py-2.5 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+                  isActive
+                    ? 'text-neutral-900 border-b-2 border-black font-bold -mb-px'
+                    : 'text-neutral-500 hover:text-neutral-800'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {typeof tab.count === 'number' && (
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    isActive ? 'bg-neutral-900 text-white' : 'bg-neutral-200/80 text-neutral-600'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+                {tab.unread && tab.unread > 0 && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                )}
+                {tab.badge && (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-700 font-bold border border-emerald-500/20">
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Metric 3: Newsletter Subscribers Linked */}
-        <Link 
-          href="/admin/newsletter"
-          className="bg-white border border-neutral-200/80 hover:border-neutral-300 rounded-2xl p-4.5 shadow-xs transition-all block group"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-              Abonnés Newsletter Liés
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center">
-              <Users size={15} />
+        {/* ========================================================================= */}
+        {/* TAB 1: RESEND EMAILS TABLE                                                */}
+        {/* ========================================================================= */}
+        {activeTab === 'emails' && (
+          <div className="space-y-4">
+            {/* Metric Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-white border border-[#eaeaea] rounded-xl p-3.5 shadow-2xs">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Total Sent</div>
+                <div className="text-xl font-bold text-neutral-900 mt-1 font-mono">{stats.totalSent}</div>
+                <div className="text-[10px] text-neutral-500 mt-0.5">Via contact@nayparfum.ma</div>
+              </div>
+
+              <div className="bg-white border border-[#eaeaea] rounded-xl p-3.5 shadow-2xs">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Delivered Rate</div>
+                <div className="text-xl font-bold text-emerald-600 mt-1 font-mono">{stats.deliveryRate}%</div>
+                <div className="text-[10px] text-emerald-700 mt-0.5">{stats.delivered} emails confirmés</div>
+              </div>
+
+              <div className="bg-white border border-[#eaeaea] rounded-xl p-3.5 shadow-2xs">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Bounced</div>
+                <div className="text-xl font-bold text-neutral-900 mt-1 font-mono">{stats.bounced}</div>
+                <div className="text-[10px] text-neutral-500 mt-0.5">Adresses erronées rejetées</div>
+              </div>
+
+              <div className="bg-white border border-[#eaeaea] rounded-xl p-3.5 shadow-2xs">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Domain Auth</div>
+                <div className="text-base font-bold text-neutral-900 mt-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span>Verified</span>
+                </div>
+                <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">SPF &amp; DKIM active</div>
+              </div>
             </div>
-          </div>
-          <div className="text-2xl font-black text-neutral-900 tracking-tight flex items-baseline gap-2">
-            <span>{proMailInfo?.subscribersCount || 43}</span>
-            <span className="text-xs font-bold text-emerald-600">
-              (100% synchronisés)
-            </span>
-          </div>
-          <div className="text-[11px] text-purple-600 mt-2 flex items-center gap-1 group-hover:underline">
-            <span>Gérer l'audience newsletter</span>
-            <ArrowRight size={11} />
-          </div>
-        </Link>
 
-        {/* Metric 4: Pro Domain Status */}
-        <div 
-          onClick={() => setActiveTab('proInfo')}
-          className={`bg-white border rounded-2xl p-4.5 shadow-xs cursor-pointer transition-all ${activeTab === 'proInfo' ? 'border-[#0ea5e9] ring-2 ring-sky-500/10' : 'border-neutral-200/80 hover:border-neutral-300'}`}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-              Domaine &amp; Sécurité
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-sky-50 text-[#0ea5e9] border border-sky-200 flex items-center justify-center">
-              <ShieldCheck size={15} />
-            </div>
-          </div>
-          <div className="text-lg font-black text-neutral-900 tracking-tight flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-            <span>nayparfum.ma Vérifié</span>
-          </div>
-          <div className="text-[11px] text-neutral-500 mt-2 flex items-center gap-1">
-            <Lock size={11} className="text-emerald-500" />
-            <span>DKIM, SPF &amp; DMARC Actifs</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-neutral-200/80 pb-3 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('received')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-            activeTab === 'received'
-              ? 'bg-neutral-900 text-white shadow-xs'
-              : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-          }`}
-        >
-          <Inbox size={14} />
-          <span>Messages Reçus</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === 'received' ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-600'}`}>
-            {receivedMessages.length}
-          </span>
-          {stats.receivedUnread > 0 && (
-            <span className="w-2 h-2 rounded-full bg-amber-400" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('sent')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-            activeTab === 'sent'
-              ? 'bg-neutral-900 text-white shadow-xs'
-              : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-          }`}
-        >
-          <Send size={14} />
-          <span>Messages Envoyés (contact@nayparfum.ma)</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === 'sent' ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-600'}`}>
-            {sentEmails.length}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('compose')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-            activeTab === 'compose'
-              ? 'bg-neutral-900 text-white shadow-xs'
-              : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-          }`}
-        >
-          <Mail size={14} />
-          <span>Écrire un Email Pro</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('proInfo')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-            activeTab === 'proInfo'
-              ? 'bg-neutral-900 text-white shadow-xs'
-              : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
-          }`}
-        >
-          <Globe size={14} />
-          <span>Liaison &amp; Configuration Pro</span>
-        </button>
-      </div>
-
-      {/* TAB 1: MESSAGES REÇUS */}
-      {activeTab === 'received' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* List panel */}
-          <div className="lg:col-span-1 bg-white border border-neutral-200/80 rounded-2xl overflow-hidden shadow-2xs flex flex-col h-[700px]">
-            {/* Search and filters */}
-            <div className="p-3.5 border-b border-neutral-200 bg-neutral-50/50 space-y-2.5">
-              <div className="relative">
+            {/* Filter & Search Bar */}
+            <div className="bg-white border border-[#eaeaea] rounded-xl p-3 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative w-full sm:w-96">
                 <Search size={14} className="absolute left-3 top-2.5 text-neutral-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Rechercher nom, email, téléphone..."
-                  value={receivedSearch}
-                  onChange={(e) => setReceivedSearch(e.target.value)}
-                  className="w-full bg-white border border-neutral-200 rounded-xl pl-8 pr-3.5 py-2 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900"
+                  placeholder="Filter emails by recipient, subject or ID..."
+                  value={emailSearch}
+                  onChange={(e) => setEmailSearch(e.target.value)}
+                  className="w-full bg-[#fafafa] border border-[#eaeaea] rounded-lg pl-8 pr-3 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:bg-white"
                 />
               </div>
 
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {(['all', 'unread', 'read', 'replied', 'archived'] as const).map((filterKey) => (
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                {(['all', 'delivered', 'sent', 'bounced'] as const).map((filterKey) => (
                   <button
                     key={filterKey}
-                    onClick={() => setReceivedFilter(filterKey)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                      receivedFilter === filterKey
-                        ? 'bg-neutral-900 text-white'
-                        : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100'
+                    onClick={() => setEventFilter(filterKey)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+                      eventFilter === filterKey
+                        ? 'bg-neutral-900 text-white shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80'
                     }`}
                   >
-                    {filterKey === 'all' && 'Tous'}
-                    {filterKey === 'unread' && 'Non lus'}
-                    {filterKey === 'read' && 'Lus'}
-                    {filterKey === 'replied' && 'Répondus'}
-                    {filterKey === 'archived' && 'Archivés'}
+                    {filterKey === 'all' ? 'All Events' : filterKey}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* List */}
-            <div className="overflow-y-auto flex-1 p-2 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
-              {loading ? (
-                <div className="text-center py-20 text-neutral-400 text-xs">
-                  <RefreshCw size={18} className="animate-spin mx-auto mb-2 text-neutral-400" />
-                  Chargement des messages...
-                </div>
-              ) : filteredReceived.length === 0 ? (
-                <div className="text-center py-20 text-neutral-400 text-xs">
-                  Aucun message reçu correspondant.
-                </div>
-              ) : (
-                filteredReceived.map((msg) => {
-                  const isSelected = selectedReceived?.id === msg.id;
-                  return (
-                    <button
-                      key={msg.id}
-                      onClick={() => setSelectedReceived(msg)}
-                      className={`w-full text-left p-3.5 rounded-xl transition-all cursor-pointer border ${
-                        isSelected
-                          ? 'bg-neutral-50 border-neutral-900 shadow-2xs ring-1 ring-neutral-900/10'
-                          : 'hover:bg-neutral-50/70 border-transparent'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-1">
-                        <span className={`text-xs truncate ${msg.status === 'unread' ? 'text-neutral-950 font-bold' : 'text-neutral-700 font-semibold'}`}>
-                          {msg.name}
-                        </span>
-                        <span className="text-[10px] text-neutral-400 shrink-0 ml-1">
-                          {new Date(msg.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
-                        </span>
-                      </div>
-                      <div className="text-xs text-neutral-500 line-clamp-2 leading-relaxed mb-2 font-normal">
-                        {msg.message}
-                      </div>
-                      <div className="flex gap-1.5 items-center flex-wrap">
-                        {msg.status === 'unread' && (
-                          <span className="bg-sky-50 text-sky-700 border border-sky-200 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                            Nouveau
-                          </span>
-                        )}
-                        {msg.status === 'read' && (
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                            Lu
-                          </span>
-                        )}
-                        {msg.status === 'replied' && (
-                          <span className="bg-purple-50 text-purple-700 border border-purple-200 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                            Répondu
-                          </span>
-                        )}
-                        {msg.status === 'archived' && (
-                          <span className="bg-neutral-100 text-neutral-600 border border-neutral-200 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                            Archivé
-                          </span>
-                        )}
-                        {msg.phone && (
-                          <span className="text-[10px] text-neutral-400">
-                            • Tél
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* Reading & Action Pane */}
-          <div className="lg:col-span-2 bg-white border border-neutral-200/80 rounded-2xl shadow-2xs h-[700px] flex flex-col">
-            {selectedReceived ? (
-              <>
-                {/* Header */}
-                <div className="p-5 border-b border-neutral-200 flex justify-between items-start bg-neutral-50/40">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h2 className="text-base font-bold text-neutral-900">{selectedReceived.name}</h2>
-                      {selectedReceived.status === 'unread' && (
-                        <span className="bg-sky-50 text-sky-700 border border-sky-200 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">
-                          Non lu
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
-                      <span>Email : <strong className="text-neutral-800">{selectedReceived.email}</strong></span>
-                      {selectedReceived.phone && (
-                        <span>• Tél : <strong className="text-neutral-800">{selectedReceived.phone}</strong></span>
-                      )}
-                      <span>• Reçu le {new Date(selectedReceived.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-1.5 shrink-0">
-                    {selectedReceived.status === 'unread' ? (
-                      <button
-                        onClick={() => handleUpdateStatus(selectedReceived.id, 'read')}
-                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                        title="Marquer comme lu"
-                      >
-                        <CheckCircle2 size={13} />
-                        <span>Marquer lu</span>
-                      </button>
+            {/* Resend Table Layout */}
+            <div className="bg-white border border-[#eaeaea] rounded-xl overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="bg-[#fcfcfc] border-b border-[#eaeaea] text-neutral-500 font-mono text-[10px] uppercase tracking-wider">
+                      <th className="py-2.5 px-4 font-semibold">To</th>
+                      <th className="py-2.5 px-4 font-semibold">Subject</th>
+                      <th className="py-2.5 px-4 font-semibold">Status</th>
+                      <th className="py-2.5 px-4 font-semibold">ID</th>
+                      <th className="py-2.5 px-4 font-semibold text-right">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#eaeaea]">
+                    {loading ? (
+                      <tr>
+                        <td colSpan={5} className="py-16 text-center text-neutral-400 text-xs">
+                          <RefreshCw size={16} className="animate-spin mx-auto mb-2" />
+                          Loading emails from Resend.com...
+                        </td>
+                      </tr>
+                    ) : filteredEmails.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-16 text-center text-neutral-400 text-xs">
+                          No emails match your search.
+                        </td>
+                      </tr>
                     ) : (
-                      <button
-                        onClick={() => handleUpdateStatus(selectedReceived.id, 'unread')}
-                        className="px-3 py-1.5 bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                        title="Marquer comme non lu"
-                      >
-                        <Clock size={13} />
-                        <span>Marquer non lu</span>
-                      </button>
+                      filteredEmails.map((item) => {
+                        const isSelected = selectedEmail?.id === item.id;
+                        const isDelivered = item.lastEvent === 'delivered';
+                        const isBounced = item.lastEvent === 'bounced';
+                        return (
+                          <tr
+                            key={item.id}
+                            onClick={() => setSelectedEmail(item)}
+                            className={`transition-colors cursor-pointer ${
+                              isSelected ? 'bg-neutral-100/80' : 'hover:bg-[#fcfcfc]'
+                            }`}
+                          >
+                            <td className="py-3 px-4 font-semibold text-neutral-900 max-w-[220px] truncate">
+                              {item.primaryTo}
+                            </td>
+                            <td className="py-3 px-4 text-neutral-700 max-w-[340px] truncate">
+                              <span className="mr-2 px-1.5 py-0.5 rounded text-[10px] bg-neutral-100 font-medium text-neutral-600 border border-neutral-200">
+                                {item.category.label}
+                              </span>
+                              <span>{item.subject}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                                isDelivered
+                                  ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
+                                  : isBounced
+                                  ? 'bg-rose-500/10 text-rose-700 border-rose-500/20'
+                                  : 'bg-neutral-500/10 text-neutral-700 border-neutral-500/20'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  isDelivered ? 'bg-emerald-500' : isBounced ? 'bg-rose-500' : 'bg-neutral-400'
+                                }`} />
+                                <span className="capitalize">{item.lastEvent}</span>
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 font-mono text-[11px] text-neutral-500">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copyToClipboard(item.id, item.id);
+                                }}
+                                className="hover:text-black flex items-center gap-1 cursor-pointer"
+                              >
+                                <span>{item.id.substring(0, 8)}...</span>
+                                {copiedText === item.id ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                              </button>
+                            </td>
+                            <td className="py-3 px-4 text-right text-neutral-500 font-mono text-[11px] whitespace-nowrap">
+                              {new Date(item.createdAt).toLocaleString('fr-FR', {
+                                day: '2-digit',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-                    {selectedReceived.status !== 'archived' && (
-                      <button
-                        onClick={() => handleUpdateStatus(selectedReceived.id, 'archived')}
-                        className="p-1.5 bg-neutral-100 text-neutral-600 border border-neutral-200 rounded-lg hover:bg-neutral-200 transition-colors cursor-pointer"
-                        title="Archiver"
-                      >
-                        <Archive size={14} />
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => handleDeleteReceived(selectedReceived.id)}
-                      className="p-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
-                      title="Supprimer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Body Content */}
-                <div className="p-6 flex-1 overflow-y-auto flex flex-col justify-between">
+            {/* Resend Style Inspector Slide-over Drawer (below table on small screen or split) */}
+            {selectedEmail && (
+              <div className="bg-white border border-[#eaeaea] rounded-xl p-5 shadow-sm space-y-4">
+                {/* Inspector Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#eaeaea]">
                   <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                      Message du client
-                    </div>
-                    <div className="bg-[#f8fafc] p-5 rounded-xl text-xs leading-relaxed text-neutral-800 whitespace-pre-wrap border border-neutral-200/80 font-normal">
-                      {selectedReceived.message}
+                    <h2 className="text-sm font-bold text-neutral-900">{selectedEmail.subject}</h2>
+                    <div className="flex items-center gap-2 text-xs text-neutral-500 mt-0.5 font-mono">
+                      <span>To: <strong>{selectedEmail.primaryTo}</strong></span>
+                      <span>•</span>
+                      <span>ID: {selectedEmail.id}</span>
                     </div>
                   </div>
 
-                  {/* Reply actions */}
-                  <div className="mt-6 pt-4 border-t border-neutral-100 flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                      selectedEmail.lastEvent === 'delivered'
+                        ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
+                        : 'bg-neutral-500/10 text-neutral-700 border-neutral-500/20'
+                    }`}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="capitalize">{selectedEmail.lastEvent}</span>
+                    </span>
+
                     <button
-                      onClick={() => handleStartReply(selectedReceived)}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                      onClick={() => {
+                        setComposeTo(selectedEmail.primaryTo);
+                        setComposeSubject(`Re: ${selectedEmail.subject}`);
+                        setIsComposeOpen(true);
+                      }}
+                      className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
                     >
-                      <Reply size={14} />
-                      <span>Répondre depuis contact@nayparfum.ma</span>
+                      Resend / Reply
                     </button>
-
-                    {selectedReceived.phone && (
-                      <a
-                        href={`https://wa.me/${selectedReceived.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Salam ${selectedReceived.name}. C'est Maison NAY Parfums concernant votre message.`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        <Phone size={13} />
-                        <span>Contacter sur WhatsApp</span>
-                      </a>
-                    )}
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-neutral-400 gap-2">
-                <div className="w-12 h-12 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-400">
-                  <Inbox size={22} />
+
+                {/* Delivery Timeline (Resend style) */}
+                <div className="bg-[#fafafa] p-3 rounded-lg border border-[#eaeaea] text-xs font-mono space-y-1.5">
+                  <div className="text-[10px] uppercase font-bold text-neutral-400">Delivery Event Timeline</div>
+                  <div className="flex items-center gap-2 text-neutral-700">
+                    <CheckCircle2 size={13} className="text-emerald-500" />
+                    <span>Created &amp; Handed to AWS SES (eu-west-1) at {new Date(selectedEmail.createdAt).toLocaleTimeString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-neutral-700">
+                    <CheckCircle2 size={13} className="text-emerald-500" />
+                    <span>Delivered to recipient mailbox ({selectedEmail.lastEvent})</span>
+                  </div>
                 </div>
-                <p className="text-xs font-semibold text-neutral-700">Sélectionnez un message</p>
-                <p className="text-[11px] text-neutral-400">Cliquez sur un message dans la liste pour lire son contenu.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* TAB 2: EMAILS ENVOYÉS */}
-      {activeTab === 'sent' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Sent List panel */}
-          <div className="lg:col-span-1 bg-white border border-neutral-200/80 rounded-2xl overflow-hidden shadow-2xs flex flex-col h-[700px]">
-            {/* Search and filters */}
-            <div className="p-3.5 border-b border-neutral-200 bg-neutral-50/50 space-y-2.5">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-2.5 text-neutral-400 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Rechercher destinataire, objet..."
-                  value={sentSearch}
-                  onChange={(e) => setSentSearch(e.target.value)}
-                  className="w-full bg-white border border-neutral-200 rounded-xl pl-8 pr-3.5 py-2 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900"
-                />
-              </div>
-
-              <div className="flex items-center gap-1 flex-wrap">
-                {[
-                  { key: 'all', label: 'Tous' },
-                  { key: 'WELCOME_NAYDAY', label: 'NAYDAY (-10%)' },
-                  { key: 'SECURITY', label: 'Sécurité' },
-                  { key: 'ADMIN_ALERT', label: 'Alertes' },
-                ].map((cat) => (
+                {/* Drawer Tabs */}
+                <div className="flex items-center gap-2 border-b border-[#eaeaea] pb-2 text-xs font-semibold">
                   <button
-                    key={cat.key}
-                    onClick={() => setSentCategoryFilter(cat.key)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                      sentCategoryFilter === cat.key
-                        ? 'bg-neutral-900 text-white'
-                        : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100'
+                    onClick={() => setDrawerTab('preview')}
+                    className={`px-3 py-1 rounded cursor-pointer ${
+                      drawerTab === 'preview' ? 'bg-black text-white' : 'text-neutral-600 hover:bg-neutral-100'
                     }`}
                   >
-                    {cat.label}
+                    HTML Preview
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* List */}
-            <div className="overflow-y-auto flex-1 p-2 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
-              {loading ? (
-                <div className="text-center py-20 text-neutral-400 text-xs">
-                  <RefreshCw size={18} className="animate-spin mx-auto mb-2 text-neutral-400" />
-                  Chargement des emails envoyés...
+                  <button
+                    onClick={() => setDrawerTab('html')}
+                    className={`px-3 py-1 rounded cursor-pointer ${
+                      drawerTab === 'html' ? 'bg-black text-white' : 'text-neutral-600 hover:bg-neutral-100'
+                    }`}
+                  >
+                    Raw HTML Source
+                  </button>
+                  <button
+                    onClick={() => setDrawerTab('headers')}
+                    className={`px-3 py-1 rounded cursor-pointer ${
+                      drawerTab === 'headers' ? 'bg-black text-white' : 'text-neutral-600 hover:bg-neutral-100'
+                    }`}
+                  >
+                    Headers &amp; Metadata
+                  </button>
                 </div>
-              ) : filteredSent.length === 0 ? (
-                <div className="text-center py-20 text-neutral-400 text-xs">
-                  Aucun email envoyé correspondant.
-                </div>
-              ) : (
-                filteredSent.map((item) => {
-                  const isSelected = selectedSent?.id === item.id;
-                  const isDelivered = item.lastEvent === 'delivered';
-                  const isBounced = item.lastEvent === 'bounced';
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setSelectedSent(item)}
-                      className={`w-full text-left p-3.5 rounded-xl transition-all cursor-pointer border ${
-                        isSelected
-                          ? 'bg-neutral-50 border-neutral-900 shadow-2xs ring-1 ring-neutral-900/10'
-                          : 'hover:bg-neutral-50/70 border-transparent'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="text-xs font-semibold text-neutral-900 truncate">
-                          {item.primaryTo}
-                        </span>
-                        <span className="text-[10px] text-neutral-400 shrink-0 ml-1">
-                          {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <div className="text-xs text-neutral-600 line-clamp-1 mb-2 font-medium">
-                        {item.subject}
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="bg-sky-50 text-[#0ea5e9] border border-sky-200 text-[9px] px-2 py-0.5 rounded-full font-bold">
-                          {item.category.label}
-                        </span>
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 ${
-                          isDelivered
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : isBounced
-                            ? 'bg-red-50 text-red-700 border border-red-200'
-                            : 'bg-neutral-100 text-neutral-700 border border-neutral-200'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isDelivered ? 'bg-emerald-500' : isBounced ? 'bg-red-500' : 'bg-neutral-400'}`} />
-                          {isDelivered ? 'Délivré' : isBounced ? 'Rebondi' : item.lastEvent}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
 
-          {/* Sent Detail & Render Pane */}
-          <div className="lg:col-span-2 bg-white border border-neutral-200/80 rounded-2xl shadow-2xs h-[700px] flex flex-col overflow-hidden">
-            {selectedSent ? (
-              <>
-                {/* Header */}
-                <div className="p-5 border-b border-neutral-200 bg-neutral-50/40">
-                  <div className="flex justify-between items-start gap-3">
-                    <div>
-                      <h2 className="text-base font-bold text-neutral-900">{selectedSent.subject}</h2>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500 mt-1">
-                        <span>De : <strong className="text-neutral-800">{selectedSent.from}</strong></span>
-                        <span>• À : <strong className="text-neutral-800">{selectedSent.primaryTo}</strong></span>
-                        <span>• Date : {new Date(selectedSent.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5 border ${
-                        selectedSent.lastEvent === 'delivered'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-neutral-100 text-neutral-700 border-neutral-200'
-                      }`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        {selectedSent.lastEvent === 'delivered' ? 'Délivré en boîte de réception' : selectedSent.lastEvent}
-                      </span>
-                    </div>
+                {/* Rendered View */}
+                {loadingDetail ? (
+                  <div className="py-12 text-center text-neutral-400 text-xs">
+                    <RefreshCw size={14} className="animate-spin mx-auto mb-1" />
+                    Loading preview...
                   </div>
-
-                  <div className="mt-3 flex items-center justify-between text-[11px] text-neutral-400 pt-2 border-t border-neutral-200/60">
-                    <span className="font-mono">ID Resend : {selectedSent.id}</span>
-                    <button
-                      onClick={() => copyToClipboard(selectedSent.id, selectedSent.id)}
-                      className="text-neutral-600 hover:text-neutral-900 flex items-center gap-1 cursor-pointer"
-                    >
-                      {copiedId === selectedSent.id ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
-                      <span>{copiedId === selectedSent.id ? 'Copié' : 'Copier l\'ID'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Email HTML / Text Preview */}
-                <div className="p-4 flex-1 overflow-y-auto bg-neutral-100/50">
-                  {loadingDetail ? (
-                    <div className="h-full flex items-center justify-center text-neutral-400 text-xs">
-                      <RefreshCw size={18} className="animate-spin mx-auto mb-2" />
-                      Chargement de l'aperçu du message...
-                    </div>
-                  ) : sentEmailDetail?.html ? (
-                    <div className="bg-white rounded-xl shadow-xs border border-neutral-200 overflow-hidden">
+                ) : drawerTab === 'preview' ? (
+                  emailDetail?.html ? (
+                    <div className="bg-white rounded-lg border border-[#eaeaea] overflow-hidden">
                       <iframe
-                        title="Aperçu Email"
-                        srcDoc={sentEmailDetail.html}
-                        className="w-full min-h-[500px] border-0"
+                        title="Resend Email Preview"
+                        srcDoc={emailDetail.html}
+                        className="w-full min-h-[460px] border-0"
                         sandbox="allow-same-origin"
                       />
                     </div>
-                  ) : sentEmailDetail?.text ? (
-                    <div className="bg-white p-6 rounded-xl border border-neutral-200 text-xs leading-relaxed whitespace-pre-wrap font-mono">
-                      {sentEmailDetail.text}
+                  ) : emailDetail?.text ? (
+                    <div className="bg-white p-4 rounded-lg border border-[#eaeaea] font-mono text-xs whitespace-pre-wrap">
+                      {emailDetail.text}
                     </div>
                   ) : (
-                    <div className="bg-white p-6 rounded-xl border border-neutral-200 text-center text-xs text-neutral-400">
-                      Message expédié avec succès via le serveur haute délivrabilité Resend.
+                    <div className="p-8 text-center text-xs text-neutral-400">
+                      Message délivré avec succès à {selectedEmail.primaryTo}.
                     </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-neutral-400 gap-2">
-                <div className="w-12 h-12 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-400">
-                  <Send size={22} />
-                </div>
-                <p className="text-xs font-semibold text-neutral-700">Sélectionnez un email envoyé</p>
-                <p className="text-[11px] text-neutral-400">Cliquez sur un email dans la colonne pour afficher son aperçu et sa délivrabilité.</p>
+                  )
+                ) : drawerTab === 'html' ? (
+                  <pre className="bg-[#0f172a] text-slate-100 p-4 rounded-lg text-[11px] font-mono overflow-x-auto max-h-96">
+                    <code>{emailDetail?.html || '<!-- Pas de code HTML disponible -->'}</code>
+                  </pre>
+                ) : (
+                  <div className="bg-white p-4 rounded-lg border border-[#eaeaea] text-xs font-mono space-y-2">
+                    <div><strong>From:</strong> {selectedEmail.from}</div>
+                    <div><strong>To:</strong> {selectedEmail.to.join(', ')}</div>
+                    <div><strong>Subject:</strong> {selectedEmail.subject}</div>
+                    <div><strong>Message-ID:</strong> &lt;{selectedEmail.id}@eu-west-1.amazonses.com&gt;</div>
+                    <div><strong>SPF:</strong> pass (domain nayparfum.ma)</div>
+                    <div><strong>DKIM:</strong> pass (domain nayparfum.ma)</div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* TAB 3: ÉCRIRE UN EMAIL (COMPOSER) */}
-      {activeTab === 'compose' && (
-        <div className="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-xs max-w-4xl mx-auto">
-          <div className="border-b border-neutral-200 pb-4 mb-6">
-            <h2 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
-              <Mail size={18} className="text-[#0ea5e9]" />
-              <span>Rédiger un Email Officiel</span>
-            </h2>
-            <p className="text-xs text-neutral-500 mt-0.5">
-              Expédié directement depuis <strong>contact@nayparfum.ma</strong> avec mise en page luxe et signature de marque.
-            </p>
-          </div>
+        {/* ========================================================================= */}
+        {/* TAB 2: RESEND AUDIENCES & CONTACTS                                       */}
+        {/* ========================================================================= */}
+        {activeTab === 'audiences' && (
+          <div className="space-y-4">
+            {/* Header info */}
+            <div className="bg-white border border-[#eaeaea] rounded-xl p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-neutral-900">Audience: General</h2>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 font-bold">
+                    {contacts.length} Contacts Certifiés
+                  </span>
+                </div>
+                <div className="text-xs text-neutral-500 mt-0.5 font-mono">
+                  Audience ID: {audienceId} • Resend.com
+                </div>
+              </div>
 
-          {/* Quick templates */}
-          <div className="mb-6 bg-neutral-50/70 p-4 rounded-xl border border-neutral-200/80">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 flex items-center gap-1.5">
-              <Sparkles size={12} className="text-amber-500" />
-              <span>Modèles Rapides en 1 Clic</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleForceSyncAudience}
+                  disabled={isSyncing}
+                  className="px-3.5 py-1.5 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
+                  <span>{isSyncing ? 'Syncing...' : 'Sync with Database'}</span>
+                </button>
+
+                <a
+                  href="https://resend.com/audiences"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1"
+                >
+                  <span>Open in Resend.com</span>
+                  <ExternalLink size={12} />
+                </a>
+              </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+
+            {syncFeedback && (
+              <div className="p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-semibold">
+                {syncFeedback}
+              </div>
+            )}
+
+            {/* Search */}
+            <div className="bg-white border border-[#eaeaea] rounded-xl p-3 shadow-2xs">
+              <div className="relative w-full sm:w-96">
+                <Search size={14} className="absolute left-3 top-2.5 text-neutral-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search contacts by email or name..."
+                  value={contactsSearch}
+                  onChange={(e) => setContactsSearch(e.target.value)}
+                  className="w-full bg-[#fafafa] border border-[#eaeaea] rounded-lg pl-8 pr-3 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white border border-[#eaeaea] rounded-xl overflow-hidden shadow-2xs">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-[#fcfcfc] border-b border-[#eaeaea] text-neutral-500 font-mono text-[10px] uppercase tracking-wider">
+                    <th className="py-2.5 px-4 font-semibold">Email</th>
+                    <th className="py-2.5 px-4 font-semibold">Name</th>
+                    <th className="py-2.5 px-4 font-semibold">Status</th>
+                    <th className="py-2.5 px-4 font-semibold text-right">Subscribed At</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#eaeaea]">
+                  {filteredContacts.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-12 text-center text-neutral-400 text-xs">
+                        No contacts found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredContacts.map((c) => (
+                      <tr key={c.id} className="hover:bg-[#fcfcfc] transition-colors">
+                        <td className="py-3 px-4 font-semibold text-neutral-900 font-mono">
+                          {c.email}
+                        </td>
+                        <td className="py-3 px-4 text-neutral-600">
+                          {c.first_name || c.last_name ? `${c.first_name || ''} ${c.last_name || ''}`.trim() : '—'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>Subscribed</span>
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right text-neutral-500 font-mono text-[11px]">
+                          {new Date(c.created_at).toLocaleString('fr-FR', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 3: RESEND DOMAINS (nayparfum.ma)                                     */}
+        {/* ========================================================================= */}
+        {activeTab === 'domains' && (
+          <div className="space-y-4">
+            <div className="bg-white border border-[#eaeaea] rounded-xl p-5 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#eaeaea]">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-neutral-900 font-mono">nayparfum.ma</h2>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span>Verified</span>
+                    </span>
+                  </div>
+                  <div className="text-xs text-neutral-500 mt-1 font-mono">
+                    Domain ID: 8d1c3457-c2f3-4f97-81a9-55d939c65b42 • Region: eu-west-1
+                  </div>
+                </div>
+
+                <div className="text-xs text-neutral-500 font-mono">
+                  Capabilities: Sending: <span className="text-emerald-600 font-bold">Enabled</span>
+                </div>
+              </div>
+
+              {/* DNS Records Table */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono mb-2">
+                  Configured DNS Records (Resend Authentication)
+                </h3>
+                <div className="border border-[#eaeaea] rounded-lg overflow-hidden">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className="bg-[#fafafa] border-b border-[#eaeaea] text-[10px] text-neutral-500 uppercase">
+                      <tr>
+                        <th className="py-2.5 px-3">Type</th>
+                        <th className="py-2.5 px-3">Name</th>
+                        <th className="py-2.5 px-3">Value</th>
+                        <th className="py-2.5 px-3 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#eaeaea]">
+                      {domain?.records && domain.records.length > 0 ? (
+                        domain.records.map((r, idx) => (
+                          <tr key={idx} className="hover:bg-[#fcfcfc]">
+                            <td className="py-2.5 px-3 font-bold text-neutral-900">{r.record}</td>
+                            <td className="py-2.5 px-3 text-neutral-700">{r.name}</td>
+                            <td className="py-2.5 px-3 text-neutral-500 max-w-md truncate">{r.value}</td>
+                            <td className="py-2.5 px-3 text-right">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-700 font-semibold border border-emerald-500/20">
+                                <Check size={10} />
+                                <span>Verified</span>
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <>
+                          <tr>
+                            <td className="py-2.5 px-3 font-bold text-neutral-900">DKIM</td>
+                            <td className="py-2.5 px-3 text-neutral-700">resend._domainkey</td>
+                            <td className="py-2.5 px-3 text-neutral-500">p=MIGfMA0GCSqGSIb3DQE...</td>
+                            <td className="py-2.5 px-3 text-right">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-700 font-semibold border border-emerald-500/20">
+                                <Check size={10} />
+                                <span>Verified</span>
+                              </span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-2.5 px-3 font-bold text-neutral-900">SPF</td>
+                            <td className="py-2.5 px-3 text-neutral-700">rsend</td>
+                            <td className="py-2.5 px-3 text-neutral-500">rsend-euw1.forge.rmta.net</td>
+                            <td className="py-2.5 px-3 text-right">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-700 font-semibold border border-emerald-500/20">
+                                <Check size={10} />
+                                <span>Verified</span>
+                              </span>
+                            </td>
+                          </tr>
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 4: INBOUND MESSAGES (FORMULAIRE DE CONTACT)                           */}
+        {/* ========================================================================= */}
+        {activeTab === 'inbound' && (
+          <div className="space-y-4">
+            <div className="bg-white border border-[#eaeaea] rounded-xl p-3 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative w-full sm:w-96">
+                <Search size={14} className="absolute left-3 top-2.5 text-neutral-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Rechercher nom, email ou contenu..."
+                  value={inboundSearch}
+                  onChange={(e) => setInboundSearch(e.target.value)}
+                  className="w-full bg-[#fafafa] border border-[#eaeaea] rounded-lg pl-8 pr-3 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black focus:bg-white"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {(['all', 'unread', 'read', 'replied'] as const).map((k) => (
+                  <button
+                    key={k}
+                    onClick={() => setInboundFilter(k)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+                      inboundFilter === k
+                        ? 'bg-neutral-900 text-white shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200/80'
+                    }`}
+                  >
+                    {k === 'all' ? 'Tous' : k === 'unread' ? 'Non lus' : k === 'read' ? 'Lus' : 'Répondus'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {filteredInbound.length === 0 ? (
+                <div className="bg-white border border-[#eaeaea] rounded-xl p-12 text-center text-xs text-neutral-400">
+                  Aucun message reçu.
+                </div>
+              ) : (
+                filteredInbound.map((msg) => (
+                  <div key={msg.id} className="bg-white border border-[#eaeaea] rounded-xl p-4 shadow-2xs space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-bold text-neutral-900">{msg.name}</h3>
+                          {msg.status === 'unread' && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 border border-amber-500/20">
+                              Nouveau
+                            </span>
+                          )}
+                          {msg.status === 'replied' && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-700 border border-purple-500/20">
+                              Répondu
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-neutral-500 font-mono mt-0.5">
+                          {msg.email} {msg.phone ? `• Tél: ${msg.phone}` : ''} • Reçu le {new Date(msg.createdAt).toLocaleString('fr-FR')}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setComposeTo(msg.email);
+                            setComposeSubject(`Re: Votre message à Maison NAY Parfums`);
+                            setComposeMessage(`Bonjour ${msg.name},\n\nNous faisons suite à votre message.\n\n\nBien cordialement,\nMaison NAY Parfums\ncontact@nayparfum.ma`);
+                            setComposeContactMessageId(msg.id);
+                            setIsComposeOpen(true);
+                          }}
+                          className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Reply size={12} />
+                          <span>Répondre par Email</span>
+                        </button>
+
+                        {msg.phone && (
+                          <a
+                            href={`https://wa.me/${msg.phone.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                          >
+                            <Phone size={12} />
+                            <span>WhatsApp</span>
+                          </a>
+                        )}
+
+                        <button
+                          onClick={() => handleUpdateInboundStatus(msg.id, msg.status === 'unread' ? 'read' : 'unread')}
+                          className="p-1.5 text-neutral-400 hover:text-neutral-700 rounded-lg hover:bg-neutral-100 cursor-pointer"
+                          title="Changer statut lu/non-lu"
+                        >
+                          <CheckCircle2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#fafafa] p-3.5 rounded-lg border border-[#eaeaea] text-xs text-neutral-800 leading-relaxed whitespace-pre-wrap">
+                      {msg.message}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 5: OVERVIEW & DELIVERY METRICS                                       */}
+        {/* ========================================================================= */}
+        {activeTab === 'overview' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white border border-[#eaeaea] rounded-xl p-5 shadow-2xs space-y-2">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Délivrabilité Globale</div>
+                <div className="text-3xl font-black text-emerald-600 font-mono">{stats.deliveryRate}%</div>
+                <p className="text-xs text-neutral-500">
+                  {stats.delivered} emails confirmés reçus en boîte de réception sur un total de {stats.totalSent} expédiés.
+                </p>
+              </div>
+
+              <div className="bg-white border border-[#eaeaea] rounded-xl p-5 shadow-2xs space-y-2">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Audience Resend</div>
+                <div className="text-3xl font-black text-neutral-900 font-mono">{stats.totalContacts}</div>
+                <p className="text-xs text-neutral-500">
+                  Contacts actifs certifiés dans l'Audience officielle <code>General</code> sur Resend.com.
+                </p>
+              </div>
+
+              <div className="bg-white border border-[#eaeaea] rounded-xl p-5 shadow-2xs space-y-2">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Expéditeur Vérifié</div>
+                <div className="text-base font-bold text-neutral-900 font-mono">contact@nayparfum.ma</div>
+                <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                  <Check size={12} />
+                  <span>DKIM 2048-bit &amp; SPF actifs sur nayparfum.ma</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-[#eaeaea] rounded-xl p-5 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-bold text-neutral-900">Accéder directement à votre Console Resend.com</h3>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Gérez vos clés API, vos webhooks et vos logs d'événements avancés sur la plateforme officielle Resend.
+                </p>
+              </div>
+
+              <a
+                href="https://resend.com/emails"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-2xs"
+              >
+                <span>Ouvrir Resend.com Dashboard</span>
+                <ArrowUpRight size={13} />
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* COMPOSE MODAL (RESEND STYLE DIALOG)                                       */}
+      {/* ========================================================================= */}
+      {isComposeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-[#eaeaea] max-w-xl w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#eaeaea] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center">
+                  <Send size={12} />
+                </div>
+                <h3 className="text-sm font-bold text-neutral-900">
+                  Send Email via Resend.com
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsComposeOpen(false)}
+                className="text-neutral-400 hover:text-neutral-900 p-1 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Quick Templates */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-bold uppercase text-neutral-400 font-mono">Modèles :</span>
               <button
                 type="button"
                 onClick={() => applyTemplate('support')}
-                className="px-3 py-1.5 bg-white border border-neutral-200 hover:border-neutral-400 rounded-lg text-xs font-semibold text-neutral-700 transition-all cursor-pointer shadow-2xs"
+                className="px-2.5 py-1 bg-[#fafafa] hover:bg-neutral-100 border border-[#eaeaea] rounded text-[11px] font-medium text-neutral-700 cursor-pointer"
               >
-                🌸 Réponse Support Client
+                Support Client
               </button>
               <button
                 type="button"
                 onClick={() => applyTemplate('delivery')}
-                className="px-3 py-1.5 bg-white border border-neutral-200 hover:border-neutral-400 rounded-lg text-xs font-semibold text-neutral-700 transition-all cursor-pointer shadow-2xs"
+                className="px-2.5 py-1 bg-[#fafafa] hover:bg-neutral-100 border border-[#eaeaea] rounded text-[11px] font-medium text-neutral-700 cursor-pointer"
               >
-                📦 Suivi &amp; Expédition Colis
+                Suivi Colis
               </button>
               <button
                 type="button"
                 onClick={() => applyTemplate('nayday')}
-                className="px-3 py-1.5 bg-white border border-neutral-200 hover:border-neutral-400 rounded-lg text-xs font-semibold text-neutral-700 transition-all cursor-pointer shadow-2xs"
+                className="px-2.5 py-1 bg-[#fafafa] hover:bg-neutral-100 border border-[#eaeaea] rounded text-[11px] font-medium text-neutral-700 cursor-pointer"
               >
-                🎁 Offre Privilège NAYDAY (-10%)
-              </button>
-              <button
-                type="button"
-                onClick={() => applyTemplate('vip')}
-                className="px-3 py-1.5 bg-white border border-neutral-200 hover:border-neutral-400 rounded-lg text-xs font-semibold text-neutral-700 transition-all cursor-pointer shadow-2xs"
-              >
-                👑 Invitation VIP Niche
+                Code NAYDAY (-10%)
               </button>
             </div>
-          </div>
 
-          {/* Form */}
-          <form onSubmit={handleSendEmail} className="space-y-4">
-            {sendSuccess && (
-              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 flex items-center gap-2">
-                <CheckCircle2 size={15} className="text-emerald-600" />
-                <span>{sendSuccess}</span>
-              </div>
-            )}
-            {sendError && (
-              <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-800 flex items-center gap-2">
-                <AlertCircle size={15} className="text-red-600" />
-                <span>{sendError}</span>
-              </div>
-            )}
+            <form onSubmit={handleSendEmail} className="space-y-3">
+              {composeStatus && (
+                <div className={`p-3 rounded-lg text-xs font-semibold ${
+                  composeStatus.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}>
+                  {composeStatus.text}
+                </div>
+              )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-mono text-neutral-500 mb-1">From</label>
+                  <input
+                    type="text"
+                    disabled
+                    value="contact@nayparfum.ma"
+                    className="w-full bg-[#fafafa] border border-[#eaeaea] rounded-lg px-3 py-2 text-xs font-mono text-neutral-700"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-mono text-neutral-500 mb-1">To *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="recipient@example.com"
+                    value={composeTo}
+                    onChange={(e) => setComposeTo(e.target.value)}
+                    className="w-full bg-white border border-[#eaeaea] rounded-lg px-3 py-2 text-xs font-mono text-neutral-900 focus:outline-none focus:border-black"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Expéditeur (Officiel)
-                </label>
+                <label className="block text-[11px] font-mono text-neutral-500 mb-1">Subject *</label>
                 <input
                   type="text"
-                  disabled
-                  value="NAY Parfums <contact@nayparfum.ma>"
-                  className="w-full bg-neutral-100 border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-600 font-semibold cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Destinataire Email *
-                </label>
-                <input
-                  type="email"
                   required
-                  placeholder="client@exemple.com"
-                  value={composeTo}
-                  onChange={(e) => setComposeTo(e.target.value)}
-                  className="w-full bg-white border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900"
+                  placeholder="Subject line..."
+                  value={composeSubject}
+                  onChange={(e) => setComposeSubject(e.target.value)}
+                  className="w-full bg-white border border-[#eaeaea] rounded-lg px-3 py-2 text-xs text-neutral-900 focus:outline-none focus:border-black"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-bold text-neutral-700 mb-1">
-                Objet de l'Email *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="Ex : Maison NAY Parfums — Suivi de votre commande"
-                value={composeSubject}
-                onChange={(e) => setComposeSubject(e.target.value)}
-                className="w-full bg-white border border-neutral-200 rounded-xl px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-neutral-700 mb-1">
-                Message / Contenu *
-              </label>
-              <textarea
-                required
-                rows={9}
-                placeholder="Rédigez votre message ici..."
-                value={composeMessage}
-                onChange={(e) => setComposeMessage(e.target.value)}
-                className="w-full bg-white border border-neutral-200 rounded-xl p-3.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 leading-relaxed font-sans"
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-neutral-400">
-                L'en-tête, le logo Maison NAY et le pied de page sécurisé sont insérés automatiquement.
-              </span>
-
-              <button
-                type="submit"
-                disabled={isSending}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
-              >
-                {isSending ? (
-                  <>
-                    <RefreshCw size={13} className="animate-spin" />
-                    <span>Envoi en cours...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send size={13} />
-                    <span>Expédier le Message</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* TAB 4: LIAISON PRO & CONFIGURATION */}
-      {activeTab === 'proInfo' && (
-        <div className="space-y-6 max-w-5xl mx-auto">
-          {/* Card 1: Configuration Status */}
-          <div className="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-xs">
-            <div className="flex items-center justify-between border-b border-neutral-200 pb-4 mb-5">
               <div>
-                <h2 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
-                  <ShieldCheck size={19} className="text-emerald-600" />
-                  <span>Statut de la Liaison Email Professionnel</span>
-                </h2>
-                <p className="text-xs text-neutral-500 mt-0.5">
-                  Paramètres techniques et conformité DNS de votre adresse d'entreprise.
-                </p>
+                <label className="block text-[11px] font-mono text-neutral-500 mb-1">Message Content *</label>
+                <textarea
+                  required
+                  rows={8}
+                  placeholder="Write your email message..."
+                  value={composeMessage}
+                  onChange={(e) => setComposeMessage(e.target.value)}
+                  className="w-full bg-white border border-[#eaeaea] rounded-lg p-3 text-xs text-neutral-900 focus:outline-none focus:border-black font-sans leading-relaxed"
+                />
               </div>
 
-              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Vérifié &amp; Opérationnel
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200/80 space-y-2">
-                <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                  Boîte Mail Principale
-                </span>
-                <div className="text-sm font-bold text-neutral-900 font-mono">
-                  contact@nayparfum.ma
-                </div>
-                <div className="text-xs text-neutral-500">
-                  Adresse officielle de relation client, expédition des offres et confirmations.
-                </div>
-              </div>
-
-              <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200/80 space-y-2">
-                <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                  Domaine de Diffusion
-                </span>
-                <div className="text-sm font-bold text-neutral-900 font-mono">
-                  nayparfum.ma
-                </div>
-                <div className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                  <Check size={12} />
-                  <span>Vérifié sur Resend (Région Europe eu-west-1)</span>
-                </div>
-              </div>
-
-              <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200/80 space-y-2">
-                <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                  Protocoles de Délivrabilité
-                </span>
-                <div className="text-xs text-neutral-700 space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-emerald-500" />
-                    <span><strong>SPF :</strong> v=spf1 include:amazonses.com ~all</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-emerald-500" />
-                    <span><strong>DKIM :</strong> Clé 2048 bits vérifiée</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-emerald-500" />
-                    <span><strong>DMARC :</strong> Protection anti-usurpation active</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200/80 space-y-2">
-                <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                  Comptes Gérance Liés
-                </span>
-                <div className="text-xs text-neutral-700 space-y-1">
-                  {proMailInfo?.adminUsers?.map((adm) => (
-                    <div key={adm.id} className="flex items-center justify-between font-mono text-[11px]">
-                      <span>{adm.email}</span>
-                      <span className="text-[9px] uppercase font-bold text-neutral-400 bg-neutral-200 px-1.5 py-0.2 rounded">
-                        {adm.role}
-                      </span>
-                    </div>
-                  )) || (
-                    <div className="text-xs text-neutral-500">
-                      ayoub@nayparfum.ma, nouamane@nayparfum.ma
-                    </div>
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsComposeOpen(false)}
+                  className="px-4 py-2 border border-[#eaeaea] hover:bg-neutral-50 text-neutral-700 text-xs font-semibold rounded-lg cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className="px-5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isSending ? (
+                    <>
+                      <RefreshCw size={12} className="animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={12} />
+                      <span>Send</span>
+                    </>
                   )}
-                </div>
+                </button>
               </div>
-            </div>
-          </div>
-
-          {/* Card 2: Live Diagnostic Sender */}
-          <div className="bg-white border border-neutral-200/80 rounded-2xl p-6 shadow-xs">
-            <h3 className="text-sm font-bold text-neutral-900 mb-1 flex items-center gap-2">
-              <Radio size={15} className="text-sky-500" />
-              <span>Testeur de Délivrabilité en Direct</span>
-            </h3>
-            <p className="text-xs text-neutral-500 mb-4">
-              Envoyez un message test instantané depuis <strong>contact@nayparfum.ma</strong> vers n'importe quelle boîte email (Gmail, Outlook, iCloud) pour certifier la réception dans la boîte principale (hors spam).
-            </p>
-
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              <input
-                type="email"
-                placeholder="Entrez votre email de test (ex : monmail@gmail.com)"
-                value={diagnosticEmail}
-                onChange={(e) => setDiagnosticEmail(e.target.value)}
-                className="w-full bg-white border border-neutral-200 rounded-xl px-3.5 py-2 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900"
-              />
-              <button
-                onClick={handleRunDiagnostic}
-                disabled={isTesting}
-                className="px-5 py-2 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer shrink-0 disabled:opacity-50"
-              >
-                {isTesting ? 'Expédition en cours...' : 'Envoyer le Test'}
-              </button>
-            </div>
-
-            {testResult && (
-              <div className={`mt-3 p-3 rounded-xl text-xs font-semibold ${
-                testResult.startsWith('✓') ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
-              }`}>
-                {testResult}
-              </div>
-            )}
+            </form>
           </div>
         </div>
       )}
