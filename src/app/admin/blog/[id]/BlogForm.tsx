@@ -521,12 +521,13 @@ export default function BlogForm({
           </button>
 
           {/* Live Preview Button */}
-          {formData.slug && (
+          {(initialData?.id || formData.slug) && (
             <a
-              href={`/fr/blog/${formData.slug}`}
+              href={formData.status === 'published' ? `/fr/blog/${formData.slug}` : `/fr/blog/preview/${initialData?.id || formData.slug}`}
               target="_blank"
               rel="noreferrer"
               className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700/80 flex items-center gap-1.5 transition-colors"
+              title={formData.status === 'published' ? "Voir sur la boutique" : "Aperçu brouillon sécurisé"}
             >
               <Eye size={14} className="text-sky-400" />
               <span>Aperçu</span>

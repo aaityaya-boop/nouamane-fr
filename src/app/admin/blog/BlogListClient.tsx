@@ -438,11 +438,11 @@ export default function BlogListClient({
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                     {/* Direct Frontend View */}
                     <a
-                      href={`/fr/blog/${post.slug}`}
+                      href={post.status === 'published' ? `/fr/blog/${post.slug}` : `/fr/blog/preview/${post.id}`}
                       target="_blank"
                       rel="noreferrer"
                       className="p-2 rounded-xl text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
-                      title="Voir sur la boutique"
+                      title={post.status === 'published' ? "Voir sur la boutique" : "Aperçu brouillon sécurisé"}
                     >
                       <Eye size={17} />
                     </a>

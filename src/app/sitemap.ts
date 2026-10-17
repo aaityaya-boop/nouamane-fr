@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
     prisma.blogPost.findMany({
       where: { status: 'published' },
-      select: { slug: true, updatedAt: true }
+      select: { slug: true, title: true, updatedAt: true }
     })
   ]);
 
@@ -158,16 +158,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // 4. Dynamic Published Blog Post Pages
-  const blogUrls: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${baseUrl}/fr/blog/${encodeURIComponent(post.slug)}`,
-    lastModified: post.updatedAt || now,
-    changeFrequency: 'weekly',
-    priority: 0.8,
-    alternates: makeAlternates(
-      `/fr/blog/${encodeURIComponent(post.slug)}`,
-      `/ar/blog/${encodeURIComponent(post.slug)}`
-    ),
-  }));
+  const blogUrls: MetadataRoute.Sitemap = blogPosts.map((post) => {
+    const isArabic = /[\u0600-\u06FF]/.test(post.title || '');
+    const localePrefix = isArabic ? '/ar' : '/fr';
+    const postUrl = `${baseUrl}${localePrefix}/blog/${encodeURIComponent(post.slug)}`;
+
+    return {
+      url: postUrl,
+      lastModified: post.updatedAt || now,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      alternates: {
+        languages: isArabic
+          ? { 'ar-MA': postUrl }
+          : { 'fr-MA': postUrl, 'x-default': postUrl }
+      }
+    };
+  });
 
   return [
     ...staticRoutes,

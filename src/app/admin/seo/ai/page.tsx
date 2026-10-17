@@ -2,6 +2,8 @@ import React from 'react';
 import { getOrGenerateAiVisibilityData } from '@/lib/seo/aiVisibilityService';
 import AiVisibilityClient from './AiVisibilityClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Command Center Visibilité IA (GEO & AEO) — NAY Parfums Maroc',
   description: 'Analyse et optimisation de la visibilité de NAY Parfums sur ChatGPT, Google Gemini, Perplexity et Claude.',
