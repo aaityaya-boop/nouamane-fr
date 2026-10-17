@@ -150,6 +150,7 @@ model SiteConfig {
   smtpUser              String?
   smtpPass              String?
   smtpFrom              String?
+  resendApiKey          String?
 }
 
 model NewsletterSubscriber {

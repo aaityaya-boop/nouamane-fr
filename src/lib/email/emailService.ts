@@ -209,28 +209,29 @@ export async function dispatchGenericEmail({
   let smtpPass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
   let smtpPort = Number(process.env.SMTP_PORT || process.env.EMAIL_SERVER_PORT || 465);
   let smtpFrom = process.env.EMAIL_FROM;
+  let resendApiKey = process.env.RESEND_API_KEY;
 
-  if (!smtpHost || !smtpUser || !smtpPass) {
-    try {
-      const config = await prisma.siteConfig.findFirst({
-        select: {
-          smtpHost: true,
-          smtpPort: true,
-          smtpUser: true,
-          smtpPass: true,
-          smtpFrom: true,
-        },
-      });
-      if (config?.smtpHost && config?.smtpUser && config?.smtpPass) {
-        smtpHost = config.smtpHost;
-        smtpUser = config.smtpUser;
-        smtpPass = config.smtpPass;
-        smtpPort = config.smtpPort || 465;
-        if (config.smtpFrom) smtpFrom = config.smtpFrom;
-      }
-    } catch (e) {
-      console.warn('Could not read SMTP settings from SiteConfig:', e);
+  try {
+    const config = await prisma.siteConfig.findFirst({
+      select: {
+        smtpHost: true,
+        smtpPort: true,
+        smtpUser: true,
+        smtpPass: true,
+        smtpFrom: true,
+        resendApiKey: true,
+      },
+    });
+    if (config) {
+      if (!smtpHost && config.smtpHost) smtpHost = config.smtpHost;
+      if (!smtpUser && config.smtpUser) smtpUser = config.smtpUser;
+      if (!smtpPass && config.smtpPass) smtpPass = config.smtpPass;
+      if (config.smtpPort) smtpPort = config.smtpPort;
+      if (!smtpFrom && config.smtpFrom) smtpFrom = config.smtpFrom;
+      if (!resendApiKey && config.resendApiKey) resendApiKey = config.resendApiKey;
     }
+  } catch (e) {
+    console.warn('Could not read email settings from SiteConfig:', e);
   }
 
   if (smtpHost && smtpUser && smtpPass) {
@@ -261,14 +262,14 @@ export async function dispatchGenericEmail({
   }
 
   // 2. Try Resend if API key is provided
-  if (process.env.RESEND_API_KEY) {
+  if (resendApiKey) {
     try {
-      const fromAddress = process.env.EMAIL_FROM || 'NAY Parfum <contact@nayparfum.ma>';
+      const fromAddress = smtpFrom || 'NAY Parfum <contact@nayparfum.ma>';
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          Authorization: `Bearer ${resendApiKey}`,
         },
         body: JSON.stringify({
           from: fromAddress,
