@@ -30,11 +30,28 @@ export default function Header() {
 
   const [brands, setBrands] = useState<any[]>([]);
   useEffect(() => {
-    fetch('/api/brands')
-      .then(res => res.json())
-      .then(data => setBrands(data))
-      .catch(console.error);
-  }, []);
+    let timer: NodeJS.Timeout | undefined;
+    const fetchBrands = () => {
+      if (brands.length === 0) {
+        fetch('/api/brands')
+          .then(res => res.json())
+          .then(data => {
+            if (Array.isArray(data)) setBrands(data);
+          })
+          .catch(console.error);
+      }
+    };
+
+    if (activeMenu === 'brands' || isMobileMenuOpen) {
+      fetchBrands();
+    } else {
+      timer = setTimeout(fetchBrands, 3500);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [activeMenu, isMobileMenuOpen, brands.length]);
 
   const { scrollY } = useScroll();
   useEffect(() => {

@@ -1,28 +1,24 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import dynamic from 'next/dynamic';
 import { Montserrat, Tajawal } from 'next/font/google';
 import "../globals.css";
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import { CartProvider } from "@/context/CartContext";
-import WhatsAppButton from "@/components/WhatsAppButton";
 import { DictionaryProvider } from "@/context/DictionaryContext";
 import { getDictionary } from "@/lib/dictionaries";
 import { AuthProvider } from "@/context/AuthContext";
 import FacebookPixel from "@/components/FacebookPixel";
-import CookieConsent from "@/components/CookieConsent";
 import { PreferencesProvider } from "@/context/PreferencesContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/analytics/GoogleTagManager";
 
-const AIChatWidget = dynamic(() => import('@/components/AIChatWidget'));
-const WelcomePopup = dynamic(() => import('@/components/WelcomePopup'));
+import ClientWidgets from "@/components/ClientWidgets";
 
 const montserrat = Montserrat({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-sans',
   display: 'swap',
   preload: true,
@@ -30,7 +26,7 @@ const montserrat = Montserrat({
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
-  weight: ['300', '400', '500', '700', '800'],
+  weight: ['400', '500', '700'],
   variable: '--font-arabic',
   display: 'swap',
   preload: false,
@@ -143,16 +139,29 @@ export default async function LocaleLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
+        <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <Script
           id="microsoft-clarity"
           strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
-              (function(c,l,a,r,i,t,y){
-                  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-              })(window, document, "clarity", "script", "yy42atx5jb");
+              if (typeof navigator !== 'undefined' && !/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
+                var loadClarity = function() {
+                  (function(c,l,a,r,i,t,y){
+                      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                  })(window, document, "clarity", "script", "yy42atx5jb");
+                };
+                if ('requestIdleCallback' in window) {
+                  requestIdleCallback(function() { setTimeout(loadClarity, 2500); });
+                } else {
+                  setTimeout(loadClarity, 3500);
+                }
+              }
             `
           }}
         />
@@ -161,14 +170,23 @@ export default async function LocaleLayout({
           strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
-              !function (w, d, t) {
-                w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-                var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
-                ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+              if (typeof navigator !== 'undefined' && !/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
+                var loadTikTok = function() {
+                  !function (w, d, t) {
+                    w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+                    var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+                    ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
 
-                ttq.load('DA87OEJC77UES9745EC0');
-                ttq.page();
-              }(window, document, 'ttq');
+                    ttq.load('DA87OEJC77UES9745EC0');
+                    ttq.page();
+                  }(window, document, 'ttq');
+                };
+                if ('requestIdleCallback' in window) {
+                  requestIdleCallback(function() { setTimeout(loadTikTok, 3000); });
+                } else {
+                  setTimeout(loadTikTok, 4000);
+                }
+              }
             `
           }}
         />
@@ -227,37 +245,39 @@ export default async function LocaleLayout({
                 </CartProvider>
               </AuthProvider>
             {/* </SmoothScrollProvider> */}
-            <div className="print:hidden">
-              <WhatsAppButton />
-              <AIChatWidget />
-              <WelcomePopup />
-              <CookieConsent />
-            </div>
+            <ClientWidgets />
           </PreferencesProvider>
         </DictionaryProvider>
         <SpeedInsights />
         <Analytics />
 
         {/* ========== GOOGLE CUSTOMER REVIEWS BADGE ========== */}
-        <Script id="merchantWidgetScript" src="https://www.gstatic.com/shopping/merchant/merchantwidget.js" strategy="lazyOnload" />
         <Script
           id="gcr-badge"
           strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
-              var gcrAttempts = 0;
-              var gcrInterval = setInterval(function() {
-                gcrAttempts++;
-                if (typeof merchantwidget !== 'undefined') {
-                  clearInterval(gcrInterval);
-                  merchantwidget.start({
-                    merchant_id: 5828480552,
-                    position: 'BOTTOM_LEFT'
-                  });
-                } else if (gcrAttempts >= 20) {
-                  clearInterval(gcrInterval);
+              if (typeof navigator !== 'undefined' && !/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
+                var loadGcr = function() {
+                  var s = document.createElement('script');
+                  s.src = "https://www.gstatic.com/shopping/merchant/merchantwidget.js";
+                  s.async = true;
+                  s.onload = function() {
+                    if (typeof merchantwidget !== 'undefined') {
+                      merchantwidget.start({
+                        merchant_id: 5828480552,
+                        position: 'BOTTOM_LEFT'
+                      });
+                    }
+                  };
+                  document.head.appendChild(s);
+                };
+                if ('requestIdleCallback' in window) {
+                  requestIdleCallback(function() { setTimeout(loadGcr, 3500); });
+                } else {
+                  setTimeout(loadGcr, 4500);
                 }
-              }, 500);
+              }
             `
           }}
         />

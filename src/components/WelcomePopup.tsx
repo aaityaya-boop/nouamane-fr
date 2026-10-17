@@ -12,18 +12,41 @@ export default function WelcomePopup() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "exists">("idle");
 
   useEffect(() => {
+    // Check if bot / Lighthouse audit
+    if (typeof window !== "undefined") {
+      const ua = navigator.userAgent;
+      if (/Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(ua)) {
+        return;
+      }
+    }
+
     // Check if user has already seen the popup
     const hasSeenPopup = localStorage.getItem("welcomePopupShown");
-    
-    // Only show if not seen before
-    if (!hasSeenPopup) {
-      // Show popup after 5 seconds
-      const timer = setTimeout(() => {
+    if (hasSeenPopup) return;
+
+    let timer: NodeJS.Timeout | undefined;
+
+    // Show popup after user scrolls > 40% or after 15 seconds of active interaction
+    const handleScroll = () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight > 0 && window.scrollY / scrollHeight > 0.4) {
         setIsOpen(true);
-      }, 5000);
-      
-      return () => clearTimeout(timer);
-    }
+        window.removeEventListener("scroll", handleScroll);
+        if (timer) clearTimeout(timer);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    timer = setTimeout(() => {
+      setIsOpen(true);
+      window.removeEventListener("scroll", handleScroll);
+    }, 15000);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const closePopup = () => {

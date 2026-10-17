@@ -128,6 +128,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/logos/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
         source: '/admin-sw.js',
         headers: [
           {

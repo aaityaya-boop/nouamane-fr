@@ -117,9 +117,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
       >
         {/* Typo Logo */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          initial={false}
           className="mb-12 flex flex-col items-center justify-center relative group"
         >
           <Image
@@ -128,38 +126,30 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
             width={224}
             height={80}
             priority
+            fetchPriority="high"
             className="w-32 sm:w-40 md:w-48 lg:w-56 h-auto object-contain transition-transform duration-1000 group-hover:scale-105"
           />
         </motion.div>
 
         {/* Eyebrow */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          className="flex flex-col items-center gap-5 mb-8"
-        >
+        <div className="flex flex-col items-center gap-5 mb-8">
           <span className="text-[9px] sm:text-[10px] font-semibold tracking-[0.6em] uppercase text-[#111]/50">
             L'Art de la Parfumerie
           </span>
           <span className="w-[1px] h-10 bg-gradient-to-b from-[#111]/20 to-transparent" />
-        </motion.div>
+        </div>
 
         {/* Main Headline with Split Parallax Effect */}
         <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[120px] xl:text-[140px] leading-[1] tracking-[-0.02em] mb-10 flex flex-col items-center justify-center w-full">
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+          <motion.div
+            initial={false}
             style={{ x: leftTextX }}
             className="font-light text-[#111] pr-4 sm:pr-12 md:pr-24 self-center md:self-end text-center md:text-right mix-blend-darken relative"
           >
             L'Empreinte
           </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+          <motion.div
+            initial={false}
             style={{ x: rightTextX }}
             className="flex items-center gap-4 sm:gap-6 pl-4 sm:pl-12 md:pl-24 self-center md:self-start mt-2 sm:mt-0 mix-blend-darken relative"
           >
@@ -169,21 +159,14 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
         </h1>
 
         {/* Sub-headline */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.55 }}
+        <p
           className="text-[11px] sm:text-[13px] md:text-[14px] text-[#555] font-light max-w-2xl mx-auto leading-[2.2] tracking-[0.2em] uppercase mb-16"
         >
           Découvrez notre sélection de <span className="font-semibold text-[#111]">parfums prestigieux</span>. L'essence du luxe, de l'authenticité et de l'exception.
-        </motion.p>
+        </p>
         
         {/* Call to Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.7 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
         >
           {/* Découvrir Button - Luxury Minimalist Version */}
           <Link
@@ -195,7 +178,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
               Découvrir
             </span>
           </Link>
-        </motion.div>
+        </div>
       </motion.div>
 
       {/* 3. SCROLL INDICATOR */}

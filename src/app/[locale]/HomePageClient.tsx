@@ -7,17 +7,19 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import CartDrawer from '@/components/CartDrawer';
 import ProductCard from '@/components/ProductCard';
 import SplitTypographyHero from '@/components/SplitTypographyHero';
 import BrandsMarquee from '@/components/BrandsMarquee';
 import FAQ from '@/components/FAQ';
+
+const CartDrawer = dynamic(() => import('@/components/CartDrawer'), { ssr: false });
 import {
   ArrowRight,
   MoveRight,

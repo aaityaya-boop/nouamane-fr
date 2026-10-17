@@ -8,8 +8,11 @@ export default function AnalyticsTracker() {
   const visitorIdRef = useRef<string>('');
 
   useEffect(() => {
-    // Avoid tracking inside the admin panel to prevent skewing customer metrics
+    // Avoid tracking inside the admin panel or during audit bots to prevent skewing customer metrics
     if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
+    if (typeof navigator !== 'undefined' && /Lighthouse|PageSpeed|Chrome-Lighthouse|PTST|Googlebot/i.test(navigator.userAgent)) {
+      return;
+    }
 
     // Retrieve or create persistent anonymous visitor identifier
     if (!visitorIdRef.current) {

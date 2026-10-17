@@ -13,14 +13,18 @@ export default function WhatsAppButton() {
 
   useEffect(() => {
     setMounted(true);
-    fetch('/api/settings')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.whatsappUrl) {
-          setUrl(data.whatsappUrl);
-        }
-      })
-      .catch(console.error);
+    const timer = setTimeout(() => {
+      fetch('/api/settings')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.whatsappUrl) {
+            setUrl(data.whatsappUrl);
+          }
+        })
+        .catch(console.error);
+    }, 4000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const getSmartUrl = () => {
