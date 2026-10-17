@@ -394,7 +394,7 @@ export async function sendAdminNewsletterAlert(subscriberEmail: string): Promise
     timeStyle: 'medium',
   });
 
-  const subject = `✨ Nouvel Abonné Newsletter — ${cleanEmail}`;
+  const subject = `Nouvel Abonné Newsletter — ${cleanEmail}`;
 
   const html = `<!doctype html>
 <html lang="fr">
@@ -416,7 +416,7 @@ export async function sendAdminNewsletterAlert(subscriberEmail: string): Promise
 <div class="box">
   <div class="header">
     <div class="badge">Alerte Direction • Maison NAY</div>
-    <h2 style="margin:10px 0 4px; font-size:20px; font-weight:800; color:#ffffff;">✨ Nouvel Abonné Newsletter Capté</h2>
+    <h2 style="margin:10px 0 4px; font-size:20px; font-weight:800; color:#ffffff;">Nouvel Abonné Newsletter Capté</h2>
     <p style="margin:0; font-size:12px; color:#94a3b8;">Un nouveau prospect vient de s'inscrire pour recevoir les offres exclusives.</p>
   </div>
   <div class="content">
@@ -485,7 +485,7 @@ export async function sendAdminContactMessageAlert({
     timeStyle: 'medium',
   });
 
-  const subject = `📩 Nouveau Message Client Maison NAY — De : ${name}`;
+  const subject = `Nouveau Message Client Maison NAY — De : ${name}`;
 
   const html = `<!doctype html>
 <html lang="fr">
@@ -509,7 +509,7 @@ export async function sendAdminContactMessageAlert({
 <div class="box">
   <div class="header">
     <div class="badge">Service Client & Direction • NAY</div>
-    <h2 style="margin:10px 0 4px; font-size:20px; font-weight:800; color:#ffffff;">📩 Nouveau Message Formulaire de Contact</h2>
+    <h2 style="margin:10px 0 4px; font-size:20px; font-weight:800; color:#ffffff;">Nouveau Message Formulaire de Contact</h2>
     <p style="margin:0; font-size:12px; color:#94a3b8;">Un client vient d'envoyer une demande depuis la page de contact.</p>
   </div>
   <div class="content">
@@ -539,11 +539,11 @@ export async function sendAdminContactMessageAlert({
 
     <div class="actions">
       <a href="mailto:${email}?subject=${encodeURIComponent(`Re: Votre message à Maison NAY Parfums`)}" class="btn-mail">
-        ✉️ Répondre par Email
+        Répondre par Email
       </a>
       ${cleanPhone ? `
-      <a href="https://wa.me/${waPhone}?text=${encodeURIComponent(`Salam ${name} ✨ C'est Maison NAY Parfums concernant votre message. Comment pouvons-nous vous aider ?`)}" class="btn-wa">
-        💬 Contacter sur WhatsApp
+      <a href="https://wa.me/${waPhone}?text=${encodeURIComponent(`Salam ${name}. C'est Maison NAY Parfums concernant votre message. Comment pouvons-nous vous aider ?`)}" class="btn-wa">
+        Contacter sur WhatsApp
       </a>` : ''}
     </div>
   </div>
@@ -600,7 +600,7 @@ export async function sendCustomerContactReceipt({
     <p>Pour toute question urgente concernant une commande en cours ou une expédition express, vous pouvez également nous joindre directement sur notre ligne WhatsApp :</p>
     <div style="text-align:center; margin:24px 0;">
       <a href="https://wa.me/212663380011" style="background:#16a34a; color:#ffffff; padding:12px 24px; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px; display:inline-block;">
-        💬 Joindre notre Conseiller WhatsApp
+        Joindre notre Conseiller WhatsApp
       </a>
     </div>
     <p>Avec toute notre bienveillance,</p>
@@ -632,13 +632,13 @@ export async function sendTestNotificationEmail(targetEmail: string): Promise<Se
     timeStyle: 'medium',
   });
 
-  const subject = `🧪 Test Réussi — Notifications Maison NAY Parfums`;
+  const subject = `Test Réussi — Notifications Maison NAY Parfums`;
 
   const html = `<!doctype html>
 <html lang="fr">
 <body style="font-family:sans-serif; background:#f4f5f7; padding:24px;">
   <div style="max-width:540px; margin:0 auto; background:#ffffff; border-radius:14px; padding:28px; border:1px solid #e2e8f0;">
-    <h2 style="color:#0f172a; margin-top:0;">✅ Test d'Alerte Email Validé !</h2>
+    <h2 style="color:#0f172a; margin-top:0;">Test d'Alerte Email Validé</h2>
     <p style="font-size:14px; color:#334155; line-height:1.6;">
       Ce message confirme que la passerelle d'envoi d'emails (Resend / SMTP) de <strong>Maison NAY Parfums</strong> est parfaitement opérationnelle.
     </p>
@@ -675,94 +675,130 @@ export async function sendPasswordResetCodeEmail({
 }): Promise<SendEmailResult> {
   const cleanEmail = to.trim().toLowerCase();
   const displayName = name && name.trim() ? name.trim() : 'Cher Client';
+  const cleanCode = code.trim();
+  const digits = cleanCode.split('').slice(0, 6);
 
-  const subject = `🔐 Votre code de vérification NAY Parfums : ${code}`;
+  const subject = `NAY Parfums — Code de vérification : ${cleanCode}`;
 
   const html = `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Code de réinitialisation — NAY Parfums</title>
+<title>Code de vérification — NAY Parfums</title>
 <style>
   body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
   table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
   img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; display:block; }
   table { border-collapse:collapse !important; }
-  body { margin:0 !important; padding:0 !important; width:100% !important; background:#f4f5f7; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+  body { margin:0 !important; padding:0 !important; width:100% !important; background-color:#f8fafc; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
   @media screen and (max-width:600px) {
     .container { width:100% !important; }
-    .px { padding-left:20px !important; padding-right:20px !important; }
-    .code-box { letter-spacing:8px !important; font-size:32px !important; }
+    .px-mobile { padding-left:20px !important; padding-right:20px !important; }
+    .digit-cell { width:38px !important; height:48px !important; line-height:48px !important; font-size:22px !important; }
   }
 </style>
 </head>
-<body style="margin:0;padding:0;background-color:#f4f5f7;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f4f5f7">
+<body style="margin:0;padding:0;background-color:#f8fafc;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc">
   <tr>
-    <td align="center" style="padding:32px 12px;">
-      <table role="presentation" class="container" width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:560px;max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.04);border:1px solid #e9edf2;">
+    <td align="center" style="padding:40px 14px;">
+      <table role="presentation" class="container" width="540" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:540px;max-width:540px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 12px 35px rgba(15,23,42,0.06);border:1px solid #e2e8f0;">
         
         <!-- Header Brand -->
         <tr>
-          <td align="center" style="padding:36px 24px 24px;border-bottom:1px solid #f0f2f5;">
+          <td align="center" style="padding:36px 24px 22px;border-bottom:1px solid #f1f5f9;">
             <a href="https://nayparfum.ma" target="_blank" style="text-decoration:none;">
-              <img src="https://nayparfum.ma/images/nay/nay-logo-tight.png" width="150" alt="NAY Parfum" style="width:150px;max-width:150px;height:auto;display:block;margin:0 auto;">
+              <img src="https://nayparfum.ma/images/nay/nay-logo-tight.png" width="135" alt="NAY Parfums" style="width:135px;max-width:135px;height:auto;display:block;margin:0 auto;">
             </a>
+            <div style="font-size:10px;letter-spacing:3px;color:#94a3b8;text-transform:uppercase;font-weight:600;margin-top:10px;text-align:center;">
+              HAUTE PARFUMERIE • PARIS &amp; MAROC
+            </div>
           </td>
         </tr>
 
         <!-- Content Body -->
         <tr>
-          <td class="px" style="padding:40px 44px 20px;">
-            <div style="font-size:11px;letter-spacing:3px;color:#0ea5e9;text-transform:uppercase;font-weight:700;margin-bottom:12px;">
-              SÉCURITÉ DU COMPTE
+          <td class="px-mobile" style="padding:36px 40px 24px;">
+            <div style="font-size:10px;letter-spacing:2px;color:#0ea5e9;text-transform:uppercase;font-weight:700;margin-bottom:12px;">
+              AUTHENTIFICATION SÉCURISÉE
             </div>
-            <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.2;color:#0e1d34;margin:0 0 18px 0;font-weight:normal;">
-              Réinitialisation de votre mot de passe
+            <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.25;color:#0f172a;margin:0 0 16px 0;font-weight:normal;">
+              Code de réinitialisation
             </h1>
-            <p style="font-size:15px;line-height:1.7;color:#475569;margin:0 0 24px 0;">
+            <p style="font-size:14px;line-height:1.7;color:#475569;margin:0 0 24px 0;">
               Bonjour <strong>${displayName}</strong>,<br>
-              Vous avez demandé la réinitialisation du mot de passe de votre compte sur <strong>NAY Parfums</strong>.<br>
-              Voici votre code de vérification personnel à 6 chiffres :
+              Vous avez demandé la réinitialisation de votre mot de passe pour votre compte sur <strong>NAY Parfums</strong>.<br>
+              Veuillez saisir le code de sécurité personnel ci-dessous pour confirmer votre identité :
             </p>
 
-            <!-- Verification Code Card -->
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:28px 0;">
+            <!-- Segmented 6-Digit Code Presentation -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:28px auto 10px auto;">
               <tr>
-                <td align="center" style="background:#0e1d34;border-radius:14px;padding:26px 20px;">
-                  <div style="font-size:11px;letter-spacing:2px;color:#94a3b8;text-transform:uppercase;margin-bottom:10px;">
-                    VOTRE CODE DE VÉRIFICATION
-                  </div>
-                  <div class="code-box" style="font-family:'Courier New',Courier,monospace;font-size:40px;line-height:1;font-weight:800;letter-spacing:14px;color:#38bdf8;padding-left:14px;">
-                    ${code}
-                  </div>
+                ${digits.map(d => `
+                  <td style="padding:0 4px;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td class="digit-cell" align="center" style="width:44px;height:54px;line-height:54px;background:#0f172a;border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,monospace;font-size:26px;font-weight:800;color:#ffffff;box-shadow:0 3px 8px rgba(15,23,42,0.12);text-align:center;">
+                          ${d}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                `).join('')}
+              </tr>
+            </table>
+            <div style="text-align:center;font-size:11px;letter-spacing:1px;color:#94a3b8;text-transform:uppercase;margin-bottom:28px;">
+              Code personnel à usage unique
+            </div>
+
+            <!-- Professional Security / Validity Panel with Vector Icons -->
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;margin-bottom:28px;">
+              <tr>
+                <td style="padding:16px 18px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                      <td width="24" valign="top" style="padding-top:2px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                      </td>
+                      <td valign="top" style="font-size:13px;line-height:1.6;color:#475569;padding-left:10px;padding-bottom:10px;">
+                        <strong style="color:#0f172a;">Validité :</strong> Ce code expire dans <strong>15 minutes</strong>. Passé ce délai, une nouvelle demande sera requise.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td width="24" valign="top" style="padding-top:10px;border-top:1px solid #edf2f7;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                      </td>
+                      <td valign="top" style="font-size:13px;line-height:1.6;color:#475569;padding-left:10px;padding-top:10px;border-top:1px solid #edf2f7;">
+                        <strong style="color:#0f172a;">Sécurité :</strong> Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail. Votre mot de passe actuel demeure protégé.
+                      </td>
+                    </tr>
+                  </table>
                 </td>
               </tr>
             </table>
 
-            <!-- Security info -->
-            <div style="background:#f8fafc;border-left:3px solid #0ea5e9;padding:14px 16px;border-radius:0 8px 8px 0;margin-bottom:28px;">
-              <p style="font-size:13px;line-height:1.6;color:#64748b;margin:0;">
-                ⏱️ Ce code est valable pendant <strong>15 minutes</strong>.<br>
-                🔒 Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email en toute tranquillité. Votre compte reste parfaitement sécurisé.
-              </p>
-            </div>
-
-            <p style="font-size:14px;line-height:1.6;color:#475569;margin:0 0 10px 0;">
-              À très bientôt sur <a href="https://nayparfum.ma" style="color:#0ea5e9;text-decoration:none;font-weight:600;">nayparfum.ma</a>,<br>
-              <span style="color:#0e1d34;font-weight:600;">L'équipe NAY Parfums</span>
+            <p style="font-size:13px;line-height:1.6;color:#475569;margin:0 0 8px 0;">
+              À votre service,<br>
+              <strong style="color:#0f172a;">L'équipe NAY Parfums</strong>
             </p>
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-          <td align="center" style="padding:24px 30px;background:#f8fafc;border-top:1px solid #f0f2f5;">
+          <td align="center" style="padding:22px 28px;background:#f8fafc;border-top:1px solid #f1f5f9;">
+            <p style="font-size:11px;line-height:1.6;color:#94a3b8;margin:0 0 4px 0;">
+              NAY Parfums — Parfumerie de Luxe &amp; Testeurs 100% Authentiques au Maroc
+            </p>
             <p style="font-size:11px;line-height:1.6;color:#94a3b8;margin:0;">
-              NAY Parfums — Parfumerie de Luxe & Testeurs 100% Authentiques au Maroc.<br>
-              Livraison rapide et paiement à la livraison dans tout le Royaume.<br>
-              Besoin d'aide ? Contactez notre service client sur WhatsApp au +212 628-469399.
+              Besoin d'aide ? Écrivez-nous à <a href="mailto:contact@nayparfum.ma" style="color:#0ea5e9;text-decoration:none;">contact@nayparfum.ma</a> ou sur <a href="https://wa.me/212628469399" style="color:#0ea5e9;text-decoration:none;">WhatsApp (+212 628-469399)</a>.
             </p>
           </td>
         </tr>
@@ -774,7 +810,7 @@ export async function sendPasswordResetCodeEmail({
 </body>
 </html>`;
 
-  const text = `Bonjour ${displayName},\n\nVotre code de vérification NAY Parfums est : ${code}\n\nCe code expire dans 15 minutes.\nSi vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.\n\nL'équipe NAY Parfums`;
+  const text = `Bonjour ${displayName},\n\nVotre code de vérification NAY Parfums est : ${cleanCode}\n\nCe code expire dans 15 minutes.\nSi vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.\n\nL'équipe NAY Parfums`;
 
   return dispatchGenericEmail({
     to: cleanEmail,

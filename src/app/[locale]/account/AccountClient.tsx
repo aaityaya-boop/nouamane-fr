@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
-import { User, Package, MapPin, Heart, LogOut, ChevronLeft, ChevronRight, CheckCircle2, Truck, Clock, Check, X, KeyRound, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { User, Package, MapPin, Heart, LogOut, ChevronLeft, ChevronRight, CheckCircle2, Truck, Clock, Check, X, KeyRound, ShieldCheck, ArrowLeft, Lock, Mail, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { formatMAD } from '@/lib/products';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -751,14 +751,17 @@ export default function AccountClient() {
                   )}
 
                   <form className="space-y-4" onSubmit={handleSendResetCode}>
-                    <div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#9A9A9A]">
+                        <Mail size={16} />
+                      </div>
                       <input
                         required
                         type="email"
                         placeholder="Votre adresse e-mail"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
-                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-4 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
+                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl pl-11 pr-5 py-4 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
                       />
                     </div>
 
@@ -810,48 +813,98 @@ export default function AccountClient() {
 
                   <form className="space-y-4" onSubmit={handleResetPassword}>
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8A8A8A] uppercase tracking-wider mb-1.5 text-left">
-                        Code à 6 chiffres
+                      <label className="block text-[11px] font-bold text-[#8A8A8A] uppercase tracking-wider mb-2 text-center">
+                        Code de sécurité
                       </label>
+
+                      {/* Luxury Segmented Digit Cards */}
+                      <div 
+                        onClick={() => {
+                          const input = document.getElementById('account-reset-code-input');
+                          if (input) input.focus();
+                        }}
+                        className="flex justify-center items-center gap-2 sm:gap-2.5 my-2 cursor-pointer select-none"
+                      >
+                        {[0, 1, 2, 3, 4, 5].map((idx) => {
+                          const char = resetCode[idx] || '';
+                          const isCurrent = resetCode.length === idx;
+                          const isFilled = char !== '';
+                          return (
+                            <div
+                              key={idx}
+                              className={`w-11 h-14 sm:w-12 sm:h-15 rounded-xl flex items-center justify-center font-mono text-[22px] sm:text-[24px] font-bold transition-all duration-150 ${
+                                isFilled
+                                  ? 'bg-[#0e1d34] text-white shadow-sm'
+                                  : isCurrent
+                                  ? 'bg-white border-2 border-[#0ea5e9] text-[#0ea5e9] shadow-sm shadow-sky-500/10'
+                                  : 'bg-[#F5F5F3] text-gray-300 border border-transparent'
+                              }`}
+                            >
+                              {char || (isCurrent ? <span className="animate-pulse text-[#0ea5e9]">|</span> : '•')}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Accessible Real Input */}
                       <input
+                        id="account-reset-code-input"
                         required
-                        type="text"
+                        type="tel"
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
                         maxLength={6}
-                        placeholder="Ex: 482910"
                         value={resetCode}
-                        onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ''))}
-                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-3.5 text-center text-[22px] font-mono tracking-[0.4em] font-bold focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
+                        onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        className="sr-only"
+                        autoFocus
                       />
+
+                      <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#6B6B6B] mt-2 mb-4">
+                        <Clock size={12} className="text-[#0ea5e9]" />
+                        <span>Code valable pendant 15 minutes</span>
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-[11px] font-bold text-[#8A8A8A] uppercase tracking-wider mb-1.5 text-left">
                         Nouveau mot de passe
                       </label>
-                      <input
-                        required
-                        type="password"
-                        minLength={6}
-                        placeholder="Au moins 6 caractères"
-                        value={resetNewPassword}
-                        onChange={(e) => setResetNewPassword(e.target.value)}
-                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-3.5 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
-                      />
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#9A9A9A]">
+                          <Lock size={15} />
+                        </div>
+                        <input
+                          required
+                          type="password"
+                          minLength={6}
+                          placeholder="Au moins 6 caractères"
+                          value={resetNewPassword}
+                          onChange={(e) => setResetNewPassword(e.target.value)}
+                          className="w-full bg-[#F5F5F3] border-transparent rounded-xl pl-11 pr-5 py-3.5 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-[11px] font-bold text-[#8A8A8A] uppercase tracking-wider mb-1.5 text-left">
                         Confirmer le mot de passe
                       </label>
-                      <input
-                        required
-                        type="password"
-                        minLength={6}
-                        placeholder="Retapez le nouveau mot de passe"
-                        value={resetConfirmPassword}
-                        onChange={(e) => setResetConfirmPassword(e.target.value)}
-                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-3.5 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
-                      />
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#9A9A9A]">
+                          <Lock size={15} />
+                        </div>
+                        <input
+                          required
+                          type="password"
+                          minLength={6}
+                          placeholder="Retapez le nouveau mot de passe"
+                          value={resetConfirmPassword}
+                          onChange={(e) => setResetConfirmPassword(e.target.value)}
+                          className="w-full bg-[#F5F5F3] border-transparent rounded-xl pl-11 pr-5 py-3.5 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
+                        />
+                      </div>
                     </div>
 
                     <button
@@ -867,9 +920,10 @@ export default function AccountClient() {
                         type="button"
                         onClick={handleSendResetCode}
                         disabled={resetStatus.loading}
-                        className="text-[12px] text-[#0ea5e9] font-medium hover:underline disabled:opacity-50"
+                        className="text-[12px] text-[#0ea5e9] font-medium hover:underline disabled:opacity-50 inline-flex items-center gap-1.5"
                       >
-                        Vous n'avez pas reçu le code ? Renvoyer
+                        <RotateCcw size={13} className={resetStatus.loading ? 'animate-spin' : ''} />
+                        <span>Vous n'avez pas reçu le code ? Renvoyer</span>
                       </button>
                     </div>
                   </form>
