@@ -78,7 +78,9 @@ export const NAYDAY_EMAIL_HTML = `<!doctype html>
                   <table role="presentation" class="product-card" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #e9edf2;background:#ffffff;">
                     <tr>
                       <td align="center" style="padding:22px 18px 8px;">
-                        <img class="product-img" src="https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/1784029115159-214358233-Miss_Dior_parfum.jpg" width="245" alt="Miss Dior Parfum" style="width:245px;max-width:100%;height:auto;">
+                        <a href="https://nayparfum.ma/fr/product/miss-dior-parfum-tester" style="text-decoration:none;">
+                          <img class="product-img" src="https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/1784029115159-214358233-Miss_Dior_parfum.jpg" width="245" alt="Miss Dior Parfum" style="width:245px;max-width:100%;height:auto;border:0;">
+                        </a>
                       </td>
                     </tr>
                     <tr>
@@ -99,7 +101,9 @@ export const NAYDAY_EMAIL_HTML = `<!doctype html>
                   <table role="presentation" class="product-card" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #e9edf2;background:#ffffff;">
                     <tr>
                       <td align="center" style="padding:22px 18px 8px;">
-                        <img class="product-img" src="https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/raw-1783986821133-armani_stronger_with_you_intens.jpg" width="245" alt="Stronger With You Intensely" style="width:245px;max-width:100%;height:auto;">
+                        <a href="https://nayparfum.ma/fr/product/stronger-with-you-intensely-tester" style="text-decoration:none;">
+                          <img class="product-img" src="https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/raw-1783986821133-armani_stronger_with_you_intens.jpg" width="245" alt="Stronger With You Intensely" style="width:245px;max-width:100%;height:auto;border:0;">
+                        </a>
                       </td>
                     </tr>
                     <tr>
@@ -109,7 +113,7 @@ export const NAYDAY_EMAIL_HTML = `<!doctype html>
                         <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#5c6470;margin-top:7px;">Ambré fougère · 100 ml</div>
                         <div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;color:#0e1d34;font-weight:700;margin-top:12px;">299 DH</div>
                         <div style="margin-top:18px;">
-                          <a href="https://nayparfum.ma/fr/product/armani-stronger-with-you-intensely-tester" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:1.2px;color:#0e1d34;text-decoration:none;border-bottom:1px solid #0e1d34;padding-bottom:4px;">DÉCOUVRIR</a>
+                          <a href="https://nayparfum.ma/fr/product/stronger-with-you-intensely-tester" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:1.2px;color:#0e1d34;text-decoration:none;border-bottom:1px solid #0e1d34;padding-bottom:4px;">DÉCOUVRIR</a>
                         </div>
                       </td>
                     </tr>
@@ -162,7 +166,7 @@ export const NAYDAY_EMAIL_HTML = `<!doctype html>
             <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.8;color:#aab6c5;margin-top:14px;">
               Offre exclusive de bienvenue valable avec le code <strong>NAYDAY</strong> sur notre boutique.<br>
               Livraison rapide et sécurisée avec paiement à la livraison partout au Maroc.<br>
-              Besoin d'aide ? Écrivez-nous à <a href="mailto:contact@nayparfum.ma" style="color:#38bdf8;text-decoration:none;">contact@nayparfum.ma</a> ou sur <a href="https://wa.me/212628469399" style="color:#38bdf8;text-decoration:none;">WhatsApp</a>.<br>
+              Besoin d'aide ? Écrivez-nous à <a href="mailto:contact@nayparfum.ma" style="color:#38bdf8;text-decoration:none;">contact@nayparfum.ma</a> ou sur <a href="https://wa.me/212663380011" style="color:#38bdf8;text-decoration:none;">WhatsApp (+212 663-380011)</a>.<br>
               <span style="font-size:10px;color:#64748b;margin-top:10px;display:inline-block;">Vous recevez cet e-mail suite à votre inscription sur nayparfum.ma.</span>
             </div>
           </td>
@@ -370,13 +374,13 @@ Pour Elle : Miss Dior Parfum (299 DH)
 https://nayparfum.ma/fr/product/miss-dior-parfum-tester
 
 Pour Lui : Stronger With You Intensely (299 DH)
-https://nayparfum.ma/fr/product/armani-stronger-with-you-intensely-tester
+https://nayparfum.ma/fr/product/stronger-with-you-intensely-tester
 
 Profiter de votre offre sur notre boutique :
 https://nayparfum.ma/fr/shop
 
 Livraison partout au Maroc · Paiement à la livraison
-Besoin d'aide ? contact@nayparfum.ma ou WhatsApp +212 628-469399`;
+Besoin d'aide ? contact@nayparfum.ma ou WhatsApp +212 663-380011`;
 
   try {
     const result = await dispatchGenericEmail({
@@ -820,7 +824,7 @@ export async function sendPasswordResetCodeEmail({
               NAY Parfums — Parfumerie de Luxe &amp; Testeurs 100% Authentiques au Maroc
             </p>
             <p style="font-size:11px;line-height:1.6;color:#94a3b8;margin:0;">
-              Besoin d'aide ? Écrivez-nous à <a href="mailto:contact@nayparfum.ma" style="color:#0ea5e9;text-decoration:none;">contact@nayparfum.ma</a> ou sur <a href="https://wa.me/212628469399" style="color:#0ea5e9;text-decoration:none;">WhatsApp (+212 628-469399)</a>.
+              Besoin d'aide ? Écrivez-nous à <a href="mailto:contact@nayparfum.ma" style="color:#0ea5e9;text-decoration:none;">contact@nayparfum.ma</a> ou sur <a href="https://wa.me/212663380011" style="color:#0ea5e9;text-decoration:none;">WhatsApp (+212 663-380011)</a>.
             </p>
           </td>
         </tr>

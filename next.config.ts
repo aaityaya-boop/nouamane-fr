@@ -89,6 +89,21 @@ const nextConfig: NextConfig = {
         destination: '/fr/decouverte',
         statusCode: 301,
       },
+      {
+        source: '/product/armani-stronger-with-you-intensely-tester',
+        destination: '/fr/product/stronger-with-you-intensely-tester',
+        statusCode: 301,
+      },
+      {
+        source: '/fr/product/armani-stronger-with-you-intensely-tester',
+        destination: '/fr/product/stronger-with-you-intensely-tester',
+        statusCode: 301,
+      },
+      {
+        source: '/ar/product/armani-stronger-with-you-intensely-tester',
+        destination: '/ar/product/stronger-with-you-intensely-tester',
+        statusCode: 301,
+      },
     ];
   },
   async headers() {
