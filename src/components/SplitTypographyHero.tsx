@@ -59,7 +59,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
       {/* Huge Background Watermark */}
       <motion.div 
         style={{ y: watermarkY, opacity: opacityContent }}
-        className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden"
+        className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none z-0 overflow-hidden"
       >
         <span className="font-serif italic text-[15vw] leading-none text-[#111]/[0.02] whitespace-nowrap rotate-[-5deg] scale-150">
           NAY PARFUMS
@@ -83,7 +83,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
       </motion.div>
 
       {/* Floating Sparkles/Dust */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="hidden md:block absolute inset-0 z-0 pointer-events-none">
         {mounted && [...Array(10)].map((_, i) => {
             const r7 = (i * 41) % 3 + 1;
             const r8 = (i * 43) % 3 + 1;

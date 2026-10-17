@@ -9,8 +9,6 @@ import { getDictionary } from "@/lib/dictionaries";
 import { AuthProvider } from "@/context/AuthContext";
 import FacebookPixel from "@/components/FacebookPixel";
 import { PreferencesProvider } from "@/context/PreferencesContext";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/analytics/GoogleTagManager";
 
@@ -18,7 +16,7 @@ import ClientWidgets from "@/components/ClientWidgets";
 
 const montserrat = Montserrat({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600', '700'],
   variable: '--font-sans',
   display: 'swap',
   preload: true,
@@ -266,9 +264,6 @@ export default async function LocaleLayout({
             <ClientWidgets />
           </PreferencesProvider>
         </DictionaryProvider>
-        <SpeedInsights />
-        <Analytics />
-
       </body>
     </html>
   );

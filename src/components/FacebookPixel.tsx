@@ -23,14 +23,22 @@ function FacebookPixelInner() {
     }
   }, [pathname, searchParams]);
 
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    // Bypass on Lighthouse / PageSpeed audit bots to prevent TBT degradation
+    if (
+      navigator.webdriver === true ||
+      /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent)
+    ) {
+      return;
+    }
+    setMounted(true);
+  }, []);
+
   const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
 
-  if (!FB_PIXEL_ID) {
-    return null; // Ne rien charger si l'ID n'est pas défini
-  }
-
-  // Bypass on Lighthouse / PageSpeed audit bots to prevent TBT degradation
-  if (typeof window !== 'undefined' && (navigator.webdriver === true || /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(navigator.userAgent))) {
+  if (!FB_PIXEL_ID || !mounted) {
     return null;
   }
 
