@@ -50,6 +50,8 @@ model Customer {
   address          String?
   city             String?
   postalCode       String?
+  resetCode        String?
+  resetCodeExpires DateTime?
   wishlist         String               @default("[]")
   orders           Order[]
   claims           ClaimTicket[]

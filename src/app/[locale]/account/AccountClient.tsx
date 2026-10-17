@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
-import { User, Package, MapPin, Heart, LogOut, ChevronLeft, ChevronRight, CheckCircle2, Truck, Clock, Check, X } from 'lucide-react';
+import { User, Package, MapPin, Heart, LogOut, ChevronLeft, ChevronRight, CheckCircle2, Truck, Clock, Check, X, KeyRound, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { formatMAD } from '@/lib/products';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -71,10 +71,21 @@ const OrderTimeline = ({ status }: { status: string }) => {
 
 export default function AccountClient() {
   const { customer, setCustomer, isLoading, logout } = useAuth();
-  const [authStep, setAuthStep] = useState<'login' | 'signup'>('login');
+  const [authStep, setAuthStep] = useState<'login' | 'signup' | 'forgot' | 'verify_reset'>('login');
   const [authData, setAuthData] = useState({ name: '', email: '', password: '' });
   const [authError, setAuthError] = useState('');
   const [loadingAuth, setLoadingAuth] = useState(false);
+
+  // Forgot password & Verification code state
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [resetStatus, setResetStatus] = useState<{ loading: boolean; error: string; success: string }>({
+    loading: false,
+    error: '',
+    success: '',
+  });
   const [orders, setOrders] = useState<any[]>([]);
   
   const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
@@ -196,6 +207,77 @@ export default function AccountClient() {
       }
     } finally {
       setLoadingAuth(false);
+    }
+  };
+
+  const handleSendResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail || !forgotEmail.includes('@')) {
+      setResetStatus({ loading: false, error: 'Veuillez renseigner une adresse e-mail valide.', success: '' });
+      return;
+    }
+    setResetStatus({ loading: true, error: '', success: '' });
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAuthStep('verify_reset');
+        setResetStatus({
+          loading: false,
+          error: '',
+          success: 'Code envoyé ! Consultez votre boîte de réception (et vos spams).',
+        });
+      } else {
+        setResetStatus({ loading: false, error: data.error || "Erreur lors de l'envoi du code.", success: '' });
+      }
+    } catch {
+      setResetStatus({ loading: false, error: 'Erreur de connexion au serveur.', success: '' });
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetCode || resetCode.trim().length !== 6) {
+      setResetStatus({ loading: false, error: 'Veuillez saisir le code à 6 chiffres reçu par e-mail.', success: '' });
+      return;
+    }
+    if (resetNewPassword.length < 6) {
+      setResetStatus({ loading: false, error: 'Le nouveau mot de passe doit contenir au moins 6 caractères.', success: '' });
+      return;
+    }
+    if (resetNewPassword !== resetConfirmPassword) {
+      setResetStatus({ loading: false, error: 'Les deux mots de passe ne correspondent pas.', success: '' });
+      return;
+    }
+
+    setResetStatus({ loading: true, error: '', success: '' });
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: forgotEmail,
+          code: resetCode.trim(),
+          newPassword: resetNewPassword,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCustomer(data.customer);
+        setResetStatus({
+          loading: false,
+          error: '',
+          success: 'Mot de passe réinitialisé avec succès ! Connexion réussie.',
+        });
+      } else {
+        setResetStatus({ loading: false, error: data.error || 'Erreur lors de la réinitialisation.', success: '' });
+      }
+    } catch {
+      setResetStatus({ loading: false, error: 'Erreur de connexion au serveur.', success: '' });
     }
   };
 
@@ -561,7 +643,17 @@ export default function AccountClient() {
                       <input required type="password" placeholder="Mot de passe" value={authData.password} onChange={e => setAuthData({...authData, password: e.target.value})} className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-4 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all" />
                     </div>
                     <div className="text-right">
-                      <a href="#" className="text-[12px] text-[#0ea5e9] font-bold hover:underline">Mot de passe oublié ?</a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForgotEmail(authData.email);
+                          setResetStatus({ loading: false, error: '', success: '' });
+                          setAuthStep('forgot');
+                        }}
+                        className="text-[12px] text-[#0ea5e9] font-bold hover:underline transition-colors hover:text-[#0284c7]"
+                      >
+                        Mot de passe oublié ?
+                      </button>
                     </div>
                     <button type="submit" disabled={loadingAuth} className="w-full btn-blue py-4 rounded-full text-[13px] mt-4 font-bold tracking-wider disabled:opacity-70 transition-transform hover:scale-[1.02] active:scale-[0.98]">
                       {loadingAuth ? 'Connexion en cours...' : 'Se Connecter'}
@@ -632,6 +724,167 @@ export default function AccountClient() {
                   </form>
                   <div className="mt-10 text-[13px] text-[#6B6B6B]">
                     Déjà un compte ? <button onClick={() => { setAuthStep('login'); setAuthError(''); }} className="text-[#0ea5e9] font-bold underline decoration-2 underline-offset-4 ml-1 hover:text-[#0284c7]">Se connecter</button>
+                  </div>
+                </div>
+              )}
+
+              {authStep === 'forgot' && (
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 bg-[#0ea5e9]/10 text-[#0ea5e9] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xs">
+                    <KeyRound size={22} />
+                  </div>
+                  <h3 className="heading-font text-2xl sm:text-3xl mb-2 text-[#1A1A1A]">Mot de passe oublié</h3>
+                  <p className="text-[#6B6B6B] text-[13px] mb-6 leading-relaxed">
+                    Saisissez votre adresse e-mail pour recevoir un code de vérification à 6 chiffres.
+                  </p>
+
+                  {resetStatus.error && (
+                    <div className="bg-red-50 text-red-600 border border-red-100 rounded-xl p-3.5 text-[13px] mb-5 flex items-center justify-center gap-2">
+                      <X size={16} /> {resetStatus.error}
+                    </div>
+                  )}
+
+                  {resetStatus.success && (
+                    <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl p-3.5 text-[13px] mb-5 flex items-center justify-center gap-2">
+                      <CheckCircle2 size={16} /> {resetStatus.success}
+                    </div>
+                  )}
+
+                  <form className="space-y-4" onSubmit={handleSendResetCode}>
+                    <div>
+                      <input
+                        required
+                        type="email"
+                        placeholder="Votre adresse e-mail"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-4 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={resetStatus.loading}
+                      className="w-full btn-blue py-4 rounded-full text-[13px] font-bold tracking-wider disabled:opacity-70 transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-sky-500/20"
+                    >
+                      {resetStatus.loading ? 'Envoi du code...' : 'Envoyer le code'}
+                    </button>
+                  </form>
+
+                  <div className="mt-8 text-[13px] text-[#6B6B6B]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthStep('login');
+                        setResetStatus({ loading: false, error: '', success: '' });
+                      }}
+                      className="text-[#1A1A1A] font-semibold hover:text-[#0ea5e9] transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={14} /> Retour à la connexion
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {authStep === 'verify_reset' && (
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xs">
+                    <ShieldCheck size={24} />
+                  </div>
+                  <h3 className="heading-font text-2xl sm:text-3xl mb-2 text-[#1A1A1A]">Code de vérification</h3>
+                  <p className="text-[#6B6B6B] text-[13px] mb-6 leading-relaxed">
+                    Saisissez le code à 6 chiffres envoyé à <strong className="text-[#1A1A1A]">{forgotEmail}</strong> ainsi que votre nouveau mot de passe.
+                  </p>
+
+                  {resetStatus.error && (
+                    <div className="bg-red-50 text-red-600 border border-red-100 rounded-xl p-3.5 text-[13px] mb-5 flex items-center justify-center gap-2">
+                      <X size={16} /> {resetStatus.error}
+                    </div>
+                  )}
+
+                  {resetStatus.success && (
+                    <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl p-3.5 text-[13px] mb-5 flex items-center justify-center gap-2">
+                      <CheckCircle2 size={16} /> {resetStatus.success}
+                    </div>
+                  )}
+
+                  <form className="space-y-4" onSubmit={handleResetPassword}>
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#8A8A8A] uppercase tracking-wider mb-1.5 text-left">
+                        Code à 6 chiffres
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        maxLength={6}
+                        placeholder="Ex: 482910"
+                        value={resetCode}
+                        onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ''))}
+                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-3.5 text-center text-[22px] font-mono tracking-[0.4em] font-bold focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#8A8A8A] uppercase tracking-wider mb-1.5 text-left">
+                        Nouveau mot de passe
+                      </label>
+                      <input
+                        required
+                        type="password"
+                        minLength={6}
+                        placeholder="Au moins 6 caractères"
+                        value={resetNewPassword}
+                        onChange={(e) => setResetNewPassword(e.target.value)}
+                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-3.5 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#8A8A8A] uppercase tracking-wider mb-1.5 text-left">
+                        Confirmer le mot de passe
+                      </label>
+                      <input
+                        required
+                        type="password"
+                        minLength={6}
+                        placeholder="Retapez le nouveau mot de passe"
+                        value={resetConfirmPassword}
+                        onChange={(e) => setResetConfirmPassword(e.target.value)}
+                        className="w-full bg-[#F5F5F3] border-transparent rounded-xl px-5 py-3.5 text-[14px] focus:bg-white focus:outline-none focus:border-[#0ea5e9] focus:ring-1 focus:ring-[#0ea5e9] transition-all"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={resetStatus.loading}
+                      className="w-full btn-blue py-4 rounded-full text-[13px] font-bold tracking-wider disabled:opacity-70 transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-sky-500/20 mt-2"
+                    >
+                      {resetStatus.loading ? 'Réinitialisation en cours...' : 'Réinitialiser & Se Connecter'}
+                    </button>
+
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={handleSendResetCode}
+                        disabled={resetStatus.loading}
+                        className="text-[12px] text-[#0ea5e9] font-medium hover:underline disabled:opacity-50"
+                      >
+                        Vous n'avez pas reçu le code ? Renvoyer
+                      </button>
+                    </div>
+                  </form>
+
+                  <div className="mt-6 text-[13px] text-[#6B6B6B]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthStep('login');
+                        setResetStatus({ loading: false, error: '', success: '' });
+                      }}
+                      className="text-[#1A1A1A] font-semibold hover:text-[#0ea5e9] transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={14} /> Retour à la connexion
+                    </button>
                   </div>
                 </div>
               )}

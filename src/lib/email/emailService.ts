@@ -203,39 +203,7 @@ export async function dispatchGenericEmail({
 
   let providerError: string | null = null;
 
-  // 1. Try Resend if API key is provided
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const fromAddress = process.env.EMAIL_FROM || 'NAY Parfum <contact@nayparfum.ma>';
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: fromAddress,
-          to: cleanRecipients,
-          subject,
-          html,
-          text: text || undefined,
-        }),
-      });
-
-      const resData = await res.json();
-      if (res.ok && resData.id) {
-        return { success: true, channel: 'RESEND', messageId: resData.id };
-      } else {
-        providerError = resData.message || (typeof resData === 'string' ? resData : JSON.stringify(resData));
-        console.warn('Resend API returned error, falling back:', resData);
-      }
-    } catch (resendErr: any) {
-      providerError = resendErr?.message || 'Erreur réseau Resend';
-      console.error('Resend dispatch failed:', resendErr);
-    }
-  }
-
-  // 2. Try SMTP via Nodemailer
+  // 1. Try SMTP via Nodemailer if configured (e.g. Hostinger / official business email)
   const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_SERVER_HOST;
   const smtpUser = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
   const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
@@ -264,7 +232,39 @@ export async function dispatchGenericEmail({
       return { success: true, channel: 'SMTP', messageId: info.messageId };
     } catch (smtpErr: any) {
       providerError = smtpErr?.message || 'Erreur SMTP';
-      console.error('SMTP dispatch failed:', smtpErr);
+      console.error('SMTP dispatch failed, falling back:', smtpErr);
+    }
+  }
+
+  // 2. Try Resend if API key is provided
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const fromAddress = process.env.EMAIL_FROM || 'NAY Parfum <contact@nayparfum.ma>';
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: fromAddress,
+          to: cleanRecipients,
+          subject,
+          html,
+          text: text || undefined,
+        }),
+      });
+
+      const resData = await res.json();
+      if (res.ok && resData.id) {
+        return { success: true, channel: 'RESEND', messageId: resData.id };
+      } else {
+        providerError = resData.message || (typeof resData === 'string' ? resData : JSON.stringify(resData));
+        console.warn('Resend API returned error:', resData);
+      }
+    } catch (resendErr: any) {
+      providerError = resendErr?.message || 'Erreur réseau Resend';
+      console.error('Resend dispatch failed:', resendErr);
     }
   }
 
@@ -633,6 +633,129 @@ export async function sendTestNotificationEmail(targetEmail: string): Promise<Se
     to: cleanEmail,
     subject,
     html,
+  });
+}
+
+/**
+ * Dispatch password reset verification code email
+ */
+export async function sendPasswordResetCodeEmail({
+  to,
+  name,
+  code,
+}: {
+  to: string;
+  name?: string;
+  code: string;
+}): Promise<SendEmailResult> {
+  const cleanEmail = to.trim().toLowerCase();
+  const displayName = name && name.trim() ? name.trim() : 'Cher Client';
+
+  const subject = `🔐 Votre code de vérification NAY Parfums : ${code}`;
+
+  const html = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Code de réinitialisation — NAY Parfums</title>
+<style>
+  body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; display:block; }
+  table { border-collapse:collapse !important; }
+  body { margin:0 !important; padding:0 !important; width:100% !important; background:#f4f5f7; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+  @media screen and (max-width:600px) {
+    .container { width:100% !important; }
+    .px { padding-left:20px !important; padding-right:20px !important; }
+    .code-box { letter-spacing:8px !important; font-size:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f5f7;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f4f5f7">
+  <tr>
+    <td align="center" style="padding:32px 12px;">
+      <table role="presentation" class="container" width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:560px;max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.04);border:1px solid #e9edf2;">
+        
+        <!-- Header Brand -->
+        <tr>
+          <td align="center" style="padding:36px 24px 24px;border-bottom:1px solid #f0f2f5;">
+            <a href="https://nayparfum.ma" target="_blank" style="text-decoration:none;">
+              <img src="https://nayparfum.ma/images/nay/nay-logo-tight.png" width="150" alt="NAY Parfum" style="width:150px;max-width:150px;height:auto;display:block;margin:0 auto;">
+            </a>
+          </td>
+        </tr>
+
+        <!-- Content Body -->
+        <tr>
+          <td class="px" style="padding:40px 44px 20px;">
+            <div style="font-size:11px;letter-spacing:3px;color:#0ea5e9;text-transform:uppercase;font-weight:700;margin-bottom:12px;">
+              SÉCURITÉ DU COMPTE
+            </div>
+            <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.2;color:#0e1d34;margin:0 0 18px 0;font-weight:normal;">
+              Réinitialisation de votre mot de passe
+            </h1>
+            <p style="font-size:15px;line-height:1.7;color:#475569;margin:0 0 24px 0;">
+              Bonjour <strong>${displayName}</strong>,<br>
+              Vous avez demandé la réinitialisation du mot de passe de votre compte sur <strong>NAY Parfums</strong>.<br>
+              Voici votre code de vérification personnel à 6 chiffres :
+            </p>
+
+            <!-- Verification Code Card -->
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:28px 0;">
+              <tr>
+                <td align="center" style="background:#0e1d34;border-radius:14px;padding:26px 20px;">
+                  <div style="font-size:11px;letter-spacing:2px;color:#94a3b8;text-transform:uppercase;margin-bottom:10px;">
+                    VOTRE CODE DE VÉRIFICATION
+                  </div>
+                  <div class="code-box" style="font-family:'Courier New',Courier,monospace;font-size:40px;line-height:1;font-weight:800;letter-spacing:14px;color:#38bdf8;padding-left:14px;">
+                    ${code}
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Security info -->
+            <div style="background:#f8fafc;border-left:3px solid #0ea5e9;padding:14px 16px;border-radius:0 8px 8px 0;margin-bottom:28px;">
+              <p style="font-size:13px;line-height:1.6;color:#64748b;margin:0;">
+                ⏱️ Ce code est valable pendant <strong>15 minutes</strong>.<br>
+                🔒 Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email en toute tranquillité. Votre compte reste parfaitement sécurisé.
+              </p>
+            </div>
+
+            <p style="font-size:14px;line-height:1.6;color:#475569;margin:0 0 10px 0;">
+              À très bientôt sur <a href="https://nayparfum.ma" style="color:#0ea5e9;text-decoration:none;font-weight:600;">nayparfum.ma</a>,<br>
+              <span style="color:#0e1d34;font-weight:600;">L'équipe NAY Parfums</span>
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td align="center" style="padding:24px 30px;background:#f8fafc;border-top:1px solid #f0f2f5;">
+            <p style="font-size:11px;line-height:1.6;color:#94a3b8;margin:0;">
+              NAY Parfums — Parfumerie de Luxe & Testeurs 100% Authentiques au Maroc.<br>
+              Livraison rapide et paiement à la livraison dans tout le Royaume.<br>
+              Besoin d'aide ? Contactez notre service client sur WhatsApp au +212 628-469399.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`;
+
+  const text = `Bonjour ${displayName},\n\nVotre code de vérification NAY Parfums est : ${code}\n\nCe code expire dans 15 minutes.\nSi vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.\n\nL'équipe NAY Parfums`;
+
+  return dispatchGenericEmail({
+    to: cleanEmail,
+    subject,
+    html,
+    text,
   });
 }
 
