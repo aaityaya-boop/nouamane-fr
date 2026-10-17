@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import nodemailer from 'nodemailer';
 
-export const NAYDAY_EMAIL_SUBJECT = 'OFFRE NAYDAY — Votre sélection, encore plus avantageuse (−10% avec le code NAYDAY)';
+export const NAYDAY_EMAIL_SUBJECT = 'NAY Parfums — Bienvenue dans notre Maison & Votre privilège exclusif (-10%)';
 
 export const NAYDAY_EMAIL_HTML = `<!doctype html>
 <html lang="fr">
@@ -156,11 +156,14 @@ export const NAYDAY_EMAIL_HTML = `<!doctype html>
 
         <!-- Footer -->
         <tr>
-          <td align="center" style="padding:30px 24px;background:#0e1d34;color:#ffffff;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;">NAY PARFUM</div>
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.8;color:#aab6c5;margin-top:10px;">
-              Offre valable pour l'achat de plus de 2 parfums avec le code NAYDAY.<br>
-              © 2026 NAY Parfum
+          <td align="center" style="padding:32px 24px;background:#0e1d34;color:#ffffff;">
+            <div style="font-family:Georgia,serif;font-size:16px;letter-spacing:2px;font-weight:700;color:#ffffff;">NAY PARFUMS</div>
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:2px;color:#94a3b8;text-transform:uppercase;margin-top:6px;">HAUTE PARFUMERIE • MAROC</div>
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.8;color:#aab6c5;margin-top:14px;">
+              Offre exclusive de bienvenue valable avec le code <strong>NAYDAY</strong> sur notre boutique.<br>
+              Livraison rapide et sécurisée avec paiement à la livraison partout au Maroc.<br>
+              Besoin d'aide ? Écrivez-nous à <a href="mailto:contact@nayparfum.ma" style="color:#38bdf8;text-decoration:none;">contact@nayparfum.ma</a> ou sur <a href="https://wa.me/212628469399" style="color:#38bdf8;text-decoration:none;">WhatsApp</a>.<br>
+              <span style="font-size:10px;color:#64748b;margin-top:10px;display:inline-block;">Vous recevez cet e-mail suite à votre inscription sur nayparfum.ma.</span>
             </div>
           </td>
         </tr>
@@ -264,7 +267,7 @@ export async function dispatchGenericEmail({
   // 2. Try Resend if API key is provided
   if (resendApiKey) {
     try {
-      const fromAddress = smtpFrom || 'NAY Parfum <contact@nayparfum.ma>';
+      const fromAddress = smtpFrom || 'NAY Parfums <contact@nayparfum.ma>';
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -277,6 +280,7 @@ export async function dispatchGenericEmail({
           subject,
           html,
           text: text || undefined,
+          reply_to: 'contact@nayparfum.ma',
         }),
       });
 
@@ -357,11 +361,29 @@ export async function getStaffNotificationRecipients(): Promise<string[]> {
 export async function sendNaydayWelcomeEmail(recipientEmail: string): Promise<SendEmailResult> {
   const cleanEmail = recipientEmail.trim().toLowerCase();
 
+  const text = `NAY PARFUMS — HAUTE PARFUMERIE
+
+Votre sélection, encore plus avantageuse.
+Achetez plus de 2 parfums et profitez de -10% sur votre commande avec le code promo : NAYDAY
+
+Pour Elle : Miss Dior Parfum (299 DH)
+https://nayparfum.ma/fr/product/miss-dior-parfum-tester
+
+Pour Lui : Stronger With You Intensely (299 DH)
+https://nayparfum.ma/fr/product/armani-stronger-with-you-intensely-tester
+
+Profiter de votre offre sur notre boutique :
+https://nayparfum.ma/fr/shop
+
+Livraison partout au Maroc · Paiement à la livraison
+Besoin d'aide ? contact@nayparfum.ma ou WhatsApp +212 628-469399`;
+
   try {
     const result = await dispatchGenericEmail({
       to: cleanEmail,
       subject: NAYDAY_EMAIL_SUBJECT,
       html: NAYDAY_EMAIL_HTML,
+      text,
     });
 
     if (result.success) {
