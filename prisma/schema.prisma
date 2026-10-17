@@ -145,6 +145,11 @@ model SiteConfig {
   recommendedMaster     String   @default("[]")
   recommendedCoffrets   String   @default("[]")
   recommendedTesters    String   @default("[]")
+  smtpHost              String?
+  smtpPort              Int?     @default(465)
+  smtpUser              String?
+  smtpPass              String?
+  smtpFrom              String?
 }
 
 model NewsletterSubscriber {

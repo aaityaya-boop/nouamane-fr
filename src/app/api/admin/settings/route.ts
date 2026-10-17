@@ -54,6 +54,11 @@ export async function PUT(request: Request) {
         recommendedMaster: body.recommendedMaster !== undefined ? body.recommendedMaster : undefined,
         recommendedCoffrets: body.recommendedCoffrets !== undefined ? body.recommendedCoffrets : undefined,
         ...(body.recommendedTesters !== undefined ? { recommendedTesters: body.recommendedTesters } : {}),
+        ...(body.smtpHost !== undefined ? { smtpHost: body.smtpHost } : {}),
+        ...(body.smtpPort !== undefined ? { smtpPort: Number(body.smtpPort) } : {}),
+        ...(body.smtpUser !== undefined ? { smtpUser: body.smtpUser } : {}),
+        ...(body.smtpPass !== undefined ? { smtpPass: body.smtpPass } : {}),
+        ...(body.smtpFrom !== undefined ? { smtpFrom: body.smtpFrom } : {}),
       } as any
     });
 

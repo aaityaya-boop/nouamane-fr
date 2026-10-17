@@ -203,11 +203,35 @@ export async function dispatchGenericEmail({
 
   let providerError: string | null = null;
 
-  // 1. Try SMTP via Nodemailer if configured (e.g. Hostinger / official business email)
-  const smtpHost = process.env.SMTP_HOST || process.env.EMAIL_SERVER_HOST;
-  const smtpUser = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
-  const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
-  const smtpPort = Number(process.env.SMTP_PORT || process.env.EMAIL_SERVER_PORT || 465);
+  // 1. Try SMTP via Nodemailer if configured (either via env or SiteConfig in DB)
+  let smtpHost = process.env.SMTP_HOST || process.env.EMAIL_SERVER_HOST;
+  let smtpUser = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
+  let smtpPass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
+  let smtpPort = Number(process.env.SMTP_PORT || process.env.EMAIL_SERVER_PORT || 465);
+  let smtpFrom = process.env.EMAIL_FROM;
+
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    try {
+      const config = await prisma.siteConfig.findFirst({
+        select: {
+          smtpHost: true,
+          smtpPort: true,
+          smtpUser: true,
+          smtpPass: true,
+          smtpFrom: true,
+        },
+      });
+      if (config?.smtpHost && config?.smtpUser && config?.smtpPass) {
+        smtpHost = config.smtpHost;
+        smtpUser = config.smtpUser;
+        smtpPass = config.smtpPass;
+        smtpPort = config.smtpPort || 465;
+        if (config.smtpFrom) smtpFrom = config.smtpFrom;
+      }
+    } catch (e) {
+      console.warn('Could not read SMTP settings from SiteConfig:', e);
+    }
+  }
 
   if (smtpHost && smtpUser && smtpPass) {
     try {
@@ -222,7 +246,7 @@ export async function dispatchGenericEmail({
       });
 
       const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || `NAY Parfum <${smtpUser}>`,
+        from: smtpFrom || `NAY Parfum <${smtpUser}>`,
         to: cleanRecipients.join(', '),
         subject,
         html,
