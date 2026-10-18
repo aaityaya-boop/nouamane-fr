@@ -623,7 +623,7 @@ export default function ProductClient({
                   whileTap={{ scale: 0.98 }}
                   onClick={handleAddToCart}
                   disabled={isAdding}
-                  className={`btn-blue flex-1 w-full h-14 text-[13px] rounded-xl flex items-center justify-center gap-2 transition-all relative overflow-hidden ${
+                  className={`btn-blue flex-1 w-full h-[60px] md:h-14 text-[15px] md:text-[13px] font-bold tracking-wider md:tracking-[0.15em] rounded-xl flex items-center justify-center gap-2.5 md:gap-2 transition-all relative overflow-hidden shadow-md shadow-[#0ea5e9]/20 md:shadow-none ${
                     isAdded ? '!bg-green-600 hover:!bg-green-700' : 'hover:shadow-lg hover:shadow-[#0ea5e9]/20'
                   } ${isAdding ? 'opacity-80' : ''}`}
                 >
@@ -631,12 +631,12 @@ export default function ProductClient({
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : isAdded ? (
                     <>
-                      <Check size={18} /> {t.actions.addSuccess}
+                      <Check className="w-5 h-5 md:w-[18px] md:h-[18px]" /> {t.actions.addSuccess}
                     </>
                   ) : (
                     <>
-                      <ShoppingBag size={18} />
-                      Ajouter au panier — {formatMAD(currentPrice * quantity)}
+                      <ShoppingBag className="w-5 h-5 md:w-[18px] md:h-[18px]" />
+                      <span>Ajouter au panier — {formatMAD(currentPrice * quantity)}</span>
                     </>
                   )}
                   {/* Subtle shine effect */}
@@ -645,7 +645,7 @@ export default function ProductClient({
               ) : (
                 <button
                   disabled
-                  className="bg-red-50 text-red-600 border border-red-200 flex-1 w-full h-14 text-[13px] rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest font-bold cursor-not-allowed shadow-sm"
+                  className="bg-red-50 text-red-600 border border-red-200 flex-1 w-full h-[60px] md:h-14 text-[14px] md:text-[13px] rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest font-bold cursor-not-allowed shadow-sm"
                 >
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                   {t.info.outOfStock || 'Rupture de stock'}
