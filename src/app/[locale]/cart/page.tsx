@@ -147,9 +147,9 @@ export default function CartPage() {
             </div>
           ) : (
             /* ===== CART GRID ===== */
-            <div className="grid lg:grid-cols-[1fr_400px] gap-10 lg:gap-14">
+            <div className="grid lg:grid-cols-[1fr_400px] gap-10 lg:gap-14 min-w-0">
               {/* ITEMS */}
-              <section>
+              <section className="min-w-0">
                 {/* Cart header row - desktop only */}
                 <div className="hidden lg:grid grid-cols-[1fr_140px_140px_60px] gap-4 pb-4 border-b border-[#e0ddd4] text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
                   <div>Produit</div>
@@ -162,13 +162,13 @@ export default function CartPage() {
                   {cart.map((item) => (
                     <div
                       key={`${item.id}-${item.size}`}
-                      className="py-6 lg:grid lg:grid-cols-[1fr_140px_140px_60px] lg:gap-4 lg:items-center flex flex-col sm:flex-row sm:items-center gap-4"
+                      className="py-6 lg:grid lg:grid-cols-[1fr_140px_140px_60px] lg:gap-4 lg:items-center flex flex-col sm:flex-row sm:items-center gap-4 min-w-0"
                     >
                       {/* Product */}
-                      <div className="flex gap-4 lg:gap-5 flex-1">
+                      <div className="flex gap-3 sm:gap-4 lg:gap-5 flex-1 min-w-0">
                         <Link
                           href={`/${locale}/product/${item.slug}`}
-                          className="w-24 h-28 bg-transparent rounded-xl overflow-hidden flex-shrink-0 relative"
+                          className="w-20 h-24 sm:w-24 sm:h-28 bg-transparent rounded-xl overflow-hidden flex-shrink-0 relative"
                         >
                           <Image
                             src={item.image}
@@ -177,52 +177,59 @@ export default function CartPage() {
                             className="object-cover"
                           />
                         </Link>
-                        <div>
-                          <Link
-                            href={`/${locale}/product/${item.slug}`}
-                            className="heading-font text-xl text-[#1A1A1A] hover:text-[#0ea5e9]"
-                          >
-                            {item.name}
-                          </Link>
-                          <div className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#9A9A9A] mt-1">
-                            {item.size} · Eau de Parfum
-                          </div>
-                          <div className="text-[13px] text-[#6B6B6B] mt-1">
-                            {formatMAD(item.price)} l&apos;unité
+                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                          <div>
+                            <Link
+                              href={`/${locale}/product/${item.slug}`}
+                              className="heading-font text-lg sm:text-xl text-[#1A1A1A] hover:text-[#0ea5e9] line-clamp-2 break-words"
+                            >
+                              {item.name}
+                            </Link>
+                            <div className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#9A9A9A] mt-1">
+                              {item.size} · Eau de Parfum
+                            </div>
+                            <div className="text-[13px] text-[#6B6B6B] mt-1">
+                              {formatMAD(item.price)} l&apos;unité
+                            </div>
                           </div>
 
                           {/* Mobile controls */}
-                          <div className="lg:hidden flex items-center gap-4 mt-4">
-                            <div className="flex items-center border border-[#e0ddd4] rounded-full">
+                          <div className="lg:hidden flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 mt-3 sm:mt-4 pt-1">
+                            <div className="flex items-center border border-[#e0ddd4] rounded-full flex-shrink-0">
                               <button
                                 onClick={() =>
                                   updateQuantity(item.id, item.size, item.quantity - 1)
                                 }
-                                className="w-9 h-9 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A]"
+                                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A]"
+                                aria-label="Diminuer la quantité"
                               >
                                 <Minus size={13} />
                               </button>
-                              <div className="px-4 text-sm font-mono">
+                              <div className="px-2.5 sm:px-4 text-xs sm:text-sm font-mono select-none">
                                 {item.quantity}
                               </div>
                               <button
                                 onClick={() =>
                                   updateQuantity(item.id, item.size, item.quantity + 1)
                                 }
-                                className="w-9 h-9 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A]"
+                                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A]"
+                                aria-label="Augmenter la quantité"
                               >
                                 <Plus size={13} />
                               </button>
                             </div>
-                            <div className="ml-auto font-semibold text-[#1A1A1A]">
-                              {formatMAD(item.price * item.quantity)}
+                            <div className="flex items-center gap-3 ml-auto flex-shrink-0">
+                              <div className="font-semibold text-[#1A1A1A] text-sm sm:text-base whitespace-nowrap">
+                                {formatMAD(item.price * item.quantity)}
+                              </div>
+                              <button
+                                onClick={() => removeFromCart(item.id, item.size)}
+                                className="p-1 text-[#D4D4D4] hover:text-red-400 transition-colors"
+                                aria-label="Supprimer l'article"
+                              >
+                                <Trash2 size={16} />
+                              </button>
                             </div>
-                            <button
-                              onClick={() => removeFromCart(item.id, item.size)}
-                              className="text-[#D4D4D4] hover:text-red-400"
-                            >
-                              <Trash2 size={16} />
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -282,9 +289,9 @@ export default function CartPage() {
               </section>
 
               {/* ORDER SUMMARY */}
-              <aside>
-                <div className="lg:sticky lg:top-28 bg-white border border-[#e0ddd4] rounded-2xl border border-[#e0ddd4] p-8 shadow-sm">
-                  <h3 className="heading-font text-2xl tracking-wide">
+              <aside className="min-w-0">
+                <div className="lg:sticky lg:top-28 bg-white border border-[#e0ddd4] rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm min-w-0">
+                  <h3 className="heading-font text-xl sm:text-2xl tracking-wide">
                     Récapitulatif
                   </h3>
 
@@ -295,47 +302,47 @@ export default function CartPage() {
                   )}
 
                   <div className="mt-5 space-y-3 pb-6 border-b border-[#e0ddd4]">
-                    <div className="flex justify-between text-[14px]">
+                    <div className="flex items-center justify-between gap-2 text-[14px]">
                       <span className="text-[#6B6B6B]">Sous-total</span>
-                      <span className="text-[#1A1A1A] font-medium">
+                      <span className="text-[#1A1A1A] font-medium flex-shrink-0">
                         {formatMAD(subtotal)}
                       </span>
                     </div>
 
                     {!appliedPromo && dealDiscount > 0 && appliedDeal && (
-                      <div className="flex justify-between text-[14px] text-[#0ea5e9] bg-sky-50 p-2.5 rounded-xl border border-sky-200">
-                        <div className="flex items-center gap-1.5 font-bold text-xs">
-                          <span>🎉</span>
-                          <span>{appliedDeal.badgeText || appliedDeal.title}</span>
+                      <div className="flex items-center justify-between gap-2 text-[14px] text-[#0ea5e9] bg-sky-50 p-2.5 rounded-xl border border-sky-200 min-w-0">
+                        <div className="flex items-center gap-1.5 font-bold text-xs min-w-0 flex-1">
+                          <span className="flex-shrink-0">🎉</span>
+                          <span className="truncate">{appliedDeal.badgeText || appliedDeal.title}</span>
                         </div>
-                        <span className="font-bold text-xs">
+                        <span className="font-bold text-xs flex-shrink-0 whitespace-nowrap">
                           -{formatMAD(dealDiscount)}
                         </span>
                       </div>
                     )}
 
                     {promoDiscount > 0 && (
-                      <div className="flex justify-between text-[14px] text-green-600">
-                        <span>Code promo ({appliedPromo?.code})</span>
-                        <span className="font-medium">
+                      <div className="flex items-center justify-between gap-2 text-[14px] text-green-600 min-w-0">
+                        <span className="truncate min-w-0">Code promo ({appliedPromo?.code})</span>
+                        <span className="font-medium flex-shrink-0 whitespace-nowrap">
                           -{formatMAD(promoDiscount)}
                         </span>
                       </div>
                     )}
 
-                    <div className="flex justify-between text-[14px]">
+                    <div className="flex items-center justify-between gap-2 text-[14px]">
                       <span className="text-[#6B6B6B]">Livraison</span>
-                      <span className="text-[#1A1A1A] font-medium">
+                      <span className="text-[#1A1A1A] font-medium flex-shrink-0">
                         {shipping === 0 ? 'Gratuite' : formatMAD(shipping)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-baseline pt-6">
+                  <div className="flex items-baseline justify-between gap-2 pt-6">
                     <span className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#9A9A9A]">
-                      Total
+                       Total
                     </span>
-                    <span className="heading-font text-3xl font-medium text-[#1A1A1A]">
+                    <span className="heading-font text-2xl sm:text-3xl font-medium text-[#1A1A1A] whitespace-nowrap">
                       {formatMAD(total)}
                     </span>
                   </div>
@@ -366,11 +373,11 @@ export default function CartPage() {
 
                   {/* Promo */}
                   <div className="mt-6 pt-6 border-t border-[#e0ddd4]">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5">
                       <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
                         Code promo
                       </label>
-                      <span className="text-[10px] text-sky-600 font-medium normal-case flex items-center gap-1 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+                      <span className="text-[10px] text-sky-600 font-medium normal-case flex items-center gap-1 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100 flex-shrink-0">
                         <Lock size={10} /> Compte membre requis
                       </span>
                     </div>
@@ -380,12 +387,12 @@ export default function CartPage() {
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                         placeholder="Votre code"
-                        className="flex-1 border border-[#e0ddd4] rounded-lg px-4 py-2.5 text-[16px] sm:text-[13px] focus:outline-none focus:border-[#0ea5e9] uppercase bg-white"
+                        className="flex-1 min-w-0 border border-[#e0ddd4] rounded-lg px-3 sm:px-4 py-2.5 text-[16px] sm:text-[13px] focus:outline-none focus:border-[#0ea5e9] uppercase bg-white"
                       />
                       <button 
                         onClick={() => handleApplyPromo()}
                         disabled={isApplyingPromo || !promoInput.trim()}
-                        className="btn-outline-blue px-5 py-2.5 text-[12px] font-bold rounded-lg disabled:opacity-50"
+                        className="btn-outline-blue px-3.5 sm:px-5 py-2.5 text-[12px] font-bold rounded-lg disabled:opacity-50 flex-shrink-0"
                       >
                         {isApplyingPromo ? '...' : 'Appliquer'}
                       </button>
@@ -401,15 +408,15 @@ export default function CartPage() {
                       </div>
                     )}
                     {appliedPromo && (
-                      <div className="mt-3 flex items-center justify-between bg-green-50 border border-green-200 p-3 rounded-lg">
-                        <div className="flex items-center gap-2 text-green-700">
-                          <Tag size={14} />
-                          <span className="text-[12px] font-bold tracking-wider">{appliedPromo.code}</span>
+                      <div className="mt-3 flex items-center justify-between bg-green-50 border border-green-200 p-3 rounded-lg min-w-0">
+                        <div className="flex items-center gap-2 text-green-700 min-w-0 flex-1">
+                          <Tag size={14} className="flex-shrink-0" />
+                          <span className="text-[12px] font-bold tracking-wider truncate">{appliedPromo.code}</span>
                         </div>
                         <button 
                           type="button" 
                           onClick={handleRemovePromo}
-                          className="text-[11px] text-green-700 underline hover:text-green-900"
+                          className="text-[11px] text-green-700 underline hover:text-green-900 flex-shrink-0 ml-2"
                         >
                           Retirer
                         </button>

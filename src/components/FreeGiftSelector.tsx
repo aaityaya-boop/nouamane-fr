@@ -82,20 +82,20 @@ export default function FreeGiftSelector({ compact = false }: FreeGiftSelectorPr
     <>
       <div className={`rounded-2xl border transition-all ${
         compact 
-          ? 'bg-sky-50/70 border-sky-200 p-3' 
-          : 'bg-gradient-to-br from-sky-50/80 via-white to-sky-50/40 border-sky-200 p-4 shadow-2xs'
-      }`}>
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
+          ? 'bg-sky-50/70 border-sky-200 p-2.5 sm:p-3' 
+          : 'bg-gradient-to-br from-sky-50/80 via-white to-sky-50/40 border-sky-200 p-3 sm:p-4 shadow-2xs'
+      } min-w-0`}>
+        <div className="flex items-center justify-between gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
             <div className="w-8 h-8 rounded-xl bg-[#0ea5e9] text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
               <Gift size={15} />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#0ea5e9]">
                   Cadeau Offert Débloqué
                 </span>
-                <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded">
+                <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded flex-shrink-0">
                   0 DH
                 </span>
               </div>
@@ -116,7 +116,7 @@ export default function FreeGiftSelector({ compact = false }: FreeGiftSelectorPr
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="px-3 py-1.5 bg-white hover:bg-sky-50 border border-sky-300 text-[#0ea5e9] text-[11px] font-bold rounded-xl transition-all shadow-2xs flex-shrink-0 cursor-pointer flex items-center gap-1"
+              className="px-2.5 sm:px-3 py-1.5 bg-white hover:bg-sky-50 border border-sky-300 text-[#0ea5e9] text-[11px] font-bold rounded-xl transition-all shadow-2xs flex-shrink-0 cursor-pointer flex items-center gap-1"
             >
               <span>{selectedFreeGift ? 'Changer' : 'Choisir'}</span>
               <ChevronRight size={12} />
@@ -125,8 +125,8 @@ export default function FreeGiftSelector({ compact = false }: FreeGiftSelectorPr
         </div>
 
         {selectedFreeGift && !compact && (
-          <div className="mt-3 pt-3 border-t border-sky-100/80 flex items-center justify-between text-[11px] text-neutral-600">
-            <div className="flex items-center gap-2">
+          <div className="mt-3 pt-3 border-t border-sky-100/80 flex flex-wrap items-center justify-between gap-1.5 text-[11px] text-neutral-600 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="w-6 h-6 rounded-md bg-white border border-neutral-200 overflow-hidden relative flex-shrink-0">
                 <Image
                   src={selectedFreeGift.image || '/images/nay/nay-logo-blue.png'}
@@ -136,11 +136,11 @@ export default function FreeGiftSelector({ compact = false }: FreeGiftSelectorPr
                   sizes="24px"
                 />
               </div>
-              <span className="text-neutral-500">
+              <span className="text-neutral-500 truncate min-w-0">
                 {selectedFreeGift.brandLabel || 'Testeur Luxe'} • Miniature 5ml Vaporisateur
               </span>
             </div>
-            <span className="text-emerald-700 font-bold">Inclus gratuitement</span>
+            <span className="text-emerald-700 font-bold flex-shrink-0 whitespace-nowrap">Inclus gratuitement</span>
           </div>
         )}
       </div>
