@@ -327,10 +327,10 @@ export default function CheckoutPage() {
     <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen">
       <Header />
 
-      <main className="pt-28 lg:pt-36 pb-24">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+      <main className="pt-20 sm:pt-28 lg:pt-36 pb-16 sm:pb-24">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-10">
+          <div className="flex items-center gap-4 mb-6 sm:mb-10">
             <Link
               href={`/${locale}/cart`}
               className="text-[#9A9A9A] hover:text-[#0ea5e9] flex items-center gap-1 text-[13px]"
@@ -339,11 +339,11 @@ export default function CheckoutPage() {
             </Link>
           </div>
 
-          <div className="mb-10">
+          <div className="mb-6 sm:mb-10">
             <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">
               Commande sécurisée
             </span>
-            <h1 className="heading-font text-4xl lg:text-5xl mt-3 tracking-wide">
+            <h1 className="heading-font text-2xl sm:text-4xl lg:text-5xl mt-2 sm:mt-3 tracking-wide">
               Finaliser votre commande
             </h1>
           </div>
@@ -624,9 +624,16 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-blue w-full py-4 text-[11px] rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-blue w-full h-14 text-[14px] sm:text-[15px] font-bold tracking-wider rounded-xl shadow-lg shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? 'Traitement…' : 'Confirmer la commande'}
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Lock size={16} />
+                      <span>Confirmer la commande</span>
+                    </>
+                  )}
                 </button>
 
                 <div className="flex items-center gap-2 justify-center mt-4 text-[10px] tracking-[0.15em] uppercase text-[#9A9A9A]">

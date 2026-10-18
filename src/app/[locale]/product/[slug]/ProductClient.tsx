@@ -414,43 +414,43 @@ export default function ProductClient({
                       product.images.length
                   )
                 }
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white border border-[#e0ddd4]/85 hover:bg-white border border-[#e0ddd4] rounded-full flex items-center justify-center shadow-sm text-[#1A1A1A]"
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-sm border border-[#e0ddd4] hover:bg-white rounded-full flex items-center justify-center shadow-md text-[#1A1A1A] transition active:scale-95"
                 aria-label="Image précédente"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
               <button
                 onClick={() =>
                   setSelectedImage((selectedImage + 1) % product.images.length)
                 }
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white border border-[#e0ddd4]/85 hover:bg-white border border-[#e0ddd4] rounded-full flex items-center justify-center shadow-sm text-[#1A1A1A]"
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-sm border border-[#e0ddd4] hover:bg-white rounded-full flex items-center justify-center shadow-md text-[#1A1A1A] transition active:scale-95"
                 aria-label="Image suivante"
               >
-                <ChevronRight size={18} />
+                <ChevronRight size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
 
               {/* Wishlist */}
               <button
                 disabled={isWishlistLoading}
                 onClick={handleWishlistToggle}
-                className={`absolute top-5 right-5 w-11 h-11 bg-white border border-[#e0ddd4]/85 hover:bg-white border border-[#e0ddd4] rounded-full flex items-center justify-center shadow-sm transition-colors ${isInWishlist ? 'text-red-500' : 'text-[#1A1A1A]'}`}
+                className={`absolute top-3 right-3 sm:top-5 sm:right-5 w-9 h-9 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-sm border border-[#e0ddd4] hover:bg-white rounded-full flex items-center justify-center shadow-md transition-all active:scale-95 ${isInWishlist ? 'text-red-500' : 'text-[#1A1A1A]'}`}
                 aria-label="Ajouter aux favoris"
               >
-                <Heart size={16} strokeWidth={1.6} fill={isInWishlist ? "currentColor" : "none"} />
+                <Heart size={15} strokeWidth={1.8} fill={isInWishlist ? "currentColor" : "none"} className="sm:w-4 sm:h-4" />
               </button>
 
-              <span className="absolute top-5 left-5 text-[9px] font-bold tracking-[0.2em] uppercase bg-[#f8fafc] text-white px-3 py-1.5 rounded-full">
+              <span className="absolute top-3 left-3 sm:top-5 sm:left-5 text-[9px] font-bold tracking-[0.18em] uppercase bg-black/75 backdrop-blur-md text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-sm">
                 {product.brandLabel}
               </span>
             </div>
 
             {/* Thumbnails */}
-            <div className="mt-5 grid grid-cols-4 gap-3">
+            <div className="mt-3 sm:mt-5 grid grid-cols-4 gap-2 sm:gap-3">
               {product.images.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`aspect-square rounded-xl overflow-hidden border-2 transition ${
+                  className={`aspect-square rounded-lg sm:rounded-xl overflow-hidden border-2 transition ${
                     selectedImage === i
                       ? 'border-[#0ea5e9]'
                       : 'border-transparent hover:border-[#e0ddd4]'
@@ -549,46 +549,51 @@ export default function ProductClient({
             </div>
 
             {/* CREDIBILITY & TRUST SIGNALS */}
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-              <div className="flex items-center gap-2.5 text-[12px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/80 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                <ShieldCheck size={18} className="text-[#0ea5e9] shrink-0" />
+            <div className="mt-4 sm:mt-5 grid grid-cols-2 gap-2 sm:gap-2.5">
+              <div className="flex items-center gap-2 sm:gap-2.5 text-[11px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/85 backdrop-blur-sm px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <ShieldCheck size={16} className="text-[#0ea5e9] shrink-0 sm:w-[18px] sm:h-[18px]" />
                 <span className="truncate">{t.trust.cod}</span>
               </div>
               {product.isTester ? (
-                <div className="flex items-center gap-2.5 text-[12px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/80 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <BadgeCheck size={18} className="text-[#0ea5e9] shrink-0" />
+                <div className="flex items-center gap-2 sm:gap-2.5 text-[11px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/85 backdrop-blur-sm px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <BadgeCheck size={16} className="text-[#0ea5e9] shrink-0 sm:w-[18px] sm:h-[18px]" />
                   <span className="truncate">{t.trust.original}</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2.5 text-[12px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/80 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <Sparkles size={18} className="text-[#0ea5e9] shrink-0" />
-                  <span className="truncate">Qualité Premium Supérieure</span>
+                <div className="flex items-center gap-2 sm:gap-2.5 text-[11px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/85 backdrop-blur-sm px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <Sparkles size={16} className="text-[#0ea5e9] shrink-0 sm:w-[18px] sm:h-[18px]" />
+                  <span className="truncate">Qualité Premium</span>
                 </div>
               )}
             </div>
 
             {/* SIZE SELECTOR */}
-            <div className="mt-6 sm:mt-8">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+            <div className="mt-5 sm:mt-8">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
                 <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#1A1A1A]">
                   Sélectionnez la Contenance
                 </div>
               </div>
-              <div className={`grid ${product.sizes.length === 1 ? 'grid-cols-1 sm:grid-cols-2' : product.sizes.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'} gap-2.5`}>
+              <div className={`grid ${product.sizes.length === 1 ? 'grid-cols-1' : product.sizes.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'} gap-2 sm:gap-2.5`}>
                 {product.sizes.map((size) => (
                   <button
                     key={size.label}
                     onClick={() => setSelectedSize(size.label)}
-                    className={`relative flex flex-col items-center justify-center py-3 sm:py-3.5 px-3 rounded-xl border transition-all duration-300 ${
+                    className={`relative flex ${product.sizes.length === 1 ? 'flex-row items-center justify-between px-4 py-2.5 sm:py-3' : 'flex-col items-center justify-center py-2.5 sm:py-3.5 px-3'} rounded-xl border transition-all duration-300 ${
                       selectedSize === size.label
                         ? 'border-[#0ea5e9] bg-[#f8fafc] ring-1 ring-[#0ea5e9] shadow-sm'
                         : 'border-[#e0ddd4] bg-white text-[#6B6B6B] hover:border-[#9A9A9A]'
                     }`}
                   >
-                    <span className={`text-[13px] font-semibold tracking-[0.05em] mb-0.5 ${selectedSize === size.label ? 'text-[#1A1A1A]' : ''}`}>
-                      {size.label}
-                    </span>
-                    <span className={`text-[11px] whitespace-nowrap ${selectedSize === size.label ? 'text-[#0ea5e9] font-medium' : 'text-[#9A9A9A]'}`}>
+                    <div className="flex items-center gap-2">
+                      {product.sizes.length === 1 && (
+                        <span className="w-2 h-2 rounded-full bg-[#0ea5e9]" />
+                      )}
+                      <span className={`text-[13px] font-semibold tracking-[0.05em] ${selectedSize === size.label ? 'text-[#1A1A1A]' : ''}`}>
+                        {size.label}
+                      </span>
+                    </div>
+                    <span className={`text-[11px] whitespace-nowrap ${selectedSize === size.label ? 'text-[#0ea5e9] font-semibold' : 'text-[#9A9A9A]'}`}>
                       {formatMAD(size.price)}
                     </span>
                   </button>
@@ -597,26 +602,26 @@ export default function ProductClient({
             </div>
 
             {/* QUANTITY + ADD */}
-            <div ref={ctaSectionRef} className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className={`flex items-center justify-between border border-[#e0ddd4] rounded-xl bg-white h-12 sm:h-14 ${!inStock ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div ref={ctaSectionRef} className="mt-5 sm:mt-8 flex items-center gap-2.5 sm:gap-3">
+              <div className={`flex items-center justify-between border border-[#e0ddd4] rounded-xl bg-white h-[52px] sm:h-14 w-[104px] sm:w-32 shrink-0 shadow-sm ${!inStock ? 'opacity-50 pointer-events-none' : ''}`}>
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={!inStock}
-                  className="w-12 h-full flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-l-xl transition disabled:cursor-not-allowed"
+                  className="w-8 sm:w-10 h-full flex items-center justify-center text-[#6B6B6B] hover:text-[#1A1A1A] active:bg-[#fafaf7] rounded-l-xl transition disabled:cursor-not-allowed"
                   aria-label="Diminuer"
                 >
-                  <Minus size={16} />
+                  <Minus size={15} />
                 </button>
-                <div className="px-5 text-[15px] font-bold text-[#1A1A1A] min-w-[3rem] text-center">
+                <div className="text-[15px] font-bold text-[#1A1A1A] min-w-[2rem] text-center">
                   {quantity}
                 </div>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
                   disabled={!inStock}
-                  className="w-12 h-full flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-r-xl transition disabled:cursor-not-allowed"
+                  className="w-8 sm:w-10 h-full flex items-center justify-center text-[#6B6B6B] hover:text-[#1A1A1A] active:bg-[#fafaf7] rounded-r-xl transition disabled:cursor-not-allowed"
                   aria-label="Augmenter"
                 >
-                  <Plus size={16} />
+                  <Plus size={15} />
                 </button>
               </div>
 
@@ -626,8 +631,8 @@ export default function ProductClient({
                   whileTap={{ scale: 0.98 }}
                   onClick={handleAddToCart}
                   disabled={isAdding}
-                  className={`btn-blue flex-1 w-full h-[58px] sm:h-14 text-[15px] sm:text-[13px] font-bold tracking-wider sm:tracking-[0.12em] rounded-xl flex items-center justify-center gap-2.5 transition-all relative overflow-hidden shadow-md shadow-[#0ea5e9]/20 sm:shadow-none ${
-                    isAdded ? '!bg-green-600 hover:!bg-green-700' : 'hover:shadow-lg hover:shadow-[#0ea5e9]/20'
+                  className={`btn-blue flex-1 h-[52px] sm:h-14 text-[13px] sm:text-[14px] font-bold tracking-wider sm:tracking-[0.12em] rounded-xl flex items-center justify-center gap-2 transition-all relative overflow-hidden shadow-lg shadow-[#0ea5e9]/20 ${
+                    isAdded ? '!bg-green-600 hover:!bg-green-700' : 'hover:shadow-xl hover:shadow-[#0ea5e9]/30'
                   } ${isAdding ? 'opacity-80' : ''}`}
                 >
                   {isAdding ? (
@@ -638,8 +643,8 @@ export default function ProductClient({
                     </>
                   ) : (
                     <>
-                      <ShoppingBag className="w-5 h-5 sm:w-[18px] sm:h-[18px] shrink-0" />
-                      <span className="truncate">Ajouter au panier — {formatMAD(currentPrice * quantity)}</span>
+                      <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                      <span className="truncate">Ajouter au panier</span>
                     </>
                   )}
                   {/* Subtle shine effect */}
@@ -648,7 +653,7 @@ export default function ProductClient({
               ) : (
                 <button
                   disabled
-                  className="bg-red-50 text-red-600 border border-red-200 flex-1 w-full h-[58px] sm:h-14 text-[14px] sm:text-[13px] rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest font-bold cursor-not-allowed shadow-sm"
+                  className="bg-red-50 text-red-600 border border-red-200 flex-1 h-[52px] sm:h-14 text-[12px] sm:text-[13px] rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest font-bold cursor-not-allowed shadow-sm"
                 >
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                   {t.info.outOfStock || 'Rupture de stock'}
@@ -723,28 +728,28 @@ export default function ProductClient({
                 href={`https://api.whatsapp.com/send?phone=212663380011&text=${encodeURIComponent("Bonjour, j'aimerais offrir " + product.name + " en cadeau et personnaliser mon emballage.")}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 sm:gap-3 bg-[#f8fafc] border border-[#e0ddd4] text-[#1A1A1A] px-3.5 py-3 sm:py-3.5 rounded-xl hover:bg-white hover:border-[#0ea5e9] transition-all group text-center"
+                className="w-full h-11 sm:h-12 flex items-center justify-center gap-2 sm:gap-2.5 bg-[#f8fafc] border border-[#e0ddd4] text-[#1A1A1A] px-3.5 rounded-xl hover:bg-white hover:border-[#0ea5e9] transition-all group text-center active:scale-[0.99]"
               >
-                <Gift className="text-[#0ea5e9] group-hover:scale-110 transition-transform shrink-0" size={18} />
+                <Gift className="text-[#0ea5e9] group-hover:scale-110 transition-transform shrink-0" size={17} />
                 <span className="text-[12px] sm:text-[13px] font-semibold tracking-wide truncate">C'est pour offrir ? Personnalisez votre cadeau</span>
               </a>
             </div>
 
             {/* TRUST BADGES / SHIPPING PERKS */}
-            <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 pt-8 border-t border-[#e0ddd4]">
-              <PerkItem icon={<BadgeCheck size={20} className="text-[#0ea5e9]" />} label={t.perks.authLabel} sublabel={t.perks.authSub} />
-              <PerkItem icon={<Truck size={20} className="text-[#0ea5e9]" />} label={t.perks.expressLabel} sublabel={t.perks.expressSub} />
-              <PerkItem icon={<ShieldCheck size={20} className="text-[#0ea5e9]" />} label={t.perks.secureLabel} sublabel={t.perks.secureSub} />
-              <PerkItem icon={<RotateCcw size={20} className="text-[#0ea5e9]" />} label={t.perks.returnLabel} sublabel={t.perks.returnSub} />
+            <div className="mt-6 sm:mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 pt-6 sm:pt-8 border-t border-[#e0ddd4]">
+              <PerkItem icon={<BadgeCheck size={18} className="text-[#0ea5e9]" />} label={t.perks.authLabel} sublabel={t.perks.authSub} />
+              <PerkItem icon={<Truck size={18} className="text-[#0ea5e9]" />} label={t.perks.expressLabel} sublabel={t.perks.expressSub} />
+              <PerkItem icon={<ShieldCheck size={18} className="text-[#0ea5e9]" />} label={t.perks.secureLabel} sublabel={t.perks.secureSub} />
+              <PerkItem icon={<RotateCcw size={18} className="text-[#0ea5e9]" />} label={t.perks.returnLabel} sublabel={t.perks.returnSub} />
             </div>
 
-            <div className="mt-6 p-5 bg-gradient-to-r from-[#f8fafc] to-white rounded-xl border border-[#0ea5e9]/20 flex gap-4 items-center hover:border-[#0ea5e9]/40 transition">
-              <div className="text-[#0ea5e9] bg-[#0ea5e9]/10 p-3 rounded-full">
-                <MessageCircle size={24} />
+            <div className="mt-5 sm:mt-6 p-4 sm:p-5 bg-gradient-to-r from-[#f8fafc] to-white rounded-xl border border-[#0ea5e9]/20 flex gap-3.5 sm:gap-4 items-center hover:border-[#0ea5e9]/40 transition">
+              <div className="text-[#0ea5e9] bg-[#0ea5e9]/10 p-2.5 sm:p-3 rounded-full shrink-0">
+                <MessageCircle size={20} className="sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <p className="text-[14px] font-bold text-[#1A1A1A] mb-0.5">{t.support.title}</p>
-                <p className="text-[12px] text-[#6B6B6B]">{t.support.desc}</p>
+              <div className="min-w-0">
+                <p className="text-[13px] sm:text-[14px] font-bold text-[#1A1A1A] mb-0.5 truncate">{t.support.title}</p>
+                <p className="text-[11px] sm:text-[12px] text-[#6B6B6B] line-clamp-2">{t.support.desc}</p>
               </div>
             </div>
           </div>

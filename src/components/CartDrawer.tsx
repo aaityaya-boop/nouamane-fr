@@ -40,8 +40,8 @@ export default function CartDrawer() {
       />
 
       <div className="relative w-full max-w-md bg-white border border-[#e0ddd4] h-full flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between px-8 py-7 border-b border-[#e0ddd4]">
-          <h2 className="heading-font text-2xl tracking-wider text-[#1A1A1A]">
+        <div className="flex items-center justify-between px-5 sm:px-8 py-5 sm:py-7 border-b border-[#e0ddd4]">
+          <h2 className="heading-font text-xl sm:text-2xl tracking-wider text-[#1A1A1A]">
             Votre Panier
           </h2>
           <button
@@ -75,7 +75,7 @@ export default function CartDrawer() {
           </div>
         ) : (
           <>
-            <div className="px-8 pt-6 pb-2 border-b border-[#eeece5] bg-[#fafaf7]">
+            <div className="px-5 sm:px-8 pt-5 sm:pt-6 pb-2 border-b border-[#eeece5] bg-[#fafaf7]">
               <div className="flex justify-between items-end mb-2">
                 <span className="text-[12px] font-semibold text-[#1A1A1A]">
                   {getSubtotal() >= 800 
@@ -91,7 +91,7 @@ export default function CartDrawer() {
               </div>
             </div>
             
-            <div className="flex-1 overflow-auto px-8 py-6 space-y-6">
+            <div className="flex-1 overflow-auto px-5 sm:px-8 py-5 sm:py-6 space-y-5 sm:space-y-6">
               {cart.map((item) => (
                 <div
                   key={`${item.id}-${item.size}`}
@@ -168,7 +168,7 @@ export default function CartDrawer() {
               ))}
             </div>
 
-            <div className="border-t border-[#e0ddd4] p-6 bg-[#fafaf7] space-y-3">
+            <div className="border-t border-[#e0ddd4] p-5 sm:p-6 bg-[#fafaf7] space-y-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
               {appliedPromo && promoDiscount > 0 ? (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -220,7 +220,7 @@ export default function CartDrawer() {
               <Link
                 href={`/${locale}/cart`}
                 onClick={() => setIsOpen(false)}
-                className="btn-blue w-full py-3.5 text-[11px] rounded-full inline-block text-center"
+                className="btn-blue w-full h-12 py-3.5 text-[13px] sm:text-[14px] font-bold rounded-xl inline-flex items-center justify-center text-center shadow-md active:scale-98"
               >
                 Voir le panier & Commander
               </Link>

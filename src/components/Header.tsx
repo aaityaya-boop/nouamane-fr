@@ -62,7 +62,7 @@ export default function Header() {
 
         
 
-        <div className="max-w-[1600px] mx-auto px-6 lg:px-10">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex items-center justify-between h-[60px] lg:h-[75px]">
             {/* LEFT NAV (Desktop) */}
             <nav className="hidden lg:flex items-center gap-5 xl:gap-7 flex-1">
@@ -88,10 +88,10 @@ export default function Header() {
             </nav>
 
             {/* LOGO */}
-            <div className="flex-shrink-0 flex justify-center px-4">
+            <div className="flex-shrink-0 flex justify-center px-2 sm:px-4">
               <Link href={`/${locale}`} aria-label="NAY Parfums - Accueil" className="group flex flex-col items-center">
                 <div
-                  className={`w-16 h-16 lg:w-20 lg:h-20 transition-colors duration-300 group-hover:bg-[#0ea5e9] ${
+                  className={`w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 transition-colors duration-300 group-hover:bg-[#0ea5e9] ${
                     isSolid ? 'bg-[#1A1A1A]' : 'bg-white'
                   }`}
                   style={{

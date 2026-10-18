@@ -52,9 +52,9 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
     >
       <Link
         href={`/${locale}/product/${product.slug}`}
-        className="product-card group block h-full bg-white border border-[#e0ddd4] rounded-[24px] overflow-hidden hover:border-[#1A1A1A]/20 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all duration-700 ease-out"
+        className="product-card group block h-full bg-white border border-[#e0ddd4] rounded-2xl sm:rounded-[24px] overflow-hidden hover:border-[#1A1A1A]/20 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all duration-700 ease-out"
       >
-        <div className="relative h-[340px] lg:h-[380px] overflow-hidden bg-[#f8fafc]">
+        <div className="relative h-[250px] sm:h-[320px] lg:h-[380px] overflow-hidden bg-[#f8fafc]">
         <Image
           src={product.images[0]}
           alt={`Parfum ${product.name} au Maroc - NAY Parfums`}
@@ -139,16 +139,16 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
         )}
       </div>
 
-      <div className="px-5 lg:px-6 py-6 lg:py-7 relative bg-white">
-        <h3 className="heading-font text-xl lg:text-[22px] font-medium text-[#1A1A1A] tracking-wide leading-tight group-hover:text-[#0ea5e9] transition-colors duration-500">
+      <div className="px-4 sm:px-5 lg:px-6 py-4 sm:py-6 lg:py-7 relative bg-white">
+        <h3 className="heading-font text-[16px] sm:text-xl lg:text-[22px] font-medium text-[#1A1A1A] tracking-wide leading-tight group-hover:text-[#0ea5e9] transition-colors duration-500 line-clamp-2">
           {product.name}
         </h3>
-        <p className="text-[11px] font-medium tracking-[0.15em] uppercase text-[#9A9A9A] mt-2">
+        <p className="text-[10px] sm:text-[11px] font-medium tracking-[0.15em] uppercase text-[#9A9A9A] mt-1.5 sm:mt-2 truncate">
           {product.subcategoryLabel} · {product.gender === 'women' ? 'Femme' : product.gender === 'men' ? 'Homme' : 'Mixte'}
         </p>
 
         {showRating && (
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3">
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -162,24 +162,24 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
                 />
               ))}
             </div>
-            <span className="text-[11px] text-[#9A9A9A]">
+            <span className="text-[10px] sm:text-[11px] text-[#9A9A9A]">
               {Number(product.rating).toFixed(1)} ({product.reviewCount})
             </span>
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-3 sm:mt-4 flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-[15px] font-semibold text-[#1A1A1A]">
+            <span className="text-[14px] sm:text-[15px] font-semibold text-[#1A1A1A] whitespace-nowrap">
               {formatMAD(product.price)}
             </span>
             {isDiscounted && product.originalPrice && (
-              <span className="text-[12px] text-[#9A9A9A] line-through">
+              <span className="text-[11px] sm:text-[12px] text-[#9A9A9A] line-through whitespace-nowrap">
                 {formatMAD(product.originalPrice)}
               </span>
             )}
           </div>
-          <span className="text-[11px] font-medium text-[#9A9A9A]">
+          <span className="text-[10px] sm:text-[11px] font-medium text-[#9A9A9A] whitespace-nowrap">
             {product.sizes[Math.min(1, product.sizes.length - 1)]?.label || '50ml'}
           </span>
         </div>

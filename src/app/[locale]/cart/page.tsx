@@ -113,13 +113,13 @@ export default function CartPage() {
     <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen">
       <Header />
 
-      <main className="pt-28 lg:pt-36 pb-24">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
-          <div className="mb-10 lg:mb-14">
+      <main className="pt-20 sm:pt-28 lg:pt-36 pb-16 sm:pb-24">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
+          <div className="mb-8 lg:mb-14">
             <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">
               Votre Panier
             </span>
-            <h1 className="heading-font text-4xl lg:text-6xl mt-3 tracking-wide">
+            <h1 className="heading-font text-2xl sm:text-4xl lg:text-6xl mt-2 sm:mt-3 tracking-wide">
               {cart.length === 0 ? 'Panier vide' : `Panier (${cart.length})`}
             </h1>
           </div>
@@ -342,10 +342,10 @@ export default function CartPage() {
 
                   <Link
                     href={`/${locale}/checkout`}
-                    className="btn-blue w-full inline-flex items-center justify-center gap-2 py-4 mt-6 text-[11px] rounded-full"
+                    className="btn-blue w-full h-[52px] sm:h-14 inline-flex items-center justify-center gap-2.5 mt-6 text-[14px] sm:text-[15px] font-bold tracking-wider rounded-xl shadow-lg shadow-sky-500/20 active:scale-[0.99]"
                   >
-                    Passer commande
-                    <ArrowRight size={14} />
+                    <span>Passer commande</span>
+                    <ArrowRight size={16} />
                   </Link>
 
                   {/* Trust */}
@@ -380,12 +380,12 @@ export default function CartPage() {
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                         placeholder="Votre code"
-                        className="flex-1 border border-[#e0ddd4] rounded-lg px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#0ea5e9] uppercase"
+                        className="flex-1 border border-[#e0ddd4] rounded-lg px-4 py-2.5 text-[16px] sm:text-[13px] focus:outline-none focus:border-[#0ea5e9] uppercase bg-white"
                       />
                       <button 
                         onClick={() => handleApplyPromo()}
                         disabled={isApplyingPromo || !promoInput.trim()}
-                        className="btn-outline-blue px-5 py-2.5 text-[11px] rounded-lg disabled:opacity-50"
+                        className="btn-outline-blue px-5 py-2.5 text-[12px] font-bold rounded-lg disabled:opacity-50"
                       >
                         {isApplyingPromo ? '...' : 'Appliquer'}
                       </button>
