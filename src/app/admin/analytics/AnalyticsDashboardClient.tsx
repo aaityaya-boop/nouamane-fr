@@ -49,9 +49,25 @@ export default function AnalyticsDashboardClient() {
   const [pageSearch, setPageSearch] = useState('');
   const [geoSubTab, setGeoSubTab] = useState<'cities' | 'sources' | 'devices' | 'pages' | 'stream'>('cities');
 
-  // Fetch Analytics API
-  const fetchAnalytics = useCallback(async (showSpinner = true) => {
-    if (showSpinner) setIsLoading(true);
+  // Client-Side In-Memory SWR Cache for 0ms Instant Period Switching
+  const cacheRef = React.useRef<Map<string, { data: AnalyticsData; time: number }>>(new Map());
+
+  // Fetch Analytics API with SWR & optional background refresh
+  const fetchAnalytics = useCallback(async (showSpinner = true, forceFresh = false) => {
+    const cacheKey = `${period}:${customStartDate || ''}:${customEndDate || ''}`;
+
+    // SWR Cache: Serve instant data if available
+    if (!forceFresh) {
+      const cached = cacheRef.current.get(cacheKey);
+      if (cached) {
+        setData(cached.data);
+        setIsLoading(false);
+        // If cached within last 20 seconds, avoid re-fetching
+        if (Date.now() - cached.time < 20000) return;
+      }
+    }
+
+    if (showSpinner && !cacheRef.current.has(cacheKey)) setIsLoading(true);
     setIsRefreshing(true);
     try {
       const params = new URLSearchParams({ period });
@@ -59,10 +75,14 @@ export default function AnalyticsDashboardClient() {
         params.set('startDate', customStartDate);
         params.set('endDate', customEndDate);
       }
+      if (forceFresh) {
+        params.set('nocache', 'true');
+      }
       const res = await fetch(`/api/admin/analytics?${params.toString()}`);
       if (res.ok) {
         const json = await res.json();
         setData(json);
+        cacheRef.current.set(cacheKey, { data: json, time: Date.now() });
       }
     } catch (err) {
       console.error('Failed to load analytics:', err);
@@ -76,12 +96,12 @@ export default function AnalyticsDashboardClient() {
     fetchAnalytics(true);
   }, [fetchAnalytics]);
 
-  // Auto-refresh every 25 seconds on visitors or livestream tab
+  // Auto-refresh every 30 seconds smoothly in the background
   useEffect(() => {
     if (activeTab !== 'livestream' && activeTab !== 'visitors') return;
     const interval = setInterval(() => {
-      fetchAnalytics(false);
-    }, 25000);
+      fetchAnalytics(false, false);
+    }, 30000);
     return () => clearInterval(interval);
   }, [activeTab, fetchAnalytics]);
 
@@ -107,6 +127,19 @@ export default function AnalyticsDashboardClient() {
     const q = pageSearch.toLowerCase().trim();
     return data.trafficAnalytics.topPages.filter((p) => p.title.toLowerCase().includes(q) || p.pathname.toLowerCase().includes(q));
   }, [data, pageSearch]);
+
+  // Format relative time for live stream
+  const formatRelativeTime = (isoString: string) => {
+    const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+    if (diff < 60) return `Il y a ${Math.max(5, diff)}s`;
+    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
+    const hours = Math.floor(diff / 3600);
+    if (hours < 24) return `Il y a ${hours}h`;
+    return new Date(isoString).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   // Export Executive Traffic Report
   const handleExportCSV = () => {
@@ -172,300 +205,248 @@ export default function AnalyticsDashboardClient() {
     document.body.removeChild(link);
   };
 
-  const formatRelativeTime = (isoString: string) => {
-    const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-    if (diff < 60) return `Il y a ${Math.max(5, diff)}s`;
-    if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-    const hours = Math.floor(diff / 3600);
-    if (hours < 24) return `Il y a ${hours}h`;
-    return new Date(isoString).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-  };
-
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* ── TOP EXECUTIVE ANALYTICS HEADER ────────────────────────────── */}
-      <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 shadow-xs transition-colors">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5">
-          <div>
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 border border-neutral-200/60 dark:border-neutral-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>{data?.kpi?.activeVisitorsCount ?? 0} en direct</span>
-              </span>
-
-              <span className="text-neutral-300 dark:text-neutral-700">•</span>
-              <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-                Période : <strong className="text-neutral-700 dark:text-neutral-300">{data?.period?.label || '30 derniers jours'}</strong>
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white flex items-center gap-3">
-              <TrendingUp size={28} className="text-sky-500" />
-              <span>Analytics & Performance</span>
+    <div className="space-y-6 max-w-7xl mx-auto pb-24 font-sans text-neutral-900 dark:text-neutral-100">
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER: RESEND MINIMALIST & PROFESSIONAL                           */}
+      {/* ========================================================================= */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#eaeaea] dark:border-[#222227]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-white">
+              Audience &amp; Trafic
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl">
-              Pilotage des ventes, flux de visiteurs en temps réel, diagnostic marketing et entonnoir de conversion de NAY Parfums.
-            </p>
+            <span className="text-neutral-300 dark:text-neutral-700">/</span>
+            <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+              Maison NAY Parfums
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {data?.kpi?.activeVisitorsCount ?? 1} en direct
+            </span>
           </div>
-
-          {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-            <button
-              onClick={() => fetchAnalytics(false)}
-              disabled={isRefreshing}
-              className="p-2.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded-xl transition-all cursor-pointer disabled:opacity-50"
-              title="Rafraîchir les statistiques en temps réel"
-            >
-              <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-sky-500' : ''} />
-            </button>
-
-            <button
-              onClick={handleExportVisitorsCSV}
-              disabled={!data?.trafficAnalytics?.visitorSessions?.length}
-              className="flex items-center gap-2 px-3.5 py-2.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
-            >
-              <Users size={15} />
-              <span>Exporter Visiteurs CSV</span>
-            </button>
-
-            <button
-              onClick={handleExportCSV}
-              disabled={!data}
-              className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
-            >
-              <Download size={15} />
-              <span>Rapport Global CSV</span>
-            </button>
-          </div>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            Pilotage des flux de visiteurs en temps réel, diagnostic d&apos;acquisition et entonnoir pour <strong className="font-medium text-neutral-700 dark:text-neutral-200">nayparfum.ma</strong>
+          </p>
         </div>
 
-        {/* Date Filter Segmented Bar */}
-        <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-3">
-          <div className="inline-flex p-1 rounded-2xl bg-neutral-100 dark:bg-neutral-800/80 max-w-full overflow-x-auto gap-1" style={{ scrollbarWidth: 'none' }}>
-            {(
-              [
-                { id: 'today', label: "Aujourd'hui" },
-                { id: 'yesterday', label: 'Hier' },
-                { id: '7d', label: '7 jours' },
-                { id: '30d', label: '30 jours' },
-                { id: 'this_month', label: 'Ce mois-ci' },
-                { id: '90d', label: '90 jours' },
-                { id: 'year', label: 'Cette année' },
-                { id: 'all', label: "Tout l'historique" },
-              ] as const
-            ).map((p) => (
+        {/* Global Action Cluster */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => fetchAnalytics(false, true)}
+            disabled={isRefreshing}
+            className="h-8 px-3 inline-flex items-center gap-1.5 bg-white dark:bg-[#121215] hover:bg-neutral-50 dark:hover:bg-[#18181d] border border-[#eaeaea] dark:border-[#222227] text-neutral-700 dark:text-neutral-200 text-xs font-medium rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+            title="Rafraîchir les statistiques en temps réel"
+          >
+            <RefreshCw size={12} className={isRefreshing ? 'animate-spin' : ''} />
+            <span>Actualiser</span>
+          </button>
+
+          <button
+            onClick={handleExportVisitorsCSV}
+            disabled={!data?.trafficAnalytics?.visitorSessions?.length}
+            className="h-8 px-3 inline-flex items-center gap-1.5 bg-white dark:bg-[#121215] hover:bg-neutral-50 dark:hover:bg-[#18181d] border border-[#eaeaea] dark:border-[#222227] text-neutral-700 dark:text-neutral-200 text-xs font-medium rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <Users size={12} />
+            <span>Export Visiteurs</span>
+          </button>
+
+          <button
+            onClick={handleExportCSV}
+            disabled={!data}
+            className="h-8 px-3.5 inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-medium rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <Download size={12} />
+            <span>Rapport Global</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. DATE FILTER BAR                                                        */}
+      {/* ========================================================================= */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
+        <div className="flex items-center bg-neutral-100 dark:bg-[#1c1c21] p-0.5 rounded-md text-xs overflow-x-auto max-w-full">
+          {[
+            { id: 'today', label: "Aujourd'hui" },
+            { id: 'yesterday', label: 'Hier' },
+            { id: '7d', label: '7 jours' },
+            { id: '30d', label: '30 jours' },
+            { id: 'this_month', label: 'Ce mois-ci' },
+            { id: '90d', label: '90 jours' },
+            { id: 'year', label: 'Cette année' },
+            { id: 'all', label: "Tout l'historique" },
+          ].map((p) => {
+            const isSelected = period === p.id;
+            return (
               <button
                 key={p.id}
                 onClick={() => {
-                  setPeriod(p.id);
+                  setPeriod(p.id as any);
                   setShowDatePicker(false);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                  period === p.id
-                    ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs font-extrabold'
+                className={`px-3 py-1.5 rounded transition-all cursor-pointer text-xs font-medium whitespace-nowrap ${
+                  isSelected
+                    ? 'bg-white dark:bg-[#121215] text-neutral-900 dark:text-white shadow-2xs font-semibold'
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
               >
                 {p.label}
               </button>
-            ))}
-
-            <button
-              onClick={() => setShowDatePicker(!showDatePicker)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                period === 'custom'
-                  ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs font-extrabold'
-                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-            >
-              <Calendar size={13} />
-              <span>Personnalisé</span>
-            </button>
-          </div>
-
-          <div className="text-[11px] text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-            <span>Moteur de télémesure : <strong>NAY Live Sensor</strong></span>
-          </div>
+            );
+          })}
+          <button
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-all cursor-pointer text-xs font-medium whitespace-nowrap ${
+              period === 'custom'
+                ? 'bg-white dark:bg-[#121215] text-neutral-900 dark:text-white shadow-2xs font-semibold'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            <Calendar size={12} />
+            <span>Personnalisé</span>
+          </button>
         </div>
 
-        {/* Custom Date Picker Dropdown */}
-        {showDatePicker && (
-          <div className="mt-4 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-200 dark:border-neutral-700 flex flex-wrap items-center gap-4 animate-in fade-in duration-150">
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-neutral-600 dark:text-neutral-400">Date début :</label>
-              <input
-                type="date"
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-900 dark:text-white"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-neutral-600 dark:text-neutral-400">Date fin :</label>
-              <input
-                type="date"
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-xs font-medium text-neutral-900 dark:text-white"
-              />
-            </div>
-            <button
-              onClick={() => {
-                if (customStartDate && customEndDate) setPeriod('custom');
-              }}
-              disabled={!customStartDate || !customEndDate}
-              className="px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 disabled:opacity-40 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
-            >
-              Appliquer la sélection
-            </button>
-          </div>
-        )}
+        <div className="text-[11px] font-mono text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span>Moteur de télémesure : <strong>NAY Live Sensor</strong></span>
+        </div>
       </div>
 
-      {/* ── 6 EXECUTIVE TRAFFIC KPIS ───────────────────────────────────────── */}
-      {/* ── 6 EXECUTIVE TRAFFIC & FINANCIAL KPIS ───────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        {/* KPI 1: Chiffre d'Affaires Brut */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-emerald-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Chiffre d&apos;Affaires</span>
-            <DollarSign size={15} className="text-emerald-500" />
+      {/* Custom Date Picker Dropdown */}
+      {showDatePicker && (
+        <div className="p-4 bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs flex flex-wrap items-center gap-4 animate-in fade-in duration-150">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-mono text-neutral-500 dark:text-neutral-400">Début :</label>
+            <input
+              type="date"
+              value={customStartDate}
+              onChange={(e) => setCustomStartDate(e.target.value)}
+              className="px-2.5 py-1 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs font-mono text-neutral-900 dark:text-white focus:outline-none"
+            />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-mono text-neutral-500 dark:text-neutral-400">Fin :</label>
+            <input
+              type="date"
+              value={customEndDate}
+              onChange={(e) => setCustomEndDate(e.target.value)}
+              className="px-2.5 py-1 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs font-mono text-neutral-900 dark:text-white focus:outline-none"
+            />
+          </div>
+          <button
+            onClick={() => {
+              if (customStartDate && customEndDate) setPeriod('custom');
+            }}
+            disabled={!customStartDate || !customEndDate}
+            className="h-7 px-3 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-black dark:hover:bg-neutral-200 disabled:opacity-40 rounded text-xs font-medium transition-colors cursor-pointer"
+          >
+            Appliquer
+          </button>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. 6 EXECUTIVE TRAFFIC & FINANCIAL KPIS (MINIMALIST RESEND CARDS)         */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* KPI 1: Chiffre d'Affaires Brut */}
+        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
+          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Chiffre d&apos;Affaires</div>
+          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
             {data ? formatMAD(data.kpi.grossRevenue) : '—'}
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Encaissé COD :</span>
-            <span className="font-bold text-emerald-600 dark:text-emerald-400">
-              {data ? formatMAD(data.kpi.deliveredRevenue) : '—'}
-            </span>
+          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Encaissé : <strong className="font-medium text-emerald-600 dark:text-emerald-400 font-mono">{data ? formatMAD(data.kpi.deliveredRevenue) : '—'}</strong>
           </div>
         </div>
 
         {/* KPI 2: Commandes & Panier Moyen */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Commandes</span>
-            <ShoppingBag size={15} className="text-sky-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
+          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Commandes</div>
+          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
             {data?.kpi?.totalOrders?.toLocaleString() ?? '—'}
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Panier moyen :</span>
-            <span className="font-bold text-neutral-800 dark:text-neutral-200">
-              {data ? formatMAD(data.kpi.aov) : '—'}
-            </span>
+          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Panier moyen : <strong className="font-medium text-neutral-700 dark:text-neutral-300 font-mono">{data ? formatMAD(data.kpi.aov) : '—'}</strong>
           </div>
         </div>
 
         {/* KPI 3: Visiteurs Uniques */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-indigo-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Visiteurs Uniques</span>
-            <Users size={15} className="text-indigo-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
+          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Visiteurs Uniques</div>
+          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
             {data?.kpi?.visitorsCount?.toLocaleString() ?? '—'}
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Pages vues :</span>
-            <span className="font-bold text-neutral-800 dark:text-neutral-200">
-              {data?.kpi?.pageViewsCount?.toLocaleString() ?? '—'}
-            </span>
+          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Pages vues : <strong className="font-medium text-neutral-700 dark:text-neutral-300 font-mono">{data?.kpi?.pageViewsCount?.toLocaleString() ?? '—'}</strong>
           </div>
         </div>
 
         {/* KPI 4: Taux de Conversion */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-rose-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Taux Conversion</span>
-            <Target size={15} className="text-rose-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
+          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Taux Conversion</div>
+          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
             {data?.kpi?.conversionRate ?? 0}%
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Livraison réussie :</span>
-            <span className="font-bold text-emerald-600 dark:text-emerald-400">
-              {data?.kpi?.deliveryRate ?? 0}%
-            </span>
+          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Livraison : <strong className="font-medium text-emerald-600 dark:text-emerald-400 font-mono">{data?.kpi?.deliveryRate ?? 0}%</strong>
           </div>
         </div>
 
-        {/* KPI 5: Paniers en Cours & Valeur en Attente */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-amber-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Paniers Actifs</span>
-            <ShoppingCart size={15} className="text-amber-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+        {/* KPI 5: Paniers en Cours */}
+        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
+          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Paniers Actifs</div>
+          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
             {formatMAD(data?.trafficAnalytics?.visitorSessions?.reduce((s, v) => s + (v.cartValue || 0), 0) || 0)}
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">À relancer :</span>
-            <span className="font-bold text-amber-600 dark:text-amber-400">
-              {data?.trafficAnalytics?.visitorSessions?.filter(s => s.hasCart || s.cartValue > 0).length || 0} paniers
-            </span>
+          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            À relancer : <strong className="font-medium text-amber-600 dark:text-amber-400 font-mono">{data?.trafficAnalytics?.visitorSessions?.filter(s => s.hasCart || s.cartValue > 0).length || 0} paniers</strong>
           </div>
         </div>
 
-        {/* KPI 6: Taux de Rebond & Durée Moyenne */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-purple-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Taux Rebond</span>
-            <Gauge size={15} className="text-purple-500" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+        {/* KPI 6: Taux de Rebond */}
+        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
+          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Taux Rebond</div>
+          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
             {data?.kpi?.bounceRate ?? 0}%
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Durée moy. :</span>
-            <span className="font-bold text-neutral-800 dark:text-neutral-200">
-              {data?.kpi?.avgDuration ?? '—'}
-            </span>
+          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Durée moy. : <strong className="font-medium text-neutral-700 dark:text-neutral-300 font-mono">{data?.kpi?.avgDuration ?? '—'}</strong>
           </div>
         </div>
       </div>
 
-      {/* ── 5 EXECUTIVE DASHBOARD TABS ───────────────────────── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-neutral-200 dark:border-neutral-800" style={{ scrollbarWidth: 'none' }}>
+      {/* ========================================================================= */}
+      {/* 4. 5 EXECUTIVE DASHBOARD TABS (RESEND UNDERLINE STYLE)                     */}
+      {/* ========================================================================= */}
+      <div className="flex items-center gap-6 border-b border-[#eaeaea] dark:border-[#222227] overflow-x-auto text-sm">
         {[
           {
             id: 'visitors',
             label: 'Visiteurs & Registre Live',
-            badge: data?.trafficAnalytics?.visitorSessions?.length ? `${data.trafficAnalytics.visitorSessions.length}` : undefined,
-            badgeColor: 'bg-emerald-500 text-white',
-            icon: <Users size={15} className="text-emerald-500" />,
+            count: data?.trafficAnalytics?.visitorSessions?.length,
           },
           {
             id: 'funnel',
             label: 'Entonnoir de Conversion',
             badge: data?.kpi ? `${data.kpi.conversionRate}%` : undefined,
-            badgeColor: 'bg-indigo-500 text-white',
-            icon: <Filter size={15} className="text-indigo-500" />,
           },
           {
             id: 'perfumes',
             label: 'Performance Parfums & Stocks',
-            badge: data?.perfumeAnalytics?.bestSellers?.length ? `${data.perfumeAnalytics.bestSellers.length}` : undefined,
-            badgeColor: 'bg-purple-500 text-white',
-            icon: <Award size={15} className="text-purple-500" />,
+            count: data?.perfumeAnalytics?.bestSellers?.length,
           },
           {
             id: 'geography',
             label: 'Villes & Canaux de Trafic',
-            badge: 'Maroc 🇲🇦',
-            badgeColor: 'bg-rose-500 text-white',
-            icon: <MapPin size={15} className="text-rose-500" />,
+            badge: 'Maroc MA',
           },
           {
             id: 'marketing_ai',
-            label: 'Marketing, ROAS & Dépenses Ads',
-            badge: 'IA & ROAS',
-            badgeColor: 'bg-amber-500 text-white',
-            icon: <Sparkles size={15} className="text-amber-500" />,
+            label: 'Marketing, ROAS & Ads',
+            badge: 'ROAS',
           },
         ].map((tab) => {
           const isActive =
@@ -476,16 +457,22 @@ export default function AnalyticsDashboardClient() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`relative pb-3 text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-sm'
-                  : 'bg-white dark:bg-[#111827] text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-800'
+                  ? 'text-black dark:text-white border-b-2 border-black dark:border-white font-semibold -mb-px'
+                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
               }`}
             >
-              {tab.icon}
               <span>{tab.label}</span>
+              {typeof tab.count === 'number' && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                  isActive ? 'bg-neutral-900 text-white dark:bg-white dark:text-black' : 'bg-neutral-100 text-neutral-600 dark:bg-[#1c1c21] dark:text-neutral-300'
+                }`}>
+                  {tab.count}
+                </span>
+              )}
               {tab.badge && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${tab.badgeColor}`}>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-100 text-neutral-700 dark:bg-[#1c1c21] dark:text-neutral-300 font-mono font-medium border border-[#eaeaea] dark:border-[#222227]">
                   {tab.badge}
                 </span>
               )}
@@ -544,13 +531,13 @@ export default function AnalyticsDashboardClient() {
       {(activeTab === 'geography' || activeTab === 'sources' || activeTab === 'devices' || activeTab === 'pages' || activeTab === 'livestream') && (
         <div className="space-y-6">
           {/* Sub Navigation Bar */}
-          <div className="flex items-center gap-2 overflow-x-auto p-1.5 bg-neutral-100 dark:bg-neutral-800/80 rounded-2xl max-w-full" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex items-center gap-1 overflow-x-auto p-1 bg-neutral-100 dark:bg-[#1c1c21] rounded-md border border-[#eaeaea] dark:border-[#26262b] w-fit max-w-full" style={{ scrollbarWidth: 'none' }}>
             {[
-              { id: 'cities', label: 'Villes du Maroc', icon: <MapPin size={14} className="text-rose-500" /> },
-              { id: 'sources', label: 'Sources d\'Acquisition', icon: <Share2 size={14} className="text-sky-500" /> },
-              { id: 'devices', label: 'Appareils & Systèmes', icon: <Smartphone size={14} className="text-purple-500" /> },
-              { id: 'pages', label: 'Pages & Fiches Parfums', icon: <Eye size={14} className="text-indigo-500" /> },
-              { id: 'stream', label: 'Flux Télémesure Live', icon: <Radio size={14} className="text-emerald-500 animate-pulse" /> },
+              { id: 'cities', label: 'Villes du Maroc', icon: <MapPin size={12} className="text-neutral-400" /> },
+              { id: 'sources', label: 'Sources d\'Acquisition', icon: <Share2 size={12} className="text-neutral-400" /> },
+              { id: 'devices', label: 'Appareils & Systèmes', icon: <Smartphone size={12} className="text-neutral-400" /> },
+              { id: 'pages', label: 'Pages & Fiches', icon: <Eye size={12} className="text-neutral-400" /> },
+              { id: 'stream', label: 'Flux Live', icon: <Radio size={12} className="text-emerald-500 animate-pulse" /> },
             ].map((sub) => {
               const isSelected =
                 (geoSubTab === sub.id && activeTab === 'geography') ||
@@ -566,9 +553,9 @@ export default function AnalyticsDashboardClient() {
                     setGeoSubTab(sub.id as any);
                     setActiveTab('geography');
                   }}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs font-black'
+                      ? 'bg-white dark:bg-[#121215] text-neutral-900 dark:text-white shadow-2xs font-semibold'
                       : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                   }`}
                 >
@@ -583,24 +570,21 @@ export default function AnalyticsDashboardClient() {
           {((geoSubTab === 'sources' && activeTab === 'geography') || activeTab === 'sources') && (
             <div className="space-y-6">
           {/* Visual Distribution of Sources */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Donut Chart */}
-            <div className="bg-white dark:bg-[#111827] p-6 rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-4">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-100 dark:border-neutral-800">
-                <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                  <PieIcon size={16} />
-                </div>
+            <div className="bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
                 <div>
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                    Parts de Trafic par Canal
+                  <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+                    Parts par canal
                   </h3>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Répartition des 9 400+ visites
+                  <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                    Répartition des visites
                   </p>
                 </div>
               </div>
 
-              <div className="h-[240px] w-full flex items-center justify-center">
+              <div className="h-[220px] w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -609,48 +593,43 @@ export default function AnalyticsDashboardClient() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={95}
-                      paddingAngle={3}
+                      innerRadius={55}
+                      outerRadius={88}
+                      paddingAngle={2}
                     >
                       {data?.trafficAnalytics?.sources?.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={SOURCE_COLORS[index % SOURCE_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                      contentStyle={{ borderRadius: '6px', border: '1px solid #222227', backgroundColor: '#121215', color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
                       formatter={(val: any, name: any) => [`${val} vues`, name]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-800 text-[11px]">
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#eaeaea] dark:border-[#222227] text-[11px] font-mono">
                 {data?.trafficAnalytics?.sources?.slice(0, 6).map((s, idx) => (
                   <div key={idx} className="flex items-center gap-1.5 truncate">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: SOURCE_COLORS[idx % SOURCE_COLORS.length] }} />
-                    <span className="font-semibold text-neutral-700 dark:text-neutral-300 truncate">{s.name} :</span>
-                    <span className="text-neutral-400">{s.share}%</span>
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: SOURCE_COLORS[idx % SOURCE_COLORS.length] }} />
+                    <span className="text-neutral-700 dark:text-neutral-300 truncate">{s.name} :</span>
+                    <span className="text-neutral-400 font-semibold">{s.share}%</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Source Breakdown Bars */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#111827] p-6 rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                    <BarChart3 size={16} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                      Volume de Pages Vues par Source
-                    </h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      Comparaison de l&apos;impact de chaque canal d&apos;acquisition
-                    </p>
-                  </div>
+            <div className="lg:col-span-2 bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+                <div>
+                  <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+                    Volume de pages par source
+                  </h3>
+                  <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                    Impact des canaux d&apos;acquisition
+                  </p>
                 </div>
               </div>
 
@@ -660,17 +639,17 @@ export default function AnalyticsDashboardClient() {
                   const pct = Math.round((s.views / maxViews) * 100);
                   return (
                     <div key={idx} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs font-semibold">
+                      <div className="flex items-center justify-between text-xs font-mono">
                         <span className="text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: SOURCE_COLORS[idx % SOURCE_COLORS.length] }} />
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: SOURCE_COLORS[idx % SOURCE_COLORS.length] }} />
                           {s.name}
                         </span>
                         <div className="flex items-center gap-4">
                           <span className="text-neutral-400">{s.views.toLocaleString()} vues ({s.share}%)</span>
-                          <span className="font-bold text-neutral-900 dark:text-white">{formatMAD(s.revenue)}</span>
+                          <span className="font-semibold text-neutral-900 dark:text-white">{formatMAD(s.revenue)}</span>
                         </div>
                       </div>
-                      <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-2.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-neutral-100 dark:bg-[#1c1c21] h-1.5 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{ width: `${pct}%`, backgroundColor: SOURCE_COLORS[idx % SOURCE_COLORS.length] }}
@@ -684,33 +663,32 @@ export default function AnalyticsDashboardClient() {
           </div>
 
           {/* Full Enterprise Sources Table */}
-          <div className="bg-white dark:bg-[#111827] rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <div className="bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs overflow-hidden">
+            <div className="p-4 border-b border-[#eaeaea] dark:border-[#222227] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <Share2 size={16} className="text-sky-500" />
-                  <span>Matrice Détaillée de Toutes les Sources de Trafic</span>
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                  Matrice des sources de trafic
                 </h3>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                   Performance commerciale et qualité du trafic par origine
                 </p>
               </div>
 
               {/* Source Category Filter Pills */}
-              <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-neutral-800 p-1 rounded-xl text-[11px] font-semibold">
+              <div className="flex items-center gap-1 bg-neutral-100 dark:bg-[#1c1c21] p-1 rounded-md text-xs font-mono">
                 {[
                   { id: 'ALL', label: 'Toutes' },
                   { id: 'Moteur', label: 'Moteurs' },
-                  { id: 'Meta', label: 'Meta (IG/FB)' },
+                  { id: 'Meta', label: 'Meta' },
                   { id: 'Direct', label: 'Direct' },
                   { id: 'Messagerie', label: 'WhatsApp' },
                 ].map((f) => (
                   <button
                     key={f.id}
                     onClick={() => setSourceCategoryFilter(f.id)}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                    className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
                       sourceCategoryFilter === f.id
-                        ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs font-bold'
+                        ? 'bg-white dark:bg-[#121215] text-neutral-900 dark:text-white font-semibold shadow-2xs'
                         : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900'
                     }`}
                   >
@@ -723,50 +701,50 @@ export default function AnalyticsDashboardClient() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-800/40 text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                    <th className="py-3 px-3">Source d&apos;Acquisition</th>
-                    <th className="py-3 px-3">Catégorie</th>
-                    <th className="py-3 px-3 text-center">Pages Vues</th>
-                    <th className="py-3 px-3 text-center">Visiteurs Est.</th>
-                    <th className="py-3 px-3 text-center">Part Trafic (%)</th>
-                    <th className="py-3 px-3 text-center">Rebond Est.</th>
-                    <th className="py-3 px-3 text-center">Commandes</th>
-                    <th className="py-3 px-3 text-right">CA Généré</th>
-                    <th className="py-3 px-3 text-center">Conversion</th>
+                  <tr className="border-b border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                    <th className="py-2.5 px-3.5">Source d&apos;Acquisition</th>
+                    <th className="py-2.5 px-3">Catégorie</th>
+                    <th className="py-2.5 px-3 text-center">Pages Vues</th>
+                    <th className="py-2.5 px-3 text-center">Visiteurs Est.</th>
+                    <th className="py-2.5 px-3 text-center">Part (%)</th>
+                    <th className="py-2.5 px-3 text-center">Rebond</th>
+                    <th className="py-2.5 px-3 text-center">Commandes</th>
+                    <th className="py-2.5 px-3 text-right">CA Généré</th>
+                    <th className="py-2.5 px-3.5 text-center">Conversion</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium">
+                <tbody className="divide-y divide-[#eaeaea] dark:divide-[#222227] text-neutral-700 dark:text-neutral-300 font-mono">
                   {filteredSources.map((s, index) => (
-                    <tr key={index} className="hover:bg-neutral-50/70 dark:hover:bg-neutral-800/50 transition-colors">
-                      <td className="py-3 px-3 font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: SOURCE_COLORS[index % SOURCE_COLORS.length] }} />
+                    <tr key={index} className="hover:bg-[#fafafa] dark:hover:bg-[#18181d] transition-colors">
+                      <td className="py-2.5 px-3.5 font-sans font-medium text-neutral-900 dark:text-white flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: SOURCE_COLORS[index % SOURCE_COLORS.length] }} />
                         <span>{s.name}</span>
                       </td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                      <td className="py-2.5 px-3">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-neutral-100 dark:bg-[#1c1c21] text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-800">
                           {s.category}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-center font-bold text-neutral-900 dark:text-white">
+                      <td className="py-2.5 px-3 text-center font-semibold text-neutral-900 dark:text-white">
                         {s.views.toLocaleString()}
                       </td>
-                      <td className="py-3 px-3 text-center text-neutral-500">
+                      <td className="py-2.5 px-3 text-center text-neutral-400">
                         {s.visitors.toLocaleString()}
                       </td>
-                      <td className="py-3 px-3 text-center font-bold text-sky-600 dark:text-sky-400">
+                      <td className="py-2.5 px-3 text-center text-neutral-900 dark:text-neutral-200">
                         {s.share}%
                       </td>
-                      <td className="py-3 px-3 text-center text-neutral-500">
+                      <td className="py-2.5 px-3 text-center text-neutral-400">
                         {s.bounceRate}%
                       </td>
-                      <td className="py-3 px-3 text-center font-bold text-neutral-900 dark:text-white">
+                      <td className="py-2.5 px-3 text-center font-semibold text-neutral-900 dark:text-white">
                         {s.orders}
                       </td>
-                      <td className="py-3 px-3 text-right font-black text-neutral-900 dark:text-white">
+                      <td className="py-2.5 px-3 text-right font-semibold text-neutral-900 dark:text-white">
                         {formatMAD(s.revenue)}
                       </td>
-                      <td className="py-3 px-3 text-center">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                      <td className="py-2.5 px-3.5 text-center">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                           {s.conversionRate}%
                         </span>
                       </td>
@@ -784,52 +762,52 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {((geoSubTab === 'cities' && activeTab === 'geography') || (activeTab === 'geography' && geoSubTab === 'cities')) && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#111827] rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <div className="bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs p-4.5 space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
               <div>
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <MapPin size={16} className="text-rose-500" />
-                  <span>Répartition Géographique de l&apos;Audience (Toutes les Villes du Maroc)</span>
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+                  <MapPin size={14} className="text-neutral-400" />
+                  <span>Répartition géographique de l&apos;audience (Villes du Maroc)</span>
                 </h3>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  Origine géographique réelle des 2 800+ visiteurs enregistrés
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  Origine géographique réelle des visiteurs enregistrés
                 </p>
               </div>
 
               <div className="relative w-full sm:w-64">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher une ville marocaine..."
+                  placeholder="Rechercher une ville..."
                   value={citySearch}
                   onChange={(e) => setCitySearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-medium text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="w-full h-8 pl-8 pr-3 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs font-mono text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
               {filteredCities.map((c, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-800/40 hover:bg-neutral-100/70 dark:hover:bg-neutral-800/70 transition-all space-y-2"
+                  className="p-3 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] hover:border-black dark:hover:border-white transition-colors space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">{c.flag}</span>
-                      <span className="font-bold text-xs text-neutral-900 dark:text-white">{c.city}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm">{c.flag}</span>
+                      <span className="font-semibold text-xs text-neutral-900 dark:text-white">{c.city}</span>
                     </div>
-                    <span className="font-black text-xs text-sky-600 dark:text-sky-400">{c.share}%</span>
+                    <span className="font-mono font-semibold text-xs text-neutral-900 dark:text-white">{c.share}%</span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-neutral-500">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400">
                     <span>{c.visitors.toLocaleString()} visiteurs</span>
-                    <span className="font-semibold text-neutral-800 dark:text-neutral-200">{c.orders} commandes ({formatMAD(c.revenue)})</span>
+                    <span className="text-neutral-700 dark:text-neutral-300">{c.orders} cmd ({formatMAD(c.revenue)})</span>
                   </div>
 
-                  <div className="w-full bg-neutral-200/70 dark:bg-neutral-700 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-neutral-200 dark:bg-neutral-800 h-1 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-sky-500 rounded-full"
+                      className="h-full bg-neutral-900 dark:bg-white rounded-full"
                       style={{ width: `${Math.max(4, c.share * 2.5)}%` }}
                     />
                   </div>
@@ -845,40 +823,35 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {((geoSubTab === 'devices' && activeTab === 'geography') || activeTab === 'devices') && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Device Types */}
-            <div className="bg-white dark:bg-[#111827] p-6 rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-4">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-100 dark:border-neutral-800">
-                <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                  <Smartphone size={16} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                    Appareils des Visiteurs
-                  </h3>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Mobile vs Ordinateur de bureau vs Tablette
-                  </p>
-                </div>
+            <div className="bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+              <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+                <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+                  Appareils des Visiteurs
+                </h3>
+                <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                  Mobile vs Desktop vs Tablette
+                </p>
               </div>
 
-              <div className="space-y-4 pt-2">
+              <div className="space-y-3 pt-1">
                 {data?.trafficAnalytics?.devices?.map((dev, idx) => (
                   <div key={idx} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs font-semibold">
+                    <div className="flex items-center justify-between text-xs font-mono">
                       <span className="flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
-                        {dev.name.toLowerCase().includes('mob') ? <Smartphone size={14} className="text-purple-500" /> :
-                         dev.name.toLowerCase().includes('desk') ? <Monitor size={14} className="text-sky-500" /> :
-                         <Tablet size={14} className="text-emerald-500" />}
+                        {dev.name.toLowerCase().includes('mob') ? <Smartphone size={13} className="text-neutral-400" /> :
+                         dev.name.toLowerCase().includes('desk') ? <Monitor size={13} className="text-neutral-400" /> :
+                         <Tablet size={13} className="text-neutral-400" />}
                         {dev.name}
                       </span>
-                      <span className="font-bold text-neutral-900 dark:text-white">
+                      <span className="font-semibold text-neutral-900 dark:text-white">
                         {dev.views.toLocaleString()} vues ({dev.share}%)
                       </span>
                     </div>
-                    <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-2.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-neutral-100 dark:bg-[#1c1c21] h-1.5 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-purple-500 rounded-full"
+                        className="h-full bg-neutral-900 dark:bg-white rounded-full"
                         style={{ width: `${Math.max(4, dev.share)}%` }}
                       />
                     </div>
@@ -888,38 +861,33 @@ export default function AnalyticsDashboardClient() {
             </div>
 
             {/* Operating Systems & Browsers */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#111827] p-6 rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-4">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-100 dark:border-neutral-800">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <Monitor size={16} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                    Profil Technique & Comportement de Navigation
-                  </h3>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Optimisation de l&apos;expérience utilisateur mobile
-                  </p>
-                </div>
+            <div className="lg:col-span-2 bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+              <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+                <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+                  Profil Technique & Navigation
+                </h3>
+                <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                  Optimisation de l&apos;expérience utilisateur mobile
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-800 space-y-2">
-                  <div className="font-bold text-xs text-neutral-900 dark:text-white flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5"><Smartphone size={14} className="text-purple-600" /> iOS & iPhone (Apple)</span>
-                    <span className="text-purple-600 font-extrabold">~58%</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-2">
+                  <div className="font-mono text-xs text-neutral-900 dark:text-white flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5"><Smartphone size={13} className="text-neutral-400" /> iOS & iPhone</span>
+                    <span className="font-semibold text-neutral-900 dark:text-white">~58%</span>
                   </div>
-                  <p className="text-[11px] text-neutral-500">
+                  <p className="text-[11px] text-neutral-500 leading-relaxed font-sans">
                     Les clients sur iPhone représentent la majorité des paniers à haute valeur (&gt; 500 MAD) et des commandes de coffrets de luxe.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-800 space-y-2">
-                  <div className="font-bold text-xs text-neutral-900 dark:text-white flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5"><Smartphone size={14} className="text-emerald-600" /> Android (Samsung, Xiaomi...)</span>
-                    <span className="text-emerald-600 font-extrabold">~42%</span>
+                <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-2">
+                  <div className="font-mono text-xs text-neutral-900 dark:text-white flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5"><Smartphone size={13} className="text-neutral-400" /> Android</span>
+                    <span className="font-semibold text-neutral-900 dark:text-white">~42%</span>
                   </div>
-                  <p className="text-[11px] text-neutral-500">
+                  <p className="text-[11px] text-neutral-500 leading-relaxed font-sans">
                     Très forte conversion sur les testeurs de parfums et commandes avec paiement à la livraison (COD).
                   </p>
                 </div>
@@ -934,26 +902,25 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {((geoSubTab === 'pages' && activeTab === 'geography') || activeTab === 'pages') && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#111827] rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <div className="bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs overflow-hidden">
+            <div className="p-4 border-b border-[#eaeaea] dark:border-[#222227] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                  <Eye size={16} className="text-indigo-500" />
-                  <span>Palmarès des Pages & Fiches Parfums les Plus Consultées</span>
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                  Palmarès des pages & fiches parfums
                 </h3>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                   Volume de vues par URL et intérêt suscité chez les visiteurs
                 </p>
               </div>
 
               <div className="relative w-full sm:w-64">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher une page ou parfum..."
+                  placeholder="Rechercher une page..."
                   value={pageSearch}
                   onChange={(e) => setPageSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-medium text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="w-full h-8 pl-8 pr-3 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs font-mono text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-black dark:focus:border-white"
                 />
               </div>
             </div>
@@ -961,49 +928,47 @@ export default function AnalyticsDashboardClient() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-800/40 text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                    <th className="py-3 px-3">Rang</th>
-                    <th className="py-3 px-3">Titre de la Page</th>
-                    <th className="py-3 px-3">URL (Pathname)</th>
-                    <th className="py-3 px-3">Rayon / Catégorie</th>
-                    <th className="py-3 px-3 text-center">Vues Totales</th>
-                    <th className="py-3 px-3 text-center">Part Trafic (%)</th>
-                    <th className="py-3 px-3 text-right">Lien Direct</th>
+                  <tr className="border-b border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                    <th className="py-2.5 px-3.5">Rang</th>
+                    <th className="py-2.5 px-3">Titre de la Page</th>
+                    <th className="py-2.5 px-3">Pathname</th>
+                    <th className="py-2.5 px-3">Catégorie</th>
+                    <th className="py-2.5 px-3 text-center">Vues</th>
+                    <th className="py-2.5 px-3 text-center">Part (%)</th>
+                    <th className="py-2.5 px-3.5 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium">
+                <tbody className="divide-y divide-[#eaeaea] dark:divide-[#222227] text-neutral-700 dark:text-neutral-300 font-mono">
                   {filteredPages.map((p, index) => (
-                    <tr key={index} className="hover:bg-neutral-50/70 dark:hover:bg-neutral-800/50 transition-colors">
-                      <td className="py-3 px-3">
-                        <span className="w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-neutral-600 dark:text-neutral-300">
-                          #{index + 1}
-                        </span>
+                    <tr key={index} className="hover:bg-[#fafafa] dark:hover:bg-[#18181d] transition-colors">
+                      <td className="py-2.5 px-3.5 text-neutral-400">
+                        #{index + 1}
                       </td>
-                      <td className="py-3 px-3 font-semibold text-neutral-900 dark:text-white max-w-[260px] truncate">
+                      <td className="py-2.5 px-3 font-sans font-medium text-neutral-900 dark:text-white max-w-[260px] truncate">
                         {p.title}
                       </td>
-                      <td className="py-3 px-3 font-mono text-[11px] text-neutral-500 max-w-[200px] truncate" title={p.pathname}>
+                      <td className="py-2.5 px-3 text-[11px] text-neutral-400 max-w-[200px] truncate" title={p.pathname}>
                         {p.pathname}
                       </td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                      <td className="py-2.5 px-3">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-neutral-100 dark:bg-[#1c1c21] text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-800">
                           {p.category}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-center font-bold text-neutral-900 dark:text-white">
+                      <td className="py-2.5 px-3 text-center font-semibold text-neutral-900 dark:text-white">
                         {p.views.toLocaleString()}
                       </td>
-                      <td className="py-3 px-3 text-center font-bold text-sky-600 dark:text-sky-400">
+                      <td className="py-2.5 px-3 text-center text-neutral-900 dark:text-neutral-200">
                         {p.share}%
                       </td>
-                      <td className="py-3 px-3 text-right">
+                      <td className="py-2.5 px-3.5 text-right">
                         <Link
                           href={p.pathname}
                           target="_blank"
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-500 hover:text-sky-600"
+                          className="inline-flex items-center gap-1 text-[11px] text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
                         >
-                          <span>Ouvrir</span>
-                          <ExternalLink size={11} />
+                          <span>Visiter</span>
+                          <ExternalLink size={10} />
                         </Link>
                       </td>
                     </tr>
@@ -1020,74 +985,54 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {((geoSubTab === 'stream' && activeTab === 'geography') || activeTab === 'livestream') && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Live Actions Stream (2 cols) */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#111827] p-6 rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-                    <Activity size={16} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                      Flux en Direct des Dernières Visites
-                    </h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      40 dernières actions enregistrées en temps réel sur le site
-                    </p>
-                  </div>
+            <div className="lg:col-span-2 bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-3">
+              <div className="flex items-center justify-between pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+                <div>
+                  <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+                    Flux en Direct des Visites
+                  </h3>
+                  <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                    40 dernières actions enregistrées en temps réel
+                  </p>
                 </div>
 
-                <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                <span className="text-[10px] font-mono font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Mise à jour en continu
                 </span>
               </div>
 
-              <div className="space-y-2.5 max-h-[580px] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+              <div className="space-y-2 max-h-[580px] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
                 {data?.trafficAnalytics?.liveStream?.map((ev) => (
                   <div
                     key={ev.id}
-                    className="p-3.5 rounded-2xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-800/40 hover:bg-neutral-100/70 dark:hover:bg-neutral-800/80 transition-all flex items-center justify-between gap-3"
+                    className="p-2.5 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors flex items-center justify-between gap-3"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950 text-sky-600 flex items-center justify-center shrink-0">
-                        {ev.device === 'Mobile' ? <Smartphone size={16} /> : <Monitor size={16} />}
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-md bg-neutral-100 dark:bg-[#1c1c21] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 flex items-center justify-center shrink-0">
+                        {ev.device === 'Mobile' ? <Smartphone size={13} /> : <Monitor size={13} />}
                       </div>
 
                       <div className="min-w-0">
-                        <div className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                        <div className="text-xs font-medium text-neutral-900 dark:text-white truncate">
                           {ev.title}
                         </div>
-                        <div className="text-[11px] text-neutral-500 dark:text-neutral-400 flex flex-wrap items-center gap-2 mt-0.5">
-                          <span className="font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1">
-                            <MapPin size={11} className="text-rose-500" />
-                            {ev.city} 🇲🇦
-                          </span>
-                          <span>•</span>
-                          <span className="px-1.5 py-0.2 rounded bg-neutral-200/60 dark:bg-neutral-700 text-[10px] font-medium text-neutral-700 dark:text-neutral-300">
-                            Source : {ev.referrer}
-                          </span>
-                          <span>•</span>
-                          <span className="font-mono text-[10px] text-neutral-400 truncate max-w-[180px]">
+                        <div className="text-[11px] text-neutral-400 flex flex-wrap items-center gap-1.5 mt-0.5 font-mono">
+                          <span>{ev.city}</span>
+                          <span>·</span>
+                          <span>{ev.referrer}</span>
+                          <span>·</span>
+                          <span className="truncate max-w-[160px]">
                             {ev.pathname}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <div className="text-[11px] font-semibold text-neutral-400">
-                        {formatRelativeTime(ev.createdAt)}
-                      </div>
-                      <Link
-                        href={ev.pathname}
-                        target="_blank"
-                        className="text-[10px] font-bold text-sky-500 hover:text-sky-600 flex items-center gap-0.5 mt-0.5 justify-end"
-                      >
-                        <span>Voir</span>
-                        <ArrowRight size={10} />
-                      </Link>
+                    <div className="text-right shrink-0 font-mono text-[11px] text-neutral-400">
+                      {formatRelativeTime(ev.createdAt)}
                     </div>
                   </div>
                 ))}
@@ -1095,39 +1040,33 @@ export default function AnalyticsDashboardClient() {
             </div>
 
             {/* Peak Traffic Hours (1 col) */}
-            <div className="bg-white dark:bg-[#111827] p-6 rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-4">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-100 dark:border-neutral-800">
-                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                  <Clock size={16} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
-                    Heures d&apos;Affluence du Trafic
-                  </h3>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Pic d&apos;activité des internautes (0h - 23h)
-                  </p>
-                </div>
+            <div className="bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-3">
+              <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+                <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+                  Heures d&apos;Affluence
+                </h3>
+                <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                  Activité journalière par heure (0h - 23h)
+                </p>
               </div>
 
-              <div className="h-[260px] w-full pt-2">
+              <div className="h-[250px] w-full pt-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data?.trafficAnalytics?.hourlyHeatmap || []}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888820" />
-                    <XAxis dataKey="hour" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#888' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#888' }} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888815" />
+                    <XAxis dataKey="hour" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#888', fontFamily: 'monospace' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#888', fontFamily: 'monospace' }} />
                     <Tooltip
-                      contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                      contentStyle={{ borderRadius: '6px', border: '1px solid #222227', backgroundColor: '#121215', color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
                       formatter={(val: any) => [`${val} actions`, 'Affluence']}
                     />
-                    <Bar dataKey="estViews" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="estViews" fill="#3b82f6" radius={[2, 2, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 text-[11px] text-amber-900 dark:text-amber-300 flex items-center gap-2">
-                <Lightbulb size={14} className="text-amber-600 shrink-0" />
-                <span><strong>Analyse d&apos;Audience</strong> : L&apos;audience est particulièrement active en soirée entre <strong>20h00 et 23h30</strong>, avec un deuxième pic en début d&apos;après-midi (13h-15h).</span>
+              <div className="p-3 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] text-[11px] text-neutral-500 font-sans">
+                <strong className="text-neutral-900 dark:text-white">Pic d&apos;activité :</strong> L&apos;audience est particulièrement active en soirée entre <strong>20h00 et 23h30</strong>, avec un pic secondaire vers 14h.
               </div>
             </div>
           </div>

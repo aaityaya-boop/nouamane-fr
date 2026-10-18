@@ -188,6 +188,13 @@ function getPageFriendlyInfo(pathname: string, productBySlug: Map<string, any>) 
   return { title: pathname, category: 'Autre' };
 }
 
+// In-memory cache for ultra-fast analytics loading
+interface AnalyticsCacheEntry {
+  data: any;
+  timestamp: number;
+}
+const analyticsCache = new Map<string, AnalyticsCacheEntry>();
+
 export async function GET(request: Request) {
   try {
     const admin = await getAuthenticatedAdmin(request);
@@ -199,6 +206,23 @@ export async function GET(request: Request) {
     const period = searchParams.get('period') || '30d';
     const customStart = searchParams.get('startDate');
     const customEnd = searchParams.get('endDate');
+    const nocache = searchParams.get('nocache') === 'true';
+
+    // Cache lookup: Instant (<5ms) response when data was recently calculated
+    const cacheKey = `${period}:${customStart || ''}:${customEnd || ''}`;
+    const ttlMs = period === 'today' ? 15000 : 60000;
+
+    if (!nocache) {
+      const cached = analyticsCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < ttlMs) {
+        return NextResponse.json(cached.data, {
+          headers: {
+            'Cache-Control': 'private, max-age=15, stale-while-revalidate=45',
+            'X-Analytics-Cache': 'HIT',
+          },
+        });
+      }
+    }
 
     const { start, end, prevStart, prevEnd, label } = resolveDateRanges(period, customStart, customEnd);
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
@@ -1200,7 +1224,7 @@ export async function GET(request: Request) {
       },
     ];
 
-    return NextResponse.json({
+    const responsePayload = {
       success: true,
       period: {
         id: period,
@@ -1268,6 +1292,24 @@ export async function GET(request: Request) {
           enTransit: Math.round(currentInTransitRevenue),
           perdu: Math.round(currentLostRevenue),
         },
+      },
+    };
+
+    // Store in cache
+    analyticsCache.set(cacheKey, { data: responsePayload, timestamp: Date.now() });
+
+    // Clean up older cache entries if cache size grows
+    if (analyticsCache.size > 30) {
+      const now = Date.now();
+      for (const [k, v] of analyticsCache.entries()) {
+        if (now - v.timestamp > 120000) analyticsCache.delete(k);
+      }
+    }
+
+    return NextResponse.json(responsePayload, {
+      headers: {
+        'Cache-Control': 'private, max-age=15, stale-while-revalidate=45',
+        'X-Analytics-Cache': 'MISS',
       },
     });
   } catch (error: any) {

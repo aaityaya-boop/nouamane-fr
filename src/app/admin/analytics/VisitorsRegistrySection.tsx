@@ -168,150 +168,128 @@ export default function VisitorsRegistrySection({
 
   return (
     <div className="space-y-6">
-      {/* ── 1. REAL-TIME TELEMETRY RIBBON ────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Card 1: Live Now */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-emerald-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Visiteurs en Direct</span>
-            <span className="relative flex h-2.5 w-2.5">
+      {/* ── 1. REAL-TIME TELEMETRY RIBBON (RESEND METRIC STRIP) ─────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 bg-white dark:bg-[#121215] border border-[#eaeaea] dark:border-[#222227] rounded-lg divide-y lg:divide-y-0 lg:divide-x divide-[#eaeaea] dark:divide-[#222227] shadow-2xs">
+        {/* Stat 1: Live Now */}
+        <div className="p-4">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1">
+            <span className="font-mono text-[11px] uppercase tracking-wider">En direct</span>
+            <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
           </div>
-          <div className="flex items-baseline gap-2">
-            <div className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-              {stats.online}
-            </div>
-            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-              connectés maintenant
-            </span>
+          <div className="text-2xl font-mono font-semibold tracking-tight text-neutral-900 dark:text-white">
+            {stats.online}
           </div>
-          <div className="mt-2 text-[11px] text-neutral-400">
-            Navigation en temps réel sur la boutique
+          <div className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1 font-mono">
+            visiteurs connectés
           </div>
         </div>
 
-        {/* Card 2: Active Carts */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-amber-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Paniers en Cours</span>
-            <ShoppingCart size={15} className="text-amber-500" />
+        {/* Stat 2: Active Carts */}
+        <div className="p-4">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1">
+            <span className="font-mono text-[11px] uppercase tracking-wider">Paniers en cours</span>
+            <ShoppingCart size={13} className="text-neutral-400" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <div className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-              {stats.withCart}
-            </div>
-            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-              paniers actifs
-            </span>
+          <div className="text-2xl font-mono font-semibold tracking-tight text-neutral-900 dark:text-white">
+            {stats.withCart}
           </div>
-          <div className="mt-2 text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center justify-between">
-            <span>Valeur en panier :</span>
-            <span className="font-bold text-neutral-900 dark:text-white">
-              {formatMAD(stats.totalCartValue)}
-            </span>
+          <div className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1 font-mono flex items-center justify-between">
+            <span>Valeur active</span>
+            <span className="font-semibold text-neutral-900 dark:text-neutral-200">{formatMAD(stats.totalCartValue)}</span>
           </div>
         </div>
 
-        {/* Card 3: Moroccan Cities */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-rose-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Villes Actives</span>
-            <MapPin size={15} className="text-rose-500" />
+        {/* Stat 3: Moroccan Cities */}
+        <div className="p-4">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1">
+            <span className="font-mono text-[11px] uppercase tracking-wider">Villes actives</span>
+            <MapPin size={13} className="text-neutral-400" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <div className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-              {uniqueCities.length}
-            </div>
-            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
-              villes du Maroc 🇲🇦
-            </span>
+          <div className="text-2xl font-mono font-semibold tracking-tight text-neutral-900 dark:text-white">
+            {uniqueCities.length}
           </div>
-          <div className="mt-2 text-[11px] text-neutral-400 truncate">
-            {uniqueCities.slice(0, 3).join(', ')}...
+          <div className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1 font-mono truncate">
+            {uniqueCities.slice(0, 3).join(', ') || 'Maroc'}
           </div>
         </div>
 
-        {/* Card 4: Engagement & Pages */}
-        <div className="bg-white dark:bg-[#111827] p-4.5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 shadow-2xs relative overflow-hidden group hover:border-sky-500/40 transition-all">
-          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1.5">
-            <span className="font-semibold uppercase tracking-wider text-[10px]">Pages / Session</span>
-            <Eye size={15} className="text-sky-500" />
+        {/* Stat 4: Pages / Session */}
+        <div className="p-4">
+          <div className="flex items-center justify-between text-neutral-500 dark:text-neutral-400 text-xs mb-1">
+            <span className="font-mono text-[11px] uppercase tracking-wider">Pages / session</span>
+            <Eye size={13} className="text-neutral-400" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <div className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-              {stats.avgPages}
-            </div>
-            <span className="text-xs font-semibold text-sky-600 dark:text-sky-400">
-              pages vues / visite
-            </span>
+          <div className="text-2xl font-mono font-semibold tracking-tight text-neutral-900 dark:text-white">
+            {stats.avgPages}
           </div>
-          <div className="mt-2 text-[11px] text-neutral-400">
-            {stats.mobile} mobiles ({(stats.total > 0 ? Math.round((stats.mobile / stats.total) * 100) : 0)}%) • {stats.desktop} PC
+          <div className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1 font-mono">
+            {stats.mobile} mobiles ({stats.total > 0 ? Math.round((stats.mobile / stats.total) * 100) : 0}%) · {stats.desktop} PC
           </div>
         </div>
       </div>
 
       {/* ── 2. MAIN REGISTRY TABLE CONTAINER ─────────────────────────────────── */}
-      <div className="bg-white dark:bg-[#111827] rounded-3xl border border-neutral-200/80 dark:border-neutral-800 shadow-sm p-6 space-y-5">
+      <div className="bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs overflow-hidden">
         {/* Table Header & Controls */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-4 border-b border-neutral-100 dark:border-neutral-800">
+        <div className="p-4 border-b border-[#eaeaea] dark:border-[#222227] flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-sky-500" />
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                <span>Registre Détaillé de Tous les Visiteurs Entrants</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800">
-                  {filteredVisitors.length} sessions
-                </span>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                Registre des sessions visiteurs
               </h3>
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-[#1c1c21] text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-800">
+                {filteredVisitors.length} sessions
+              </span>
             </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Historique en direct de tous les clients connectés : ville marocaine, source de provenance (Google, Meta, TikTok...), page visitée et statut du panier.
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Historique télémétrique des sessions en direct : provenance, géolocalisation, navigation et statut panier
             </p>
           </div>
 
           {/* Quick Actions (Refresh & Export) */}
-          <div className="flex items-center gap-2.5 w-full lg:w-auto">
+          <div className="flex items-center gap-2 w-full lg:w-auto">
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="p-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+              className="h-8 px-2.5 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-[#202026] text-xs font-mono transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               title="Actualiser le flux des visiteurs"
             >
-              <RefreshCw size={15} className={isRefreshing ? 'animate-spin text-sky-500' : ''} />
+              <RefreshCw size={13} className={isRefreshing ? 'animate-spin' : ''} />
+              <span>Actualiser</span>
             </button>
 
             <button
               onClick={handleExportVisitorsCSV}
-              className="flex items-center gap-2 px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+              className="h-8 px-3 rounded-md bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <Download size={14} />
-              <span>Exporter Registre CSV</span>
+              <Download size={13} />
+              <span>Exporter CSV</span>
             </button>
           </div>
         </div>
 
         {/* Filters & Search Row */}
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="p-3 border-b border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search Bar */}
-          <div className="relative flex-1 max-w-md">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <div className="relative flex-1 max-w-sm">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
               type="text"
-              placeholder="Rechercher par ville, provenance, page, parfum ou ID client..."
+              placeholder="Filtrer par ville, provenance, page, ID..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/60 text-xs font-medium text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full h-8 pl-8 pr-7 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-black dark:focus:border-white font-mono"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 text-xs"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 text-xs"
               >
                 ✕
               </button>
@@ -320,16 +298,15 @@ export default function VisitorsRegistrySection({
 
           {/* City Filter & Sort Dropdowns */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* City Dropdown */}
             <select
               value={cityFilter}
               onChange={(e) => {
                 setCityFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 focus:outline-none cursor-pointer"
+              className="h-8 px-2.5 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
             >
-              <option value="ALL">Toutes les villes du Maroc</option>
+              <option value="ALL">Toutes les villes</option>
               {uniqueCities.map((city) => (
                 <option key={city} value={city}>
                   {city}
@@ -337,29 +314,28 @@ export default function VisitorsRegistrySection({
               ))}
             </select>
 
-            {/* Sort Dropdown */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-800 dark:text-neutral-200 focus:outline-none cursor-pointer"
+              className="h-8 px-2.5 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
             >
               <option value="recent">Plus récents d&apos;abord</option>
-              <option value="pages">Plus de pages consultées</option>
+              <option value="pages">Plus de pages vues</option>
               <option value="duration">Plus longue durée</option>
               <option value="cartValue">Panier le plus élevé</option>
             </select>
           </div>
         </div>
 
-        {/* Status Filter Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-semibold" style={{ scrollbarWidth: 'none' }}>
+        {/* Status Filter Segment Bar */}
+        <div className="px-3 py-2 border-b border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#121215] flex items-center gap-1 overflow-x-auto text-xs" style={{ scrollbarWidth: 'none' }}>
           {[
-            { id: 'ALL', label: `Tous (${visitors.length})`, icon: null },
-            { id: 'ONLINE', label: `En Ligne (${stats.online})`, icon: <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> },
-            { id: 'CART', label: `Panier Actif (${stats.withCart})`, icon: <ShoppingCart size={13} className="text-amber-500" /> },
-            { id: 'PURCHASED', label: `Acheteurs (${stats.purchased})`, icon: <CheckCircle2 size={13} className="text-emerald-500" /> },
-            { id: 'MOBILE', label: `Mobiles (${stats.mobile})`, icon: <Smartphone size={13} className="text-purple-500" /> },
-            { id: 'DESKTOP', label: `PC (${stats.desktop})`, icon: <Monitor size={13} className="text-sky-500" /> },
+            { id: 'ALL', label: `Tous (${visitors.length})` },
+            { id: 'ONLINE', label: `En direct (${stats.online})` },
+            { id: 'CART', label: `Paniers (${stats.withCart})` },
+            { id: 'PURCHASED', label: `Acheteurs (${stats.purchased})` },
+            { id: 'MOBILE', label: `Mobiles (${stats.mobile})` },
+            { id: 'DESKTOP', label: `Desktop (${stats.desktop})` },
           ].map((pill) => (
             <button
               key={pill.id}
@@ -367,39 +343,38 @@ export default function VisitorsRegistrySection({
                 setStatusFilter(pill.id as any);
                 setCurrentPage(1);
               }}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap text-xs font-bold ${
+              className={`h-7 px-2.5 rounded-md text-xs font-mono transition-colors whitespace-nowrap cursor-pointer ${
                 statusFilter === pill.id
-                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-sm'
-                  : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-[#1c1c21]'
               }`}
             >
-              {pill.icon}
-              <span>{pill.label}</span>
+              {pill.label}
             </button>
           ))}
         </div>
 
         {/* ── 3. VISITOR DATA TABLE ────────────────────────────────────────── */}
-        <div className="overflow-x-auto rounded-2xl border border-neutral-200/80 dark:border-neutral-800">
+        <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-800/50 text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                <th className="py-3 px-3.5">Client & Statut</th>
-                <th className="py-3 px-3">Localisation</th>
-                <th className="py-3 px-3">Source d&apos;Acquisition</th>
-                <th className="py-3 px-3">Page d&apos;Entrée ➔ Page Actuelle</th>
-                <th className="py-3 px-3 text-center">Pages / Temps</th>
-                <th className="py-3 px-3 text-center">Panier & Intention</th>
-                <th className="py-3 px-3.5 text-right">Parcours Client</th>
+              <tr className="border-b border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                <th className="py-2.5 px-3.5">Session / Client</th>
+                <th className="py-2.5 px-3">Localisation</th>
+                <th className="py-2.5 px-3">Acquisition</th>
+                <th className="py-2.5 px-3">Page d&apos;entrée ➔ Actuelle</th>
+                <th className="py-2.5 px-3 text-center">Pages / Durée</th>
+                <th className="py-2.5 px-3 text-center">Panier & Intention</th>
+                <th className="py-2.5 px-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 text-neutral-700 dark:text-neutral-300 font-medium">
+            <tbody className="divide-y divide-[#eaeaea] dark:divide-[#222227] text-neutral-700 dark:text-neutral-300">
               {paginatedVisitors.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-neutral-400">
-                    <Users size={32} className="mx-auto mb-2 opacity-40 text-neutral-400" />
-                    <p className="font-semibold text-sm">Aucun visiteur ne correspond à ces critères</p>
-                    <p className="text-xs mt-1">Essayez d&apos;ajuster vos filtres de recherche ou de période</p>
+                  <td colSpan={7} className="py-12 text-center text-neutral-400 font-mono">
+                    <Users size={24} className="mx-auto mb-2 opacity-30 text-neutral-400" />
+                    <p className="font-semibold text-xs">Aucun visiteur ne correspond à ces critères</p>
+                    <p className="text-[11px] mt-1 text-neutral-500">Essayez d&apos;ajuster vos filtres de recherche ou de période</p>
                   </td>
                 </tr>
               ) : (
@@ -407,26 +382,25 @@ export default function VisitorsRegistrySection({
                   <tr
                     key={v.id}
                     onClick={() => setSelectedVisitor(v)}
-                    className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/60 transition-colors cursor-pointer group"
+                    className="hover:bg-[#fafafa] dark:hover:bg-[#18181d] transition-colors cursor-pointer group"
                   >
                     {/* Column 1: Client & Status */}
-                    <td className="py-3.5 px-3.5">
+                    <td className="py-2.5 px-3.5">
                       <div className="flex items-center gap-2.5">
-                        {/* Device Icon Avatar */}
-                        <div className="w-8 h-8 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-md bg-neutral-100 dark:bg-[#1c1c21] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 flex items-center justify-center shrink-0">
                           {v.device === 'Mobile' ? (
-                            <Smartphone size={15} />
+                            <Smartphone size={13} />
                           ) : v.device === 'Tablet' ? (
-                            <Tablet size={15} />
+                            <Tablet size={13} />
                           ) : (
-                            <Monitor size={15} />
+                            <Monitor size={13} />
                           )}
                         </div>
 
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-neutral-900 dark:text-white text-xs">
-                              {v.customerName ? v.customerName : `#Client-${v.ipHashShort}`}
+                            <span className="font-mono text-xs font-semibold text-neutral-900 dark:text-white">
+                              {v.customerName ? v.customerName : `#${v.ipHashShort}`}
                             </span>
                             {v.customerPhone && (
                               <span className="text-[10px] text-neutral-400 font-mono">
@@ -435,20 +409,20 @@ export default function VisitorsRegistrySection({
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex items-center gap-1.5 mt-0.5">
                             {v.isOnline ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                                En direct
+                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                LIVE
                               </span>
                             ) : (
-                              <span className="text-[10px] text-neutral-400">
+                              <span className="text-[10px] text-neutral-400 font-mono">
                                 {formatTimeAgo(v.lastSeen)}
                               </span>
                             )}
 
-                            <span className="text-neutral-300 dark:text-neutral-700">•</span>
-                            <span className="text-[10px] text-neutral-400">
+                            <span className="text-neutral-300 dark:text-neutral-700 font-mono">·</span>
+                            <span className="text-[10px] text-neutral-400 font-mono">
                               {v.device}
                             </span>
                           </div>
@@ -457,53 +431,40 @@ export default function VisitorsRegistrySection({
                     </td>
 
                     {/* Column 2: Moroccan City */}
-                    <td className="py-3.5 px-3">
+                    <td className="py-2.5 px-3">
                       <div className="flex items-center gap-1.5">
-                        <MapPin size={12} className="text-rose-500 shrink-0" />
-                        <span className="font-bold text-neutral-900 dark:text-white">
+                        <span className="font-medium text-neutral-900 dark:text-white text-xs">
                           {v.city}
                         </span>
                         <span className="text-xs">{v.flag}</span>
                       </div>
-                      <div className="text-[10px] text-neutral-400 mt-0.5">
+                      <div className="text-[10px] text-neutral-400 font-mono mt-0.5">
                         {v.country}
                       </div>
                     </td>
 
                     {/* Column 3: Traffic Acquisition Source */}
-                    <td className="py-3.5 px-3">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold ${
-                        v.referrer.includes('Google')
-                          ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/50'
-                          : v.referrer.includes('Instagram')
-                          ? 'bg-pink-50 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300 border border-pink-200/50'
-                          : v.referrer.includes('Facebook')
-                          ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/50'
-                          : v.referrer.includes('TikTok')
-                          ? 'bg-neutral-900 text-white dark:bg-neutral-700'
-                          : v.referrer.includes('WhatsApp')
-                          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50'
-                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
-                      }`}>
+                    <td className="py-2.5 px-3">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-[#1c1c21] text-neutral-700 dark:text-neutral-300">
                         {v.referrer}
                       </span>
-                      <div className="text-[10px] text-neutral-400 mt-0.5 truncate max-w-[130px]">
+                      <div className="text-[10px] text-neutral-400 font-mono mt-0.5 truncate max-w-[120px]">
                         {v.sourceCategory}
                       </div>
                     </td>
 
                     {/* Column 4: Landing Page & Current Page */}
-                    <td className="py-3.5 px-3 max-w-[260px]">
+                    <td className="py-2.5 px-3 max-w-[240px]">
                       <div className="space-y-0.5">
                         <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate flex items-center gap-1">
-                          <span className="text-[9px] uppercase font-bold text-neutral-400">Entrée :</span>
-                          <span className="font-medium text-neutral-700 dark:text-neutral-300 truncate">
+                          <span className="text-[9px] uppercase font-mono text-neutral-400">in:</span>
+                          <span className="truncate">
                             {v.landingPage.title}
                           </span>
                         </div>
-                        <div className="text-xs font-bold text-neutral-900 dark:text-white truncate flex items-center gap-1">
-                          <span className="text-[9px] uppercase font-bold text-sky-500">Actuel :</span>
-                          <span className="truncate text-sky-600 dark:text-sky-400">
+                        <div className="text-xs font-medium text-neutral-900 dark:text-white truncate flex items-center gap-1">
+                          <span className="text-[9px] uppercase font-mono text-sky-500">now:</span>
+                          <span className="truncate text-neutral-900 dark:text-neutral-100">
                             {v.currentPage.title}
                           </span>
                         </div>
@@ -511,27 +472,27 @@ export default function VisitorsRegistrySection({
                     </td>
 
                     {/* Column 5: Page Views & Session Time */}
-                    <td className="py-3.5 px-3 text-center">
-                      <div className="font-bold text-neutral-900 dark:text-white text-xs">
+                    <td className="py-2.5 px-3 text-center">
+                      <div className="font-mono font-medium text-neutral-900 dark:text-white text-xs">
                         {v.pageCount} {v.pageCount > 1 ? 'pages' : 'page'}
                       </div>
-                      <div className="text-[10px] text-neutral-400 mt-0.5">
+                      <div className="text-[10px] text-neutral-400 font-mono mt-0.5">
                         {v.durationFormatted}
                       </div>
                     </td>
 
                     {/* Column 6: Intent & Cart */}
-                    <td className="py-3.5 px-3 text-center">
+                    <td className="py-2.5 px-3 text-center">
                       {v.hasPurchased ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                          <CheckCircle2 size={11} className="text-purple-600" />
-                          <span>Achat Converti</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium border border-purple-200 dark:border-purple-900/60 bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                          <CheckCircle2 size={10} />
+                          <span>Converti</span>
                         </span>
                       ) : v.hasCart || v.cartValue > 0 ? (
                         <div className="flex flex-col items-center gap-1">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                            <ShoppingCart size={11} className="text-amber-600" />
-                            <span>Panier : {formatMAD(v.cartValue)}</span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold border border-amber-200 dark:border-amber-900/60 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                            <ShoppingCart size={10} />
+                            <span>{formatMAD(v.cartValue)}</span>
                           </span>
                           {(v.rawCustomerPhone || v.customerPhone) && (
                             <a
@@ -541,37 +502,37 @@ export default function VisitorsRegistrySection({
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-bold shadow-xs transition-all"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-mono font-medium transition-colors"
                               title="Relancer le panier sur WhatsApp"
                             >
-                              <MessageCircle size={10} />
-                              <span>Relance WA</span>
+                              <MessageCircle size={9} />
+                              <span>Relance</span>
                             </a>
                           )}
                         </div>
                       ) : v.productsViewed.length > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                          <Eye size={11} className="text-sky-600" />
-                          <span>{v.productsViewed.length} parfums vus</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#1c1c21] border border-neutral-200 dark:border-neutral-800">
+                          <Eye size={10} />
+                          <span>{v.productsViewed.length} parfums</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
-                          <span>Exploration simple</span>
+                        <span className="text-[10px] font-mono text-neutral-400">
+                          Navigation
                         </span>
                       )}
                     </td>
 
                     {/* Column 7: Inspect Action */}
-                    <td className="py-3.5 px-3.5 text-right">
+                    <td className="py-2.5 px-3.5 text-right">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedVisitor(v);
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-sky-500 hover:text-white dark:hover:bg-sky-500 dark:hover:text-white text-neutral-700 dark:text-neutral-300 text-[11px] font-bold transition-all cursor-pointer group-hover:bg-sky-500 group-hover:text-white"
+                        className="inline-flex items-center gap-1 h-6 px-2 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-neutral-700 dark:text-neutral-300 hover:border-black dark:hover:border-white text-[11px] font-mono transition-colors cursor-pointer"
                       >
-                        <span>Inspecter</span>
-                        <ArrowRight size={11} />
+                        <span>Détails</span>
+                        <ArrowRight size={10} />
                       </button>
                     </td>
                   </tr>
@@ -583,76 +544,79 @@ export default function VisitorsRegistrySection({
 
         {/* ── 4. PAGINATION BAR ──────────────────────────────────────────────── */}
         {filteredVisitors.length > pageSize && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 border-t border-[#eaeaea] dark:border-[#222227] text-xs font-mono">
             <div className="text-neutral-500 dark:text-neutral-400">
               Affichage de <strong className="text-neutral-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</strong> à{' '}
               <strong className="text-neutral-900 dark:text-white">
                 {Math.min(currentPage * pageSize, filteredVisitors.length)}
               </strong>{' '}
-              sur <strong className="text-neutral-900 dark:text-white">{filteredVisitors.length}</strong> visiteurs
+              sur <strong className="text-neutral-900 dark:text-white">{filteredVisitors.length}</strong>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 disabled:opacity-40 cursor-pointer transition-all hover:bg-neutral-50"
+                className="h-7 px-2 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-neutral-700 dark:text-neutral-300 disabled:opacity-40 cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-[#202026]"
               >
-                <ChevronLeft size={14} />
+                <ChevronLeft size={13} />
               </button>
 
-              <span className="px-3 py-1 text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                Page {currentPage} sur {totalPages}
+              <span className="px-2 text-xs font-mono text-neutral-600 dark:text-neutral-400">
+                {currentPage} / {totalPages}
               </span>
 
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 disabled:opacity-40 cursor-pointer transition-all hover:bg-neutral-50"
+                className="h-7 px-2 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-neutral-700 dark:text-neutral-300 disabled:opacity-40 cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-[#202026]"
               >
-                <ChevronRight size={14} />
+                <ChevronRight size={13} />
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* ── 5. CLIENT JOURNEY INSPECTION MODAL ─────────────────────────────────── */}
+      {/* ── 5. CLIENT JOURNEY INSPECTION SLIDE-OVER DRAWER (RESEND STYLE) ───── */}
       {selectedVisitor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#111827] rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-            {/* Modal Header */}
-            <div className="p-5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+        <div
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-2xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setSelectedVisitor(null)}
+        >
+          <div
+            className="w-full sm:w-[540px] h-full bg-white dark:bg-[#121215] border-l border-[#eaeaea] dark:border-[#222227] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-[#eaeaea] dark:border-[#222227] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-md bg-neutral-100 dark:bg-[#1c1c21] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 flex items-center justify-center shrink-0">
                   {selectedVisitor.device === 'Mobile' ? (
-                    <Smartphone size={20} />
+                    <Smartphone size={15} />
                   ) : (
-                    <Monitor size={20} />
+                    <Monitor size={15} />
                   )}
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-neutral-900 dark:text-white">
+                    <h3 className="text-sm font-semibold text-neutral-900 dark:text-white font-mono">
                       {selectedVisitor.customerName || `Session #${selectedVisitor.ipHashShort}`}
                     </h3>
                     {selectedVisitor.isOnline && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                        En direct
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        LIVE
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-2 mt-0.5">
-                    <span className="font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
-                      <MapPin size={11} className="text-rose-500" />
-                      {selectedVisitor.city} 🇲🇦
-                    </span>
-                    <span>•</span>
-                    <span>Source : <strong>{selectedVisitor.referrer}</strong></span>
-                    <span>•</span>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5 font-mono">
+                    <span>{selectedVisitor.city}, {selectedVisitor.country}</span>
+                    <span>·</span>
+                    <span>{selectedVisitor.referrer}</span>
+                    <span>·</span>
                     <span>{selectedVisitor.device}</span>
                   </p>
                 </div>
@@ -666,64 +630,56 @@ export default function VisitorsRegistrySection({
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-mono font-medium transition-colors"
                     title="Relancer le panier sur WhatsApp"
                   >
-                    <MessageCircle size={14} />
-                    <span>Relancer WhatsApp</span>
+                    <MessageCircle size={12} />
+                    <span>WhatsApp</span>
                   </a>
                 )}
 
                 <button
                   onClick={() => setSelectedVisitor(null)}
-                  className="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all cursor-pointer"
+                  className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#1c1c21] transition-colors cursor-pointer"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body (Scrollable) */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs" style={{ scrollbarWidth: 'thin' }}>
+            {/* Drawer Body (Scrollable) */}
+            <div className="p-4 overflow-y-auto space-y-4 flex-1 text-xs" style={{ scrollbarWidth: 'thin' }}>
               {/* Quick KPIs strip */}
-              <div className="grid grid-cols-4 gap-2.5 p-3.5 bg-neutral-50 dark:bg-neutral-800/40 rounded-2xl border border-neutral-100 dark:border-neutral-800 text-center">
+              <div className="grid grid-cols-4 bg-[#fafafa] dark:bg-[#151518] rounded-md border border-[#eaeaea] dark:border-[#222227] divide-x divide-[#eaeaea] dark:divide-[#222227] text-center p-3">
                 <div>
-                  <div className="text-[10px] text-neutral-400 uppercase font-semibold">Pages Vues</div>
-                  <div className="text-base font-black text-neutral-900 dark:text-white mt-0.5">
+                  <div className="text-[10px] text-neutral-400 uppercase font-mono">Pages vues</div>
+                  <div className="text-sm font-mono font-semibold text-neutral-900 dark:text-white mt-0.5">
                     {selectedVisitor.pageCount}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-neutral-400 uppercase font-semibold">Temps Passé</div>
-                  <div className="text-base font-black text-neutral-900 dark:text-white mt-0.5">
+                  <div className="text-[10px] text-neutral-400 uppercase font-mono">Durée</div>
+                  <div className="text-sm font-mono font-semibold text-neutral-900 dark:text-white mt-0.5">
                     {selectedVisitor.durationFormatted}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-neutral-400 uppercase font-semibold">Panier</div>
-                  <div className="text-base font-black text-amber-600 dark:text-amber-400 mt-0.5">
+                  <div className="text-[10px] text-neutral-400 uppercase font-mono">Panier</div>
+                  <div className="text-sm font-mono font-semibold text-neutral-900 dark:text-white mt-0.5">
                     {selectedVisitor.cartValue > 0 ? formatMAD(selectedVisitor.cartValue) : '0 MAD'}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-neutral-400 uppercase font-semibold">Statut</div>
-                  <div className="text-xs font-black text-neutral-900 dark:text-white mt-1">
+                  <div className="text-[10px] text-neutral-400 uppercase font-mono">Statut</div>
+                  <div className="text-[11px] font-mono font-semibold text-neutral-900 dark:text-white mt-1">
                     {selectedVisitor.hasPurchased ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 size={13} /> Converti
-                      </span>
+                      <span className="text-emerald-600 dark:text-emerald-400">Converti</span>
                     ) : selectedVisitor.hasCart ? (
-                      <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                        <ShoppingCart size={13} /> Panier
-                      </span>
+                      <span className="text-amber-600 dark:text-amber-400">Panier</span>
                     ) : selectedVisitor.isOnline ? (
-                      <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> En direct
-                      </span>
+                      <span className="text-emerald-600 dark:text-emerald-400">En direct</span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-neutral-500">
-                        <Clock size={13} /> Terminé
-                      </span>
+                      <span className="text-neutral-400">Terminé</span>
                     )}
                   </div>
                 </div>
@@ -731,34 +687,34 @@ export default function VisitorsRegistrySection({
 
               {/* Cart Items if present */}
               {selectedVisitor.cartItems && selectedVisitor.cartItems.length > 0 && (
-                <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 space-y-3">
-                  <div className="flex items-center justify-between font-bold text-amber-900 dark:text-amber-200 text-xs">
-                    <span className="flex items-center gap-1.5">
-                      <ShoppingCart size={14} className="text-amber-600" />
-                      <span>Contenu du Panier Actif ({selectedVisitor.cartItems.length} article(s))</span>
+                <div className="p-3.5 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] space-y-2.5">
+                  <div className="flex items-center justify-between font-mono text-xs">
+                    <span className="flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300 font-medium">
+                      <ShoppingCart size={13} className="text-neutral-400" />
+                      <span>Panier actif ({selectedVisitor.cartItems.length} article{selectedVisitor.cartItems.length > 1 ? 's' : ''})</span>
                     </span>
-                    <span className="text-sm font-black">{formatMAD(selectedVisitor.cartValue)}</span>
+                    <span className="font-semibold text-neutral-900 dark:text-white">{formatMAD(selectedVisitor.cartValue)}</span>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {selectedVisitor.cartItems.map((it: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between bg-white dark:bg-neutral-900 p-2.5 rounded-xl border border-amber-100 dark:border-neutral-800">
-                        <div className="flex items-center gap-2.5">
+                      <div key={idx} className="flex items-center justify-between bg-white dark:bg-[#121215] p-2 rounded border border-[#eaeaea] dark:border-[#222227]">
+                        <div className="flex items-center gap-2">
                           {it.image && (
-                            <div className="w-8 h-8 relative rounded-lg overflow-hidden bg-neutral-100 shrink-0">
+                            <div className="w-7 h-7 relative rounded overflow-hidden bg-neutral-100 shrink-0 border border-neutral-200 dark:border-neutral-800">
                               <Image src={it.image} alt={it.name || 'Parfum'} fill className="object-cover" />
                             </div>
                           )}
                           <div>
-                            <div className="font-bold text-neutral-900 dark:text-white text-xs truncate max-w-[200px]">
+                            <div className="font-medium text-neutral-900 dark:text-white text-xs truncate max-w-[200px]">
                               {it.name || 'Parfum de Luxe'}
                             </div>
-                            <div className="text-[10px] text-neutral-400">
-                              Qté : {it.quantity || 1} • {it.size || '100ml'}
+                            <div className="text-[10px] text-neutral-400 font-mono">
+                              Qté : {it.quantity || 1} · {it.size || '100ml'}
                             </div>
                           </div>
                         </div>
-                        <div className="font-black text-neutral-900 dark:text-white text-xs">
+                        <div className="font-mono font-semibold text-neutral-900 dark:text-white text-xs">
                           {formatMAD(it.price || 299)}
                         </div>
                       </div>
@@ -768,28 +724,28 @@ export default function VisitorsRegistrySection({
               )}
 
               {/* Step-by-Step Chronological Journey */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between pb-1 border-b border-neutral-100 dark:border-neutral-800">
-                  <h4 className="font-bold text-neutral-900 dark:text-white text-xs flex items-center gap-1.5">
-                    <Compass size={14} className="text-sky-500" />
-                    <span>Parcours Chronologique de Navigation ({selectedVisitor.journey.length} étapes)</span>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between pb-1 border-b border-[#eaeaea] dark:border-[#222227]">
+                  <h4 className="font-semibold text-neutral-900 dark:text-white text-xs flex items-center gap-1.5">
+                    <Compass size={13} className="text-neutral-400" />
+                    <span>Parcours de navigation ({selectedVisitor.journey.length} étapes)</span>
                   </h4>
-                  <span className="text-[10px] text-neutral-400">
-                    Ordre chronologique (Entrée ➔ Sortie)
+                  <span className="text-[10px] text-neutral-400 font-mono">
+                    Entrée ➔ Dernière page
                   </span>
                 </div>
 
-                <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-neutral-200 dark:before:bg-neutral-800">
+                <div className="relative pl-5 space-y-2.5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-[#eaeaea] dark:before:bg-[#222227]">
                   {selectedVisitor.journey.map((step, idx) => (
                     <div key={idx} className="relative group">
                       {/* Step Circle Pin */}
-                      <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 border-2 border-sky-500 text-sky-600 dark:text-sky-400 flex items-center justify-center text-[10px] font-black">
+                      <div className="absolute -left-5 top-1.5 w-4 h-4 rounded-full bg-white dark:bg-[#121215] border border-neutral-400 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 flex items-center justify-center text-[9px] font-mono font-semibold">
                         {step.step}
                       </div>
 
-                      <div className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-100 dark:border-neutral-800 space-y-1">
+                      <div className="p-2.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-neutral-900 dark:text-white text-xs">
+                          <span className="font-medium text-neutral-900 dark:text-white text-xs">
                             {step.title}
                           </span>
                           <span className="text-[10px] text-neutral-400 font-mono">
@@ -798,16 +754,16 @@ export default function VisitorsRegistrySection({
                         </div>
 
                         <div className="flex items-center justify-between text-[10px]">
-                          <span className="font-mono text-neutral-400 truncate max-w-[260px]">
+                          <span className="font-mono text-neutral-400 truncate max-w-[240px]">
                             {step.pathname}
                           </span>
                           <Link
                             href={step.pathname}
                             target="_blank"
-                            className="text-sky-500 hover:text-sky-600 font-bold flex items-center gap-0.5"
+                            className="text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white font-mono flex items-center gap-0.5"
                           >
-                            <span>Ouvrir</span>
-                            <ExternalLink size={10} />
+                            <span>Visiter</span>
+                            <ExternalLink size={9} />
                           </Link>
                         </div>
                       </div>
@@ -817,31 +773,31 @@ export default function VisitorsRegistrySection({
               </div>
 
               {/* Marketing Recommendation Box */}
-              <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-900/40 text-[11px] text-sky-900 dark:text-sky-200 space-y-1">
-                <div className="font-bold flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-sky-500" />
-                  <span>Analyse & Diagnostic Marketing NAY</span>
+              <div className="p-3 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] text-xs space-y-1">
+                <div className="font-medium text-neutral-900 dark:text-white flex items-center gap-1.5 text-xs">
+                  <Sparkles size={12} className="text-neutral-400" />
+                  <span>Diagnostic télémétrique</span>
                 </div>
-                <p className="text-neutral-600 dark:text-neutral-300 text-[11px] leading-relaxed">
+                <p className="text-neutral-600 dark:text-neutral-400 text-[11px] leading-relaxed">
                   {selectedVisitor.hasPurchased
                     ? 'Client acheteur confirmé. Parcours d\'achat fluide avec une excellente conversion depuis sa source d\'acquisition.'
                     : selectedVisitor.hasCart
                     ? 'Visiteur à fort potentiel d\'achat ayant placé des parfums au panier sans finaliser le paiement. Un message WhatsApp ou une offre spéciale peut déclencher la conversion.'
                     : selectedVisitor.productsViewed.length > 0
-                    ? `Visiteur intéressé par la parfumerie (${selectedVisitor.productsViewed.map((p) => p.name).join(', ')}). Idéal pour le ciblage publicitaire Meta/TikTok.`
+                    ? `Visiteur intéressé par la parfumerie (${selectedVisitor.productsViewed.map((p) => p.name).join(', ')}). Idéal pour le reciblage.`
                     : 'Visiteur en phase de découverte générale de la marque.'}
                 </p>
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/30 flex items-center justify-between">
-              <span className="text-[11px] text-neutral-400 font-mono">
-                ID Session : {selectedVisitor.id}
+            {/* Drawer Footer */}
+            <div className="p-3 border-t border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] flex items-center justify-between">
+              <span className="text-[10px] text-neutral-400 font-mono">
+                Session ID : {selectedVisitor.id}
               </span>
               <button
                 onClick={() => setSelectedVisitor(null)}
-                className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                className="h-7 px-3 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-black dark:hover:bg-neutral-200 rounded-md text-xs font-medium transition-colors cursor-pointer"
               >
                 Fermer
               </button>

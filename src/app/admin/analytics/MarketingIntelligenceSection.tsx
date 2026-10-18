@@ -80,42 +80,37 @@ export default function MarketingIntelligenceSection({
   return (
     <div className="space-y-6">
       {/* ── 1. STRATEGIC AI MARKETING ADVISOR ───────────────────────────────── */}
-      <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-5">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+      <div className="bg-white dark:bg-[#121215] rounded-lg p-5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400">
-                <Sparkles size={16} />
-              </span>
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white">
-                Conseils Stratégiques & Diagnostic Marketing IA
-              </h3>
-            </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Analyses automatisées calculées à partir de vos données réelles de vente, de navigation et de géographie au Maroc.
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+              Diagnostic & Recommandations Marketing
+            </h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Analyses automatisées calculées à partir de vos données réelles de navigation et ventes au Maroc
             </p>
           </div>
 
-          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800">
-            Moteur de Recommandation V2.4
+          <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-[#1c1c21] text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-800">
+            Moteur de diagnostic V2.4
           </span>
         </div>
 
         {/* 4 Strategic Insights Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
           {insights.map((insight) => (
             <div
               key={insight.id}
-              className="p-5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/50 dark:bg-neutral-800/30 hover:border-sky-500/40 transition-all space-y-3"
+              className="p-4 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] space-y-3"
             >
               <div className="flex items-start justify-between gap-3">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white dark:bg-neutral-900 text-sky-600 dark:text-sky-400 border border-neutral-200/60 dark:border-neutral-700">
+                <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-white dark:bg-[#121215] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800">
                   {insight.category}
                 </span>
 
                 {insight.metric && (
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-black text-neutral-900 dark:text-white">
+                  <div className="text-right shrink-0 font-mono">
+                    <div className="text-sm font-semibold text-neutral-900 dark:text-white">
                       {insight.metric}
                     </div>
                     <div className="text-[10px] text-neutral-400">
@@ -125,20 +120,20 @@ export default function MarketingIntelligenceSection({
                 )}
               </div>
 
-              <h4 className="text-xs font-bold text-neutral-900 dark:text-white leading-snug">
+              <h4 className="text-xs font-semibold text-neutral-900 dark:text-white leading-snug">
                 {insight.title}
               </h4>
 
-              <p className="text-[11px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
+              <p className="text-[11px] text-neutral-500 leading-relaxed font-sans">
                 {insight.description}
               </p>
 
-              <div className="p-3 rounded-xl bg-white dark:bg-neutral-900/90 border border-neutral-200/60 dark:border-neutral-800/80 space-y-1">
-                <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 size={12} />
-                  <span>Action Marketing Recommandée :</span>
+              <div className="p-2.5 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#121215] space-y-1">
+                <div className="text-[10px] font-mono font-medium text-neutral-900 dark:text-neutral-200 flex items-center gap-1">
+                  <CheckCircle2 size={11} className="text-emerald-500" />
+                  <span>Action recommandée :</span>
                 </div>
-                <p className="text-[11px] font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed">
+                <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed">
                   {insight.recommendation}
                 </p>
               </div>
@@ -148,76 +143,71 @@ export default function MarketingIntelligenceSection({
       </div>
 
       {/* ── 2. ROAS & AD SPEND PROFIT SIMULATOR ───────────────────────────────── */}
-      <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+      <div className="bg-white dark:bg-[#121215] rounded-lg p-5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
-                <Calculator size={16} />
-              </span>
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white">
-                Simulateur de Rentabilité Publicitaire & Budget Meta/TikTok (ROAS)
-              </h3>
-            </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Anticipez vos ventes et votre chiffre d&apos;affaires en ajustant votre budget média selon les métriques de NAY Parfums.
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+              Simulateur de Rentabilité Ads & ROAS
+            </h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Prévision des ventes et marge selon votre budget média Meta/TikTok
             </p>
           </div>
 
-          <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-lg">
-            Panier Moyen : {formatMAD(aov || 460)}
+          <span className="font-mono text-[11px] px-2 py-0.5 bg-neutral-100 dark:bg-[#1c1c21] text-neutral-600 dark:text-neutral-400 rounded border border-neutral-200 dark:border-neutral-800">
+            Panier moyen : {formatMAD(aov || 460)}
           </span>
         </div>
 
         {/* Real Ad Performance Metrics Strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 p-4 bg-emerald-50/50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200/60 dark:border-emerald-900/40">
-          <div>
-            <div className="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-300">
-              Dépenses Ads Réelles (Charges)
+        <div className="grid grid-cols-1 sm:grid-cols-3 bg-[#fafafa] dark:bg-[#151518] rounded-md border border-[#eaeaea] dark:border-[#222227] divide-y sm:divide-y-0 sm:divide-x divide-[#eaeaea] dark:divide-[#222227] p-3 font-mono">
+          <div className="p-2">
+            <div className="text-[10px] uppercase text-neutral-400">
+              Dépenses Ads Réelles
             </div>
-            <div className="text-lg font-black text-neutral-900 dark:text-white mt-0.5">
+            <div className="text-base font-semibold text-neutral-900 dark:text-white mt-0.5">
               {marketingFinancials ? formatMAD(marketingFinancials.totalAdSpend) : '0 MAD'}
             </div>
-            <div className="text-[10px] text-neutral-500">
-              {marketingFinancials?.adExpensesList?.length || 0} charge(s) pub enregistrée(s)
+            <div className="text-[10px] text-neutral-400 mt-0.5">
+              {marketingFinancials?.adExpensesList?.length || 0} charge(s) enregistrée(s)
             </div>
           </div>
 
-          <div>
-            <div className="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-300">
+          <div className="p-2">
+            <div className="text-[10px] uppercase text-neutral-400">
               ROAS Réel Réalisé
             </div>
-            <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+            <div className="text-base font-semibold text-neutral-900 dark:text-white mt-0.5">
               {marketingFinancials && marketingFinancials.roas > 0 ? `${marketingFinancials.roas}x` : '— (Hors campagne)'}
             </div>
-            <div className="text-[10px] text-neutral-500">
-              Chiffre d&apos;affaires / Dépense pub
+            <div className="text-[10px] text-neutral-400 mt-0.5">
+              CA généré / budget média
             </div>
           </div>
 
-          <div>
-            <div className="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-300">
+          <div className="p-2">
+            <div className="text-[10px] uppercase text-neutral-400">
               Marge Nette Commerciale Est.
             </div>
-            <div className="text-lg font-black text-neutral-900 dark:text-white mt-0.5">
+            <div className="text-base font-semibold text-neutral-900 dark:text-white mt-0.5">
               {marketingFinancials ? formatMAD(marketingFinancials.netProfitEst) : '0 MAD'}
             </div>
-            <div className="text-[10px] text-neutral-500">
-              Après coût des marchandises et ads
+            <div className="text-[10px] text-neutral-400 mt-0.5">
+              Après coût marchandises et ads
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-1">
           {/* Controls Column (1 col) */}
-          <div className="space-y-4 p-5 rounded-2xl bg-neutral-50/70 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-800">
+          <div className="space-y-4 p-4 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] font-mono">
             {/* Slider 1: Budget Pub */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-neutral-800 dark:text-neutral-200">
-                  Budget Publicitaire (MAD) :
+                <span className="text-neutral-700 dark:text-neutral-300">
+                  Budget Pub :
                 </span>
-                <span className="font-black text-sky-600 dark:text-sky-400">
+                <span className="font-semibold text-neutral-900 dark:text-white">
                   {adBudget.toLocaleString()} MAD
                 </span>
               </div>
@@ -228,11 +218,10 @@ export default function MarketingIntelligenceSection({
                 step="500"
                 value={adBudget}
                 onChange={(e) => setAdBudget(Number(e.target.value))}
-                className="w-full accent-sky-500 cursor-pointer"
+                className="w-full accent-neutral-900 dark:accent-white cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-neutral-400">
                 <span>500 MAD</span>
-                <span>10 000 MAD</span>
                 <span>20 000 MAD</span>
               </div>
             </div>
@@ -240,10 +229,10 @@ export default function MarketingIntelligenceSection({
             {/* Slider 2: CPC */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-neutral-800 dark:text-neutral-200">
-                  Coût par Clic Estimé (CPC) :
+                <span className="text-neutral-700 dark:text-neutral-300">
+                  CPC Estimé :
                 </span>
-                <span className="font-black text-neutral-900 dark:text-white">
+                <span className="font-semibold text-neutral-900 dark:text-white">
                   {cpcEstimate.toFixed(2)} MAD
                 </span>
               </div>
@@ -254,11 +243,10 @@ export default function MarketingIntelligenceSection({
                 step="0.1"
                 value={cpcEstimate}
                 onChange={(e) => setCpcEstimate(Number(e.target.value))}
-                className="w-full accent-sky-500 cursor-pointer"
+                className="w-full accent-neutral-900 dark:accent-white cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-neutral-400">
-                <span>0.50 MAD (Éco)</span>
-                <span>1.20 MAD (Moyen)</span>
+                <span>0.50 MAD</span>
                 <span>3.00 MAD</span>
               </div>
             </div>
@@ -266,10 +254,10 @@ export default function MarketingIntelligenceSection({
             {/* Slider 3: Conversion Rate */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-neutral-800 dark:text-neutral-200">
-                  Taux de Conversion Ciblé :
+                <span className="text-neutral-700 dark:text-neutral-300">
+                  Taux de Conv. :
                 </span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400">
+                <span className="font-semibold text-neutral-900 dark:text-white">
                   {targetConversionRate.toFixed(2)}%
                 </span>
               </div>
@@ -280,125 +268,109 @@ export default function MarketingIntelligenceSection({
                 step="0.1"
                 value={targetConversionRate}
                 onChange={(e) => setTargetConversionRate(Number(e.target.value))}
-                className="w-full accent-emerald-500 cursor-pointer"
+                className="w-full accent-neutral-900 dark:accent-white cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-neutral-400">
                 <span>0.8%</span>
-                <span>Actuel : {conversionRate}%</span>
                 <span>4.0%</span>
               </div>
             </div>
           </div>
 
           {/* Results Display (2 cols) */}
-          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
             {/* Metric 1: Clics / Visites */}
-            <div className="p-4 rounded-2xl bg-white dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700 shadow-2xs space-y-1">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase">Trafic Estimé</span>
-              <div className="text-xl font-black text-neutral-900 dark:text-white">
+            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+              <span className="text-[10px] uppercase text-neutral-400">Trafic Estimé</span>
+              <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {estimatedClicks.toLocaleString()} clics
               </div>
-              <p className="text-[10px] text-neutral-500">visiteurs qualifiés générés</p>
+              <p className="text-[10px] text-neutral-400">visites qualifiées</p>
             </div>
 
             {/* Metric 2: Commandes */}
-            <div className="p-4 rounded-2xl bg-white dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700 shadow-2xs space-y-1">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase">Commandes Estimées</span>
-              <div className="text-xl font-black text-sky-600 dark:text-sky-400">
+            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+              <span className="text-[10px] uppercase text-neutral-400">Commandes Estimées</span>
+              <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {estimatedOrders} achats
               </div>
-              <p className="text-[10px] text-neutral-500">flacons commandés</p>
+              <p className="text-[10px] text-neutral-400">flacons commandés</p>
             </div>
 
             {/* Metric 3: CA Prévu */}
-            <div className="p-4 rounded-2xl bg-white dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700 shadow-2xs space-y-1">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase">CA Brut Estimé</span>
-              <div className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+              <span className="text-[10px] uppercase text-neutral-400">CA Brut Estimé</span>
+              <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {formatMAD(estimatedRevenue)}
               </div>
-              <p className="text-[10px] text-neutral-500">sur la période</p>
+              <p className="text-[10px] text-neutral-400">sur la période</p>
             </div>
 
             {/* Metric 4: ROAS */}
-            <div className="p-4 rounded-2xl bg-white dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700 shadow-2xs space-y-1">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase">Multiplicateur (ROAS)</span>
-              <div className="text-xl font-black text-purple-600 dark:text-purple-400">
+            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+              <span className="text-[10px] uppercase text-neutral-400">Multiplicateur (ROAS)</span>
+              <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {estimatedRoas}x
               </div>
-              <p className="text-[10px] text-neutral-500">
-                {estimatedRoas >= 3.5 ? (
-                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-                    <TrendingUp size={11} /> Excellent retour
-                  </span>
-                ) : 'Bonne rentabilité'}
+              <p className="text-[10px] text-neutral-400">
+                {estimatedRoas >= 3.5 ? 'Rentabilité élevée' : 'Rentabilité standard'}
               </p>
             </div>
 
             {/* Metric 5: Bénéfice Net */}
-            <div className="p-4 rounded-2xl bg-white dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700 shadow-2xs space-y-1">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase">Bénéfice Net Estimé</span>
-              <div className={`text-xl font-black ${estimatedNetProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}`}>
+            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+              <span className="text-[10px] uppercase text-neutral-400">Bénéfice Net Estimé</span>
+              <div className={`text-lg font-semibold ${estimatedNetProfit >= 0 ? 'text-neutral-900 dark:text-white' : 'text-rose-500'}`}>
                 {formatMAD(estimatedNetProfit)}
               </div>
-              <p className="text-[10px] text-neutral-500">après coûts pub déduits</p>
+              <p className="text-[10px] text-neutral-400">après déduction ads</p>
             </div>
 
             {/* Metric 6: Coût par Commande */}
-            <div className="p-4 rounded-2xl bg-white dark:bg-neutral-800/80 border border-neutral-200/80 dark:border-neutral-700 shadow-2xs space-y-1">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase">Coût d&apos;Acquisition (CAC)</span>
-              <div className="text-xl font-black text-neutral-900 dark:text-white">
+            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+              <span className="text-[10px] uppercase text-neutral-400">Coût / Commande (CAC)</span>
+              <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {estimatedOrders > 0 ? formatMAD(Math.round(adBudget / estimatedOrders)) : '—'}
               </div>
-              <p className="text-[10px] text-neutral-500">par commande générée</p>
+              <p className="text-[10px] text-neutral-400">par vente réalisée</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── 3. HIGH-CONVERTING CAMPAIGN ANGLES & HOOKS (MARKETING LEARNING) ──── */}
-      <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-neutral-200/80 dark:border-neutral-800 shadow-sm space-y-5">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-neutral-100 dark:border-neutral-800">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400">
-                <Flame size={16} />
-              </span>
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white">
-                Playbook Marketing : Les 4 Angles Publicitaires Gagnants pour NAY
-              </h3>
-            </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Structures de publicités et d&apos;accroches vidéo (UGC) prêtes à l&apos;emploi pour maximiser le taux de conversion sur Instagram et TikTok.
-            </p>
-          </div>
-
-          <span className="text-xs font-semibold px-2.5 py-1 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 rounded-lg">
-            Framework E-Commerce Luxe
-          </span>
+      {/* ── 3. HIGH-CONVERTING CAMPAIGN ANGLES & HOOKS ───────────────────────── */}
+      <div className="bg-white dark:bg-[#121215] rounded-lg p-5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+        <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+          <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
+            Angles Publicitaires Recommandés pour NAY
+          </h3>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            Structures de publicités et d&apos;accroches vidéo pour optimiser la conversion
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
           {campaignAngles.map((angle, idx) => (
             <div
               key={idx}
-              className="p-5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/30 space-y-3"
+              className="p-4 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] space-y-2.5"
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-neutral-900 dark:text-white">
+                <span className="font-semibold text-xs text-neutral-900 dark:text-white">
                   {angle.title}
                 </span>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121215] text-neutral-600 dark:text-neutral-400">
                   {angle.badge}
                 </span>
               </div>
 
-              <div className="text-[11px] text-neutral-500 space-y-1.5">
-                <div className="flex items-center gap-1.5"><Target size={12} className="text-purple-500 shrink-0" /> <span><strong>Cible :</strong> {angle.target}</span></div>
-                <div className="flex items-center gap-1.5"><Smartphone size={12} className="text-sky-500 shrink-0" /> <span><strong>Format recommandé :</strong> {angle.formats}</span></div>
-                <div className="flex items-center gap-1.5"><Sparkles size={12} className="text-amber-500 shrink-0" /> <span><strong>Parfums stars :</strong> {angle.perfumes}</span></div>
+              <div className="text-[11px] text-neutral-500 space-y-1 font-sans">
+                <div><span className="text-neutral-400 font-mono text-[10px] uppercase">Cible :</span> {angle.target}</div>
+                <div><span className="text-neutral-400 font-mono text-[10px] uppercase">Format :</span> {angle.formats}</div>
+                <div><span className="text-neutral-400 font-mono text-[10px] uppercase">Parfums :</span> {angle.perfumes}</div>
               </div>
 
-              <div className="p-3 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 text-[11px] text-neutral-800 dark:text-neutral-200 italic">
+              <div className="p-2.5 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#121215] text-[11px] text-neutral-700 dark:text-neutral-300 italic">
                 {angle.hook}
               </div>
             </div>
