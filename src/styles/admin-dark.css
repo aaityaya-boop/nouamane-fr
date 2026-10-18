@@ -241,9 +241,17 @@ html.dark .bg-gray-50\/70,
 html.dark .bg-zinc-50,
 html.dark .bg-zinc-50\/50,
 html.dark .bg-zinc-50\/70,
-html.dark .bg-stone-50 {
+html.dark .bg-stone-50,
+html.dark .bg-\[\#fafafa\],
+html.dark .bg-\[\#fcfcfc\],
+html.dark .bg-\[\#f8fafc\] {
   background-color: #0c0c0e !important;
   border-color: #1c1c21 !important;
+}
+
+html.dark .hover\:bg-\[\#fafafa\]:hover,
+html.dark .hover\:bg-\[\#fcfcfc\]:hover {
+  background-color: #18181d !important;
 }
 
 /* Segmented bars, Tab pills bars, Info blocks */
@@ -320,8 +328,26 @@ html.dark .border-zinc-200,
 html.dark .border-zinc-300,
 html.dark .border-sky-200,
 html.dark .border-\[\#e2e8f0\],
-html.dark .border-\[\#eaeaea\] {
+html.dark .border-\[\#eaeaea\],
+html.dark .border-\[\#f0f0f0\],
+html.dark .divide-\[\#eaeaea\] > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-\[\#f0f0f0\] > :not([hidden]) ~ :not([hidden]) {
   border-color: #222227 !important;
+}
+
+html.dark .border-black,
+html.dark .border-neutral-900 {
+  border-color: #ffffff !important;
+}
+
+html.dark .bg-black {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+html.dark .hover\:bg-neutral-800:hover {
+  background-color: #e4e4e7 !important;
+  color: #000000 !important;
 }
 
 /* ── 6. ALL DARK FONTS -> PURE CRISP TITANIUM / WHITE TYPOGRAPHY ─────────── */
