@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -98,18 +98,21 @@ export default function ProductClient({
 
   // Marketing states
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll listener for sticky bar
+    // Scroll listener for sticky bar: only show when user has scrolled past main CTA button
     const handleScroll = () => {
-      // Show sticky bar when scrolled past a certain point (e.g. 600px)
-      if (window.scrollY > 700) {
-        setShowStickyBar(true);
-      } else {
-        setShowStickyBar(false);
+      if (!ctaSectionRef.current) {
+        setShowStickyBar(window.scrollY > 800);
+        return;
       }
+      const rect = ctaSectionRef.current.getBoundingClientRect();
+      // Show sticky bar ONLY when the main CTA button has scrolled completely above the viewport
+      setShowStickyBar(rect.bottom < 20);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -355,41 +358,41 @@ export default function ProductClient({
   });
 
   return (
-    <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen">
+    <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen pb-20 lg:pb-0">
       <Header />
 
       {/* BREADCRUMB */}
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 pt-28 lg:pt-32 pb-4">
-        <nav className="flex items-center gap-2 text-[11px] text-[#9A9A9A]">
-          <Link href={`/${locale}`} className="hover:text-[#0ea5e9]">{t.breadcrumb.home}</Link>
-          <Chev size={12} />
-          <Link href={`/${locale}/shop`} className="hover:text-[#0ea5e9]">{t.breadcrumb.shop}</Link>
-          <Chev size={12} />
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-20 sm:pt-24 lg:pt-32 pb-2 sm:pb-4">
+        <nav className="flex items-center gap-1.5 sm:gap-2 text-[11px] text-[#9A9A9A] overflow-x-auto no-scrollbar whitespace-nowrap py-1">
+          <Link href={`/${locale}`} className="hover:text-[#0ea5e9] shrink-0">{t.breadcrumb.home}</Link>
+          <Chev size={12} className="shrink-0" />
+          <Link href={`/${locale}/shop`} className="hover:text-[#0ea5e9] shrink-0">{t.breadcrumb.shop}</Link>
+          <Chev size={12} className="shrink-0" />
           <Link
             href={`/${locale}/shop/${product.gender}`}
-            className="hover:text-[#0ea5e9]"
+            className="hover:text-[#0ea5e9] shrink-0"
           >
             {t.genderMap[product.gender as keyof typeof t.genderMap] ? `Parfums ${t.genderMap[product.gender as keyof typeof t.genderMap]}` : product.subcategoryLabel}
           </Link>
           {product.brand && (
             <>
-              <Chev size={12} />
+              <Chev size={12} className="shrink-0" />
               <Link
                 href={`/${locale}/brands/${product.brand}`}
-                className="hover:text-[#0ea5e9]"
+                className="hover:text-[#0ea5e9] shrink-0"
               >
                 {product.brandLabel}
               </Link>
             </>
           )}
-          <Chev size={12} />
-          <span className="text-[#1A1A1A]">{product.name}</span>
+          <Chev size={12} className="shrink-0" />
+          <span className="text-[#1A1A1A] font-medium shrink-0 truncate max-w-[160px] sm:max-w-none">{product.name}</span>
         </nav>
       </div>
 
       {/* ====== SPLIT PRODUCT DETAIL ====== */}
-      <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-8 lg:py-12">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-8 lg:py-12">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16">
           {/* -------- IMAGE GALLERY -------- */}
           <div>
             <div className="relative aspect-[4/5] bg-transparent rounded-2xl overflow-hidden">
@@ -470,17 +473,17 @@ export default function ProductClient({
               {product.brandLabel}{product.isTester ? ` · ${t.info.authentic}` : ''}
             </Link>
 
-            <h1 className="heading-font text-4xl lg:text-5xl xl:text-6xl mt-3 tracking-wide leading-none">
+            <h1 className="heading-font text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl mt-2 sm:mt-3 tracking-wide leading-tight sm:leading-none">
               {product.name}
             </h1>
 
-            <div className="mt-3 italic text-[15px] text-[#6B6B6B]">
+            <div className="mt-2 sm:mt-3 italic text-[14px] sm:text-[15px] text-[#6B6B6B]">
               {product.tagline}
             </div>
 
             {/* Rating */}
             {product.reviewCount > 0 ? (
-              <div className="mt-5 flex items-center gap-3">
+              <div className="mt-4 sm:mt-5 flex items-center gap-3">
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -505,7 +508,7 @@ export default function ProductClient({
                 </a>
               </div>
             ) : (
-              <div className="mt-5 flex items-center gap-2">
+              <div className="mt-4 sm:mt-5 flex items-center gap-2">
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -524,68 +527,68 @@ export default function ProductClient({
               </div>
             )}
 
-            <div className="mt-8 flex flex-col gap-3">
-              <div className="flex items-baseline gap-3">
-                <span className="text-3xl font-semibold text-[#1A1A1A]">
+            <div className="mt-6 sm:mt-8 flex flex-col gap-2">
+              <div className="flex flex-wrap items-baseline gap-2.5 sm:gap-3">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1A1A] whitespace-nowrap">
                   {formatMAD(currentPrice)}
                 </span>
                 {product.originalPrice && product.originalPrice > currentPrice && (
                   <>
-                    <span className="text-[15px] text-[#9A9A9A] line-through decoration-[#0ea5e9]/40 font-medium">
+                    <span className="text-[14px] sm:text-[15px] text-[#9A9A9A] line-through decoration-[#0ea5e9]/40 font-medium whitespace-nowrap">
                       {formatMAD(product.originalPrice)}
                     </span>
-                    <span className="bg-[#0ea5e9]/10 text-[#0ea5e9] px-2 py-0.5 rounded text-[11px] font-bold tracking-wider uppercase">
+                    <span className="inline-flex items-center bg-[#0ea5e9]/10 text-[#0ea5e9] px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase whitespace-nowrap">
                       {t.info.save} {Math.round((1 - currentPrice / product.originalPrice) * 100)}%
                     </span>
                   </>
                 )}
               </div>
-              <span className="text-[13px] text-[#9A9A9A]">
-                {currentSize?.label || ""} {product.isTester ? t.info.tester : ""}
+              <span className="text-[12px] sm:text-[13px] text-[#888] font-medium">
+                {currentSize?.label || ""} {product.isTester ? `· ${t.info.tester}` : ""}
               </span>
             </div>
 
             {/* CREDIBILITY & TRUST SIGNALS */}
-            <div className="mt-6 flex flex-col gap-3">
-              <div className="flex items-center gap-3 text-[13px] text-[#1A1A1A] font-medium bg-[#fafaf7] w-fit px-4 py-2.5 rounded-xl border border-[#e0ddd4]">
-                <ShieldCheck size={18} className="text-[#0ea5e9]" />
-                <span>{t.trust.cod}</span>
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+              <div className="flex items-center gap-2.5 text-[12px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/80 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <ShieldCheck size={18} className="text-[#0ea5e9] shrink-0" />
+                <span className="truncate">{t.trust.cod}</span>
               </div>
               {product.isTester ? (
-                <div className="flex items-center gap-3 text-[13px] text-[#1A1A1A] font-medium bg-[#fafaf7] w-fit px-4 py-2.5 rounded-xl border border-[#e0ddd4]">
-                  <BadgeCheck size={18} className="text-[#0ea5e9]" />
-                  <span>{t.trust.original}</span>
+                <div className="flex items-center gap-2.5 text-[12px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/80 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <BadgeCheck size={18} className="text-[#0ea5e9] shrink-0" />
+                  <span className="truncate">{t.trust.original}</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-3 text-[13px] text-[#1A1A1A] font-medium bg-[#fafaf7] w-fit px-4 py-2.5 rounded-xl border border-[#e0ddd4]">
-                  <Sparkles size={18} className="text-[#0ea5e9]" />
-                  <span>Qualité Premium Supérieure</span>
+                <div className="flex items-center gap-2.5 text-[12px] sm:text-[13px] text-[#1A1A1A] font-medium bg-white/80 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-[#e0ddd4] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <Sparkles size={18} className="text-[#0ea5e9] shrink-0" />
+                  <span className="truncate">Qualité Premium Supérieure</span>
                 </div>
               )}
             </div>
 
             {/* SIZE SELECTOR */}
-            <div className="mt-8">
-              <div className="flex items-center justify-between mb-3">
+            <div className="mt-6 sm:mt-8">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-3">
                 <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#1A1A1A]">
                   Sélectionnez la Contenance
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid ${product.sizes.length === 1 ? 'grid-cols-1 sm:grid-cols-2' : product.sizes.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'} gap-2.5`}>
                 {product.sizes.map((size) => (
                   <button
                     key={size.label}
                     onClick={() => setSelectedSize(size.label)}
-                    className={`relative flex flex-col items-center justify-center py-4 px-3 rounded-xl border transition-all duration-300 ${
+                    className={`relative flex flex-col items-center justify-center py-3 sm:py-3.5 px-3 rounded-xl border transition-all duration-300 ${
                       selectedSize === size.label
                         ? 'border-[#0ea5e9] bg-[#f8fafc] ring-1 ring-[#0ea5e9] shadow-sm'
                         : 'border-[#e0ddd4] bg-white text-[#6B6B6B] hover:border-[#9A9A9A]'
                     }`}
                   >
-                    <span className={`text-[13px] font-semibold tracking-[0.05em] mb-1 ${selectedSize === size.label ? 'text-[#1A1A1A]' : ''}`}>
+                    <span className={`text-[13px] font-semibold tracking-[0.05em] mb-0.5 ${selectedSize === size.label ? 'text-[#1A1A1A]' : ''}`}>
                       {size.label}
                     </span>
-                    <span className={`text-[11px] ${selectedSize === size.label ? 'text-[#0ea5e9] font-medium' : 'text-[#9A9A9A]'}`}>
+                    <span className={`text-[11px] whitespace-nowrap ${selectedSize === size.label ? 'text-[#0ea5e9] font-medium' : 'text-[#9A9A9A]'}`}>
                       {formatMAD(size.price)}
                     </span>
                   </button>
@@ -594,23 +597,23 @@ export default function ProductClient({
             </div>
 
             {/* QUANTITY + ADD */}
-            <div className="mt-8 flex flex-col md:flex-row items-center gap-4">
-              <div className={`flex w-full md:w-auto items-center justify-between border border-[#e0ddd4] rounded-xl bg-white ${!inStock ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div ref={ctaSectionRef} className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className={`flex items-center justify-between border border-[#e0ddd4] rounded-xl bg-white h-12 sm:h-14 ${!inStock ? 'opacity-50 pointer-events-none' : ''}`}>
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={!inStock}
-                  className="w-12 h-14 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-l-xl transition disabled:cursor-not-allowed"
+                  className="w-12 h-full flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-l-xl transition disabled:cursor-not-allowed"
                   aria-label="Diminuer"
                 >
                   <Minus size={16} />
                 </button>
-                <div className="px-6 text-[15px] font-semibold text-[#1A1A1A]">
+                <div className="px-5 text-[15px] font-bold text-[#1A1A1A] min-w-[3rem] text-center">
                   {quantity}
                 </div>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
                   disabled={!inStock}
-                  className="w-12 h-14 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-r-xl transition disabled:cursor-not-allowed"
+                  className="w-12 h-full flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#fafaf7] rounded-r-xl transition disabled:cursor-not-allowed"
                   aria-label="Augmenter"
                 >
                   <Plus size={16} />
@@ -619,11 +622,11 @@ export default function ProductClient({
 
               {inStock ? (
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleAddToCart}
                   disabled={isAdding}
-                  className={`btn-blue flex-1 w-full h-[60px] md:h-14 text-[15px] md:text-[13px] font-bold tracking-wider md:tracking-[0.15em] rounded-xl flex items-center justify-center gap-2.5 md:gap-2 transition-all relative overflow-hidden shadow-md shadow-[#0ea5e9]/20 md:shadow-none ${
+                  className={`btn-blue flex-1 w-full h-[58px] sm:h-14 text-[15px] sm:text-[13px] font-bold tracking-wider sm:tracking-[0.12em] rounded-xl flex items-center justify-center gap-2.5 transition-all relative overflow-hidden shadow-md shadow-[#0ea5e9]/20 sm:shadow-none ${
                     isAdded ? '!bg-green-600 hover:!bg-green-700' : 'hover:shadow-lg hover:shadow-[#0ea5e9]/20'
                   } ${isAdding ? 'opacity-80' : ''}`}
                 >
@@ -631,12 +634,12 @@ export default function ProductClient({
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : isAdded ? (
                     <>
-                      <Check className="w-5 h-5 md:w-[18px] md:h-[18px]" /> {t.actions.addSuccess}
+                      <Check className="w-5 h-5 sm:w-[18px] sm:h-[18px]" /> {t.actions.addSuccess}
                     </>
                   ) : (
                     <>
-                      <ShoppingBag className="w-5 h-5 md:w-[18px] md:h-[18px]" />
-                      <span>Ajouter au panier — {formatMAD(currentPrice * quantity)}</span>
+                      <ShoppingBag className="w-5 h-5 sm:w-[18px] sm:h-[18px] shrink-0" />
+                      <span className="truncate">Ajouter au panier — {formatMAD(currentPrice * quantity)}</span>
                     </>
                   )}
                   {/* Subtle shine effect */}
@@ -645,7 +648,7 @@ export default function ProductClient({
               ) : (
                 <button
                   disabled
-                  className="bg-red-50 text-red-600 border border-red-200 flex-1 w-full h-[60px] md:h-14 text-[14px] md:text-[13px] rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest font-bold cursor-not-allowed shadow-sm"
+                  className="bg-red-50 text-red-600 border border-red-200 flex-1 w-full h-[58px] sm:h-14 text-[14px] sm:text-[13px] rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest font-bold cursor-not-allowed shadow-sm"
                 >
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                   {t.info.outOfStock || 'Rupture de stock'}
@@ -715,15 +718,15 @@ export default function ProductClient({
 
             
             {/* GIFT OPTION */}
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               <a 
                 href={`https://api.whatsapp.com/send?phone=212663380011&text=${encodeURIComponent("Bonjour, j'aimerais offrir " + product.name + " en cadeau et personnaliser mon emballage.")}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-3 bg-[#f8fafc] border border-[#e0ddd4] text-[#1A1A1A] py-4 rounded-xl hover:bg-white hover:border-[#0ea5e9] transition-all group"
+                className="w-full flex items-center justify-center gap-2 sm:gap-3 bg-[#f8fafc] border border-[#e0ddd4] text-[#1A1A1A] px-3.5 py-3 sm:py-3.5 rounded-xl hover:bg-white hover:border-[#0ea5e9] transition-all group text-center"
               >
-                <Gift className="text-[#0ea5e9] group-hover:scale-110 transition-transform" size={20} />
-                <span className="text-[13px] font-semibold tracking-wide">C'est pour offrir ? Personnalisez votre cadeau</span>
+                <Gift className="text-[#0ea5e9] group-hover:scale-110 transition-transform shrink-0" size={18} />
+                <span className="text-[12px] sm:text-[13px] font-semibold tracking-wide truncate">C'est pour offrir ? Personnalisez votre cadeau</span>
               </a>
             </div>
 
@@ -1333,21 +1336,24 @@ export default function ProductClient({
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#e0ddd4] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] p-4 md:py-4 md:px-8 flex items-center justify-between gap-4"
+            className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e0ddd4] shadow-[0_-8px_25px_rgba(0,0,0,0.08)] px-4 py-3 sm:px-8 sm:py-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between gap-3 sm:gap-4"
           >
             <div className="hidden md:flex items-center gap-4">
-              <div className="w-12 h-12 relative rounded bg-[#f8fafc] overflow-hidden">
+              <div className="w-12 h-12 relative rounded-lg bg-[#f8fafc] overflow-hidden border border-[#eeece5]">
                 <Image src={product.images[0]} alt="" fill sizes="48px" className="object-cover" />
               </div>
               <div>
                 <div className="text-[14px] font-bold text-[#1A1A1A] line-clamp-1">{product.name}</div>
-                <div className="text-[12px] text-[#6B6B6B]">{formatMAD(currentPrice)} {currentSize ? `- ${currentSize.label}` : ""}</div>
+                <div className="text-[12px] text-[#6B6B6B]">{formatMAD(currentPrice)} {currentSize ? `· ${currentSize.label}` : ""}</div>
               </div>
             </div>
-            <div className="flex-1 md:flex-none flex items-center justify-between md:justify-end gap-6 w-full md:w-auto">
-              <div className="md:hidden">
-                <div className="text-[16px] font-bold text-[#1A1A1A]">{formatMAD(currentPrice)}</div>
-                <div className="text-[11px] text-[#0ea5e9]">{t.sticky.cod}</div>
+            <div className="flex-1 md:flex-none flex items-center justify-between md:justify-end gap-3 sm:gap-6 w-full md:w-auto">
+              <div className="md:hidden flex flex-col justify-center">
+                <div className="text-[16px] font-bold text-[#1A1A1A] tracking-tight whitespace-nowrap">{formatMAD(currentPrice)}</div>
+                <div className="text-[10px] text-emerald-600 font-semibold tracking-wide flex items-center gap-1">
+                  <Check size={11} strokeWidth={2.5} />
+                  <span>{t.sticky.cod}</span>
+                </div>
               </div>
               
               {inStock ? (
@@ -1356,7 +1362,7 @@ export default function ProductClient({
                   onClick={handleAddToCart}
                   disabled={isAdding}
                   aria-label={isAdded ? t.actions.added : t.actions.add}
-                  className={`btn-blue px-8 py-3.5 text-[12px] rounded-xl flex items-center justify-center gap-2 transition-all relative ${
+                  className={`btn-blue px-6 sm:px-8 h-12 text-[13px] font-bold tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all relative shadow-md shadow-sky-500/20 ${
                     isAdded ? '!bg-green-600' : 'hover:shadow-lg'
                   } ${isAdding ? 'opacity-80 cursor-wait' : ''}`}
                 >
@@ -1377,7 +1383,7 @@ export default function ProductClient({
                   type="button"
                   disabled
                   aria-disabled="true"
-                  className="bg-red-50 text-red-600 border border-red-200 px-8 py-3.5 text-[12px] rounded-xl flex items-center justify-center gap-2 cursor-not-allowed font-bold uppercase tracking-wider"
+                  className="bg-red-50 text-red-600 border border-red-200 px-6 sm:px-8 h-12 text-[12px] rounded-xl flex items-center justify-center gap-2 cursor-not-allowed font-bold uppercase tracking-wider"
                 >
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                   {t.info.outOfStock || 'Rupture de stock'}

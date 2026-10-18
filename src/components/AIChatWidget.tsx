@@ -75,7 +75,11 @@ export default function AIChatWidget() {
     }
   }, [messages, isOpen]);
 
-  if (pathname?.includes('/invoice')) {
+  const isInvoice = pathname?.includes('/invoice');
+  const isAdmin = pathname?.startsWith('/admin');
+  const isProductPage = pathname?.includes('/product/');
+
+  if (isInvoice || isAdmin) {
     return null;
   }
 
@@ -207,7 +211,9 @@ export default function AIChatWidget() {
       <button
         onClick={toggleChat}
         aria-label={isOpen ? "Fermer le conseiller virtuel" : "Ouvrir le conseiller virtuel IA"}
-        className="fixed bottom-[100px] right-4 sm:right-6 w-14 h-14 bg-[#1A1A1A] text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 hover:bg-[#0ea5e9] active:scale-95 transition-all z-50 border-2 border-white/10 print:hidden"
+        className={`fixed bottom-[100px] right-4 sm:right-6 w-14 h-14 bg-[#1A1A1A] text-white rounded-full shadow-xl items-center justify-center hover:scale-105 hover:bg-[#0ea5e9] active:scale-95 transition-all z-50 border-2 border-white/10 print:hidden ${
+          isProductPage ? 'hidden lg:flex' : 'flex'
+        }`}
       >
         {isOpen ? (
           <X size={24} />

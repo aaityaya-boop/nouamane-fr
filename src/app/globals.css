@@ -53,11 +53,15 @@
 
 /* ---- Base ---- */
 html {
+  overflow-x: hidden;
+  max-width: 100vw;
   /* scroll-behavior: smooth is intentionally removed — Lenis JS handles smooth scroll.
      Having both causes conflicts that can break click-to-navigate behavior. */
 }
 
 body {
+  overflow-x: hidden;
+  max-width: 100vw;
   font-family: var(--font-sans);
   font-weight: 400; /* Normal weight */
   color: var(--color-text);

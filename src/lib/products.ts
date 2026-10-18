@@ -1158,4 +1158,4 @@ export const getProductsBySubcategory = (gender: Gender, subcategory: Subcategor
  * Format price in MAD (Moroccan Dirham)
  */
 export const formatMAD = (amount: number): string =>
-  `${amount.toLocaleString('fr-MA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} MAD`;
+  `${amount.toLocaleString('fr-MA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}\u00A0MAD`;
