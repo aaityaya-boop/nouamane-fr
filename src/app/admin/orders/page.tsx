@@ -808,193 +808,155 @@ function OrdersPageContent() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-24 font-sans">
+    <div className="space-y-5 max-w-7xl mx-auto pb-24 font-sans text-neutral-900">
       
       {/* ========================================================= */}
-      {/* 1. TOP HEADER: LUXURY MAISON NAY BRANDING & ACTIONS       */}
+      {/* 1. TOP HEADER: SIMPLE & PROFESSIONAL                      */}
       {/* ========================================================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-amber-500/10 text-amber-900 border border-amber-500/20">
-              <Sparkles size={11} className="text-amber-600" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#eaeaea]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold tracking-tight text-neutral-900">
+              Commandes
+            </h1>
+            <span className="text-neutral-300">/</span>
+            <span className="text-sm font-medium text-neutral-500">
               Maison NAY Parfums
             </span>
-            <span className="text-slate-300">•</span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
-              Direct Ventes &amp; COD
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Gestion des Commandes
-            </h1>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-900 text-white shadow-xs font-mono">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">
               {orders.length} au total
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Pilotage logistique des ventes, confirmation WhatsApp et encaissements à la livraison en temps réel.
+          <p className="text-xs text-neutral-500">
+            Gestion des commandes clients, suivi logistique et encaissements à la livraison (COD).
           </p>
         </div>
 
         {/* Global Action Cluster */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs shadow-2xs">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center bg-neutral-100 p-0.5 rounded-md text-xs">
             <button
               type="button"
               onClick={() => setExecutiveView('OPERATIONAL')}
-              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
+              className={`px-3 py-1.5 rounded transition-all cursor-pointer text-xs font-medium ${
                 executiveView === 'OPERATIONAL'
-                  ? 'bg-white text-slate-900 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <Package size={13} className="text-amber-600" />
-              <span>Opérations</span>
+              Opérations
             </button>
             <button
               type="button"
               onClick={() => setExecutiveView('FINANCIAL')}
-              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
+              className={`px-3 py-1.5 rounded transition-all cursor-pointer text-xs font-medium ${
                 executiveView === 'FINANCIAL'
-                  ? 'bg-white text-slate-900 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <Calculator size={13} className="text-emerald-600" />
-              <span>Trésorerie</span>
+              Trésorerie
             </button>
           </div>
 
           <button
             type="button"
             onClick={handleExportOrdersCSV}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs transition-all cursor-pointer hover:border-slate-300"
-            title="Exporter le registre des commandes en format Excel CSV"
+            className="h-8 px-3 inline-flex items-center gap-1.5 bg-white hover:bg-neutral-50 border border-[#eaeaea] text-xs font-medium text-neutral-700 rounded-md shadow-2xs transition-colors cursor-pointer"
+            title="Exporter en fichier CSV Excel"
           >
-            <FileSpreadsheet size={14} className="text-emerald-600" />
-            <span className="hidden sm:inline">Export Excel (CSV)</span>
+            <FileSpreadsheet size={13} className="text-neutral-500" />
+            <span>Export CSV</span>
           </button>
 
           <button
             type="button"
             onClick={fetchOrders}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            disabled={isLoading}
+            className="h-8 px-3 inline-flex items-center gap-1.5 bg-white hover:bg-neutral-50 border border-[#eaeaea] text-xs font-medium text-neutral-700 rounded-md shadow-2xs transition-colors cursor-pointer"
             title="Actualiser les commandes"
           >
-            <RefreshCw size={13} className={`${isLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Actualiser</span>
+            <RefreshCw size={12} className={isLoading ? 'animate-spin' : 'text-neutral-500'} />
+            <span>Actualiser</span>
           </button>
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* 2. PRESTIGE EXECUTIVE METRICS CARDS                       */}
+      {/* 2. STAT METRICS: MINIMALIST WHITE CARDS                   */}
       {/* ========================================================= */}
       {executiveView === 'OPERATIONAL' ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* Card 1: Volume Global & Chiffre d'Affaires */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-neutral-900 to-black text-white p-5 rounded-2xl border border-neutral-800 shadow-md group">
-            <div className="absolute top-0 right-0 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-            <div className="flex items-center justify-between text-xs font-medium mb-3 text-slate-300">
-              <span className="font-semibold uppercase tracking-wider text-[11px] text-amber-200">Volume Global</span>
-              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-amber-400 border border-white/10">
-                <ShoppingBag size={16} />
-              </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Card 1: Total */}
+          <div className="bg-white border border-[#eaeaea] rounded-lg p-4 shadow-2xs">
+            <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider">Total Commandes</div>
+            <div className="text-2xl font-semibold tracking-tight text-neutral-900 font-mono mt-1">
+              {orders.length}
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight">
-              {orders.length} <span className="text-sm font-normal text-slate-400">commandes</span>
-            </div>
-            <div className="mt-2.5 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px]">
-              <span className="text-slate-400">Valeur brute :</span>
-              <strong className="font-bold text-amber-400 font-mono text-xs">{formatMAD(totalRevenue)}</strong>
+            <div className="text-xs text-neutral-500 mt-1">
+              Valeur brute : <strong className="font-medium text-neutral-800">{formatMAD(totalRevenue)}</strong>
             </div>
           </div>
 
-          {/* Card 2: À Traiter & Préparer (URGENT) */}
+          {/* Card 2: À Traiter */}
           <div
             onClick={() => setActiveTab('PENDING')}
-            className="bg-gradient-to-br from-amber-500/10 via-amber-50/40 to-white p-5 rounded-2xl border border-amber-300/80 shadow-2xs hover:shadow-md hover:border-amber-400 transition-all cursor-pointer group"
+            className="bg-white border border-[#eaeaea] rounded-lg p-4 shadow-2xs hover:border-neutral-400 transition-colors cursor-pointer"
           >
-            <div className="flex items-center justify-between text-xs font-medium mb-3 text-amber-800">
-              <span className="font-bold uppercase tracking-wider text-[11px]">À Confirmer &amp; Préparer</span>
-              <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 border border-amber-200">
-                <Clock size={16} className="group-hover:rotate-12 transition-transform" />
-              </div>
+            <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider">À Confirmer &amp; Préparer</div>
+            <div className="text-2xl font-semibold tracking-tight text-neutral-900 font-mono mt-1">
+              {tabCounts.TO_CONFIRM_COMBINED + tabCounts.PROCESSING}
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-amber-950 font-mono tracking-tight flex items-baseline gap-2">
-              <span>{tabCounts.TO_CONFIRM_COMBINED + tabCounts.PROCESSING}</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900">
-                Action requise
-              </span>
-            </div>
-            <div className="mt-2.5 pt-2.5 border-t border-amber-200/60 flex items-center gap-1.5 text-[11px] text-amber-900 font-medium">
-              <span className="font-bold text-amber-800">{tabCounts.TO_CONFIRM_COMBINED} à confirmer</span>
-              <span className="text-amber-400">•</span>
-              <span>{tabCounts.PROCESSING} en préparation</span>
+            <div className="text-xs text-neutral-500 mt-1">
+              {tabCounts.TO_CONFIRM_COMBINED} à confirmer • {tabCounts.PROCESSING} en préparation
             </div>
           </div>
 
           {/* Card 3: En Acheminement */}
           <div
             onClick={() => setActiveTab('SHIPPED')}
-            className="bg-gradient-to-br from-sky-500/10 via-sky-50/40 to-white p-5 rounded-2xl border border-sky-300/80 shadow-2xs hover:shadow-md hover:border-sky-400 transition-all cursor-pointer group"
+            className="bg-white border border-[#eaeaea] rounded-lg p-4 shadow-2xs hover:border-neutral-400 transition-colors cursor-pointer"
           >
-            <div className="flex items-center justify-between text-xs font-medium mb-3 text-sky-800">
-              <span className="font-bold uppercase tracking-wider text-[11px]">En Acheminement</span>
-              <div className="w-8 h-8 rounded-xl bg-sky-100 flex items-center justify-center text-sky-700 border border-sky-200">
-                <Truck size={16} className="group-hover:translate-x-0.5 transition-transform" />
-              </div>
+            <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider">En Acheminement</div>
+            <div className="text-2xl font-semibold tracking-tight text-neutral-900 font-mono mt-1">
+              {tabCounts.SHIPPED}
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-sky-950 font-mono tracking-tight">
-              {tabCounts.SHIPPED} <span className="text-sm font-normal text-sky-700">colis</span>
-            </div>
-            <div className="mt-2.5 pt-2.5 border-t border-sky-200/60 flex items-center justify-between text-[11px] text-sky-900 font-medium">
-              <span>Créances livreur :</span>
-              <strong className="font-bold font-mono text-xs">{formatMAD(financialEstimations.remainingToCollectShippedGross)}</strong>
+            <div className="text-xs text-neutral-500 mt-1">
+              Créances : <strong className="font-medium text-neutral-800">{formatMAD(financialEstimations.remainingToCollectShippedGross)}</strong>
             </div>
           </div>
 
-          {/* Card 4: Livrées & Clôturées */}
+          {/* Card 4: Livrées */}
           <div
             onClick={() => setActiveTab('DELIVERED')}
-            className="bg-gradient-to-br from-emerald-500/10 via-emerald-50/40 to-white p-5 rounded-2xl border border-emerald-300/80 shadow-2xs hover:shadow-md hover:border-emerald-400 transition-all cursor-pointer group"
+            className="bg-white border border-[#eaeaea] rounded-lg p-4 shadow-2xs hover:border-neutral-400 transition-colors cursor-pointer"
           >
-            <div className="flex items-center justify-between text-xs font-medium mb-3 text-emerald-800">
-              <span className="font-bold uppercase tracking-wider text-[11px]">Livrées &amp; Clôturées</span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 border border-emerald-200">
-                <CheckCircle2 size={16} />
-              </div>
-            </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-950 font-mono tracking-tight flex items-baseline gap-2">
+            <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider">Livrées &amp; Clôturées</div>
+            <div className="text-2xl font-semibold tracking-tight text-neutral-900 font-mono mt-1 flex items-center gap-2">
               <span>{tabCounts.DELIVERED}</span>
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900">
-                {tauxLivraison}% succès
+              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                {tauxLivraison}%
               </span>
             </div>
-            <div className="mt-2.5 pt-2.5 border-t border-emerald-200/60 flex items-center justify-between text-[11px] text-emerald-900 font-medium">
-              <span>Encaissé net :</span>
-              <strong className="font-bold font-mono text-xs text-emerald-800">{formatMAD(deliveredRevenue)}</strong>
+            <div className="text-xs text-neutral-500 mt-1">
+              Encaissé : <strong className="font-medium text-neutral-800">{formatMAD(deliveredRevenue)}</strong>
             </div>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <div className="text-slate-500">
-              Frais de livraison appliqués : <strong className="text-slate-800 font-semibold">{shippingFeePerOrder} MAD</strong> / colis
+            <div className="text-neutral-500">
+              Frais de livraison : <strong className="text-neutral-800 font-medium">{shippingFeePerOrder} MAD</strong> / colis
             </div>
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+            <div className="flex items-center bg-neutral-100 p-0.5 rounded-md text-xs">
               <button
                 type="button"
                 onClick={() => setEstimationMode('NET')}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer font-medium ${
+                className={`px-2.5 py-1 rounded transition-all cursor-pointer font-medium ${
                   estimationMode === 'NET'
-                    ? 'bg-white text-slate-900 shadow-2xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                    : 'text-neutral-600 hover:text-neutral-900'
                 }`}
               >
                 Vue Nette (-{shippingFeePerOrder} DH)
@@ -1002,67 +964,55 @@ function OrdersPageContent() {
               <button
                 type="button"
                 onClick={() => setEstimationMode('BRUT')}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer font-medium ${
+                className={`px-2.5 py-1 rounded transition-all cursor-pointer font-medium ${
                   estimationMode === 'BRUT'
-                    ? 'bg-white text-slate-900 shadow-2xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                    : 'text-neutral-600 hover:text-neutral-900'
                 }`}
               >
-                Vue Brute Client
+                Vue Brute
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-              <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-3">
-                <span className="font-bold text-[11px] uppercase">{estimationMode === 'NET' ? 'Cash Net Encaissé' : 'Cash Brut Encaissé'}</span>
-                <CheckCircle2 size={16} className="text-emerald-600" />
-              </div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-white p-4 rounded-lg border border-[#eaeaea] shadow-2xs">
+              <div className="text-[11px] font-mono text-neutral-500 uppercase">{estimationMode === 'NET' ? 'Cash Net Encaissé' : 'Cash Brut Encaissé'}</div>
+              <div className="text-2xl font-semibold text-neutral-900 font-mono mt-1">
                 {formatMAD(financialEstimations.displayedCashCollected)}
               </div>
-              <div className="mt-2 text-[11px] text-slate-500">
-                Dont <strong className="font-semibold text-slate-800">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong> d'acomptes
+              <div className="mt-1 text-xs text-neutral-500">
+                Dont {formatMAD(financialEstimations.advancesOnActiveOrders)} d'acomptes
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-              <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-3">
-                <span className="font-bold text-[11px] uppercase">{estimationMode === 'NET' ? 'Créances Nettes Livreur' : 'Créances Brutes Livreur'}</span>
-                <Truck size={16} className="text-sky-600" />
-              </div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
+            <div className="bg-white p-4 rounded-lg border border-[#eaeaea] shadow-2xs">
+              <div className="text-[11px] font-mono text-neutral-500 uppercase">{estimationMode === 'NET' ? 'Créances Nettes' : 'Créances Brutes'}</div>
+              <div className="text-2xl font-semibold text-neutral-900 font-mono mt-1">
                 {formatMAD(financialEstimations.displayedShipped)}
               </div>
-              <div className="mt-2 text-[11px] text-slate-500">
+              <div className="mt-1 text-xs text-neutral-500">
                 {financialEstimations.shippedOrdersCount} colis chez transporteur
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-              <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-3">
-                <span className="font-bold text-[11px] uppercase">{estimationMode === 'NET' ? 'Solde Net Préparation' : 'Solde Brut Préparation'}</span>
-                <Clock size={16} className="text-amber-600" />
-              </div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
+            <div className="bg-white p-4 rounded-lg border border-[#eaeaea] shadow-2xs">
+              <div className="text-[11px] font-mono text-neutral-500 uppercase">{estimationMode === 'NET' ? 'Solde Net Préparation' : 'Solde Brut Préparation'}</div>
+              <div className="text-2xl font-semibold text-neutral-900 font-mono mt-1">
                 {formatMAD(financialEstimations.displayedProcessing)}
               </div>
-              <div className="mt-2 text-[11px] text-slate-500">
+              <div className="mt-1 text-xs text-neutral-500">
                 {financialEstimations.processingOrdersCount} colis à expédier
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-              <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-3">
-                <span className="font-bold text-[11px] uppercase">{estimationMode === 'NET' ? 'Estimation Nette Réelle' : 'Estimation Brute Totale'}</span>
-                <Sparkles size={16} className="text-amber-500" />
-              </div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
+            <div className="bg-white p-4 rounded-lg border border-[#eaeaea] shadow-2xs">
+              <div className="text-[11px] font-mono text-neutral-500 uppercase">{estimationMode === 'NET' ? 'Estimation Nette Réelle' : 'Estimation Brute'}</div>
+              <div className="text-2xl font-semibold text-neutral-900 font-mono mt-1">
                 {formatMAD(financialEstimations.displayedEstimation)}
               </div>
-              <div className="mt-2 text-[11px] text-slate-500">
-                {estimationMode === 'NET' ? `Frais déduits (${formatMAD(financialEstimations.totalShippingFeesIncurredAndExpected)})` : 'Total facturé aux clients'}
+              <div className="mt-1 text-xs text-neutral-500">
+                {estimationMode === 'NET' ? `Frais déduits (${formatMAD(financialEstimations.totalShippingFeesIncurredAndExpected)})` : 'Total facturé'}
               </div>
             </div>
           </div>
@@ -1070,251 +1020,181 @@ function OrdersPageContent() {
       )}
 
       {/* ========================================================= */}
-      {/* 3. WORKFLOW TABS & UNIFIED FILTER TOOLBAR                 */}
+      {/* 3. TABS: CLEAN UNDERLINE TABS (RESEND / LINEAR STYLE)      */}
       {/* ========================================================= */}
-      <div className="space-y-3">
-        {/* Luxury Segmented Tabs Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-          {[
-            { id: 'ALL', label: 'Toutes les commandes', count: tabCounts.ALL, dot: 'bg-slate-400' },
-            { id: 'PENDING', label: 'À Confirmer (Appels)', count: tabCounts.TO_CONFIRM_COMBINED, dot: 'bg-amber-500 animate-pulse' },
-            { id: 'PROCESSING', label: 'En Préparation', count: tabCounts.PROCESSING, dot: 'bg-sky-500' },
-            { id: 'SHIPPED', label: 'En Livraison', count: tabCounts.SHIPPED, dot: 'bg-indigo-500' },
-            { id: 'DELIVERED', label: 'Livrées & Encaissées', count: tabCounts.DELIVERED, dot: 'bg-emerald-500' },
-            { id: 'ISSUES', label: 'Retours & Refus', count: tabCounts.ISSUES, dot: 'bg-rose-500' },
-          ].map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2.5 rounded-xl text-xs transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-                  isActive
-                    ? 'bg-slate-900 text-white font-bold shadow-sm'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 font-semibold border border-slate-200/80'
-                }`}
-              >
-                <span className={`w-2 h-2 rounded-full ${tab.dot}`} />
-                <span>{tab.label}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
+      <div className="flex items-center gap-6 border-b border-[#eaeaea] overflow-x-auto text-xs">
+        {[
+          { id: 'ALL', label: 'Toutes', count: tabCounts.ALL },
+          { id: 'PENDING', label: 'À Confirmer', count: tabCounts.TO_CONFIRM_COMBINED },
+          { id: 'PROCESSING', label: 'En Préparation', count: tabCounts.PROCESSING },
+          { id: 'SHIPPED', label: 'En Livraison', count: tabCounts.SHIPPED },
+          { id: 'DELIVERED', label: 'Livrées', count: tabCounts.DELIVERED },
+          { id: 'ISSUES', label: 'Retours & Refus', count: tabCounts.ISSUES },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative pb-2.5 text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+                isActive
+                  ? 'text-black border-b-2 border-black font-semibold -mb-px'
+                  : 'text-neutral-500 hover:text-neutral-800'
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                isActive ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-600'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ========================================================= */}
+      {/* 4. SEARCH & FILTERS TOOLBAR                               */}
+      {/* ========================================================= */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+        <div className="relative w-full sm:w-80">
+          <Search size={14} className="absolute left-3 top-2.5 text-neutral-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Rechercher par n°, nom, téléphone, ville..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-white border border-[#eaeaea] rounded-md pl-8 pr-3 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black shadow-2xs"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-2 text-neutral-400 hover:text-neutral-700 p-0.5 cursor-pointer"
+            >
+              <X size={12} />
+            </button>
+          )}
         </div>
 
-        {/* Unified Search & Filters Row */}
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-          {/* Search Input */}
-          <div className="relative flex-1 max-w-md">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Rechercher par n°, client, téléphone, ville, parfum..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-medium"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer"
-              >
-                <X size={14} />
-              </button>
-            )}
+        <div className="flex items-center gap-2 w-full sm:w-auto text-xs">
+          <div className="relative">
+            <select
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              className="appearance-none text-xs bg-white border border-[#eaeaea] rounded-md pl-3 pr-7 py-1.5 text-neutral-700 focus:outline-none focus:border-black cursor-pointer shadow-2xs font-medium"
+            >
+              <option value="ALL">Toutes les villes ({uniqueCities.length})</option>
+              {uniqueCities.map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+            <ChevronDown size={12} className="absolute right-2.5 top-2.5 text-neutral-400 pointer-events-none" />
           </div>
 
-          {/* Quick Filters */}
-          <div className="flex items-center gap-2 flex-wrap text-xs">
-            {/* City Dropdown */}
-            <div className="relative">
-              <select
-                value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
-                className="appearance-none text-xs bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-xl pl-3 pr-7 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-900 cursor-pointer font-semibold"
-              >
-                <option value="ALL">Toutes les villes ({uniqueCities.length})</option>
-                {uniqueCities.map((city) => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
-              <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
-
-            {/* Payment Dropdown */}
-            <div className="relative">
-              <select
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value as any)}
-                className="appearance-none text-xs bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-xl pl-3 pr-7 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-900 cursor-pointer font-semibold"
-              >
-                <option value="ALL">Tous les règlements</option>
-                <option value="PARTIAL">Avec acompte</option>
-                <option value="PAID">100% Réglé</option>
-                <option value="UNPAID">Paiement livraison (COD)</option>
-              </select>
-              <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
-
-            {/* Reset Filters */}
-            {(search || cityFilter !== 'ALL' || paymentFilter !== 'ALL' || activeTab !== 'ALL') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch('');
-                  setCityFilter('ALL');
-                  setPaymentFilter('ALL');
-                  setActiveTab('ALL');
-                }}
-                className="px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                title="Réinitialiser tous les filtres"
-              >
-                Effacer
-              </button>
-            )}
+          <div className="relative">
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value as any)}
+              className="appearance-none text-xs bg-white border border-[#eaeaea] rounded-md pl-3 pr-7 py-1.5 text-neutral-700 focus:outline-none focus:border-black cursor-pointer shadow-2xs font-medium"
+            >
+              <option value="ALL">Tous les règlements</option>
+              <option value="PARTIAL">Avec acompte</option>
+              <option value="PAID">100% Réglé</option>
+              <option value="UNPAID">Paiement livraison (COD)</option>
+            </select>
+            <ChevronDown size={12} className="absolute right-2.5 top-2.5 text-neutral-400 pointer-events-none" />
           </div>
+
+          {(search || cityFilter !== 'ALL' || paymentFilter !== 'ALL' || activeTab !== 'ALL') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setCityFilter('ALL');
+                setPaymentFilter('ALL');
+                setActiveTab('ALL');
+              }}
+              className="px-2.5 py-1.5 text-xs text-neutral-500 hover:text-black cursor-pointer font-medium"
+            >
+              Effacer
+            </button>
+          )}
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* 4. ACTIVE TARGET ORDER SPOTLIGHT BANNER                   */}
+      {/* 5. SPOTLIGHT BANNER IF TARGET HIGHLIGHTED                */}
       {/* ========================================================= */}
       {highlightedOrderId && (
-        <div className="relative overflow-hidden rounded-2xl border border-sky-400/50 bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white p-4 shadow-2xl backdrop-blur-2xl ring-1 ring-sky-400/25">
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0ea5e9] to-blue-600 text-white flex items-center justify-center shadow-lg border border-sky-200/40">
-                <Target size={19} className="animate-spin" style={{ animationDuration: '8s' }} />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black tracking-wider bg-sky-400/20 text-sky-300 border border-sky-400/30 flex items-center gap-1">
-                    <Sparkles size={10} />
-                    <span>Focus Commande</span>
-                  </span>
-                  {highlightedOrder && (
-                    <>
-                      <span className="font-mono font-black text-sm text-white tracking-wide bg-white/10 px-2 py-0.5 rounded-lg border border-white/10">
-                        {highlightedOrder.orderNumber}
-                      </span>
-                      <span className="text-xs text-slate-200 font-semibold truncate">
-                        • {highlightedOrder.customerName} ({highlightedOrder.shippingCity || 'Casablanca'})
-                      </span>
-                      <span className="text-xs font-black text-emerald-400 ml-1">
-                        {formatMAD(highlightedOrder.total)}
-                      </span>
-                    </>
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-300 font-medium mt-1">
-                  Commande localisée et centrée automatiquement ci-dessous.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-              {highlightedOrder && (
-                <button
-                  type="button"
-                  onClick={() => setEditingOrder(highlightedOrder)}
-                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-blue-600 hover:from-[#0284c7] hover:to-blue-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <Eye size={13} />
-                  <span>Ouvrir la fiche</span>
-                </button>
-              )}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/15 font-mono font-bold text-xs text-sky-200">
-                <Clock size={12} className="text-sky-400 animate-pulse" />
-                <span>{highlightCountdown}s</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setHighlightedOrderId(null);
-                  setHighlightedOrder(null);
-                }}
-                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                <X size={15} />
-              </button>
-            </div>
+        <div className="bg-neutral-900 text-white p-3.5 rounded-lg flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span>Focus Commande #{highlightedOrder?.orderNumber} ({highlightedOrder?.customerName})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEditingOrder(highlightedOrder)}
+              className="px-2.5 py-1 bg-white text-neutral-900 rounded text-xs font-medium"
+            >
+              Ouvrir fiche
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setHighlightedOrderId(null);
+                setHighlightedOrder(null);
+              }}
+              className="p-1 text-neutral-400 hover:text-white"
+            >
+              <X size={14} />
+            </button>
           </div>
         </div>
       )}
 
       {/* ========================================================= */}
-      {/* 5. PRESTIGE ORDERS TABLE                                  */}
+      {/* 6. ORDERS TABLE: CLEAN, SHARP, MINIMALIST                 */}
       {/* ========================================================= */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-sm">
-        {/* Table summary sub-bar */}
-        <div className="px-5 py-3 border-b border-slate-200/90 bg-slate-50/80 flex items-center justify-between text-xs">
-          <div className="font-bold text-slate-900 flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>Commandes récentes</span>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] bg-slate-900 text-white font-mono font-bold">
-              {filteredOrders.length} résultat{filteredOrders.length > 1 ? 's' : ''}
-            </span>
-          </div>
-
-          <div className="text-xs text-slate-600 font-medium">
-            Total affiché : <strong className="text-slate-950 font-bold font-mono text-sm">{formatMAD(filteredOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0))}</strong>
-          </div>
-        </div>
-
+      <div className="bg-white border border-[#eaeaea] rounded-lg overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
-            
-            <thead className="bg-[#0f172a] text-slate-300 text-[10px] font-mono uppercase tracking-wider font-bold">
-              <tr>
-                <th className="px-4 py-3.5 w-10 text-center">
+            <thead>
+              <tr className="bg-[#fafafa] border-b border-[#eaeaea] text-neutral-500 font-mono text-[11px] uppercase tracking-wider font-medium">
+                <th className="py-2.5 px-4 w-10 text-center">
                   <button
                     onClick={handleToggleSelectAll}
-                    className="text-slate-400 hover:text-white transition-colors p-1 cursor-pointer"
-                    title={selectedOrderIds.length === filteredOrders.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                    className="text-neutral-400 hover:text-neutral-900 transition-colors p-0.5 cursor-pointer"
                   >
                     {filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length ? (
-                      <CheckSquare size={15} className="text-amber-400" />
+                      <CheckSquare size={14} className="text-black" />
                     ) : (
-                      <Square size={15} />
+                      <Square size={14} />
                     )}
                   </button>
                 </th>
-                <th className="px-4 py-3.5">Commande &amp; Date</th>
-                <th className="px-4 py-3.5">Client &amp; Contact</th>
-                <th className="px-4 py-3.5">Destination &amp; Livreur</th>
-                <th className="px-4 py-3.5">Flacons</th>
-                <th className="px-4 py-3.5">Montant &amp; Règlement</th>
-                <th className="px-4 py-3.5">Statut Logistique</th>
-                <th className="px-4 py-3.5 text-right">Actions Express</th>
+                <th className="py-2.5 px-4 font-medium">Commande</th>
+                <th className="py-2.5 px-4 font-medium">Client</th>
+                <th className="py-2.5 px-4 font-medium">Destination</th>
+                <th className="py-2.5 px-4 font-medium">Articles</th>
+                <th className="py-2.5 px-4 font-medium">Montant</th>
+                <th className="py-2.5 px-4 font-medium">Statut</th>
+                <th className="py-2.5 px-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100 text-slate-800">
+            <tbody className="divide-y divide-[#f0f0f0]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-20 text-slate-400">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <RefreshCw size={22} className="animate-spin text-slate-900" />
-                      <span className="text-xs font-semibold text-slate-700">Chargement du registre Maison NAY...</span>
-                    </div>
+                  <td colSpan={8} className="text-center py-16 text-neutral-400">
+                    <RefreshCw size={16} className="animate-spin mx-auto mb-2 text-neutral-400" />
+                    Chargement des commandes...
                   </td>
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-20 text-slate-400">
-                    <div className="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
-                        <ShoppingBag size={22} />
-                      </div>
-                      <span className="font-bold text-slate-900 text-sm">Aucune commande trouvée</span>
-                      <p className="text-xs text-slate-400">
-                        Modifiez vos critères de recherche ou réinitialisez les filtres.
-                      </p>
-                    </div>
+                  <td colSpan={8} className="text-center py-16 text-neutral-400">
+                    Aucune commande trouvée.
                   </td>
                 </tr>
               ) : (
@@ -1323,7 +1203,6 @@ function OrdersPageContent() {
                   const itemsCount = parsedItems.reduce((acc: number, item: any) => acc + (item.quantity || 1), 0);
                   const itemsSummary = parsedItems.map(i => `${i.quantity}x ${i.name}`).join(', ') || 'Parfum NAY';
                   const formattedDate = new Date(order.createdAt).toLocaleDateString('fr-MA', {
-                    timeZone: 'Africa/Casablanca',
                     day: 'numeric',
                     month: 'short',
                     hour: '2-digit',
@@ -1334,156 +1213,162 @@ function OrdersPageContent() {
                   const paid = Math.min(total, Math.max(0, Number(order.paidAmount) || 0));
                   const remaining = Math.max(0, total - paid);
                   const isPaidFull = paid >= total && total > 0;
-
-                  const stConfig = STATUS_CLASSES[order.status] || STATUS_CLASSES.pending;
-                  const isTargetHighlighted = highlightedOrderId === order.id;
                   const isSelected = selectedOrderIds.includes(order.id);
 
-                  // Initials for avatar
-                  const initials = (order.customerName || 'Client')
-                    .split(' ')
-                    .map((n: string) => n[0])
-                    .slice(0, 2)
-                    .join('')
-                    .toUpperCase();
+                  // Resend-style clean status dot
+                  const renderStatusItem = (status: string) => {
+                    switch (status) {
+                      case 'delivered':
+                        return (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>Livrée &amp; Encaissée</span>
+                          </span>
+                        );
+                      case 'processing':
+                      case 'confirmed':
+                        return (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            <span>En préparation</span>
+                          </span>
+                        );
+                      case 'shipped':
+                        return (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
+                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                            <span>En livraison</span>
+                          </span>
+                        );
+                      case 'unconfirmed':
+                        return (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            <span>Non confirmé</span>
+                          </span>
+                        );
+                      case 'refused':
+                      case 'returned':
+                        return (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                            <span>{status === 'refused' ? 'Refusée' : 'Retour'}</span>
+                          </span>
+                        );
+                      case 'pending':
+                      default:
+                        return (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            <span>En attente</span>
+                          </span>
+                        );
+                    }
+                  };
 
                   return (
                     <tr
                       key={order.id}
-                      id={`order-row-${order.id}`}
                       onClick={() => setEditingOrder(order)}
-                      className={`transition-colors duration-150 cursor-pointer group ${
-                        isSelected ? 'bg-amber-50/50 hover:bg-amber-50/70' : 'hover:bg-amber-50/20'
-                      } ${
-                        isTargetHighlighted
-                          ? 'bg-sky-50/80 border-l-4 border-l-[#0ea5e9]'
-                          : ''
+                      className={`group transition-colors cursor-pointer ${
+                        isSelected ? 'bg-neutral-100/70' : 'hover:bg-[#fafafa]'
                       }`}
                     >
                       {/* Checkbox */}
-                      <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => handleToggleSelectOne(order.id, e)}
-                          className="text-slate-400 hover:text-slate-900 transition-colors p-1 cursor-pointer"
+                          className="text-neutral-400 hover:text-neutral-900 transition-colors p-0.5 cursor-pointer"
                         >
                           {isSelected ? (
-                            <CheckSquare size={16} className="text-slate-900" />
+                            <CheckSquare size={14} className="text-black" />
                           ) : (
-                            <Square size={16} />
+                            <Square size={14} />
                           )}
                         </button>
                       </td>
 
-                      {/* Commande & Date */}
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`font-mono font-bold text-xs transition-colors ${
-                            isTargetHighlighted
-                              ? 'text-[#0ea5e9]'
-                              : 'text-slate-900 group-hover:text-amber-800'
-                          }`}>
-                            #{order.orderNumber}
-                          </span>
+                      {/* Commande */}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="font-mono text-xs font-medium text-neutral-900 flex items-center gap-1.5">
+                          <span>#{order.orderNumber}</span>
                           <button
                             onClick={(e) => handleCopyRef(order.orderNumber, e)}
-                            className="p-1 text-slate-300 hover:text-slate-700 rounded transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                            title="Copier la référence"
+                            className="text-neutral-300 hover:text-black transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                            title="Copier référence"
                           >
                             {copiedRef === order.orderNumber ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
                           </button>
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1 font-mono">
-                          <Clock size={10} className="text-slate-400" />
-                          <span>{formattedDate}</span>
+                        <div className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                          {formattedDate}
                         </div>
                       </td>
 
-                      {/* Client & Contact */}
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-slate-800 to-slate-700 text-amber-200 flex items-center justify-center text-[10px] font-bold font-mono shrink-0 shadow-2xs">
-                            {initials}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-900 text-xs">
-                              {order.customerName}
-                            </div>
-                            <div className="flex items-center gap-2 mt-0.5 text-[11px]">
-                              {order.customerPhone ? (
-                                <a
-                                  href={`tel:${order.customerPhone}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="font-mono text-slate-500 hover:text-slate-900 flex items-center gap-1 font-medium"
-                                >
-                                  <span>{order.customerPhone}</span>
-                                </a>
-                              ) : (
-                                <span className="text-slate-400 italic">Sans tél</span>
-                              )}
-                              {paid >= total && total > 0 && (
-                                <span className="text-[9px] font-extrabold uppercase text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                                  VIP
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                      {/* Client */}
+                      <td className="py-3 px-4">
+                        <div className="font-medium text-neutral-900 text-xs">
+                          {order.customerName}
                         </div>
-                      </td>
-
-                      {/* Destination & Livreur */}
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                          <MapPin size={12} className="text-amber-600" />
-                          <span>{order.shippingCity || 'Casablanca'}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 font-mono">
-                          <span className="font-medium text-slate-700">{order.carrier || 'Cathedis'}</span>
-                          {order.trackingNumber && <span className="text-slate-400">· {order.trackingNumber}</span>}
-                        </div>
-                      </td>
-
-                      {/* Articles (Flacons) */}
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 font-mono">
-                            {itemsCount} flacon{itemsCount > 1 ? 's' : ''}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-slate-700 font-medium truncate max-w-[200px] mt-0.5" title={itemsSummary}>
-                          {itemsSummary}
-                        </div>
-                      </td>
-
-                      {/* Montant & Règlement */}
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <div className="font-extrabold text-slate-900 font-mono text-xs">
-                          {formatMAD(order.total)}
-                        </div>
-                        <div className="mt-0.5">
-                          {isPaidFull ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                              <CheckCircle2 size={10} />
-                              <span>100% Réglé</span>
-                            </span>
-                          ) : paid > 0 ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                              <span>Acompte {paid} DH · Reste {remaining} DH</span>
-                            </span>
+                        <div className="text-[11px] text-neutral-500 font-mono mt-0.5">
+                          {order.customerPhone ? (
+                            <a
+                              href={`tel:${order.customerPhone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="hover:underline"
+                            >
+                              {order.customerPhone}
+                            </a>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                              <span>COD à la livraison</span>
-                            </span>
+                            <span className="text-neutral-400">Sans tél</span>
                           )}
                         </div>
                       </td>
 
-                      {/* Statut Dropdown (Prestige Pill) */}
-                      <td className="px-4 py-3.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="relative inline-block w-[140px]">
+                      {/* Destination */}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="text-xs text-neutral-800 font-medium">
+                          {order.shippingCity || 'Casablanca'}
+                        </div>
+                        <div className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                          {order.carrier || 'Cathedis'}
+                          {order.trackingNumber && <span> · {order.trackingNumber}</span>}
+                        </div>
+                      </td>
+
+                      {/* Articles */}
+                      <td className="py-3 px-4">
+                        <div className="text-xs text-neutral-900 font-medium">
+                          {itemsCount} flacon{itemsCount > 1 ? 's' : ''}
+                        </div>
+                        <div className="text-[11px] text-neutral-500 truncate max-w-[200px] mt-0.5" title={itemsSummary}>
+                          {itemsSummary}
+                        </div>
+                      </td>
+
+                      {/* Montant */}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="font-mono text-xs font-semibold text-neutral-900">
+                          {formatMAD(order.total)}
+                        </div>
+                        <div className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                          {isPaidFull ? (
+                            <span className="text-emerald-700">100% Réglé</span>
+                          ) : paid > 0 ? (
+                            <span>Acompte {paid} DH · Reste {remaining} DH</span>
+                          ) : (
+                            <span>COD à la livraison</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Statut Dropdown */}
+                      <td className="py-3 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="relative inline-block">
                           <select
                             value={order.status === 'confirmed' ? 'processing' : order.status}
                             onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                            className={`w-full appearance-none pl-3 pr-7 py-1.5 rounded-xl text-xs font-bold border cursor-pointer focus:outline-none transition-all shadow-2xs ${stConfig.bg} ${stConfig.text} ${stConfig.border}`}
+                            className="appearance-none bg-white hover:bg-neutral-50 border border-[#eaeaea] rounded-md pl-2.5 pr-6 py-1 text-xs text-neutral-800 font-medium cursor-pointer focus:outline-none focus:border-black shadow-2xs"
                           >
                             {getStatusOptions(jobProfile).map((opt) => (
                               <option key={opt.value} value={opt.value}>
@@ -1491,81 +1376,77 @@ function OrdersPageContent() {
                               </option>
                             ))}
                           </select>
-                          <ChevronDown
-                            size={12}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-60"
-                          />
+                          <ChevronDown size={11} className="absolute right-2 top-2 text-neutral-400 pointer-events-none" />
                         </div>
                       </td>
 
-                      {/* Actions Express */}
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      {/* Actions */}
+                      <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           {/* WhatsApp Presets */}
                           <div className="relative whatsapp-dropdown-container">
                             <button
                               onClick={() => setOpenWhatsAppMenuId(openWhatsAppMenuId === order.id ? null : order.id)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
-                              title="Messages WhatsApp pré-rédigés Maison NAY"
+                              className="h-7 px-2 bg-white hover:bg-neutral-50 border border-[#eaeaea] text-neutral-700 text-xs font-medium rounded transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                              title="Messages WhatsApp pré-rédigés"
                             >
-                              <MessageCircle size={13} />
-                              <ChevronDown size={11} className="opacity-80" />
+                              <MessageCircle size={12} className="text-emerald-600" />
+                              <ChevronDown size={10} className="text-neutral-400" />
                             </button>
 
                             {openWhatsAppMenuId === order.id && (
-                              <div className="absolute right-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-30 text-left animate-in fade-in slide-in-from-top-1">
-                                <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100 mb-1 flex items-center justify-between">
-                                  <span>WhatsApp Express</span>
-                                  <span className="text-emerald-600 font-mono">NAY</span>
+                              <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-[#eaeaea] py-1.5 z-30 text-left animate-in fade-in slide-in-from-top-1 text-xs font-sans">
+                                <div className="px-3 py-1 text-[10px] uppercase font-mono text-neutral-400 border-b border-[#f0f0f0] mb-1">
+                                  WhatsApp Rapide
                                 </div>
                                 <a
                                   href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'CONFIRM')}
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-semibold transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
                                 >
-                                  <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                                  <span>Confirmation express</span>
+                                  <CheckCircle2 size={12} className="text-emerald-500" />
+                                  <span>Confirmation commande</span>
                                 </a>
                                 <a
                                   href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'ADVANCE')}
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-semibold transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
                                 >
-                                  <CreditCard size={13} className="text-amber-500 shrink-0" />
-                                  <span>Demande d'acompte (RIB)</span>
+                                  <CreditCard size={12} className="text-amber-500" />
+                                  <span>Demande acompte (RIB)</span>
                                 </a>
                                 <a
                                   href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'SHIPPED')}
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-semibold transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
                                 >
-                                  <Truck size={13} className="text-[#1D9BF0] shrink-0" />
-                                  <span>Avis d'expédition Cathedis</span>
+                                  <Truck size={12} className="text-blue-500" />
+                                  <span>Avis d'expédition</span>
                                 </a>
                                 <a
                                   href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'LOCATION')}
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-semibold transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
                                 >
-                                  <MapPin size={13} className="text-indigo-500 shrink-0" />
-                                  <span>Demande position GPS</span>
+                                  <MapPin size={12} className="text-neutral-400" />
+                                  <span>Demande localisation GPS</span>
                                 </a>
                                 <a
                                   href={getWhatsAppPresetUrl(order.customerPhone, order.customerName, order.orderNumber, itemsSummary, order.shippingCity, total, paid, 'UNREACHABLE')}
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 font-semibold transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
                                 >
-                                  <Phone size={13} className="text-rose-500 shrink-0" />
+                                  <Phone size={12} className="text-red-500" />
                                   <span>Client injoignable</span>
                                 </a>
                               </div>
@@ -1575,10 +1456,9 @@ function OrdersPageContent() {
                           {/* Details Button */}
                           <button
                             onClick={() => setEditingOrder(order)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all font-bold text-xs cursor-pointer shadow-xs"
+                            className="h-7 px-2.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium rounded transition-colors cursor-pointer"
                           >
-                            <Eye size={12} className="text-amber-400" />
-                            <span>Voir Fiche</span>
+                            Fiche
                           </button>
                         </div>
                       </td>
