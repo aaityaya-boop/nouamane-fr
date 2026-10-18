@@ -120,7 +120,8 @@ export function evaluateActiveDeals(
   let gift: string | null = null;
 
   for (const deal of deals) {
-    if (!deal.isAutomatic && !deal.promoCode) continue;
+    // Only automatic deals apply automatically without the client entering a promo code
+    if (!deal.isAutomatic) continue;
 
     // Flatten qualifying units
     const units: { id: number; price: number }[] = [];
@@ -266,17 +267,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
     
-    let savedPromo = localStorage.getItem('nouamanePromo');
-    if (!savedPromo) {
-      savedPromo = Cookies.get('nouamanePromo') || null;
-    }
-    
-    if (savedPromo) {
-      try {
-        setAppliedPromo(JSON.parse(savedPromo));
-      } catch {
+    // 🔒 Do not automatically apply promo codes across sessions from persistent cookies.
+    // Purge any stale persistent promo cookies from previous sessions.
+    Cookies.remove('nouamanePromo', { path: '/' });
+    Cookies.remove('nouamanePromo');
+    try {
+      document.cookie = 'nouamanePromo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'nouamanePromo=; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    } catch {}
+    localStorage.removeItem('nouamanePromo');
+
+    // Only restore promo if explicitly entered in the current tab session
+    try {
+      const sessionPromo = sessionStorage.getItem('nouamaneSessionPromo');
+      if (sessionPromo) {
+        setAppliedPromo(JSON.parse(sessionPromo));
+      } else {
         setAppliedPromo(null);
       }
+    } catch {
+      setAppliedPromo(null);
     }
 
     const savedGift = Cookies.get('nouamaneFreeGift');
@@ -316,25 +326,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('nouamaneCart');
       
       if (appliedPromo) {
-        const promoStr = JSON.stringify(appliedPromo);
-        Cookies.set('nouamanePromo', promoStr, { expires: 30, path: '/' });
-        localStorage.removeItem('nouamanePromo');
+        try {
+          sessionStorage.setItem('nouamaneSessionPromo', JSON.stringify(appliedPromo));
+        } catch {}
       } else {
-        Cookies.remove('nouamanePromo', { path: '/' });
+        try {
+          sessionStorage.removeItem('nouamaneSessionPromo');
+        } catch {}
       }
+      Cookies.remove('nouamanePromo', { path: '/' });
+      localStorage.removeItem('nouamanePromo');
 
       if (selectedFreeGift && !appliedPromo) {
         Cookies.set('nouamaneFreeGift', JSON.stringify(selectedFreeGift), { expires: 30, path: '/' });
       } else {
         Cookies.remove('nouamaneFreeGift', { path: '/' });
-      }
-      
-      if (appliedPromo) {
-        const promoStr = JSON.stringify(appliedPromo);
-        Cookies.set('nouamanePromo', promoStr, { expires: 30, path: '/' });
-        localStorage.removeItem('nouamanePromo');
-      } else {
-        Cookies.remove('nouamanePromo', { path: '/' });
       }
 
       // Live Carts Analytics - Sync cart to DB
@@ -415,7 +421,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    setCart([]);
+    setAppliedPromo(null);
+    setSelectedFreeGift(null);
+    try {
+      sessionStorage.removeItem('nouamaneSessionPromo');
+    } catch {}
+    Cookies.remove('nouamanePromo', { path: '/' });
+    Cookies.remove('nouamanePromo');
+    Cookies.remove('nouamaneFreeGift', { path: '/' });
+    Cookies.remove('nouamaneFreeGift');
+    localStorage.removeItem('nouamanePromo');
+  };
 
   const getSubtotal = () =>
     cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -425,10 +443,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const applyPromo = (promo: AppliedPromo) => {
     setAppliedPromo(promo);
+    try {
+      sessionStorage.setItem('nouamaneSessionPromo', JSON.stringify(promo));
+    } catch {}
+    Cookies.remove('nouamanePromo', { path: '/' });
+    Cookies.remove('nouamanePromo');
+    localStorage.removeItem('nouamanePromo');
     setSelectedFreeGift(null);
     Cookies.remove('nouamaneFreeGift', { path: '/' });
   };
-  const removePromo = () => setAppliedPromo(null);
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    try {
+      sessionStorage.removeItem('nouamaneSessionPromo');
+    } catch {}
+    Cookies.remove('nouamanePromo', { path: '/' });
+    Cookies.remove('nouamanePromo');
+    localStorage.removeItem('nouamanePromo');
+  };
 
   // Evaluate automatic deals for the current cart
   // 🔒 When a promo code is active, DO NOT cumulate deals or free offers: give ONLY the promo code bonus!
