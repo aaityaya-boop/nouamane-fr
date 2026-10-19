@@ -121,7 +121,7 @@ export default async function proxy(request: NextRequest) {
 
   const matchedRedirect = legacyProductRedirects[pathname] || legacyProductRedirects[decodedPath];
   if (matchedRedirect) {
-    return NextResponse.redirect(new URL(matchedRedirect, request.url), 301);
+    return NextResponse.redirect(new URL(`${matchedRedirect}${request.nextUrl.search}`, request.url), 301);
   }
 
   // --- 3. LOCALE REDIRECTION ---
@@ -131,7 +131,7 @@ export default async function proxy(request: NextRequest) {
 
   if (pathnameIsMissingLocale) {
     const targetPath = pathname === '/' ? `/${defaultLocale}` : `/${defaultLocale}${pathname}`;
-    const url = new URL(targetPath, request.url);
+    const url = new URL(`${targetPath}${request.nextUrl.search}`, request.url);
     return NextResponse.redirect(url, 308);
   }
 
