@@ -39,7 +39,7 @@ export default function RecentlyViewed({ currentProductId }: { currentProductId?
   return (
     <div className="mt-20 border-t border-[#e0ddd4] pt-16">
       <h2 className="heading-font text-3xl text-center text-[#1A1A1A] mb-10 tracking-wide">
-        Consultés Récemment
+        {locale === 'ar' ? 'شوهدت مؤخراً' : locale === 'en' ? 'Recently Viewed' : 'Consultés Récemment'}
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {products.map((product) => {
