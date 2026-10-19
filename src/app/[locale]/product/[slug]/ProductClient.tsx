@@ -45,6 +45,7 @@ import ReactMarkdown from 'react-markdown';
 import { translations, Locale } from './translations';
 import { getProductFaq } from '@/lib/seoFaq';
 import { translatePerfumeNote, translateOlfactoryFamily, translateSeason, translateConcentration } from '@/lib/perfumeNotes';
+import { localizeLongDescription, localizeShortDescription } from '@/lib/localizeDescription';
 
 /* ============================================================
    PRODUCT DETAIL PAGE
@@ -56,11 +57,13 @@ export default function ProductClient({
   relatedProducts,
   initialReviews,
   includedProducts,
+  locale: propLocale,
 }: {
   product: Product;
   relatedProducts: Product[];
   initialReviews: any[];
   includedProducts?: Product[];
+  locale?: Locale;
 }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState(
@@ -74,7 +77,8 @@ export default function ProductClient({
   const { addToCart } = useCart();
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const pathname = usePathname();
-  const locale = (pathname?.split('/')[1] || 'fr') as Locale;
+  const rawLocale = propLocale || (pathname?.split('/')[1] as Locale) || 'fr';
+  const locale: Locale = (['fr', 'en', 'ar'].includes(rawLocale) ? rawLocale : 'fr') as Locale;
   const t = translations[locale] || translations.fr;
 
   const [reviews, setReviews] = useState(initialReviews);
@@ -479,7 +483,7 @@ export default function ProductClient({
             </h1>
 
             <div className="mt-2 sm:mt-3 italic text-[14px] sm:text-[15px] text-[#6B6B6B]">
-              {product.tagline}
+              {localizeShortDescription(product.tagline, locale)}
             </div>
 
             {/* Rating */}
@@ -829,13 +833,13 @@ export default function ProductClient({
                   li: ({node, ...props}) => <li {...props} />
                 }}
               >
-                {product.longDescription}
+                {localizeLongDescription(product.longDescription, product, locale)}
               </ReactMarkdown>
             ) : (
               <>
                 <h2 className="heading-font text-3xl md:text-5xl text-[#1A1A1A] tracking-wide mb-6 text-center">{t.description.history}</h2>
                 <p className="text-[16px] md:text-[18px] text-[#555] leading-[2] font-light text-center">
-                  {product.description}
+                  {localizeShortDescription(product.description, locale)}
                 </p>
               </>
             )}
@@ -1167,7 +1171,7 @@ export default function ProductClient({
               <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">{t.related.title}</span>
               <h2 className="heading-font text-3xl lg:text-4xl mt-2 tracking-wide">{t.related.subtitle}</h2>
               <p className="text-[14px] text-[#6B6B6B] mt-2 max-w-xl mx-auto">
-                Explorez également notre sélection de testeurs et fragrances de prestige de même famille olfactive disponibles au Maroc.
+                {t.related.desc}
               </p>
             </div>
 
@@ -1180,7 +1184,7 @@ export default function ProductClient({
             {/* Contextual internal link pills for SEO Siloing */}
             <div className="mt-12 pt-8 border-t border-[#e0ddd4] flex flex-wrap items-center justify-center gap-3">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#9A9A9A]">
-                Découvrez aussi :
+                {t.related.discoverAlso}
               </span>
               {relatedProducts.map((p) => (
                 <Link
@@ -1188,7 +1192,7 @@ export default function ProductClient({
                   href={`/${locale}/product/${p.slug}`}
                   className="text-[12px] font-medium text-[#1A1A1A] hover:text-[#0ea5e9] bg-white hover:bg-[#0ea5e9]/10 px-4 py-2 rounded-full border border-[#e0ddd4] transition-all shadow-sm"
                 >
-                  Testeur {p.name} ({p.brandLabel}) au Maroc →
+                  {t.related.pillPrefix}{p.name} ({p.brandLabel}){t.related.pillSuffix}
                 </Link>
               ))}
             </div>

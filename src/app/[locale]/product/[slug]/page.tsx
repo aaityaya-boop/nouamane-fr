@@ -393,6 +393,7 @@ export default async function ProductPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <ProductClient 
         product={transformedProduct} 
+        locale={currentLocale as 'fr' | 'en' | 'ar'}
         relatedProducts={dbRelated.map(transformProduct)} 
         initialReviews={serializedReviews}
         includedProducts={includedProducts}

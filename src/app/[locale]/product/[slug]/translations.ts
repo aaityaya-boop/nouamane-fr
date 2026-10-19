@@ -180,7 +180,14 @@ export const translations = {
       publishing: 'Envoi...',
       error: "Erreur lors de l'envoi de l'avis."
     },
-    related: { title: 'Vous aimerez aussi', subtitle: 'Dans la même collection' },
+    related: { 
+      title: 'Vous aimerez aussi', 
+      subtitle: 'Dans la même collection',
+      desc: 'Explorez également notre sélection de testeurs et fragrances de prestige de même famille olfactive disponibles au Maroc.',
+      discoverAlso: 'Découvrez aussi :',
+      pillPrefix: 'Testeur ',
+      pillSuffix: ' au Maroc →'
+    },
     sticky: { cod: 'Paiement à la livraison' }
   },
   en: {
@@ -364,7 +371,14 @@ export const translations = {
       publishing: 'Sending...',
       error: 'Error sending the review.'
     },
-    related: { title: 'You might also like', subtitle: 'In the same collection' },
+    related: { 
+      title: 'You might also like', 
+      subtitle: 'In the same collection',
+      desc: 'Explore our curated selection of prestige testers and fragrances from the same olfactory family in Morocco.',
+      discoverAlso: 'Discover also:',
+      pillPrefix: 'Tester ',
+      pillSuffix: ' in Morocco →'
+    },
     sticky: { cod: 'Cash on delivery' }
   },
   ar: {
@@ -548,7 +562,14 @@ export const translations = {
       publishing: 'جارٍ الإرسال...',
       error: 'حدث خطأ أثناء إرسال التقييم.'
     },
-    related: { title: 'قد يعجبك أيضاً', subtitle: 'من نفس المجموعة' },
+    related: { 
+      title: 'قد يعجبك أيضاً', 
+      subtitle: 'من نفس المجموعة',
+      desc: 'استكشف أيضاً تشكيلتنا المختارة من التسترات والعطور الفاخرة من نفس العائلة العطرية في المغرب.',
+      discoverAlso: 'اكتشف أيضاً :',
+      pillPrefix: 'تستر ',
+      pillSuffix: ' في المغرب ←'
+    },
     sticky: { cod: 'الدفع عند الاستلام' }
   }
 } as const;
