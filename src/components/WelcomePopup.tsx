@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import Link from "next/link";
@@ -10,6 +10,7 @@ export default function WelcomePopup() {
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "exists">("idle");
+  const dismissedRef = useRef(false);
 
   useEffect(() => {
     // Check if automated audit or bot
@@ -21,13 +22,21 @@ export default function WelcomePopup() {
     }
 
     // Check if user has already seen the popup
-    const hasSeenPopup = localStorage.getItem("welcomePopupShown");
-    if (hasSeenPopup) return;
+    try {
+      const hasSeenPopup = localStorage.getItem("welcomePopupShown");
+      if (hasSeenPopup) {
+        dismissedRef.current = true;
+        return;
+      }
+    } catch {
+      // Ignore storage errors in private browsing
+    }
 
     let timer: NodeJS.Timeout | undefined;
 
     // Show popup after user scrolls > 40% or after 15 seconds of active interaction
     const handleScroll = () => {
+      if (dismissedRef.current) return;
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (scrollHeight > 0 && window.scrollY / scrollHeight > 0.4) {
         setIsOpen(true);
@@ -39,6 +48,7 @@ export default function WelcomePopup() {
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     timer = setTimeout(() => {
+      if (dismissedRef.current) return;
       setIsOpen(true);
       window.removeEventListener("scroll", handleScroll);
     }, 15000);
@@ -50,6 +60,7 @@ export default function WelcomePopup() {
   }, []);
 
   const closePopup = () => {
+    dismissedRef.current = true;
     setIsOpen(false);
     try {
       localStorage.setItem("welcomePopupShown", "true");
@@ -131,6 +142,8 @@ export default function WelcomePopup() {
     createAccount: isArabic ? "إنشاء حساب كامل" : isEnglish ? "create a full account" : "créer un compte complet",
     close: isArabic ? "إغلاق" : isEnglish ? "Close" : "Fermer"
   };
+
+  if (!isOpen || pathname?.includes('/invoice')) return null;
 
   return (
     <div 
