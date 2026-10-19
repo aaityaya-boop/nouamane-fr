@@ -34,6 +34,17 @@
   font-family: var(--font-arabic) !important;
 }
 
+html[lang="ar"] body,
+html[dir="rtl"] body {
+  font-family: var(--font-arabic), system-ui, sans-serif;
+}
+
+html[lang="ar"] .heading-font,
+html[dir="rtl"] .heading-font {
+  font-family: var(--font-arabic), system-ui, sans-serif;
+  letter-spacing: 0 !important;
+}
+
 .prose-arabic h1, .prose-arabic h2, .prose-arabic h3 {
   font-family: var(--font-arabic) !important;
   font-weight: 700 !important;

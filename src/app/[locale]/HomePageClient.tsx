@@ -39,6 +39,8 @@ import {
   MAIN_CATEGORIES,
 } from '@/lib/products';
 
+import { useDictionary } from '@/context/DictionaryContext';
+
 const fadeUpProps: any = {
   initial: { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
@@ -70,6 +72,7 @@ export default function HomePageClient({
   latestReviews?: any[],
   initialBrands?: any[]
 }) {
+  const dict = useDictionary();
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const newArrivalsDefault = [...products].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()).slice(0, 4);
@@ -80,14 +83,18 @@ export default function HomePageClient({
   const [brands, setBrands] = useState<any[]>(initialBrands);
   const [homepageConfig, setHomepageConfig] = useState<any>(config || null);
 
-  const seasonalTitleFull = homepageConfig?.seasonalTrendTitle || (isFallWinter ? 'Tendances Automne-Hiver' : 'Tendances Printemps-Été');
-  const seasonalTitleParts = seasonalTitleFull.split(' ');
-  const titleFirstPart = seasonalTitleParts[0] || 'Tendances';
-  const titleSecondPart = seasonalTitleParts.slice(1).join(' ') || (isFallWinter ? 'Automne-Hiver' : 'Printemps-Été');
+  const isCustomFrenchSeason = locale === 'fr' && !!homepageConfig?.seasonalTrendTitle;
+  const seasonalTitleParts = (homepageConfig?.seasonalTrendTitle || '').split(' ');
+  const titleFirstPart = isCustomFrenchSeason
+    ? (seasonalTitleParts[0] || 'Tendances')
+    : (isFallWinter ? (dict.seasonal?.titleFirstFall || 'Chaleur &') : (dict.seasonal?.titleFirstSpring || 'Fraîcheur &'));
+  const titleSecondPart = isCustomFrenchSeason
+    ? (seasonalTitleParts.slice(1).join(' ') || (isFallWinter ? 'Automne-Hiver' : 'Printemps-Été'))
+    : (isFallWinter ? (dict.seasonal?.titleSecondFall || 'Intensité Boisée') : (dict.seasonal?.titleSecondSpring || 'Éclat Solaire'));
   
   // Extract seasons based on keywords in the title so the button links correctly
   let extractedSeasons: string[] = [];
-  const lowerTitle = seasonalTitleFull.toLowerCase();
+  const lowerTitle = (homepageConfig?.seasonalTrendTitle || '').toLowerCase();
   if (lowerTitle.includes('automne')) extractedSeasons.push('Automne');
   if (lowerTitle.includes('hiver')) extractedSeasons.push('Hiver');
   if (lowerTitle.includes('printemps')) extractedSeasons.push('Printemps');
@@ -97,9 +104,26 @@ export default function HomePageClient({
     ? extractedSeasons.join(',') 
     : (isFallWinter ? 'Automne,Hiver' : 'Printemps,Été');
 
-  const displaySeasonalSubtitle = homepageConfig?.seasonalTrendSubtitle || (isFallWinter
-    ? 'Nos parfums chauds, épicés et enveloppants pour la saison froide.'
-    : 'Nos fragrances fraîches, solaires et florales pour la belle saison.');
+  const displaySeasonalSubtitle = locale === 'fr' && homepageConfig?.seasonalTrendSubtitle
+    ? homepageConfig.seasonalTrendSubtitle
+    : (isFallWinter
+      ? (dict.seasonal?.subtitleFall || 'Des accords ambrés, épicés et enveloppants pour sublimer les saisons fraîches.')
+      : (dict.seasonal?.subtitleSpring || 'Des notes hespéridées, aquatiques et solaires pour illuminer vos journées.'));
+
+  const categoryLabels: Record<string, { label: string; desc: string }> = {
+    women: {
+      label: dict.categories?.womenLabel || 'Femme',
+      desc: dict.categories?.womenDesc || '',
+    },
+    men: {
+      label: dict.categories?.menLabel || 'Homme',
+      desc: dict.categories?.menDesc || '',
+    },
+    unisex: {
+      label: dict.categories?.unisexLabel || 'Unisex',
+      desc: dict.categories?.unisexDesc || '',
+    },
+  };
 
   useEffect(() => {
     if (initialBrands.length === 0) {
@@ -186,10 +210,13 @@ export default function HomePageClient({
         <div className="relative z-10 max-w-[1600px] mx-auto px-6 lg:px-12 pt-24 lg:pt-32 pb-16">
           <div className="flex flex-col items-center text-center mb-16">
             <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.5em] uppercase text-[#0ea5e9] mb-6">
-              Nos collections
+              {dict.categories?.eyebrow || 'Nos collections'}
             </span>
             <h2 className="heading-font text-5xl sm:text-6xl lg:text-7xl tracking-tight text-[#111] leading-none">
-              Parcourir par <span className="font-serif italic font-light text-[#0ea5e9]">&nbsp;Catégorie</span>
+              {dict.categories?.titlePrefix || 'Parcourir par'}{' '}
+              <span className="font-serif italic font-light text-[#0ea5e9]">
+                &nbsp;{dict.categories?.titleSuffix || 'Catégorie'}
+              </span>
             </h2>
           </div>
         </div>
@@ -203,47 +230,52 @@ export default function HomePageClient({
             viewport={{ once: true, margin: "-80px" }}
             className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8"
           >
-            {MAIN_CATEGORIES.map((cat, index) => (
-              <motion.div
-                variants={staggerItem}
-                key={cat.slug}
-                className="group cursor-pointer relative h-auto min-h-[340px] rounded-[30px] overflow-hidden bg-gradient-to-br from-[#f8fafc] to-white border border-[#e0ddd4] hover:border-[#0ea5e9]/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-700"
-              >
-                <Link href={`/${locale}/shop/${cat.slug}`} className="flex flex-col h-full w-full p-8 lg:p-10 relative z-10">
-                  {/* Subtle Background Accent */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#0ea5e9]/5 rounded-full blur-[40px] translate-x-1/3 -translate-y-1/3 group-hover:scale-150 transition-transform duration-1000 pointer-events-none" />
+            {MAIN_CATEGORIES.map((cat, index) => {
+              const currentCat = categoryLabels[cat.slug] || { label: cat.labelShort, desc: cat.description };
+              return (
+                <motion.div
+                  variants={staggerItem}
+                  key={cat.slug}
+                  className="group cursor-pointer relative h-auto min-h-[340px] rounded-[30px] overflow-hidden bg-gradient-to-br from-[#f8fafc] to-white border border-[#e0ddd4] hover:border-[#0ea5e9]/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-700"
+                >
+                  <Link href={`/${locale}/shop/${cat.slug}`} className="flex flex-col h-full w-full p-8 lg:p-10 relative z-10">
+                    {/* Subtle Background Accent */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#0ea5e9]/5 rounded-full blur-[40px] translate-x-1/3 -translate-y-1/3 group-hover:scale-150 transition-transform duration-1000 pointer-events-none" />
 
-                  <div className="mt-auto z-20">
-                    <div className="flex items-end justify-between mb-4">
-                      <div>
-                        <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9] mb-3 block">
-                          Collection 0{index + 1}
+                    <div className="mt-auto z-20">
+                      <div className="flex items-end justify-between mb-4">
+                        <div>
+                          <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9] mb-3 block">
+                            {dict.categories?.collectionPrefix || 'Collection'} 0{index + 1}
+                          </span>
+                          <h3 className="heading-font text-3xl lg:text-4xl text-[#1A1A1A] tracking-wide group-hover:text-[#0ea5e9] transition-colors duration-500">
+                            {currentCat.label}
+                          </h3>
+                        </div>
+                        {/* Elegant CTA Arrow */}
+                        <div className="w-12 h-12 rounded-full border border-[#e0ddd4] bg-white flex items-center justify-center text-[#1A1A1A] group-hover:bg-[#1A1A1A] group-hover:text-white group-hover:border-[#1A1A1A] transition-all duration-500 flex-shrink-0 shadow-sm rtl:rotate-180">
+                          <ArrowRight size={18} />
+                        </div>
+                      </div>
+
+                      <p className="text-[#6B6B6B] text-[13px] font-light leading-[1.7] tracking-wide line-clamp-2 lg:pr-12 rtl:lg:pr-0 rtl:lg:pl-12">
+                        {currentCat.desc || cat.description}
+                      </p>
+                      
+                      {/* Secondary Action / Trust Signal */}
+                      <div className="mt-8 pt-6 border-t border-[#e0ddd4]/60 flex items-center justify-between">
+                        <span className="text-[10px] uppercase tracking-widest text-[#1A1A1A] font-semibold group-hover:text-[#0ea5e9] transition-colors">
+                          {dict.categories?.explore || 'Explorer'}
                         </span>
-                        <h3 className="heading-font text-3xl lg:text-4xl text-[#1A1A1A] tracking-wide group-hover:text-[#0ea5e9] transition-colors duration-500">
-                          {cat.labelShort}
-                        </h3>
-                      </div>
-                      {/* Elegant CTA Arrow */}
-                      <div className="w-12 h-12 rounded-full border border-[#e0ddd4] bg-white flex items-center justify-center text-[#1A1A1A] group-hover:bg-[#1A1A1A] group-hover:text-white group-hover:border-[#1A1A1A] transition-all duration-500 flex-shrink-0 shadow-sm">
-                        <ArrowRight size={18} />
+                        <span className="text-[9px] uppercase tracking-widest text-[#0ea5e9] font-bold bg-[#0ea5e9]/10 px-3 py-1.5 rounded-full border border-[#0ea5e9]/20">
+                          {dict.categories?.premiumQuality || 'Qualité Premium'}
+                        </span>
                       </div>
                     </div>
-
-                    <p className="text-[#6B6B6B] text-[13px] font-light leading-[1.7] tracking-wide line-clamp-2 lg:pr-12">
-                      {cat.description}
-                    </p>
-                    
-                    {/* Secondary Action / Trust Signal */}
-                    <div className="mt-8 pt-6 border-t border-[#e0ddd4]/60 flex items-center justify-between">
-                      <span className="text-[10px] uppercase tracking-widest text-[#1A1A1A] font-semibold group-hover:text-[#0ea5e9] transition-colors">Explorer</span>
-                      <span className="text-[9px] uppercase tracking-widest text-[#0ea5e9] font-bold bg-[#0ea5e9]/10 px-3 py-1.5 rounded-full border border-[#0ea5e9]/20">
-                        Qualité Premium
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                  </Link>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </section>
@@ -257,10 +289,10 @@ export default function HomePageClient({
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 mb-16 relative z-10">
           <SectionHeader
             icon={<Flame size={16} className="text-[#0ea5e9]" />}
-            eyebrow="Les plus vendus au Maroc"
-            title="Bestsellers"
-            subtitle="Les fragrances plébiscitées par nos clients ce mois-ci."
-            linkLabel="Voir tous les bestsellers"
+            eyebrow={dict.bestsellers?.eyebrow || 'Les plus vendus au Maroc'}
+            title={dict.bestsellers?.title || 'Bestsellers'}
+            subtitle={dict.bestsellers?.subtitle || 'Les fragrances plébiscitées par nos clients ce mois-ci.'}
+            linkLabel={dict.bestsellers?.viewAll || 'Voir tous les bestsellers'}
             linkHref={`/${locale}/shop`}
           />
         </div>
@@ -299,23 +331,25 @@ export default function HomePageClient({
 
         <div className="relative z-10 w-full flex flex-col lg:flex-row items-center">
           {/* Left Side: Text Content */}
-          <div className="w-full lg:w-[40%] px-6 lg:pl-[max(2.5rem,calc((100vw-1400px)/2+2.5rem))] mb-12 lg:mb-0">
+          <div className="w-full lg:w-[40%] px-6 lg:pl-[max(2.5rem,calc((100vw-1400px)/2+2.5rem))] rtl:lg:pl-6 rtl:lg:pr-[max(2.5rem,calc((100vw-1400px)/2+2.5rem))] mb-12 lg:mb-0">
             <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#D4AF37] mb-6 flex items-center gap-2">
-              <Sparkles size={14} /> L'Art d'Offrir
+              <Sparkles size={14} /> {dict.coffrets?.eyebrow || "L'Art d'Offrir"}
             </span>
-            <h2 className="heading-font text-5xl md:text-7xl text-white tracking-wide mb-6 leading-tight">Coffrets Cadeaux</h2>
+            <h2 className="heading-font text-5xl md:text-7xl text-white tracking-wide mb-6 leading-tight">
+              {dict.coffrets?.title || "Coffrets Cadeaux"}
+            </h2>
             <p className="text-white/80 text-[16px] leading-relaxed mb-10 max-w-md">
-              Découvrez nos éditions spéciales conçues pour laisser une empreinte inoubliable. L'assemblage parfait de nos fragrances signatures, présenté dans un écrin d'exception.
+              {dict.coffrets?.desc || "Découvrez nos éditions spéciales conçues pour laisser une empreinte inoubliable. L'assemblage parfait de nos fragrances signatures, présenté dans un écrin d'exception."}
             </p>
             <Link href={`/${locale}/coffrets`} className="inline-flex items-center gap-3 bg-white text-black text-[13px] font-medium px-8 py-4 rounded-full hover:bg-[#D4AF37] hover:text-white transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.3)] group">
-              Explorer la Collection
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              {dict.coffrets?.cta || "Explorer la Collection"}
+              <ArrowRight size={16} className="group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform rtl:rotate-180" />
             </Link>
           </div>
 
           {/* Right Side: Carousel */}
-          <div className="w-full lg:w-[60%] pl-6 lg:pl-12">
-            <div className="flex gap-6 lg:gap-8 overflow-x-auto snap-x snap-mandatory pb-12 pr-6 lg:pr-10 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="w-full lg:w-[60%] pl-6 lg:pl-12 rtl:pl-0 rtl:pr-6 rtl:lg:pr-12">
+            <div className="flex gap-6 lg:gap-8 overflow-x-auto snap-x snap-mandatory pb-12 pr-6 lg:pr-10 rtl:pr-0 rtl:pl-6 rtl:lg:pl-10 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {products.filter(p => p.subcategory === 'coffrets').map((p) => (
                 <div key={p.id} className="min-w-[280px] max-w-[320px] w-[75vw] snap-start flex-shrink-0">
                   <div className="bg-white rounded-[32px] p-2 shadow-2xl h-full border border-white/20 transform hover:-translate-y-2 transition-transform duration-500">
@@ -335,10 +369,10 @@ export default function HomePageClient({
       <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
         <SectionHeader
           icon={<Sparkles size={16} className="text-[#0ea5e9]" />}
-          eyebrow=""
-          title="Les dernières sorties"
-          subtitle="Découvrez les nouvelles créations qui viennent d'arriver dans nos rayons."
-          linkLabel="Voir toutes les nouveautés"
+          eyebrow={dict.newArrivals?.eyebrow || ""}
+          title={dict.newArrivals?.title || "Les dernières sorties"}
+          subtitle={dict.newArrivals?.subtitle || "Découvrez les nouvelles créations qui viennent d'arriver dans nos rayons."}
+          linkLabel={dict.newArrivals?.viewAll || "Voir toutes les nouveautés"}
           linkHref={`/${locale}/shop`}
         />
         <motion.div 
@@ -378,7 +412,9 @@ export default function HomePageClient({
             <div>
               <div className="flex items-center gap-3 mb-4">
                 {isFallWinter ? <Leaf size={14} className="text-[#ea580c]" /> : <Sun size={14} className="text-[#eab308]" />}
-                <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9]">Édition saisonnière</span>
+                <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9]">
+                  {dict.seasonal?.eyebrow || "Édition saisonnière"}
+                </span>
               </div>
               <h2 className="heading-font text-5xl lg:text-7xl text-[#1A1A1A] tracking-wide">
                 {titleFirstPart}<br />
@@ -386,9 +422,9 @@ export default function HomePageClient({
               </h2>
             </div>
             <div className="flex flex-col items-start lg:items-end gap-4">
-              <p className="text-[#1A1A1A]/70 text-[14px] max-w-xs text-left lg:text-right font-medium">{displaySeasonalSubtitle}</p>
+              <p className="text-[#1A1A1A]/70 text-[14px] max-w-xs text-left lg:text-right rtl:text-right rtl:lg:text-left font-medium">{displaySeasonalSubtitle}</p>
               <Link href={`/${locale}/shop?seasons=${seasonQueryParam}`} className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] uppercase text-[#1A1A1A] border border-[#1A1A1A]/30 hover:bg-[#0ea5e9] hover:border-[#0ea5e9] hover:text-white transition-all px-6 py-3 rounded-full">
-                Explorer la sélection <ArrowRight size={14} />
+                {dict.seasonal?.cta || "Explorer la sélection"} <ArrowRight size={14} className="rtl:rotate-180" />
               </Link>
             </div>
           </motion.div>
@@ -415,10 +451,10 @@ export default function HomePageClient({
       <section id="brands" className="max-w-[1400px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
         <div className="text-center mb-16">
           <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">
-            L'Élite de la Parfumerie
+            {dict.brandsSection?.eyebrow || "L'Élite de la Parfumerie"}
           </span>
           <h2 className="heading-font text-5xl lg:text-6xl mt-4 tracking-wide">
-            5 Marques Mythiques
+            {dict.brandsSection?.title || "5 Marques Mythiques"}
           </h2>
         </div>
 
@@ -457,7 +493,7 @@ export default function HomePageClient({
                 {/* Content shown on hover */}
                 <div className="absolute inset-0 flex flex-col items-center justify-end pb-12 opacity-100 md:opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none transform translate-y-8 group-hover:translate-y-0 z-10">
                   <span className="text-[12px] font-bold tracking-[0.3em] uppercase text-white bg-[#1A1A1A] shadow-xl px-6 py-3 rounded-full border border-black/10">
-                    Découvrir {brand.name}
+                    {dict.brandsSection?.discover || "Découvrir"} {brand.name}
                   </span>
                 </div>
               </Link>
@@ -478,12 +514,12 @@ export default function HomePageClient({
           className="max-w-[1400px] mx-auto px-6 lg:px-10 py-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8"
         >
           {[
-            { icon: <BadgeCheck size={22} strokeWidth={1.5} />, title: '100% Authentiques', desc: 'Nos parfums proviennent directement des distributeurs officiels de chaque maison. Facture d\'origine sur demande.' },
-            { icon: <Truck size={22} strokeWidth={1.5} />, title: 'Livraison 35Dh', desc: 'Livraison partout au Maroc avec 35Dh en 24-48h. Suivi par SMS et WhatsApp inclus.' },
-            { icon: <ShieldCheck size={22} strokeWidth={1.5} />, title: 'Paiement à la livraison', desc: 'Payez en toute sérénité à la réception. Aucun risque, aucune surprise.' },
-            { icon: <Star size={22} strokeWidth={1.5} />, title: 'Authenticité garantie', desc: 'Tous nos parfums sont 100% originaux et certifiés authentiques.' },
+            { icon: <BadgeCheck size={22} strokeWidth={1.5} />, title: dict.values?.v1Title || '100% Authentiques', desc: dict.values?.v1Desc || 'Nos parfums proviennent directement des distributeurs officiels de chaque maison. Facture d\'origine sur demande.' },
+            { icon: <Truck size={22} strokeWidth={1.5} />, title: dict.values?.v2Title || 'Livraison 35Dh', desc: dict.values?.v2Desc || 'Livraison partout au Maroc avec 35Dh en 24-48h. Suivi par SMS et WhatsApp inclus.' },
+            { icon: <ShieldCheck size={22} strokeWidth={1.5} />, title: dict.values?.v3Title || 'Paiement à la livraison', desc: dict.values?.v3Desc || 'Payez en toute sérénité à la réception. Aucun risque, aucune surprise.' },
+            { icon: <Star size={22} strokeWidth={1.5} />, title: dict.values?.v4Title || 'Authenticité garantie', desc: dict.values?.v4Desc || 'Tous nos parfums sont 100% originaux et certifiés authentiques.' },
           ].map((item) => (
-            <motion.div variants={staggerItem} key={item.title} className="text-center lg:text-left">
+            <motion.div variants={staggerItem} key={item.title} className="text-center lg:text-start">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[#0ea5e9]/40 text-[#0ea5e9] mb-4">
                 {item.icon}
               </div>
@@ -513,10 +549,10 @@ export default function HomePageClient({
           >
             <div>
               <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9] mb-6 block">
-                Ils nous font confiance
+                {dict.reviewsSection?.eyebrow || "Ils nous font confiance"}
               </span>
               <h2 className="heading-font text-5xl lg:text-8xl text-white tracking-wide leading-none">
-                Avis de<br /><span className="text-[#9A9A9A] italic">nos clients</span>
+                {dict.reviewsSection?.title || "Avis de nos clients"}
               </h2>
             </div>
             <div className="flex items-center gap-6">
@@ -525,12 +561,12 @@ export default function HomePageClient({
                 <div className="flex gap-1 justify-center mt-2">
                   {[...Array(5)].map((_, j) => <Star key={j} size={12} className="text-[#0ea5e9] fill-[#0ea5e9]" />)}
                 </div>
-                <div className="text-[11px] text-[#9A9A9A] mt-1">Note moyenne</div>
+                <div className="text-[11px] text-[#9A9A9A] mt-1">{dict.reviewsSection?.averageRating || "Note moyenne"}</div>
               </div>
               <div className="w-[1px] h-16 bg-white/10" />
               <div className="text-center">
                 <div className="heading-font text-5xl text-white">500+</div>
-                <div className="text-[11px] text-[#9A9A9A] mt-1">Clients satisfaits</div>
+                <div className="text-[11px] text-[#9A9A9A] mt-1">{dict.reviewsSection?.satisfiedClients || "Clients satisfaits"}</div>
               </div>
             </div>
           </motion.div>
@@ -559,7 +595,7 @@ export default function HomePageClient({
                 }`}
               >
                 {/* Quote mark */}
-                <div className="absolute top-6 right-8 text-[80px] leading-none text-white/5 font-serif select-none">"</div>
+                <div className="absolute top-6 right-8 rtl:right-auto rtl:left-8 text-[80px] leading-none text-white/5 font-serif select-none">"</div>
                 
                 <div>
                   <div className="flex gap-1 mb-6">
@@ -578,10 +614,10 @@ export default function HomePageClient({
                       {review.author}
                     </div>
                     <div className="text-[11px] text-[#9A9A9A] mt-1">
-                      Client vérifié · {review.city}
+                      {dict.reviewsSection?.verifiedCustomer || "Client vérifié"} · {review.city}
                     </div>
                   </div>
-                  <div className="text-[10px] text-[#0ea5e9] font-bold tracking-wide text-right max-w-[120px]">
+                  <div className="text-[10px] text-[#0ea5e9] font-bold tracking-wide text-right rtl:text-left max-w-[120px]">
                     {review.product?.name}
                   </div>
                 </div>
@@ -591,7 +627,7 @@ export default function HomePageClient({
 
           <div className="mt-16 flex justify-center">
             <Link href={`/${locale}/shop`} className="text-white border border-white/30 hover:bg-white hover:text-black transition-all px-8 py-4 rounded-full text-[12px] font-bold tracking-[0.15em] uppercase text-center inline-flex items-center gap-2">
-              Vous avez acheté chez nous ? Laissez un avis ! <ArrowRight size={16} />
+              {dict.reviewsSection?.leaveReview || "Vous avez acheté chez nous ? Laissez un avis !"} <ArrowRight size={16} className="rtl:rotate-180" />
             </Link>
           </div>
         </div>

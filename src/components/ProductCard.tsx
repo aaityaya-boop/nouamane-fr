@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingBag, Star, Flower, Sun, Leaf, Snowflake, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useDictionary } from '@/context/DictionaryContext';
 import { formatMAD, type Product, isProductInStock } from '@/lib/products';
 
 type ProductCardProps = {
@@ -17,12 +18,31 @@ type ProductCardProps = {
 
 export default function ProductCard({ product, showRating = true, onQuickView }: ProductCardProps) {
   const { addToCart } = useCart();
+  const dict = useDictionary();
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const inStock = isProductInStock(product);
   const isBestseller = product.tags.includes('bestseller');
   const isNew = product.tags.includes('new-arrival') && product.subcategory !== 'coffrets';
   const isDiscounted = !!product.originalPrice && product.originalPrice > product.price;
+
+  const genderLabel = product.gender === 'women'
+    ? (dict.productCard?.women || 'Femme')
+    : product.gender === 'men'
+    ? (dict.productCard?.men || 'Homme')
+    : (dict.productCard?.unisex || 'Mixte');
+
+  const seasonLabel = product.perfectSeason === 'Printemps'
+    ? (dict.productCard?.spring || 'Printemps')
+    : product.perfectSeason === 'Été'
+    ? (dict.productCard?.summer || 'Été')
+    : product.perfectSeason === 'Automne'
+    ? (dict.productCard?.autumn || 'Automne')
+    : product.perfectSeason === 'Hiver'
+    ? (dict.productCard?.winter || 'Hiver')
+    : product.perfectSeason === 'Toutes Saisons'
+    ? (dict.productCard?.allSeasons || 'Toutes Saisons')
+    : product.perfectSeason;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,7 +91,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 w-full px-6 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100 z-30">
           {!inStock ? (
             <span className="bg-white/95 backdrop-blur-sm text-red-600 border border-red-200 text-[10px] font-bold tracking-widest uppercase px-6 py-3 rounded-full whitespace-nowrap shadow-xl">
-              Rupture de stock
+              {dict.productCard?.outOfStock || 'Rupture de stock'}
             </span>
           ) : onQuickView ? (
             <button
@@ -82,11 +102,11 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
               }}
               className="w-full bg-white/90 backdrop-blur-sm text-[#1A1A1A] text-[10px] font-bold tracking-widest uppercase py-3 rounded-full shadow-xl hover:bg-[#1A1A1A] hover:text-white transition-colors flex justify-center items-center"
             >
-              Aperçu Rapide
+              {dict.productCard?.quickView || 'Aperçu Rapide'}
             </button>
           ) : (
             <span className="bg-white/90 backdrop-blur-sm text-[#1A1A1A] text-[10px] font-bold tracking-widest uppercase px-6 py-3 rounded-full whitespace-nowrap shadow-xl">
-              Découvrir la fragrance
+              {dict.productCard?.discoverFragrance || 'Découvrir la fragrance'}
             </span>
           )}
         </div>
@@ -95,13 +115,13 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
           <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-4">
             <span className="text-[11px] font-bold tracking-widest text-red-600 uppercase bg-white border border-red-200 px-4 py-2 rounded-full shadow-md flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-              Rupture de stock
+              {dict.productCard?.outOfStock || 'Rupture de stock'}
             </span>
           </div>
         )}
 
         {/* Brand badge (top-left) */}
-        <div className="absolute top-4 left-4 flex flex-col items-start gap-1.5 z-20">
+        <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex flex-col items-start rtl:items-end gap-1.5 z-20">
           <span className="text-[9px] font-bold tracking-[0.2em] uppercase bg-white border border-[#e0ddd4]/95 backdrop-blur-sm text-[#1A1A1A] px-3 py-1.5 rounded-full shadow-sm">
             {product.brandLabel}
           </span>
@@ -112,27 +132,27 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
               {product.perfectSeason === 'Automne' && <Leaf size={10} />}
               {product.perfectSeason === 'Hiver' && <Snowflake size={10} />}
               {product.perfectSeason === 'Toutes Saisons' && <Sparkles size={10} />}
-              {product.perfectSeason}
+              {seasonLabel}
             </span>
           )}
         </div>
 
         {/* Bestseller / New ribbon (top-right) */}
         {(isBestseller || isNew || isDiscounted) && (
-          <div className="absolute top-4 right-4 flex flex-col gap-1.5 items-end">
+          <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4 flex flex-col gap-1.5 items-end rtl:items-start">
             {isDiscounted && (
               <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-red-500 text-white px-3 py-1.5 rounded-full">
-                Promo
+                {dict.productCard?.sale || 'Promo'}
               </span>
             )}
             {isBestseller && (
-              <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-[#f8fafc] text-white px-3 py-1.5 rounded-full">
-                Bestseller
+              <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-[#111] text-white px-3 py-1.5 rounded-full">
+                {dict.productCard?.bestseller || 'Bestseller'}
               </span>
             )}
             {isNew && !isBestseller && (
               <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-[#0ea5e9] text-white px-3 py-1.5 rounded-full">
-                Nouveau
+                {dict.productCard?.new || 'Nouveau'}
               </span>
             )}
           </div>
@@ -144,7 +164,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
           {product.name}
         </h3>
         <p className="text-[10px] sm:text-[11px] font-medium tracking-[0.15em] uppercase text-[#9A9A9A] mt-1.5 sm:mt-2 truncate">
-          {product.subcategoryLabel} · {product.gender === 'women' ? 'Femme' : product.gender === 'men' ? 'Homme' : 'Mixte'}
+          {product.subcategoryLabel} · {genderLabel}
         </p>
 
         {showRating && (

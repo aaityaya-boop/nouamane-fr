@@ -67,7 +67,14 @@ export default function Header() {
             {/* LEFT NAV (Desktop) */}
             <nav className="hidden lg:flex items-center gap-5 xl:gap-7 flex-1">
               {['women', 'men', 'testers', 'originaux', 'brands', 'bundles'].map((menuKey) => {
-                const labels: any = { women: 'Femme', men: 'Homme', testers: 'Testeurs', originaux: 'Parfums Originaux', brands: 'Marques', bundles: 'Coffrets Cadeaux' };
+                const labels: any = {
+                  women: dict.nav?.women || 'Femme',
+                  men: dict.nav?.men || 'Homme',
+                  testers: dict.nav?.testers || 'Testeurs',
+                  originaux: dict.nav?.originaux || 'Parfums Originaux',
+                  brands: dict.nav?.brands || 'Marques',
+                  bundles: dict.nav?.bundles || 'Coffrets Cadeaux'
+                };
                 return (
                   <div 
                     key={menuKey} 
@@ -411,6 +418,11 @@ export default function Header() {
               style={{ maxHeight: 'calc(100vh - 60px)' }}
             >
               <div className="px-6 py-8 space-y-8">
+                <div className="flex items-center justify-between pb-3 border-b border-[#e0ddd4]">
+                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">{dict.common?.language || 'Langue'}</span>
+                  <LanguageSwitcher />
+                </div>
+
                 {/* Mobile Search Bar */}
                 <div 
                   onClick={() => {
@@ -420,7 +432,7 @@ export default function Header() {
                   className="flex items-center gap-3 bg-[#f8fafc] border border-[#e0ddd4] rounded-xl px-4 py-3 cursor-text"
                 >
                   <Search className="w-5 h-5 text-[#9A9A9A]" />
-                  <span className="text-[14px] text-[#9A9A9A]">Rechercher un parfum, une marque...</span>
+                  <span className="text-[14px] text-[#9A9A9A]">{dict.nav?.searchPlaceholder || 'Rechercher un parfum, une marque...'}</span>
                 </div>
 
                 {/* Mobile Categories */}
@@ -429,90 +441,104 @@ export default function Header() {
                   <div className="border-b border-[#e0ddd4] pb-6 bg-[#f8fafc] -mx-6 px-6 pt-4">
                     <div className="flex items-center gap-2 mb-4">
                       <span className="w-2 h-2 rounded-full bg-[#0ea5e9]"></span>
-                      <div className="heading-font text-2xl text-[#1A1A1A]">Collections</div>
+                      <div className="heading-font text-2xl text-[#1A1A1A]">{dict.nav?.collections || 'Collections'}</div>
                     </div>
-                    <div className="grid grid-cols-1 gap-3 pl-4 border-l-2 border-[#0ea5e9]/50">
+                    <div className="grid grid-cols-1 gap-3 pl-4 rtl:pl-0 rtl:pr-4 border-l-2 rtl:border-l-0 rtl:border-r-2 border-[#0ea5e9]/50">
                       <Link 
                         href={`/${locale}/testeurs`} 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="text-[15px] font-bold text-[#0ea5e9] flex items-center justify-between"
                       >
-                        ✨ Testeurs de Luxe (Authentiques) <ChevronRight size={16} />
+                        {dict.nav?.testersLuxury || '✨ Testeurs de Luxe (Authentiques)'} <ChevronRight size={16} className="rtl:rotate-180" />
                       </Link>
                       <Link 
                         href={`/${locale}/parfums-originaux`} 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="text-[14px] font-medium text-[#1A1A1A] flex items-center justify-between"
                       >
-                        Parfums Originaux Scellés <ChevronRight size={16} />
+                        {dict.nav?.originauxSealed || 'Parfums Originaux Scellés'} <ChevronRight size={16} className="rtl:rotate-180" />
                       </Link>
                       <Link 
                         href={`/${locale}/parfums-orientaux`} 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="text-[14px] font-medium text-[#1A1A1A] flex items-center justify-between"
                       >
-                        Parfums Orientaux & Arabes <ChevronRight size={16} />
+                        {dict.nav?.orientalArab || 'Parfums Orientaux & Arabes'} <ChevronRight size={16} className="rtl:rotate-180" />
                       </Link>
                       <Link 
                         href={`/${locale}/coffrets`} 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="text-[14px] font-medium text-[#1A1A1A] flex items-center justify-between"
                       >
-                        Coffrets Cadeaux <ChevronRight size={16} />
+                        {dict.nav?.bundles || 'Coffrets Cadeaux'} <ChevronRight size={16} className="rtl:rotate-180" />
                       </Link>
                       <Link 
                         href={`/${locale}/master-copier`} 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="text-[14px] text-[#555] flex items-center justify-between"
                       >
-                        Parfums Master Copy <ChevronRight size={16} />
+                        {dict.nav?.masterCopy || 'Parfums Master Copy'} <ChevronRight size={16} className="rtl:rotate-180" />
                       </Link>
                       <Link 
                         href={`/${locale}/shop`} 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="text-[14px] font-bold text-[#111] uppercase tracking-wider flex items-center justify-between pt-2 border-t border-[#e0ddd4]"
                       >
-                        Toute La Boutique (Tous les parfums) <ChevronRight size={16} />
+                        {dict.nav?.allBoutique || 'Toute La Boutique (Tous les parfums)'} <ChevronRight size={16} className="rtl:rotate-180" />
                       </Link>
                     </div>
                   </div>
 
-                  {MAIN_CATEGORIES.map((cat) => (
-                    <div key={cat.slug} className="border-b border-[#e0ddd4] pb-6 last:border-0 last:pb-0">
-                      <Link 
-                        href={`/${locale}/shop/${cat.slug}`} 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="heading-font text-2xl text-[#1A1A1A] block mb-4"
-                      >
-                        {cat.label}
-                      </Link>
-                      <div className="grid grid-cols-2 gap-3 pl-2">
-                        {cat.subcategories.map(sub => (
-                          <Link 
-                            key={sub.slug}
-                            href={`/${locale}/shop/${cat.slug}?sub=${sub.slug}`}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="text-[14px] text-[#6B6B6B]"
-                          >
-                            {sub.label}
-                          </Link>
-                        ))}
+                  {MAIN_CATEGORIES.map((cat) => {
+                    const catTitle = cat.slug === 'women' ? (dict.categories?.womenLabel || cat.label)
+                      : cat.slug === 'men' ? (dict.categories?.menLabel || cat.label)
+                      : (dict.categories?.unisexLabel || cat.label);
+                    return (
+                      <div key={cat.slug} className="border-b border-[#e0ddd4] pb-6 last:border-0 last:pb-0">
+                        <Link 
+                          href={`/${locale}/shop/${cat.slug}`} 
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="heading-font text-2xl text-[#1A1A1A] block mb-4"
+                        >
+                          {catTitle}
+                        </Link>
+                        <div className="grid grid-cols-2 gap-3 pl-2 rtl:pl-0 rtl:pr-2">
+                          {cat.subcategories.map(sub => {
+                            const rawLabel = (sub as any).label;
+                            const subLabel = sub.key === 'floral' ? (dict.categories?.subFloral || rawLabel)
+                              : sub.key === 'oriental' ? (dict.categories?.subOriental || rawLabel)
+                              : sub.key === 'fresh' ? (dict.categories?.subFresh || rawLabel)
+                              : sub.key === 'woody' ? (dict.categories?.subWoody || rawLabel)
+                              : sub.key === 'aromatic' ? (dict.categories?.subAromatic || rawLabel)
+                              : rawLabel;
+                            return (
+                              <Link 
+                                key={sub.slug}
+                                href={`/${locale}/shop/${cat.slug}?sub=${sub.slug}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="text-[14px] text-[#6B6B6B]"
+                              >
+                                {subLabel}
+                              </Link>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <div className="border-b border-[#e0ddd4] pb-6">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="heading-font text-2xl text-[#1A1A1A]">Marques</div>
+                      <div className="heading-font text-2xl text-[#1A1A1A]">{dict.nav?.brands || 'Marques'}</div>
                       {brands.length > 4 && (
                         <button
                           onClick={() => setShowAllMobileBrands(!showAllMobileBrands)}
                           className="text-[#9E1B1B] text-sm font-semibold px-2 py-1 flex items-center gap-1"
                         >
-                          {showAllMobileBrands ? '(-) Voir moins' : '(+) Voir plus'}
+                          {showAllMobileBrands ? (dict.nav?.seeLess || '(-) Voir moins') : (dict.nav?.seeMore || '(+) Voir plus')}
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-3 pl-2">
+                    <div className="grid grid-cols-2 gap-3 pl-2 rtl:pl-0 rtl:pr-2">
                       {(showAllMobileBrands ? brands : brands.slice(0, 4)).map(brand => (
                         <Link 
                           key={brand.slug}
@@ -541,9 +567,9 @@ export default function Header() {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="heading-font text-2xl text-[#1A1A1A] flex items-center gap-3 mb-2"
                     >
-                      Coffrets Cadeaux
+                      {dict.nav?.bundles || 'Coffrets Cadeaux'}
                     </Link>
-                    <p className="text-[13px] text-[#9A9A9A]">Découvrez nos packs exclusifs (Jour & Nuit, Découverte...)</p>
+                    <p className="text-[13px] text-[#9A9A9A]">{dict.nav?.bundlesDesc || 'Découvrez nos packs exclusifs (Jour & Nuit, Découverte...)'}</p>
                   </div>
                 </div>
 
@@ -554,21 +580,21 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 text-[15px] font-medium text-[#1A1A1A]"
                   >
-                    <Package className="w-5 h-5 text-[#6B6B6B]" /> Suivi de commande
+                    <Package className="w-5 h-5 text-[#6B6B6B]" /> {dict.nav?.trackOrder || 'Suivi de commande'}
                   </Link>
                   <Link
                     href={`/${locale}/account`}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 text-[15px] font-medium text-[#1A1A1A]"
                   >
-                    <User className="w-5 h-5 text-[#6B6B6B]" /> Mon Compte
+                    <User className="w-5 h-5 text-[#6B6B6B]" /> {dict.nav?.account || 'Mon Compte'}
                   </Link>
                   <Link
                     href={`/${locale}/cart`}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 text-[15px] font-medium text-[#1A1A1A]"
                   >
-                    <ShoppingBag className="w-5 h-5 text-[#6B6B6B]" /> Mon Panier ({cartCount})
+                    <ShoppingBag className="w-5 h-5 text-[#6B6B6B]" /> {dict.nav?.myCart || 'Mon Panier'} ({cartCount})
                   </Link>
                 </div>
               </div>

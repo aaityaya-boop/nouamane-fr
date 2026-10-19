@@ -9,8 +9,17 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const currentLocale = locale || 'fr';
-  const title = "NAY Parfum Maroc - Testeurs de Parfums 100% Originaux & Parfumerie de Luxe";
-  const description = "Parfumerie en ligne de référence au Maroc. Achetez vos testeurs de parfums 100% originaux et fragrances de luxe au meilleur prix en MAD. Livraison express 24/48h partout au Maroc et paiement à la livraison (COD).";
+  
+  let title = "NAY Parfum Maroc - Testeurs de Parfums 100% Originaux & Parfumerie de Luxe";
+  let description = "Parfumerie en ligne de référence au Maroc. Achetez vos testeurs de parfums 100% originaux et fragrances de luxe au meilleur prix en MAD. Livraison express 24/48h partout au Maroc et paiement à la livraison (COD).";
+
+  if (currentLocale === 'ar') {
+    title = "ناي بارفان المغرب - تيسترات وعطور أصلية 100% وعطور فاخرة";
+    description = "المتجر الأول للعطور الفاخرة بالمغرب. تسوقوا تيسترات العطور الأصلية 100% وأرقى العطور العالمية بأفضل الأسعار بالدرهم. توصيل سريع 24/48 ساعة والدفع عند الاستلام.";
+  } else if (currentLocale === 'en') {
+    title = "NAY Parfum Morocco - 100% Original Perfume Testers & Luxury Fragrances";
+    description = "Morocco's premier luxury fragrance boutique. Shop 100% authentic perfume testers and designer fragrances in MAD. Express 24/48h delivery across Morocco and Cash on Delivery.";
+  }
 
   return {
     title: { absolute: title },
@@ -20,6 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       languages: {
         'fr-MA': 'https://nayparfum.ma/fr',
         'ar-MA': 'https://nayparfum.ma/ar',
+        'en-MA': 'https://nayparfum.ma/en',
         'x-default': 'https://nayparfum.ma/fr',
       },
     },

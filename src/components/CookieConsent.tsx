@@ -63,6 +63,26 @@ export default function CookieConsent() {
 
   if (pathname?.includes('/invoice')) return null;
 
+  const locale = pathname?.split('/')[1] || 'fr';
+  const isArabic = locale === 'ar';
+  const isEnglish = locale === 'en';
+
+  const titleText = isArabic 
+    ? "احترام خصوصيتكم 🍪" 
+    : isEnglish 
+    ? "Privacy & Cookie Policy 🍪" 
+    : "Respect de votre vie privée 🍪";
+
+  const descText = isArabic 
+    ? "نستخدم ملفات تعريف الارتباط لحفظ سلة التسوق الخاصة بكم، وتذكر تفضيلاتكم، وتحسين تجربة تسوقكم في متجرنا." 
+    : isEnglish 
+    ? "We use cookies to maintain your shopping cart, remember your preferences, and enhance your shopping experience." 
+    : "Nous utilisons des cookies pour sauvegarder votre panier, mémoriser vos préférences et analyser notre trafic afin de vous offrir la meilleure expérience possible sur notre boutique.";
+
+  const declineText = isArabic ? "رفض" : isEnglish ? "Decline" : "Refuser";
+  const acceptText = isArabic ? "قبول" : isEnglish ? "Accept" : "Accepter";
+  const ariaRegion = isArabic ? "الموافقة على ملفات تعريف الارتباط" : isEnglish ? "Cookie consent" : "Consentement aux cookies";
+
   return (
     <AnimatePresence>
       {showBanner && (
@@ -73,28 +93,28 @@ export default function CookieConsent() {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="fixed bottom-0 left-0 right-0 z-[100] p-4 pointer-events-none print:hidden"
           role="region"
-          aria-label="Consentement aux cookies"
+          aria-label={ariaRegion}
         >
           <div className="max-w-4xl mx-auto bg-[#111111]/95 backdrop-blur-md text-white p-6 rounded-2xl shadow-2xl pointer-events-auto border border-white/20 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-sm leading-relaxed text-gray-200 text-center md:text-left">
-              <span className="font-bold text-white text-base block mb-1">Respect de votre vie privée 🍪</span>
-              Nous utilisons des cookies pour sauvegarder votre panier, mémoriser vos préférences et analyser notre trafic afin de vous offrir la meilleure expérience possible sur notre boutique.
+            <div className="text-sm leading-relaxed text-gray-200 text-center md:text-left rtl:md:text-right">
+              <span className="font-bold text-white text-base block mb-1">{titleText}</span>
+              {descText}
             </div>
             
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button
                 onClick={declineCookies}
-                aria-label="Refuser les cookies"
+                aria-label={declineText}
                 className="flex-1 md:flex-none text-[11px] font-bold tracking-[0.1em] uppercase border border-white/40 text-gray-200 hover:text-white hover:border-white px-6 py-3 rounded-full transition-all"
               >
-                Refuser
+                {declineText}
               </button>
               <button
                 onClick={acceptCookies}
-                aria-label="Accepter les cookies"
+                aria-label={acceptText}
                 className="flex-1 md:flex-none text-[11px] font-bold tracking-[0.1em] uppercase bg-white text-black px-6 py-3 rounded-full hover:bg-[#0ea5e9] hover:text-white border border-transparent transition-all"
               >
-                Accepter
+                {acceptText}
               </button>
             </div>
           </div>

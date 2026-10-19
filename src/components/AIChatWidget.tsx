@@ -33,11 +33,22 @@ export default function AIChatWidget() {
     }
   }, []);
 
+  const locale = pathname?.split('/')[1] || 'fr';
+  const isArabic = locale === 'ar';
+  const isEnglish = locale === 'en';
+
+  const welcomeContent = isArabic
+    ? "مرحباً بكم في ناي بارفان. أنا مستشاركم العطري الذكي. ما نوع العطر الذي تبحثون عنه اليوم؟"
+    : isEnglish
+    ? "Hello and welcome to NAY Parfums. I am your virtual fragrance advisor. What kind of fragrance are you looking for today?"
+    : "Bonjour et bienvenue chez NAY Parfums. Je suis votre Conseiller virtuel. Quel type de parfum recherchez-vous aujourd'hui ?";
+
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/chat',
     body: {
       conversationId,
       sessionId,
+      locale,
     },
     onResponse: (res) => {
       const headerConvId = res.headers.get('x-conversation-id');
@@ -52,7 +63,7 @@ export default function AIChatWidget() {
       {
         id: 'welcome',
         role: 'assistant',
-        content: "Bonjour et bienvenue chez NAY Parfums. Je suis votre Conseiller virtuel. Quel type de parfum recherchez-vous aujourd'hui ?",
+        content: welcomeContent,
       }
     ],
     onFinish: () => {
@@ -92,7 +103,7 @@ export default function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-[165px] right-4 sm:right-6 w-[380px] max-w-[calc(100vw-2rem)] h-[550px] max-h-[calc(100vh-6rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col z-[100] overflow-hidden print:hidden"
+            className="fixed bottom-[165px] right-4 sm:right-6 rtl:right-auto rtl:left-4 rtl:sm:left-6 w-[380px] max-w-[calc(100vw-2rem)] h-[550px] max-h-[calc(100vh-6rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col z-[100] overflow-hidden print:hidden"
           >
             {/* Header */}
             <div className="bg-[#1A1A1A] text-white p-4 flex items-center justify-between">
@@ -110,12 +121,14 @@ export default function AIChatWidget() {
                     WebkitMaskPosition: 'center',
                   }}
                 />
-                <div className="font-semibold text-[14px]">Conseiller NAY</div>
+                <div className="font-semibold text-[14px]">
+                  {isArabic ? "مستشار ناي العطري" : isEnglish ? "NAY Fragrance Advisor" : "Conseiller NAY"}
+                </div>
               </div>
               <button 
                 onClick={toggleChat} 
                 className="text-gray-400 hover:text-white transition-colors"
-                aria-label="Fermer la fenêtre du conseiller virtuel"
+                aria-label={isArabic ? "إغلاق نافذة المستشار" : isEnglish ? "Close advisor" : "Fermer la fenêtre du conseiller virtuel"}
               >
                 <X size={20} />
               </button>
@@ -189,17 +202,17 @@ export default function AIChatWidget() {
                   type="text"
                   value={input}
                   onChange={handleInputChange}
-                  placeholder="Posez votre question..."
-                  aria-label="Message au conseiller virtuel"
+                  placeholder={isArabic ? "اطرح سؤالك هنا..." : isEnglish ? "Ask your question..." : "Posez votre question..."}
+                  aria-label={isArabic ? "رسالة إلى المستشار" : isEnglish ? "Message to advisor" : "Message au conseiller virtuel"}
                   className="flex-1 bg-transparent text-[13px] outline-none text-gray-700 py-2"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  aria-label="Envoyer le message"
+                  aria-label={isArabic ? "إرسال الرسالة" : isEnglish ? "Send message" : "Envoyer le message"}
                   className="w-8 h-8 flex items-center justify-center bg-[#1A1A1A] text-white rounded-full disabled:opacity-50 hover:bg-[#0ea5e9] transition-colors"
                 >
-                  <Send size={14} className="-ml-0.5" />
+                  <Send size={14} className="-ml-0.5 rtl:rotate-180" />
                 </button>
               </div>
             </form>
@@ -210,8 +223,14 @@ export default function AIChatWidget() {
       {/* Floating Button */}
       <button
         onClick={toggleChat}
-        aria-label={isOpen ? "Fermer le conseiller virtuel" : "Ouvrir le conseiller virtuel IA"}
-        className={`fixed bottom-[100px] right-4 sm:right-6 w-14 h-14 bg-[#1A1A1A] text-white rounded-full shadow-xl items-center justify-center hover:scale-105 hover:bg-[#0ea5e9] active:scale-95 transition-all z-50 border-2 border-white/10 print:hidden ${
+        aria-label={
+          isArabic
+            ? (isOpen ? "إغلاق المستشار العطري" : "فتح المستشار العطري الذكي")
+            : isEnglish
+            ? (isOpen ? "Close Fragrance Advisor" : "Open AI Fragrance Advisor")
+            : (isOpen ? "Fermer le conseiller virtuel" : "Ouvrir le conseiller virtuel IA")
+        }
+        className={`fixed bottom-[100px] right-4 sm:right-6 rtl:right-auto rtl:left-4 rtl:sm:left-6 w-14 h-14 bg-[#1A1A1A] text-white rounded-full shadow-xl items-center justify-center hover:scale-105 hover:bg-[#0ea5e9] active:scale-95 transition-all z-50 border-2 border-white/10 print:hidden ${
           isProductPage ? 'hidden lg:flex' : 'flex'
         }`}
       >

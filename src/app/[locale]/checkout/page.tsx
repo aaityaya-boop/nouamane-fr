@@ -343,24 +343,24 @@ export default function CheckoutPage() {
             <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">
               Commande sécurisée
             </span>
-            <h1 className="heading-font text-2xl sm:text-4xl lg:text-5xl mt-2 sm:mt-3 tracking-wide">
+            <h1 className="heading-font text-xl sm:text-3xl lg:text-5xl mt-2 sm:mt-3 tracking-wide">
               Finaliser votre commande
             </h1>
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="grid lg:grid-cols-[1fr_420px] gap-10 lg:gap-14"
+            className="grid lg:grid-cols-[1fr_420px] gap-8 lg:gap-14 min-w-0"
           >
             {/* ============ LEFT: FORM ============ */}
-            <div className="space-y-12">
+            <div className="space-y-8 sm:space-y-12 min-w-0">
               {/* --- 1. CONTACT --- */}
               <FormSection
                 number="01"
                 title="Informations de contact"
                 subtitle="Nous vous enverrons la confirmation par email."
               >
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4 min-w-0">
                   <TextField
                     label="Prénom"
                     value={form.firstName}
@@ -374,7 +374,7 @@ export default function CheckoutPage() {
                     required
                   />
                 </div>
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4 min-w-0">
                   <TextField
                     label="Email"
                     type="email"
@@ -407,8 +407,8 @@ export default function CheckoutPage() {
                   onChange={(v) => update('address', v)}
                   required
                 />
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
+                <div className="grid sm:grid-cols-2 gap-4 min-w-0">
+                  <div className="min-w-0">
                     <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A] mb-2 block">
                       Ville *
                     </label>
@@ -416,7 +416,7 @@ export default function CheckoutPage() {
                       value={form.city}
                       onChange={(e) => update('city', e.target.value)}
                       required
-                      className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[16px] md:text-[14px] bg-white border border-[#e0ddd4] focus:outline-none focus:border-[#0ea5e9]"
+                      className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[16px] md:text-[14px] bg-white focus:outline-none focus:border-[#0ea5e9]"
                     >
                       {MOROCCAN_CITIES.map((c) => (
                         <option key={c} value={c}>
@@ -432,7 +432,7 @@ export default function CheckoutPage() {
                   />
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A] mb-2 block">
                     Instructions de livraison (optionnel)
                   </label>
@@ -445,14 +445,14 @@ export default function CheckoutPage() {
                   />
                 </div>
 
-                <label className="flex items-center gap-3 cursor-pointer">
+                <label className="flex items-start sm:items-center gap-3 cursor-pointer min-w-0">
                   <input
                     type="checkbox"
                     checked={form.saveInfo}
                     onChange={(e) => update('saveInfo', e.target.checked)}
-                    className="w-4 h-4 accent-[#0ea5e9]"
+                    className="w-4 h-4 accent-[#0ea5e9] flex-shrink-0 mt-0.5 sm:mt-0"
                   />
-                  <span className="text-[13px] text-[#6B6B6B]">
+                  <span className="text-[12px] sm:text-[13px] text-[#6B6B6B] break-words">
                     Enregistrer mes informations pour la prochaine fois
                   </span>
                 </label>
@@ -482,63 +482,63 @@ export default function CheckoutPage() {
             </div>
 
             {/* ============ RIGHT: ORDER SUMMARY ============ */}
-            <aside>
-              <div className="lg:sticky lg:top-28 bg-white border border-[#e0ddd4] rounded-2xl border border-[#e0ddd4] p-6 lg:p-8 shadow-sm">
-                <h3 className="heading-font text-xl tracking-wide mb-6">
+            <aside className="min-w-0">
+              <div className="lg:sticky lg:top-28 bg-white border border-[#e0ddd4] rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm min-w-0">
+                <h3 className="heading-font text-lg sm:text-xl tracking-wide mb-4 sm:mb-6">
                   Votre commande
                 </h3>
 
-                <div className="space-y-4 pb-6 border-b border-[#e0ddd4] max-h-72 overflow-auto">
+                <div className="space-y-3 sm:space-y-4 pb-4 sm:pb-6 border-b border-[#e0ddd4] max-h-72 overflow-auto min-w-0">
                   {cart.map((item) => (
                     <div
                       key={`${item.id}-${item.size}`}
-                      className="flex gap-3 items-start"
+                      className="flex gap-2.5 sm:gap-3 items-start min-w-0"
                     >
-                      <div className="relative w-14 h-16 bg-transparent rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="relative w-12 h-14 sm:w-14 sm:h-16 bg-transparent rounded-lg overflow-hidden flex-shrink-0">
                         <Image src={item.image} alt={item.name} fill className="object-cover" />
                         <span className="absolute -top-1.5 -right-1.5 bg-[#f8fafc] text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">
                           {item.quantity}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="heading-font text-[15px] text-[#1A1A1A] truncate">
+                        <div className="heading-font text-[13px] sm:text-[15px] text-[#1A1A1A] truncate">
                           {item.name}
                         </div>
                         <div className="text-[10px] tracking-[0.1em] uppercase text-[#9A9A9A]">
                           {item.size}
                         </div>
                       </div>
-                      <div className="text-[13px] font-medium text-[#1A1A1A]">
+                      <div className="text-[12px] sm:text-[13px] font-medium text-[#1A1A1A] flex-shrink-0">
                         {formatMAD(item.price * item.quantity)}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-2.5 py-6 border-b border-[#e0ddd4]">
+                <div className="space-y-2.5 py-4 sm:py-6 border-b border-[#e0ddd4] min-w-0">
                   {/* Promo Code Input */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-1.5">
+                  <div className="mb-4 min-w-0">
+                    <div className="flex items-center justify-between gap-1.5 mb-1.5 min-w-0 flex-wrap">
                       <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
                         Code promo
                       </span>
-                      <span className="text-[10px] text-sky-600 font-medium normal-case flex items-center gap-1 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+                      <span className="text-[10px] text-sky-600 font-medium normal-case flex items-center gap-1 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100 flex-shrink-0">
                         <Lock size={10} /> Compte membre requis
                       </span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 min-w-0">
                       <input 
                         type="text" 
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                         placeholder="Code promo" 
-                        className="flex-1 border border-[#e0ddd4] rounded-lg px-4 py-2.5 text-[16px] md:text-[13px] bg-white focus:outline-none focus:border-[#0ea5e9] uppercase"
+                        className="flex-1 min-w-0 border border-[#e0ddd4] rounded-lg px-3 sm:px-4 py-2.5 text-[16px] md:text-[13px] bg-white focus:outline-none focus:border-[#0ea5e9] uppercase"
                       />
                       <button 
                         type="button" 
                         onClick={() => handleApplyPromo()}
                         disabled={isApplyingPromo || !promoInput.trim()}
-                        className="bg-[#1A1A1A] text-white px-5 rounded-lg text-[11px] font-bold tracking-[0.1em] uppercase hover:bg-black transition-colors disabled:opacity-50"
+                        className="bg-[#1A1A1A] text-white px-3.5 sm:px-5 rounded-lg text-[11px] font-bold tracking-[0.1em] uppercase hover:bg-black transition-colors disabled:opacity-50 flex-shrink-0"
                       >
                         {isApplyingPromo ? '...' : 'Appliquer'}
                       </button>
@@ -691,20 +691,20 @@ function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <section>
-      <div className="flex items-start gap-4 mb-6">
-        <span className="heading-font text-3xl text-[#0ea5e9]/40 leading-none">
+    <section className="min-w-0">
+      <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6 min-w-0">
+        <span className="heading-font text-2xl sm:text-3xl text-[#0ea5e9]/40 leading-none flex-shrink-0 mt-0.5">
           {number}
         </span>
-        <div>
-          <h2 className="heading-font text-2xl tracking-wide flex items-center gap-3">
-            {icon && <span className="text-[#0ea5e9]">{icon}</span>}
-            {title}
+        <div className="min-w-0 flex-1">
+          <h2 className="heading-font text-lg sm:text-xl lg:text-2xl tracking-wide flex items-center gap-2 sm:gap-3 flex-wrap min-w-0">
+            {icon && <span className="text-[#0ea5e9] flex-shrink-0">{icon}</span>}
+            <span className="break-words">{title}</span>
           </h2>
-          <p className="text-[13px] text-[#9A9A9A] mt-1">{subtitle}</p>
+          <p className="text-[12px] sm:text-[13px] text-[#9A9A9A] mt-1 break-words">{subtitle}</p>
         </div>
       </div>
-      <div className="space-y-4 ml-0 lg:ml-12">{children}</div>
+      <div className="space-y-4 ml-0 lg:ml-12 min-w-0">{children}</div>
     </section>
   );
 }
@@ -725,7 +725,7 @@ function TextField({
   required?: boolean;
 }) {
   return (
-    <div>
+    <div className="min-w-0">
       <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A] mb-2 block">
         {label} {required && '*'}
       </label>
@@ -735,7 +735,7 @@ function TextField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required={required}
-        className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[16px] md:text-[14px] focus:outline-none focus:border-[#0ea5e9] transition-colors bg-white border border-[#e0ddd4]"
+        className="w-full border border-[#e0ddd4] rounded-lg px-4 py-3 text-[16px] md:text-[14px] focus:outline-none focus:border-[#0ea5e9] transition-colors bg-white"
       />
     </div>
   );
@@ -760,14 +760,14 @@ function PaymentOption({
     <button
       type="button"
       onClick={onClick}
-      className={`text-left flex items-center gap-4 p-5 rounded-xl border-2 transition-all ${
+      className={`text-left flex items-start sm:items-center gap-3 sm:gap-4 p-3.5 sm:p-5 rounded-xl border-2 transition-all w-full min-w-0 ${
         selected
           ? 'border-[#0ea5e9] bg-transparent/40'
-          : 'border-[#e0ddd4] hover:border-[#0ea5e9]/50 bg-white border border-[#e0ddd4]'
+          : 'border-[#e0ddd4] hover:border-[#0ea5e9]/50 bg-white'
       }`}
     >
       <div
-        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0 ${
           selected ? 'border-[#0ea5e9]' : 'border-[#e0ddd4]'
         }`}
       >
@@ -775,19 +775,19 @@ function PaymentOption({
           <div className="w-2.5 h-2.5 rounded-full bg-[#0ea5e9]" />
         )}
       </div>
-      <div className={selected ? 'text-[#0ea5e9]' : 'text-[#6B6B6B]'}>
+      <div className={`flex-shrink-0 mt-0.5 sm:mt-0 ${selected ? 'text-[#0ea5e9]' : 'text-[#6B6B6B]'}`}>
         {icon}
       </div>
-      <div className="flex-1">
-        <div className="text-[14px] font-semibold text-[#1A1A1A] flex items-center gap-2">
-          {title}
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] sm:text-[14px] font-semibold text-[#1A1A1A] flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="break-words">{title}</span>
           {badge && (
-            <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-[#0ea5e9] text-white px-2 py-0.5 rounded-full">
+            <span className="text-[9px] font-bold tracking-[0.15em] uppercase bg-[#0ea5e9] text-white px-2 py-0.5 rounded-full flex-shrink-0">
               {badge}
             </span>
           )}
         </div>
-        <div className="text-[12px] text-[#9A9A9A]">{subtitle}</div>
+        <div className="text-[11px] sm:text-[12px] text-[#9A9A9A] mt-0.5 break-words">{subtitle}</div>
       </div>
     </button>
   );

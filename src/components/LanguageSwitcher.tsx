@@ -25,8 +25,10 @@ export default function LanguageSwitcher() {
     setIsOpen(false);
     if (newLocale === currentLocale) return;
 
-    const newPathname = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
-    router.push(newPathname || `/${newLocale}`);
+    const regex = new RegExp(`^/${currentLocale}(/|$)`);
+    const newPath = pathname.replace(regex, `/${newLocale}$1`);
+    const search = typeof window !== 'undefined' ? window.location.search : '';
+    router.push(`${newPath || `/${newLocale}`}${search}`);
   };
 
   return (

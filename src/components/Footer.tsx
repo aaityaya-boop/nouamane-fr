@@ -93,7 +93,7 @@ export default function Footer() {
               )}
               {!config.instagramUrl && !config.facebookUrl && !config.tiktokUrl && !config.whatsappUrl && (
                 <div className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#1A1A1A]/50">
-                  Réseaux sociaux bientôt disponibles
+                  {dict.footer.socialSoon}
                 </div>
               )}
             </div>
@@ -108,27 +108,27 @@ export default function Footer() {
               <li>
                 <Link href={`/${locale}/testeurs`} className="text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors inline-flex items-center gap-1.5">
                   <Sparkles size={13} className="text-[#0ea5e9]" />
-                  <span>Testeurs de Luxe</span>
+                  <span>{dict.footer.testers}</span>
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/parfums-originaux`} className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors">
-                  Parfums Originaux
+                  {dict.footer.sealedPerfumes}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/parfums-orientaux`} className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors">
-                  Parfums Orientaux
+                  {dict.footer.orientalPerfumes}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/coffrets`} className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors">
-                  Coffrets Cadeaux
+                  {dict.footer.giftSets}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/master-copier`} className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors">
-                  Master Copy
+                  {dict.footer.masterCopy}
                 </Link>
               </li>
               <li>
@@ -157,7 +157,7 @@ export default function Footer() {
               ))}
               <li>
                 <Link href={`/${locale}/shop`} className="text-[11px] font-bold tracking-wider text-[#0ea5e9] hover:text-[#0284c7] transition-colors uppercase mt-2 inline-block">
-                  + Voir toutes
+                  {dict.footer.viewAll}
                 </Link>
               </li>
             </ul>
@@ -185,7 +185,7 @@ export default function Footer() {
                   const data = await res.json();
                   if (res.ok) {
                     setStatus('success');
-                    setMessage(data.message || 'Inscription réussie ! Votre e-mail avec -10% vous a été envoyé.');
+                    setMessage(data.message || dict.footer.newsletterSuccess);
                     setEmail('');
                   } else {
                     setStatus('error');
@@ -205,7 +205,7 @@ export default function Footer() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="VOTRE EMAIL"
+                  placeholder={dict.footer.emailPlaceholder}
                   className="flex-1 bg-transparent text-[#1A1A1A] text-[11px] tracking-[0.15em] placeholder:text-[#1A1A1A]/50 focus:outline-none"
                   disabled={status === 'loading'}
                 />
@@ -214,8 +214,8 @@ export default function Footer() {
                   disabled={status === 'loading'}
                   className="text-[#0ea5e9] text-[10px] font-bold tracking-[0.2em] uppercase hover:text-[#0284c7] transition-colors disabled:opacity-50 inline-flex items-center gap-1"
                 >
-                  <span>{status === 'loading' ? 'Envoi...' : "S'inscrire"}</span>
-                  <ArrowRight size={12} />
+                  <span>{status === 'loading' ? dict.footer.sending : dict.footer.subscribe}</span>
+                  <ArrowRight size={12} className="rtl:rotate-180" />
                 </button>
               </div>
               {message && (
@@ -227,17 +227,17 @@ export default function Footer() {
             </form>
 
             <div className="mt-10 flex flex-wrap gap-x-5 gap-y-3 text-[10px] tracking-[0.15em] text-[#1A1A1A]/50 uppercase">
-              <Link href={`/${locale}/blog`} className="hover:text-[#1A1A1A]/70 font-bold transition-colors">Journal & Blog</Link>
-              <Link href={`/${locale}/legal/terms`} className="hover:text-[#1A1A1A]/70 transition-colors">Conditions</Link>
-              <Link href={`/${locale}/legal/privacy`} className="hover:text-[#1A1A1A]/70 transition-colors">Confidentialité</Link>
-              <Link href={`/${locale}/contact`} className="hover:text-[#1A1A1A]/70 transition-colors">Contact</Link>
-              <Link href={`/${locale}/suivi-commande`} className="hover:text-[#1A1A1A]/70 transition-colors">Suivi de commande</Link>
-              <Link href={`/${locale}/legal/returns`} className="hover:text-[#1A1A1A]/70 transition-colors">Retours</Link>
-              <Link href={`/${locale}/faq`} className="hover:text-[#1A1A1A]/70 transition-colors">FAQ</Link>
+              <Link href={`/${locale}/blog`} className="hover:text-[#1A1A1A]/70 font-bold transition-colors">{dict.footer.blog}</Link>
+              <Link href={`/${locale}/legal/terms`} className="hover:text-[#1A1A1A]/70 transition-colors">{dict.footer.terms}</Link>
+              <Link href={`/${locale}/legal/privacy`} className="hover:text-[#1A1A1A]/70 transition-colors">{dict.footer.privacy}</Link>
+              <Link href={`/${locale}/contact`} className="hover:text-[#1A1A1A]/70 transition-colors">{dict.footer.contact}</Link>
+              <Link href={`/${locale}/suivi-commande`} className="hover:text-[#1A1A1A]/70 transition-colors">{dict.footer.orderTracking}</Link>
+              <Link href={`/${locale}/legal/returns`} className="hover:text-[#1A1A1A]/70 transition-colors">{dict.footer.returns}</Link>
+              <Link href={`/${locale}/faq`} className="hover:text-[#1A1A1A]/70 transition-colors">{dict.footer.faq}</Link>
             </div>
 
             <div className="mt-4 text-[10px] text-[#1A1A1A]/40">
-              © {new Date().getFullYear()} NAY Parfums. Revendeur autorisé au Maroc.
+              © {new Date().getFullYear()} NAY Parfums. {dict.footer.copyright}
             </div>
           </div>
         </div>

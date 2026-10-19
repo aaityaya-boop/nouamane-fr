@@ -85,7 +85,39 @@ export default function WelcomePopup() {
     }
   };
 
-  if (!isOpen || pathname?.includes('/invoice')) return null;
+  const locale = pathname?.split('/')[1] || 'fr';
+  const isArabic = locale === 'ar';
+  const isEnglish = locale === 'en';
+
+  const t = {
+    title: isArabic ? "عرض الترحيب" : isEnglish ? "Welcome Offer" : "Offre de Bienvenue",
+    subtitle: isArabic
+      ? "اشترك في نشرتنا الإخبارية واحصل على خصم 10% على طلبك الأول من العطور الأصلية."
+      : isEnglish
+      ? "Subscribe to our newsletter and get 10% off your first order of authentic fragrances."
+      : "Inscrivez-vous à notre newsletter et recevez 10% de réduction sur votre première commande de parfums authentiques.",
+    placeholder: isArabic ? "بريدك الإلكتروني" : isEnglish ? "Your email address" : "Votre adresse e-mail",
+    success: isArabic
+      ? "شكراً لاشتراكك! سيصلك كود الخصم عبر بريدك الإلكتروني."
+      : isEnglish
+      ? "Thank you for subscribing! Your promo code has been sent to your email."
+      : "Merci pour votre inscription ! Votre code promo vous sera envoyé par e-mail.",
+    exists: isArabic
+      ? "هذا البريد مسجل بالفعل في نشرتنا."
+      : isEnglish
+      ? "This email is already subscribed to our newsletter."
+      : "Cette adresse est déjà inscrite à notre newsletter.",
+    error: isArabic
+      ? "حدث خطأ ما. يرجى إعادة المحاولة."
+      : isEnglish
+      ? "An error occurred. Please try again."
+      : "Une erreur est survenue. Veuillez réessayer.",
+    loading: isArabic ? "جاري التسجيل..." : isEnglish ? "Subscribing..." : "Inscription en cours...",
+    button: isArabic ? "احصل على خصم 10%" : isEnglish ? "Claim My 10% Off" : "Obtenir mes -10%",
+    or: isArabic ? "أو يمكنك " : isEnglish ? "Or if you prefer, " : "Ou si vous préférez, ",
+    createAccount: isArabic ? "إنشاء حساب كامل" : isEnglish ? "create a full account" : "créer un compte complet",
+    close: isArabic ? "إغلاق" : isEnglish ? "Close" : "Fermer"
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 print:hidden">
@@ -94,8 +126,8 @@ export default function WelcomePopup() {
         {/* Close Button */}
         <button 
           onClick={closePopup}
-          className="absolute top-4 right-4 z-10 p-2 bg-black/5 hover:bg-black/10 rounded-full transition-colors"
-          aria-label="Fermer"
+          className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-10 p-2 bg-black/5 hover:bg-black/10 rounded-full transition-colors"
+          aria-label={t.close}
         >
           <X className="w-5 h-5 text-gray-700" />
         </button>
@@ -104,7 +136,7 @@ export default function WelcomePopup() {
         <div className="h-48 bg-[#fafaf7] flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-gray-100 to-transparent"></div>
           <div className="relative z-10 text-center">
-            <h2 className="heading-font text-3xl font-bold text-gray-900 tracking-widest uppercase">Offre de Bienvenue</h2>
+            <h2 className="heading-font text-3xl font-bold text-gray-900 tracking-widest uppercase">{t.title}</h2>
             <div className="mt-2 text-[#0ea5e9] font-black text-5xl">-10%</div>
           </div>
         </div>
@@ -112,12 +144,12 @@ export default function WelcomePopup() {
         {/* Content */}
         <div className="p-8 pt-6">
           <p className="text-center text-gray-600 mb-6 text-sm">
-            Inscrivez-vous à notre newsletter et recevez 10% de réduction sur votre première commande de parfums authentiques.
+            {t.subtitle}
           </p>
           
           {status === "success" ? (
             <div className="bg-green-50 text-green-700 p-4 rounded-xl text-center font-medium animate-in fade-in zoom-in-95">
-              Merci pour votre inscription ! Votre code promo vous sera envoyé par e-mail.
+              {t.success}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -125,16 +157,16 @@ export default function WelcomePopup() {
                 <input
                   type="email"
                   required
-                  placeholder="Votre adresse e-mail"
+                  placeholder={t.placeholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0ea5e9] focus:bg-white transition-all text-sm"
                 />
                 {status === "exists" && (
-                  <p className="text-amber-600 text-xs mt-2 text-center">Cette adresse est déjà inscrite à notre newsletter.</p>
+                  <p className="text-amber-600 text-xs mt-2 text-center">{t.exists}</p>
                 )}
                 {status === "error" && (
-                  <p className="text-red-500 text-xs mt-2 text-center">Une erreur est survenue. Veuillez réessayer.</p>
+                  <p className="text-red-500 text-xs mt-2 text-center">{t.error}</p>
                 )}
               </div>
               <button
@@ -142,15 +174,15 @@ export default function WelcomePopup() {
                 disabled={status === "loading"}
                 className="w-full py-3 px-4 bg-gray-900 hover:bg-black text-white rounded-xl font-semibold transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl"
               >
-                {status === "loading" ? "Inscription en cours..." : "Obtenir mes -10%"}
+                {status === "loading" ? t.loading : t.button}
               </button>
             </form>
           )}
 
           <div className="mt-6 text-center">
-            <span className="text-gray-500 text-xs">Ou si vous préférez, </span>
-            <Link href="/account" onClick={closePopup} className="text-[#0ea5e9] hover:underline text-xs font-semibold">
-              créer un compte complet
+            <span className="text-gray-500 text-xs">{t.or}</span>
+            <Link href={`/${locale}/account`} onClick={closePopup} className="text-[#0ea5e9] hover:underline text-xs font-semibold">
+              {t.createAccount}
             </Link>
           </div>
         </div>

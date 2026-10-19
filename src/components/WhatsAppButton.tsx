@@ -27,11 +27,25 @@ export default function WhatsAppButton() {
     return () => clearTimeout(timer);
   }, []);
 
+  const locale = pathname?.split('/')[1] || 'fr';
+  const isArabic = locale === 'ar';
+  const isEnglish = locale === 'en';
+
   const getSmartUrl = () => {
     if (!mounted) return url;
     let text = "Bonjour, j'ai besoin de conseils.";
-    if (isProductPage) {
-      text = `Bonjour, je suis intéressé(e) par ce parfum : ${window.location.href}`;
+    if (isArabic) {
+      text = isProductPage
+        ? `مرحباً، أود الاستفسار بخصوص هذا العطر: ${window.location.href}`
+        : "مرحباً، أود الاستفسار والحصول على استشارة عطرية.";
+    } else if (isEnglish) {
+      text = isProductPage
+        ? `Hello, I'm interested in this fragrance: ${window.location.href}`
+        : "Hello, I would like some advice.";
+    } else {
+      text = isProductPage
+        ? `Bonjour, je suis intéressé(e) par ce parfum : ${window.location.href}`
+        : "Bonjour, j'ai besoin de conseils.";
     }
     const baseUrl = url.includes('?') ? url : `${url}?`;
     return `${baseUrl}&text=${encodeURIComponent(text)}`;
@@ -42,17 +56,20 @@ export default function WhatsAppButton() {
   if (isProductPage || isInvoicePage) return null;
   if (!mounted) return null; // Avoid rendering until mounted to prevent hydration mismatches on styles/href
 
+  const helpText = isArabic ? "هل تحتاج لمساعدة؟" : isEnglish ? "Need help?" : "Besoin d'aide ?";
+  const ariaText = isArabic ? "تواصل معنا عبر واتساب" : isEnglish ? "Contact us on WhatsApp" : "Contactez-nous sur WhatsApp";
+
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center justify-end print:hidden">
+    <div className="fixed bottom-6 right-6 rtl:right-auto rtl:left-6 z-50 flex items-center justify-end rtl:justify-start print:hidden">
       <AnimatePresence>
         {isHovered && (
           <motion.div
             initial={{ opacity: 0, x: 10, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 10, scale: 0.9 }}
-            className="mr-4 bg-white text-[#1A1A1A] text-[12px] font-semibold tracking-wide px-5 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#e0ddd4] whitespace-nowrap"
+            className="mr-4 rtl:mr-0 rtl:ml-4 bg-white text-[#1A1A1A] text-[12px] font-semibold tracking-wide px-5 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#e0ddd4] whitespace-nowrap"
           >
-            Besoin d'aide ?
+            {helpText}
           </motion.div>
         )}
       </AnimatePresence>
@@ -69,7 +86,7 @@ export default function WhatsAppButton() {
         initial={{ opacity: 0, scale: 0.5 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.5 }}
-        aria-label="Contactez-nous sur WhatsApp"
+        aria-label={ariaText}
       >
         {/* Subtle Pulse Ring */}
         <motion.div

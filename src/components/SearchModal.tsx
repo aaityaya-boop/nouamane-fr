@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Product } from '@/lib/products';
+import { useDictionary } from '@/context/DictionaryContext';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
+  const dict = useDictionary();
 
   useEffect(() => {
     if (isOpen) {
@@ -70,7 +72,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
           transition={{ duration: 0.5 }}
           className="fixed inset-0 z-[100] bg-white/95 overflow-y-auto"
         >
-          <div className="absolute top-8 right-8">
+          <div className="absolute top-8 right-8 rtl:right-auto rtl:left-8">
             <button
               onClick={onClose}
               className="p-3 bg-[#eeece5] hover:bg-[#e0ddd4] text-[#1A1A1A] rounded-full transition-colors backdrop-blur-md"
@@ -81,24 +83,28 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
           <div className="max-w-5xl mx-auto px-6 pt-32 pb-20">
             <div className="relative">
-              <SearchIcon size={40} className="absolute left-0 top-1/2 -translate-y-1/2 text-[#9A9A9A]" />
+              <SearchIcon size={40} className="absolute left-0 rtl:left-auto rtl:right-0 top-1/2 -translate-y-1/2 text-[#9A9A9A]" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Explorer notre collection..."
-                className="w-full bg-transparent border-b border-[#e0ddd4] focus:border-[#1A1A1A] text-4xl md:text-6xl heading-font text-[#1A1A1A] placeholder:text-[#1A1A1A]/20 pl-16 md:pl-20 pb-6 outline-none transition-colors"
+                placeholder={dict.searchModal?.placeholder || "Explorer notre collection..."}
+                className="w-full bg-transparent border-b border-[#e0ddd4] focus:border-[#1A1A1A] text-4xl md:text-6xl heading-font text-[#1A1A1A] placeholder:text-[#1A1A1A]/20 pl-16 md:pl-20 rtl:pl-0 rtl:pr-16 rtl:md:pr-20 pb-6 outline-none transition-colors"
               />
             </div>
 
             <div className="mt-16">
               {isLoading && (
-                <div className="text-[14px] text-[#9A9A9A] animate-pulse">Chargement de la collection...</div>
+                <div className="text-[14px] text-[#9A9A9A] animate-pulse">
+                  {dict.searchModal?.loading || "Chargement de la collection..."}
+                </div>
               )}
               
               {!isLoading && query.length > 0 && results.length === 0 && (
-                <div className="text-[18px] text-[#6B6B6B]">Aucune fragrance trouvée pour "{query}".</div>
+                <div className="text-[18px] text-[#6B6B6B]">
+                  {dict.searchModal?.noResults || "Aucune fragrance trouvée pour"} "{query}".
+                </div>
               )}
 
               {!isLoading && results.length > 0 && (
@@ -141,7 +147,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       </div>
 
                       {/* Arrow indicator */}
-                      <div className="hidden sm:flex w-8 h-8 rounded-full border border-[#e0ddd4] items-center justify-center text-[#9A9A9A] group-hover:bg-[#0ea5e9] group-hover:text-white group-hover:border-[#0ea5e9] transition-all flex-shrink-0">
+                      <div className="hidden sm:flex w-8 h-8 rounded-full border border-[#e0ddd4] items-center justify-center text-[#9A9A9A] group-hover:bg-[#0ea5e9] group-hover:text-white group-hover:border-[#0ea5e9] transition-all flex-shrink-0 rtl:rotate-180">
                         <ArrowRight size={14} />
                       </div>
                     </Link>

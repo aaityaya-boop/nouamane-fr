@@ -5,9 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
+import { useDictionary } from '@/context/DictionaryContext';
+
 export default function SplitTypographyHero({ config }: { config?: any }) {
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
+  const dict = useDictionary();
 
   return (
     <section 
@@ -60,28 +63,35 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
         {/* Eyebrow */}
         <div className="flex flex-col items-center gap-5 mb-8">
           <span className="text-[9px] sm:text-[10px] font-semibold tracking-[0.6em] uppercase text-[#111]/50">
-            L'Art de la Parfumerie
+            {dict.hero?.eyebrow || "L'Art de la Parfumerie"}
           </span>
           <span className="w-[1px] h-10 bg-gradient-to-b from-[#111]/20 to-transparent" />
         </div>
 
         {/* Main Headline with Split Editorial Typography */}
         <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[120px] xl:text-[140px] leading-[1] tracking-[-0.02em] mb-10 flex flex-col items-center justify-center w-full">
-          <div className="font-light text-[#111] pr-0 sm:pr-12 md:pr-24 self-center md:self-end text-center md:text-right mix-blend-darken relative">
-            L'Empreinte
+          <div className="font-light text-[#111] pr-0 sm:pr-12 md:pr-24 rtl:pr-0 rtl:sm:pl-12 rtl:md:pl-24 self-center md:self-end rtl:md:self-start text-center md:text-right rtl:md:text-left mix-blend-darken relative">
+            {dict.hero?.titleFirst || "L'Empreinte"}
           </div>
-          <div className="flex items-center gap-4 sm:gap-6 pl-0 sm:pl-12 md:pl-24 self-center md:self-start mt-2 sm:mt-0 mix-blend-darken relative">
-            <span className="font-serif italic font-light text-[#0ea5e9] text-5xl sm:text-7xl md:text-8xl lg:text-[130px] xl:text-[150px] drop-shadow-sm">&</span>
-            <span className="font-serif italic font-light text-[#111]">l'Inoubliable</span>
+          <div className="flex items-center gap-4 sm:gap-6 pl-0 sm:pl-12 md:pl-24 rtl:pl-0 rtl:sm:pr-12 rtl:md:pr-24 self-center md:self-start rtl:md:self-end mt-2 sm:mt-0 mix-blend-darken relative">
+            <span className="font-serif italic font-light text-[#0ea5e9] text-5xl sm:text-7xl md:text-8xl lg:text-[130px] xl:text-[150px] drop-shadow-sm">{dict.hero?.titleAnd || '&'}</span>
+            <span className="font-serif italic font-light text-[#111]">{dict.hero?.titleSecond || "l'Inoubliable"}</span>
           </div>
         </h1>
 
         {/* Sub-headline */}
-        <p
-          className="text-[11px] sm:text-[13px] md:text-[14px] text-[#555] font-light max-w-2xl mx-auto leading-[2.2] tracking-[0.2em] uppercase mb-16"
-        >
-          Découvrez notre sélection de <span className="font-semibold text-[#111]">parfums prestigieux</span>. L'essence du luxe, de l'authenticité et de l'exception.
-        </p>
+        {dict.hero?.subtitle ? (
+          <p
+            className="text-[11px] sm:text-[13px] md:text-[14px] text-[#555] font-light max-w-2xl mx-auto leading-[2.2] tracking-[0.2em] uppercase mb-16"
+            dangerouslySetInnerHTML={{ __html: dict.hero.subtitle }}
+          />
+        ) : (
+          <p
+            className="text-[11px] sm:text-[13px] md:text-[14px] text-[#555] font-light max-w-2xl mx-auto leading-[2.2] tracking-[0.2em] uppercase mb-16"
+          >
+            Découvrez notre sélection de <span className="font-semibold text-[#111]">parfums prestigieux</span>. L'essence du luxe, de l'authenticité et de l'exception.
+          </p>
+        )}
         
         {/* Call to Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
@@ -92,7 +102,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
           >
             <div className="absolute inset-0 bg-[#111] transform scale-y-0 origin-bottom transition-transform duration-700 ease-[0.16,1,0.3,1] group-hover:scale-y-100" />
             <span className="relative z-10 text-[10px] font-semibold tracking-[0.4em] uppercase text-[#111] transition-colors duration-500 group-hover:text-white">
-              Découvrir
+              {dict.hero?.cta || "Découvrir"}
             </span>
           </Link>
         </div>
@@ -104,7 +114,7 @@ export default function SplitTypographyHero({ config }: { config?: any }) {
         onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}
       >
         <span className="text-[8px] font-semibold tracking-[0.5em] uppercase text-[#111]/40">
-          Scroll
+          {dict.hero?.scroll || "Scroll"}
         </span>
         <div className="w-[1px] h-16 bg-gradient-to-b from-[#111]/20 to-transparent overflow-hidden relative">
           <div className="w-full h-1/2 bg-[#111]/50 animate-pulse" />

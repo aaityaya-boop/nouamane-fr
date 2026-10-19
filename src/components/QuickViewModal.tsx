@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { X, ShoppingBag, Star, ChevronRight } from 'lucide-react';
 import { formatMAD, type Product, isProductInStock } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
+import { useDictionary } from '@/context/DictionaryContext';
 
 type QuickViewModalProps = {
   product: Product | null;
@@ -16,6 +17,7 @@ type QuickViewModalProps = {
 };
 
 export default function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps) {
+  const dict = useDictionary();
   const { addToCart } = useCart();
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
@@ -53,7 +55,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 z-20 w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-colors border border-[#e0ddd4]"
+              className="absolute top-6 right-6 rtl:right-auto rtl:left-6 z-20 w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-colors border border-[#e0ddd4]"
             >
               <X size={18} />
             </button>
@@ -67,14 +69,14 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                 className="object-cover"
               />
               {/* Brand Badge */}
-              <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
+              <div className="absolute top-6 left-6 rtl:left-auto rtl:right-6 z-10 flex flex-col gap-2">
                 <span className="text-[10px] font-bold tracking-[0.2em] uppercase bg-white/90 backdrop-blur-sm text-[#1A1A1A] px-4 py-2 rounded-full shadow-sm">
                   {product.brandLabel}
                 </span>
                 {!inStock && (
                   <span className="text-[10px] font-bold tracking-[0.15em] uppercase bg-white/95 text-red-600 border border-red-200 px-3.5 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                    Rupture de stock
+                    {dict.quickView?.outOfStock || dict.productCard?.outOfStock}
                   </span>
                 )}
               </div>
@@ -83,7 +85,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
             {/* Right: Info */}
             <div className="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col overflow-y-auto lux-scrollbar">
               <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9] mb-3">
-                Aperçu Rapide
+                {dict.quickView?.title || dict.productCard?.quickView}
               </span>
               <h2 className="heading-font text-3xl md:text-4xl text-[#1A1A1A] tracking-wide mb-2">
                 {product.name}
@@ -99,7 +101,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                     />
                   ))}
                 </div>
-                <span className="text-[12px] text-[#9A9A9A]">({product.reviewCount} avis)</span>
+                <span className="text-[12px] text-[#9A9A9A]">({product.reviewCount} {dict.quickView?.reviews || "avis"})</span>
               </div>
 
               <p className="text-[14px] text-[#555] leading-relaxed mb-8 line-clamp-3">
@@ -108,7 +110,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
 
               <div className="mb-8">
                 <span className="text-[10px] font-bold tracking-widest uppercase text-[#9A9A9A] block mb-3">
-                  Notes Principales
+                  {dict.quickView?.mainNotes || "Notes Principales"}
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {product.notes.top.slice(0, 4).map((n: string) => (
@@ -145,7 +147,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                       className="flex-1 bg-[#1A1A1A] text-white h-14 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#0ea5e9] transition-colors flex items-center justify-center gap-2"
                     >
                       <ShoppingBag size={16} />
-                      Commander maintenant
+                      {dict.quickView?.orderNow || "Commander maintenant"}
                     </button>
                   ) : (
                     <button
@@ -153,14 +155,15 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                       className="flex-1 bg-[#eeece5] text-red-600 border border-red-200 h-14 rounded-full text-[11px] font-bold tracking-widest uppercase cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                      Rupture de stock
+                      {dict.quickView?.outOfStock || dict.productCard?.outOfStock}
                     </button>
                   )}
                   <Link
                     href={`/${locale}/product/${product.slug}`}
                     className="flex-1 border border-[#1A1A1A] text-[#1A1A1A] h-14 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#f8fafc] transition-colors flex items-center justify-center gap-2"
                   >
-                    Voir Détails <ChevronRight size={16} />
+                    <span>{dict.quickView?.viewDetails || "Voir Détails"}</span>
+                    <ChevronRight size={16} className="rtl:rotate-180" />
                   </Link>
                 </div>
               </div>

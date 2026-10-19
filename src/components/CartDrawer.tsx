@@ -13,8 +13,10 @@ import { useCart, calculatePromoDiscount } from '@/context/CartContext';
 import Image from 'next/image';
 import { formatMAD } from '@/lib/products';
 import FreeGiftSelector from '@/components/FreeGiftSelector';
+import { useDictionary } from '@/context/DictionaryContext';
 
 export default function CartDrawer() {
+  const dict = useDictionary();
   const [isOpen, setIsOpen] = useState(false);
   const { cart, removeFromCart, updateQuantity, getSubtotal, shippingFee, appliedPromo, appliedDeal, dealDiscount } = useCart();
   const pathname = usePathname();
@@ -42,12 +44,12 @@ export default function CartDrawer() {
       <div className="relative w-full max-w-md bg-white border border-[#e0ddd4] h-full flex flex-col shadow-2xl">
         <div className="flex items-center justify-between px-5 sm:px-8 py-5 sm:py-7 border-b border-[#e0ddd4]">
           <h2 className="heading-font text-xl sm:text-2xl tracking-wider text-[#1A1A1A]">
-            Votre Panier
+            {dict.cartDrawer.title}
           </h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
-            aria-label="Fermer"
+            className="text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 rtl:-ml-2 rtl:mr-0"
+            aria-label={dict.cartDrawer.remove || "Fermer"}
           >
             <X size={22} strokeWidth={1.5} />
           </button>
@@ -59,18 +61,17 @@ export default function CartDrawer() {
               <span className="text-3xl">✦</span>
             </div>
             <div className="heading-font text-2xl text-[#1A1A1A] mb-3">
-              Votre panier est vide
+              {dict.cartDrawer.emptyTitle}
             </div>
             <p className="text-[13px] text-[#9A9A9A] max-w-[240px] leading-relaxed">
-              Découvrez notre collection exclusive de parfums de niche
-              marocains.
+              {dict.cartDrawer.emptyDesc}
             </p>
             <Link
               href={`/${locale}/shop`}
               onClick={() => setIsOpen(false)}
               className="mt-10 btn-outline-blue px-10 py-4 text-[11px] rounded-full inline-block"
             >
-              Voir la boutique
+              {dict.cartDrawer.browseShop}
             </Link>
           </div>
         ) : (
@@ -79,8 +80,8 @@ export default function CartDrawer() {
               <div className="flex justify-between items-end mb-2">
                 <span className="text-[12px] font-semibold text-[#1A1A1A]">
                   {getSubtotal() >= 800 
-                    ? 'Félicitations ! Livraison gratuite débloquée 🎉' 
-                    : `Plus que ${formatMAD(800 - getSubtotal())} pour la livraison gratuite`}
+                    ? dict.cartDrawer.freeShippingUnlocked 
+                    : dict.cartDrawer.freeShippingRemaining.replace('{amount}', formatMAD(800 - getSubtotal()))}
                 </span>
               </div>
               <div className="w-full bg-[#eeece5] h-1.5 rounded-full overflow-hidden">
@@ -125,7 +126,7 @@ export default function CartDrawer() {
                           {item.size} · Eau de Parfum
                         </div>
                       </div>
-                      <div className="text-right font-semibold text-[#1A1A1A] text-sm">
+                      <div className="text-right rtl:text-left font-semibold text-[#1A1A1A] text-sm">
                         {formatMAD(item.price * item.quantity)}
                       </div>
                     </div>
@@ -137,7 +138,7 @@ export default function CartDrawer() {
                             updateQuantity(item.id, item.size, item.quantity - 1)
                           }
                           className="w-10 h-10 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
-                          aria-label="Diminuer la quantité"
+                          aria-label={dict.cartDrawer.decrease}
                         >
                           <Minus size={13} />
                         </button>
@@ -149,7 +150,7 @@ export default function CartDrawer() {
                             updateQuantity(item.id, item.size, item.quantity + 1)
                           }
                           className="w-10 h-10 flex items-center justify-center text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
-                          aria-label="Augmenter la quantité"
+                          aria-label={dict.cartDrawer.increase}
                         >
                           <Plus size={13} />
                         </button>
@@ -157,8 +158,8 @@ export default function CartDrawer() {
 
                       <button
                         onClick={() => removeFromCart(item.id, item.size)}
-                        className="text-[#D4D4D4] hover:text-red-400 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
-                        aria-label="Retirer"
+                        className="text-[#D4D4D4] hover:text-red-400 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 rtl:-ml-2 rtl:mr-0"
+                        aria-label={dict.cartDrawer.remove}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -174,8 +175,8 @@ export default function CartDrawer() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm">🏷️</span>
                     <div>
-                      <div className="text-xs font-bold text-neutral-900">Code promo ({appliedPromo.code})</div>
-                      <div className="text-[10px] text-emerald-600">Remise appliquée</div>
+                      <div className="text-xs font-bold text-neutral-900">{dict.cartDrawer.promoCode} ({appliedPromo.code})</div>
+                      <div className="text-[10px] text-emerald-600">{dict.cartDrawer.discountApplied}</div>
                     </div>
                   </div>
                   <div className="text-xs font-bold text-emerald-600">-{formatMAD(promoDiscount)}</div>
@@ -186,7 +187,7 @@ export default function CartDrawer() {
                     <span className="text-sm">🎉</span>
                     <div>
                       <div className="text-xs font-bold text-neutral-900">{appliedDeal.badgeText || appliedDeal.title}</div>
-                      <div className="text-[10px] text-neutral-500">Offre automatique appliquée</div>
+                      <div className="text-[10px] text-neutral-500">{dict.cartDrawer.autoDealApplied}</div>
                     </div>
                   </div>
                   <div className="text-xs font-bold text-[#0ea5e9]">-{formatMAD(dealDiscount)}</div>
@@ -198,7 +199,7 @@ export default function CartDrawer() {
               <div className="space-y-1.5">
                 <div className="flex justify-between items-baseline">
                   <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
-                    Sous-total
+                    {dict.cartDrawer.subtotal}
                   </span>
                   <span className={`text-sm ${effectiveDiscount > 0 ? 'line-through text-neutral-400' : 'heading-font font-medium text-[#1A1A1A]'}`}>
                     {formatMAD(subtotal)}
@@ -208,7 +209,7 @@ export default function CartDrawer() {
                 {effectiveDiscount > 0 && (
                   <div className="flex justify-between items-baseline">
                     <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-emerald-600">
-                      Total avec remise
+                      {dict.cartDrawer.totalWithDiscount}
                     </span>
                     <span className="text-2xl heading-font font-medium text-emerald-700">
                       {formatMAD(totalAfterDiscount)}
@@ -222,11 +223,13 @@ export default function CartDrawer() {
                 onClick={() => setIsOpen(false)}
                 className="btn-blue w-full h-12 py-3.5 text-[13px] sm:text-[14px] font-bold rounded-xl inline-flex items-center justify-center text-center shadow-md active:scale-98"
               >
-                Voir le panier & Commander
+                {dict.cartDrawer.checkoutButton}
               </Link>
 
               <p className="text-center text-[10px] tracking-[0.2em] text-[#C5C5C5] uppercase">
-                {shippingFee === 0 ? 'Livraison Gratuite ! 🎉' : `Livraison partout au Maroc avec ${shippingFee}Dh`}
+                {shippingFee === 0 
+                  ? dict.cartDrawer.freeShippingText 
+                  : dict.cartDrawer.shippingNotice.replace('{fee}', String(shippingFee))}
               </p>
             </div>
           </>
