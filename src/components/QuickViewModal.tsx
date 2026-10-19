@@ -9,6 +9,7 @@ import { X, ShoppingBag, Star, ChevronRight } from 'lucide-react';
 import { formatMAD, type Product, isProductInStock } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
 import { useDictionary } from '@/context/DictionaryContext';
+import { translatePerfumeNote } from '@/lib/perfumeNotes';
 
 type QuickViewModalProps = {
   product: Product | null;
@@ -115,7 +116,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                 <div className="flex flex-wrap gap-2">
                   {product.notes.top.slice(0, 4).map((n: string) => (
                     <span key={n} className="text-[11px] font-medium tracking-wide bg-[#f4f4f4] text-[#1A1A1A] px-3 py-1.5 rounded-full border border-[#e0ddd4]">
-                      {n}
+                      {translatePerfumeNote(n, locale as any)}
                     </span>
                   ))}
                 </div>

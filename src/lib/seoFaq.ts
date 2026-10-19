@@ -8,13 +8,56 @@ export interface FaqItem {
 /**
  * Generates dynamic, keyword-rich and factually accurate FAQ items for Moroccan product search intent.
  */
-export function getProductFaq(product: Product): FaqItem[] {
+export function getProductFaq(product: Product, locale: string = 'fr'): FaqItem[] {
   const isTester = product.isTester ?? true;
-  const productType = isTester ? 'testeur' : 'parfum';
-  const productTypeCap = isTester ? 'Testeur Original' : 'Parfum Original Scellé';
   const brand = product.brandLabel || 'la marque';
   const family = product.subcategoryLabel || 'Fragrance de prestige';
 
+  if (locale === 'ar') {
+    const productTypeAr = isTester ? 'تستر' : 'عطر';
+    return [
+      {
+        question: `هل ${productTypeAr} عطر ${product.name} أصلي ومضمون 100%؟`,
+        answer: `نعم، ${productTypeAr} عطر ${product.name} من دار ${brand} المعروض لدى NAY Parfum أصلي 100%. يحتوي تماماً على نفس العطر ونفس التركيز ودرجة الثبات كالزجاجة التجارية، مع إمكانية التحقق من كود الدفعة الرسمي (batch code) المحفور على القارورة.`
+      },
+      {
+        question: `ما هي مدة وتكلفة التوصيل لعطر ${product.name} في المغرب؟`,
+        answer: `يتم التوصيل في المغرب خلال 24 إلى 48 ساعة عمل إلى الدار البيضاء، الرباط، مراكش، فاس، طنجة، أكادير وكافة المدن المغربية. تكلفة الشحن 35 درهم، والتوصيل مجاني 100% للطلبات ابتداءً من 800 درهم.`
+      },
+      {
+        question: `كيف تتم عملية الدفع عند استلام الطلب؟`,
+        answer: `تستفيد من ميزة الدفع الآمن نقداً عند الاستلام (Cash on Delivery). لا تدفع أي مبلغ مسبقاً بل تدفع بعد استلام وفحص طردك مباشرة من موزعنا المعتمد بالمغرب.`
+      },
+      {
+        question: `ما هي درجة ثبات ${product.name} في المناخ المغربي؟`,
+        answer: `يتميز ${product.name} بثبات استثنائي يدوم من 8 إلى 12 ساعة وأكثر على البشرة والملابس مع فوحان جذاب. صُممت تركيبته لتلائم درجات الحرارة والرطوبة في المناخ المغربي بأناقة تدوم طوال اليوم.`
+      }
+    ];
+  }
+
+  if (locale === 'en') {
+    const productTypeEn = isTester ? 'tester' : 'fragrance';
+    return [
+      {
+        question: `Is the ${productTypeEn} of ${product.name} 100% authentic?`,
+        answer: `Yes, the ${productTypeEn} of ${product.name} by ${brand} sold on NAY Parfum is 100% authentic. It contains the exact same formulation, concentration, and longevity as the commercial boxed version, verified by its official batch code.`
+      },
+      {
+        question: `What are the delivery times and shipping fees for ${product.name} in Morocco?`,
+        answer: `Delivery across Morocco takes 24h to 48h to Casablanca, Rabat, Marrakech, Fes, Tangier, Agadir and all cities. Shipping is 35 MAD, and completely free on orders above 800 MAD.`
+      },
+      {
+        question: `How does payment work for my order?`,
+        answer: `You enjoy secure Cash on Delivery (COD). You only pay in cash upon receiving and inspecting your package directly from our courier partner in Morocco.`
+      },
+      {
+        question: `What is the longevity and performance of ${product.name} in Moroccan climate?`,
+        answer: `${product.name} offers remarkable longevity of 8h to 12h+ on skin and clothes with a refined trail. Its balanced formula perfectly withstands Morocco's climate conditions.`
+      }
+    ];
+  }
+
+  const productType = isTester ? 'testeur' : 'parfum';
   const notesList: string[] = [];
   if (product.notes?.top?.length) {
     notesList.push(`Notes de tête : ${product.notes.top.slice(0, 4).join(', ')}`);

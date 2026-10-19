@@ -320,7 +320,7 @@ export default async function ProductPage({
     }));
   }
 
-  const faqItems = getProductFaq(transformedProduct);
+  const faqItems = getProductFaq(transformedProduct, currentLocale);
   const faqJsonLd = createFaqJsonLd(faqItems);
 
   const genderLabels: Record<string, string> = {
@@ -329,6 +329,14 @@ export default async function ProductPage({
     unisex: 'Unisexe',
   };
   const genderLabel = genderLabels[transformedProduct.gender] || 'Boutique';
+
+  const homeLabel = currentLocale === 'ar' ? 'الرئيسية' : currentLocale === 'en' ? 'Home' : 'Accueil';
+  const shopLabel = currentLocale === 'ar' ? 'المتجر' : currentLocale === 'en' ? 'Shop' : 'Boutique';
+  const genderCategoryLabel = currentLocale === 'ar'
+    ? (transformedProduct.gender === 'men' ? 'عطور رجالية' : transformedProduct.gender === 'women' ? 'عطور نسائية' : 'عطور للجنسين')
+    : currentLocale === 'en'
+    ? (transformedProduct.gender === 'men' ? "Men's Perfumes" : transformedProduct.gender === 'women' ? "Women's Perfumes" : 'Unisex Perfumes')
+    : `Parfums ${genderLabel}`;
 
   const breadcrumbElements: Array<{
     '@type': string;
@@ -339,19 +347,19 @@ export default async function ProductPage({
     {
       '@type': 'ListItem',
       position: 1,
-      name: 'Accueil',
+      name: homeLabel,
       item: `https://nayparfum.ma/${currentLocale}`,
     },
     {
       '@type': 'ListItem',
       position: 2,
-      name: 'Boutique',
+      name: shopLabel,
       item: `https://nayparfum.ma/${currentLocale}/shop`,
     },
     {
       '@type': 'ListItem',
       position: 3,
-      name: `Parfums ${genderLabel}`,
+      name: genderCategoryLabel,
       item: `https://nayparfum.ma/${currentLocale}/shop/${transformedProduct.gender}`,
     },
   ];
