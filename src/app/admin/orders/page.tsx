@@ -121,6 +121,7 @@ function OrdersPageContent() {
 
   // WhatsApp Presets Dropdown Open State (orderId -> boolean)
   const [openWhatsAppMenuId, setOpenWhatsAppMenuId] = useState<string | null>(null);
+  const [activeStatusDropdownId, setActiveStatusDropdownId] = useState<string | null>(null);
 
   // Advance Payment State in Drawer
   const [advanceAmountInput, setAdvanceAmountInput] = useState<string>('');
@@ -188,6 +189,9 @@ function OrdersPageContent() {
     const handleOutsideClick = (e: MouseEvent) => {
       if (!(e.target as HTMLElement).closest('.whatsapp-dropdown-container')) {
         setOpenWhatsAppMenuId(null);
+      }
+      if (!(e.target as HTMLElement).closest('.status-dropdown-container')) {
+        setActiveStatusDropdownId(null);
       }
     };
     document.addEventListener('click', handleOutsideClick);
@@ -783,6 +787,39 @@ function OrdersPageContent() {
     }
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return 'CL';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  function ProfessionalStatusBadge({ status }: { status: string }) {
+    const configs: Record<string, { label: string; bg: string; dot: string }> = {
+      pending: { label: 'En attente', bg: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', dot: 'bg-slate-400' },
+      unconfirmed: { label: 'Non confirmée', bg: 'bg-amber-50 text-amber-800 border border-amber-200/60 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/40', dot: 'bg-amber-500' },
+      processing: { label: 'Confirmée / Prépa', bg: 'bg-sky-50 text-sky-800 border border-sky-200/60 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/40', dot: 'bg-[#1D9BF0]' },
+      confirmed: { label: 'Confirmée', bg: 'bg-sky-50 text-sky-800 border border-sky-200/60 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/40', dot: 'bg-[#1D9BF0]' },
+      shipped: { label: 'En livraison', bg: 'bg-indigo-50 text-indigo-800 border border-indigo-200/60 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800/40', dot: 'bg-indigo-500' },
+      delivered: { label: 'Livrée & Encaissée', bg: 'bg-emerald-50 text-emerald-800 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/40', dot: 'bg-emerald-500' },
+      refused: { label: 'Refusée', bg: 'bg-rose-50 text-rose-800 border border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/40', dot: 'bg-rose-500' },
+      returned: { label: 'Retour Colis', bg: 'bg-rose-50 text-rose-800 border border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/40', dot: 'bg-rose-500' },
+    };
+
+    const config = configs[status] || {
+      label: STATUS_LABELS[status] || status,
+      bg: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+      dot: 'bg-slate-400'
+    };
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-semibold whitespace-nowrap ${config.bg}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+        <span>{config.label}</span>
+      </span>
+    );
+  }
+
   const getDisplayStatusBadgeLabel = (status: string, profile: string) => {
     if (profile === 'CONFIRMATION') {
       if (status === 'processing' || status === 'confirmed') return 'Confirmée';
@@ -808,40 +845,38 @@ function OrdersPageContent() {
   };
 
   return (
-    <div className="space-y-5 max-w-7xl mx-auto pb-24 font-sans text-neutral-900">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 dark:text-slate-100">
       
-      {/* ========================================================= */}
-      {/* 1. TOP HEADER: SIMPLE & PROFESSIONAL                      */}
-      {/* ========================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#eaeaea]">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-tight text-neutral-900">
-              Commandes
-            </h1>
-            <span className="text-neutral-300">/</span>
-            <span className="text-sm font-medium text-neutral-500">
-              Maison NAY Parfums
+      {/* ── 1. REFINED EXECUTIVE HEADER ───────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-[#222227]">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-600 dark:text-slate-400">
+              NAY Parfums • Commandes &amp; Logistique
             </span>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">
-              {orders.length} au total
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              {orders.length} commandes en direct
             </span>
           </div>
-          <p className="text-xs text-neutral-500">
-            Gestion des commandes clients, suivi logistique et encaissements à la livraison (COD).
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+            Commandes &amp; Expéditions
+          </h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
+            Validation téléphonique des commandes, suivi logistique et encaissements COD en temps réel.
           </p>
         </div>
 
         {/* Global Action Cluster */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center bg-neutral-100 p-0.5 rounded-md text-xs">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center bg-slate-100 dark:bg-[#18181d] p-1 rounded-xl text-xs border border-slate-200/60 dark:border-[#2a2a30]">
             <button
               type="button"
               onClick={() => setExecutiveView('OPERATIONAL')}
-              className={`px-3 py-1.5 rounded transition-all cursor-pointer text-xs font-medium ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer text-xs font-semibold ${
                 executiveView === 'OPERATIONAL'
-                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
+                  ? 'bg-white dark:bg-[#121215] text-slate-900 dark:text-white shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Opérations
@@ -849,10 +884,10 @@ function OrdersPageContent() {
             <button
               type="button"
               onClick={() => setExecutiveView('FINANCIAL')}
-              className={`px-3 py-1.5 rounded transition-all cursor-pointer text-xs font-medium ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer text-xs font-semibold ${
                 executiveView === 'FINANCIAL'
-                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
+                  ? 'bg-white dark:bg-[#121215] text-slate-900 dark:text-white shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Trésorerie
@@ -862,10 +897,10 @@ function OrdersPageContent() {
           <button
             type="button"
             onClick={handleExportOrdersCSV}
-            className="h-8 px-3 inline-flex items-center gap-1.5 bg-white hover:bg-neutral-50 border border-[#eaeaea] text-xs font-medium text-neutral-700 rounded-md shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#121215] dark:hover:bg-[#18181d] border border-slate-200 dark:border-[#222227] text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-xs transition-all cursor-pointer"
             title="Exporter en fichier CSV Excel"
           >
-            <FileSpreadsheet size={13} className="text-neutral-500" />
+            <FileSpreadsheet size={13} className="text-slate-500" />
             <span>Export CSV</span>
           </button>
 
@@ -873,90 +908,120 @@ function OrdersPageContent() {
             type="button"
             onClick={fetchOrders}
             disabled={isLoading}
-            className="h-8 px-3 inline-flex items-center gap-1.5 bg-white hover:bg-neutral-50 border border-[#eaeaea] text-xs font-medium text-neutral-700 rounded-md shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#121215] dark:hover:bg-[#18181d] border border-slate-200 dark:border-[#222227] text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-xs transition-all cursor-pointer"
             title="Actualiser les commandes"
           >
-            <RefreshCw size={12} className={isLoading ? 'animate-spin' : 'text-neutral-500'} />
+            <RefreshCw size={13} className={isLoading ? 'animate-spin text-slate-500' : 'text-slate-500'} />
             <span>Actualiser</span>
           </button>
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* 2. STAT METRICS: MINIMALIST WHITE CARDS                   */}
-      {/* ========================================================= */}
+      {/* ── 2. EXECUTIVE METRIC KPI CARDS ──────────────────────────── */}
       {executiveView === 'OPERATIONAL' ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total */}
-          <div className="bg-white border border-[#eaeaea] rounded-lg p-4 shadow-2xs">
-            <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider">Total Commandes</div>
-            <div className="text-2xl font-semibold tracking-tight text-neutral-900 font-mono mt-1">
+          <div className="bg-white dark:bg-[#121215] rounded-2xl p-5 border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 transition-all">
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Commandes</span>
+              <span className="text-sky-600 bg-sky-50 dark:bg-sky-950/40 p-1.5 rounded-lg border border-sky-100 dark:border-sky-800/40">
+                <ShoppingBag size={15} />
+              </span>
+            </div>
+            <div className="text-2xl sm:text-[28px] font-bold text-slate-900 dark:text-white tracking-tight font-mono mt-1">
               {orders.length}
             </div>
-            <div className="text-xs text-neutral-500 mt-1">
-              Valeur brute : <strong className="font-medium text-neutral-800">{formatMAD(totalRevenue)}</strong>
+            <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-[#222227]">
+              <span>Valeur brute : <strong className="font-semibold text-slate-800 dark:text-slate-200">{formatMAD(totalRevenue)}</strong></span>
+              <span className="text-[11px] font-semibold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
+                Boutique
+              </span>
             </div>
           </div>
 
           {/* Card 2: À Traiter */}
           <div
             onClick={() => setActiveTab('PENDING')}
-            className="bg-white border border-[#eaeaea] rounded-lg p-4 shadow-2xs hover:border-neutral-400 transition-colors cursor-pointer"
+            className="bg-white dark:bg-[#121215] rounded-2xl p-5 border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 transition-all cursor-pointer group"
           >
-            <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider">À Confirmer &amp; Préparer</div>
-            <div className="text-2xl font-semibold tracking-tight text-neutral-900 font-mono mt-1">
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">À Confirmer &amp; Préparer</span>
+              <span className="text-amber-600 bg-amber-50 dark:bg-amber-950/40 p-1.5 rounded-lg border border-amber-100 dark:border-amber-800/40">
+                <Clock size={15} />
+              </span>
+            </div>
+            <div className="text-2xl sm:text-[28px] font-bold text-slate-900 dark:text-white tracking-tight font-mono mt-1">
               {tabCounts.TO_CONFIRM_COMBINED + tabCounts.PROCESSING}
             </div>
-            <div className="text-xs text-neutral-500 mt-1">
-              {tabCounts.TO_CONFIRM_COMBINED} à confirmer • {tabCounts.PROCESSING} en préparation
+            <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-[#222227]">
+              <span><strong className="font-semibold text-amber-700">{tabCounts.TO_CONFIRM_COMBINED}</strong> à confirmer • <strong className="font-semibold text-sky-700">{tabCounts.PROCESSING}</strong> en prépa</span>
+              <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
+                Prioritaire
+              </span>
             </div>
           </div>
 
           {/* Card 3: En Acheminement */}
           <div
             onClick={() => setActiveTab('SHIPPED')}
-            className="bg-white border border-[#eaeaea] rounded-lg p-4 shadow-2xs hover:border-neutral-400 transition-colors cursor-pointer"
+            className="bg-white dark:bg-[#121215] rounded-2xl p-5 border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 transition-all cursor-pointer group"
           >
-            <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider">En Acheminement</div>
-            <div className="text-2xl font-semibold tracking-tight text-neutral-900 font-mono mt-1">
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">En Acheminement</span>
+              <span className="text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 p-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800/40">
+                <Truck size={15} />
+              </span>
+            </div>
+            <div className="text-2xl sm:text-[28px] font-bold text-slate-900 dark:text-white tracking-tight font-mono mt-1">
               {tabCounts.SHIPPED}
             </div>
-            <div className="text-xs text-neutral-500 mt-1">
-              Créances : <strong className="font-medium text-neutral-800">{formatMAD(financialEstimations.remainingToCollectShippedGross)}</strong>
+            <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-[#222227]">
+              <span>Créances COD : <strong className="font-semibold text-slate-800 dark:text-slate-200">{formatMAD(financialEstimations.remainingToCollectShippedGross)}</strong></span>
+              <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                Transporteur
+              </span>
             </div>
           </div>
 
           {/* Card 4: Livrées */}
           <div
             onClick={() => setActiveTab('DELIVERED')}
-            className="bg-white border border-[#eaeaea] rounded-lg p-4 shadow-2xs hover:border-neutral-400 transition-colors cursor-pointer"
+            className="bg-white dark:bg-[#121215] rounded-2xl p-5 border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 transition-all cursor-pointer group"
           >
-            <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider">Livrées &amp; Clôturées</div>
-            <div className="text-2xl font-semibold tracking-tight text-neutral-900 font-mono mt-1 flex items-center gap-2">
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Livrées &amp; Clôturées</span>
+              <span className="text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 p-1.5 rounded-lg border border-emerald-100 dark:border-emerald-800/40">
+                <CheckCircle2 size={15} />
+              </span>
+            </div>
+            <div className="text-2xl sm:text-[28px] font-bold text-slate-900 dark:text-white tracking-tight font-mono mt-1 flex items-center gap-2">
               <span>{tabCounts.DELIVERED}</span>
-              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                 {tauxLivraison}%
               </span>
             </div>
-            <div className="text-xs text-neutral-500 mt-1">
-              Encaissé : <strong className="font-medium text-neutral-800">{formatMAD(deliveredRevenue)}</strong>
+            <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-[#222227]">
+              <span>Encaissé net : <strong className="font-semibold text-emerald-700">{formatMAD(deliveredRevenue)}</strong></span>
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                Succès
+              </span>
             </div>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <div className="text-neutral-500">
-              Frais de livraison : <strong className="text-neutral-800 font-medium">{shippingFeePerOrder} MAD</strong> / colis
+            <div className="text-slate-600 dark:text-slate-400 font-medium">
+              Frais de livraison : <strong className="text-slate-900 dark:text-white font-bold">{shippingFeePerOrder} MAD</strong> / colis
             </div>
-            <div className="flex items-center bg-neutral-100 p-0.5 rounded-md text-xs">
+            <div className="flex items-center bg-slate-100 dark:bg-[#18181d] p-1 rounded-xl text-xs border border-slate-200/60 dark:border-[#2a2a30]">
               <button
                 type="button"
                 onClick={() => setEstimationMode('NET')}
-                className={`px-2.5 py-1 rounded transition-all cursor-pointer font-medium ${
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-semibold ${
                   estimationMode === 'NET'
-                    ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                    : 'text-neutral-600 hover:text-neutral-900'
+                    ? 'bg-white dark:bg-[#121215] text-slate-900 dark:text-white shadow-xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Vue Nette (-{shippingFeePerOrder} DH)
@@ -964,10 +1029,10 @@ function OrdersPageContent() {
               <button
                 type="button"
                 onClick={() => setEstimationMode('BRUT')}
-                className={`px-2.5 py-1 rounded transition-all cursor-pointer font-medium ${
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-semibold ${
                   estimationMode === 'BRUT'
-                    ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                    : 'text-neutral-600 hover:text-neutral-900'
+                    ? 'bg-white dark:bg-[#121215] text-slate-900 dark:text-white shadow-xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Vue Brute
@@ -975,60 +1040,90 @@ function OrdersPageContent() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-white p-4 rounded-lg border border-[#eaeaea] shadow-2xs">
-              <div className="text-[11px] font-mono text-neutral-500 uppercase">{estimationMode === 'NET' ? 'Cash Net Encaissé' : 'Cash Brut Encaissé'}</div>
-              <div className="text-2xl font-semibold text-neutral-900 font-mono mt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-[#121215] rounded-2xl p-5 border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{estimationMode === 'NET' ? 'Cash Net Encaissé' : 'Cash Brut Encaissé'}</span>
+                <span className="text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 p-1.5 rounded-lg border border-emerald-100 dark:border-emerald-800/40">
+                  <DollarSign size={15} />
+                </span>
+              </div>
+              <div className="text-2xl sm:text-[28px] font-bold text-slate-900 dark:text-white font-mono mt-1">
                 {formatMAD(financialEstimations.displayedCashCollected)}
               </div>
-              <div className="mt-1 text-xs text-neutral-500">
-                Dont {formatMAD(financialEstimations.advancesOnActiveOrders)} d'acomptes
+              <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-[#222227]">
+                <span>Acomptes : <strong className="font-semibold text-slate-800 dark:text-slate-200">{formatMAD(financialEstimations.advancesOnActiveOrders)}</strong></span>
+                <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                  Encaissé
+                </span>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-[#eaeaea] shadow-2xs">
-              <div className="text-[11px] font-mono text-neutral-500 uppercase">{estimationMode === 'NET' ? 'Créances Nettes' : 'Créances Brutes'}</div>
-              <div className="text-2xl font-semibold text-neutral-900 font-mono mt-1">
+            <div className="bg-white dark:bg-[#121215] rounded-2xl p-5 border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{estimationMode === 'NET' ? 'Créances Nettes' : 'Créances Brutes'}</span>
+                <span className="text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 p-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800/40">
+                  <Truck size={15} />
+                </span>
+              </div>
+              <div className="text-2xl sm:text-[28px] font-bold text-slate-900 dark:text-white font-mono mt-1">
                 {formatMAD(financialEstimations.displayedShipped)}
               </div>
-              <div className="mt-1 text-xs text-neutral-500">
-                {financialEstimations.shippedOrdersCount} colis chez transporteur
+              <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-[#222227]">
+                <span>{financialEstimations.shippedOrdersCount} colis transporteur</span>
+                <span className="text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                  En cours
+                </span>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-[#eaeaea] shadow-2xs">
-              <div className="text-[11px] font-mono text-neutral-500 uppercase">{estimationMode === 'NET' ? 'Solde Net Préparation' : 'Solde Brut Préparation'}</div>
-              <div className="text-2xl font-semibold text-neutral-900 font-mono mt-1">
+            <div className="bg-white dark:bg-[#121215] rounded-2xl p-5 border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{estimationMode === 'NET' ? 'Solde Net Préparation' : 'Solde Brut Préparation'}</span>
+                <span className="text-sky-600 bg-sky-50 dark:bg-sky-950/40 p-1.5 rounded-lg border border-sky-100 dark:border-sky-800/40">
+                  <Package size={15} />
+                </span>
+              </div>
+              <div className="text-2xl sm:text-[28px] font-bold text-slate-900 dark:text-white font-mono mt-1">
                 {formatMAD(financialEstimations.displayedProcessing)}
               </div>
-              <div className="mt-1 text-xs text-neutral-500">
-                {financialEstimations.processingOrdersCount} colis à expédier
+              <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-[#222227]">
+                <span>{financialEstimations.processingOrdersCount} colis à expédier</span>
+                <span className="text-[11px] font-semibold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
+                  Stock prêt
+                </span>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-[#eaeaea] shadow-2xs">
-              <div className="text-[11px] font-mono text-neutral-500 uppercase">{estimationMode === 'NET' ? 'Estimation Nette Réelle' : 'Estimation Brute'}</div>
-              <div className="text-2xl font-semibold text-neutral-900 font-mono mt-1">
+            <div className="bg-white dark:bg-[#121215] rounded-2xl p-5 border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{estimationMode === 'NET' ? 'Estimation Nette Réelle' : 'Estimation Brute'}</span>
+                <span className="text-amber-600 bg-amber-50 dark:bg-amber-950/40 p-1.5 rounded-lg border border-amber-100 dark:border-amber-800/40">
+                  <Calculator size={15} />
+                </span>
+              </div>
+              <div className="text-2xl sm:text-[28px] font-bold text-slate-900 dark:text-white font-mono mt-1">
                 {formatMAD(financialEstimations.displayedEstimation)}
               </div>
-              <div className="mt-1 text-xs text-neutral-500">
-                {estimationMode === 'NET' ? `Frais déduits (${formatMAD(financialEstimations.totalShippingFeesIncurredAndExpected)})` : 'Total facturé'}
+              <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-[#222227]">
+                <span>{estimationMode === 'NET' ? `Frais déduits (${formatMAD(financialEstimations.totalShippingFeesIncurredAndExpected)})` : 'Total facturé'}</span>
+                <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
+                  Prévision
+                </span>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* 3. TABS: CLEAN UNDERLINE TABS (RESEND / LINEAR STYLE)      */}
-      {/* ========================================================= */}
-      <div className="flex items-center gap-6 border-b border-[#eaeaea] overflow-x-auto text-xs">
+      {/* ── 3. FILTER TABS: EXECUTIVE SEGMENTED TRACK ─────────────── */}
+      <div className="bg-slate-100/80 dark:bg-[#18181d] p-1.5 rounded-2xl flex items-center gap-1.5 overflow-x-auto border border-slate-200/60 dark:border-[#2a2a30]">
         {[
-          { id: 'ALL', label: 'Toutes', count: tabCounts.ALL },
+          { id: 'ALL', label: 'Toutes les commandes', count: tabCounts.ALL },
           { id: 'PENDING', label: 'À Confirmer', count: tabCounts.TO_CONFIRM_COMBINED },
           { id: 'PROCESSING', label: 'En Préparation', count: tabCounts.PROCESSING },
           { id: 'SHIPPED', label: 'En Livraison', count: tabCounts.SHIPPED },
-          { id: 'DELIVERED', label: 'Livrées', count: tabCounts.DELIVERED },
+          { id: 'DELIVERED', label: 'Livrées & Encaissées', count: tabCounts.DELIVERED },
           { id: 'ISSUES', label: 'Retours & Refus', count: tabCounts.ISSUES },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
@@ -1036,15 +1131,17 @@ function OrdersPageContent() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative pb-2.5 text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? 'text-black border-b-2 border-black font-semibold -mb-px'
-                  : 'text-neutral-500 hover:text-neutral-800'
+                  ? 'bg-white dark:bg-[#121215] text-slate-900 dark:text-white shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#222227]'
               }`}
             >
               <span>{tab.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                isActive ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-600'
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                isActive 
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' 
+                  : 'bg-slate-200/80 text-slate-700 dark:bg-[#26262b] dark:text-slate-300'
               }`}>
                 {tab.count}
               </span>
@@ -1053,56 +1150,54 @@ function OrdersPageContent() {
         })}
       </div>
 
-      {/* ========================================================= */}
-      {/* 4. SEARCH & FILTERS TOOLBAR                               */}
-      {/* ========================================================= */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+      {/* ── 4. SEARCH & FILTERS TOOLBAR ────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search size={14} className="absolute left-3 top-2.5 text-neutral-400 pointer-events-none" />
+          <Search size={14} className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Rechercher par n°, nom, téléphone, ville..."
+            placeholder="Rechercher par n°, client, tél, ville..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#eaeaea] rounded-md pl-8 pr-3 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black shadow-2xs"
+            className="w-full bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-[#222227] rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1D9BF0]/20 focus:border-[#1D9BF0] shadow-xs"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-2.5 top-2 text-neutral-400 hover:text-neutral-700 p-0.5 cursor-pointer"
+              className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-0.5 cursor-pointer"
             >
-              <X size={12} />
+              <X size={13} />
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto text-xs">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto text-xs flex-wrap">
           <div className="relative">
             <select
               value={cityFilter}
               onChange={(e) => setCityFilter(e.target.value)}
-              className="appearance-none text-xs bg-white border border-[#eaeaea] rounded-md pl-3 pr-7 py-1.5 text-neutral-700 focus:outline-none focus:border-black cursor-pointer shadow-2xs font-medium"
+              className="appearance-none text-xs bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-[#222227] rounded-xl pl-3.5 pr-8 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1D9BF0]/20 focus:border-[#1D9BF0] cursor-pointer shadow-xs font-semibold"
             >
               <option value="ALL">Toutes les villes ({uniqueCities.length})</option>
               {uniqueCities.map((city) => (
                 <option key={city} value={city}>{city}</option>
               ))}
             </select>
-            <ChevronDown size={12} className="absolute right-2.5 top-2.5 text-neutral-400 pointer-events-none" />
+            <ChevronDown size={12} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
           </div>
 
           <div className="relative">
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value as any)}
-              className="appearance-none text-xs bg-white border border-[#eaeaea] rounded-md pl-3 pr-7 py-1.5 text-neutral-700 focus:outline-none focus:border-black cursor-pointer shadow-2xs font-medium"
+              className="appearance-none text-xs bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-[#222227] rounded-xl pl-3.5 pr-8 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1D9BF0]/20 focus:border-[#1D9BF0] cursor-pointer shadow-xs font-semibold"
             >
               <option value="ALL">Tous les règlements</option>
               <option value="PARTIAL">Avec acompte</option>
               <option value="PAID">100% Réglé</option>
               <option value="UNPAID">Paiement livraison (COD)</option>
             </select>
-            <ChevronDown size={12} className="absolute right-2.5 top-2.5 text-neutral-400 pointer-events-none" />
+            <ChevronDown size={12} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
           </div>
 
           {(search || cityFilter !== 'ALL' || paymentFilter !== 'ALL' || activeTab !== 'ALL') && (
@@ -1114,28 +1209,26 @@ function OrdersPageContent() {
                 setPaymentFilter('ALL');
                 setActiveTab('ALL');
               }}
-              className="px-2.5 py-1.5 text-xs text-neutral-500 hover:text-black cursor-pointer font-medium"
+              className="px-3 py-2 text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer font-semibold rounded-xl hover:bg-slate-100 dark:hover:bg-[#1f1f25] transition-colors"
             >
-              Effacer
+              Effacer filtres
             </button>
           )}
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* 5. SPOTLIGHT BANNER IF TARGET HIGHLIGHTED                */}
-      {/* ========================================================= */}
+      {/* ── 5. SPOTLIGHT BANNER IF TARGET HIGHLIGHTED ──────────────── */}
       {highlightedOrderId && (
-        <div className="bg-neutral-900 text-white p-3.5 rounded-lg flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>Focus Commande #{highlightedOrder?.orderNumber} ({highlightedOrder?.customerName})</span>
+        <div className="bg-slate-950 text-white p-3.5 rounded-2xl flex items-center justify-between text-xs shadow-lg border border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="font-semibold">Focus Commande #{highlightedOrder?.orderNumber} ({highlightedOrder?.customerName})</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setEditingOrder(highlightedOrder)}
-              className="px-2.5 py-1 bg-white text-neutral-900 rounded text-xs font-medium"
+              className="px-3 py-1 bg-white text-slate-900 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors"
             >
               Ouvrir fiche
             </button>
@@ -1145,7 +1238,7 @@ function OrdersPageContent() {
                 setHighlightedOrderId(null);
                 setHighlightedOrder(null);
               }}
-              className="p-1 text-neutral-400 hover:text-white"
+              className="p-1 text-slate-400 hover:text-white transition-colors"
             >
               <X size={14} />
             </button>
@@ -1153,47 +1246,45 @@ function OrdersPageContent() {
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* 6. ORDERS TABLE: CLEAN, SHARP, MINIMALIST                 */}
-      {/* ========================================================= */}
-      <div className="bg-white border border-[#eaeaea] rounded-lg overflow-hidden shadow-2xs">
+      {/* ── 6. ORDERS TABLE: TABLEAU DE BORD LUXURY AESTHETIC ──────── */}
+      <div className="bg-white dark:bg-[#121215] rounded-2xl border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-[#fafafa] border-b border-[#eaeaea] text-neutral-500 font-mono text-[11px] uppercase tracking-wider font-medium">
-                <th className="py-2.5 px-4 w-10 text-center">
+            <thead className="bg-slate-50/80 dark:bg-[#18181d] text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider border-b border-slate-100 dark:border-[#222227]">
+              <tr>
+                <th className="py-3 px-2 w-8 text-center">
                   <button
                     onClick={handleToggleSelectAll}
-                    className="text-neutral-400 hover:text-neutral-900 transition-colors p-0.5 cursor-pointer"
+                    className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-0.5 cursor-pointer"
                   >
                     {filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length ? (
-                      <CheckSquare size={14} className="text-black" />
+                      <CheckSquare size={15} className="text-slate-900 dark:text-white" />
                     ) : (
-                      <Square size={14} />
+                      <Square size={15} />
                     )}
                   </button>
                 </th>
-                <th className="py-2.5 px-4 font-medium">Commande</th>
-                <th className="py-2.5 px-4 font-medium">Client</th>
-                <th className="py-2.5 px-4 font-medium">Destination</th>
-                <th className="py-2.5 px-4 font-medium">Articles</th>
-                <th className="py-2.5 px-4 font-medium">Montant</th>
-                <th className="py-2.5 px-4 font-medium">Statut</th>
-                <th className="py-2.5 px-4 font-medium text-right">Actions</th>
+                <th className="py-3 px-2 w-28">Commande</th>
+                <th className="py-3 px-2 w-44">Client</th>
+                <th className="py-3 px-2 w-36">Destination</th>
+                <th className="py-3 px-2">Articles</th>
+                <th className="py-3 px-2 w-28">Montant</th>
+                <th className="py-3 px-2 w-36">Statut</th>
+                <th className="py-3 px-2 text-right w-24">Actions</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-[#f0f0f0]">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#222227]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16 text-neutral-400">
-                    <RefreshCw size={16} className="animate-spin mx-auto mb-2 text-neutral-400" />
+                  <td colSpan={8} className="text-center py-16 text-slate-400">
+                    <RefreshCw size={18} className="animate-spin mx-auto mb-2 text-slate-400" />
                     Chargement des commandes...
                   </td>
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16 text-neutral-400">
+                  <td colSpan={8} className="text-center py-16 text-slate-400">
                     Aucune commande trouvée.
                   </td>
                 </tr>
@@ -1215,188 +1306,170 @@ function OrdersPageContent() {
                   const isPaidFull = paid >= total && total > 0;
                   const isSelected = selectedOrderIds.includes(order.id);
 
-                  // Resend-style clean status dot
-                  const renderStatusItem = (status: string) => {
-                    switch (status) {
-                      case 'delivered':
-                        return (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span>Livrée &amp; Encaissée</span>
-                          </span>
-                        );
-                      case 'processing':
-                      case 'confirmed':
-                        return (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                            <span>En préparation</span>
-                          </span>
-                        );
-                      case 'shipped':
-                        return (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                            <span>En livraison</span>
-                          </span>
-                        );
-                      case 'unconfirmed':
-                        return (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                            <span>Non confirmé</span>
-                          </span>
-                        );
-                      case 'refused':
-                      case 'returned':
-                        return (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                            <span>{status === 'refused' ? 'Refusée' : 'Retour'}</span>
-                          </span>
-                        );
-                      case 'pending':
-                      default:
-                        return (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                            <span>En attente</span>
-                          </span>
-                        );
-                    }
-                  };
+                  const cleanPhone = (order.customerPhone || '').replace(/[^0-9]/g, '');
+                  const waPhone = cleanPhone.startsWith('0') ? `212${cleanPhone.slice(1)}` : cleanPhone;
+                  const initials = getInitials(order.customerName);
 
                   return (
                     <tr
                       key={order.id}
                       onClick={() => setEditingOrder(order)}
                       className={`group transition-colors cursor-pointer ${
-                        isSelected ? 'bg-neutral-100/70' : 'hover:bg-[#fafafa]'
+                        isSelected ? 'bg-slate-100/70 dark:bg-[#1a1a20]' : 'hover:bg-slate-50/70 dark:hover:bg-[#17171c]'
                       }`}
                     >
                       {/* Checkbox */}
-                      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-3 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => handleToggleSelectOne(order.id, e)}
-                          className="text-neutral-400 hover:text-neutral-900 transition-colors p-0.5 cursor-pointer"
+                          className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-0.5 cursor-pointer"
                         >
                           {isSelected ? (
-                            <CheckSquare size={14} className="text-black" />
+                            <CheckSquare size={15} className="text-slate-900 dark:text-white" />
                           ) : (
-                            <Square size={14} />
+                            <Square size={15} />
                           )}
                         </button>
                       </td>
 
                       {/* Commande */}
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="font-mono text-xs font-medium text-neutral-900 flex items-center gap-1.5">
+                      <td className="py-2.5 px-2 whitespace-nowrap">
+                        <div className="font-mono text-xs font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
                           <span>#{order.orderNumber}</span>
                           <button
                             onClick={(e) => handleCopyRef(order.orderNumber, e)}
-                            className="text-neutral-300 hover:text-black transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                            className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                             title="Copier référence"
                           >
                             {copiedRef === order.orderNumber ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
                           </button>
                         </div>
-                        <div className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
                           {formattedDate}
                         </div>
                       </td>
 
-                      {/* Client */}
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-neutral-900 text-xs">
-                          {order.customerName}
+                      {/* Client (Avatar Circle + Name) */}
+                      <td className="py-2.5 px-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-[#202026] text-slate-700 dark:text-slate-200 font-bold text-[11px] flex items-center justify-center border border-slate-200/80 dark:border-[#2d2d35] shrink-0">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-900 dark:text-white truncate max-w-[110px]">
+                              {order.customerName || 'Client NAY'}
+                            </div>
+                            <div className="text-[10px] font-mono text-slate-400 mt-0.5 truncate max-w-[110px]">
+                              {order.customerEmail || 'Client Boutique'}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-[11px] text-neutral-500 font-mono mt-0.5">
+                      </td>
+
+                      {/* Destination & Contact */}
+                      <td className="py-2.5 px-2 whitespace-nowrap">
+                        <div className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                          <MapPin size={12} className="text-[#1D9BF0] shrink-0" />
+                          <span>{order.shippingCity || 'Casablanca'}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">
                           {order.customerPhone ? (
                             <a
                               href={`tel:${order.customerPhone}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="hover:underline"
+                              className="hover:underline hover:text-slate-900 dark:hover:text-white"
                             >
                               {order.customerPhone}
                             </a>
                           ) : (
-                            <span className="text-neutral-400">Sans tél</span>
+                            <span className="text-slate-400">Sans tél</span>
                           )}
-                        </div>
-                      </td>
-
-                      {/* Destination */}
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="text-xs text-neutral-800 font-medium">
-                          {order.shippingCity || 'Casablanca'}
-                        </div>
-                        <div className="text-[11px] text-neutral-400 font-mono mt-0.5">
-                          {order.carrier || 'Cathedis'}
-                          {order.trackingNumber && <span> · {order.trackingNumber}</span>}
                         </div>
                       </td>
 
                       {/* Articles */}
-                      <td className="py-3 px-4">
-                        <div className="text-xs text-neutral-900 font-medium">
-                          {itemsCount} flacon{itemsCount > 1 ? 's' : ''}
+                      <td className="py-2.5 px-2">
+                        <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-[#1f1f25] px-2 py-0.5 rounded text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                          <Package size={11} className="text-slate-400" />
+                          <span>{itemsCount} flacon{itemsCount > 1 ? 's' : ''}</span>
                         </div>
-                        <div className="text-[11px] text-neutral-500 truncate max-w-[200px] mt-0.5" title={itemsSummary}>
+                        <div className="text-[11px] text-slate-500 truncate max-w-[110px] mt-0.5" title={itemsSummary}>
                           {itemsSummary}
                         </div>
                       </td>
 
-                      {/* Montant */}
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="font-mono text-xs font-semibold text-neutral-900">
+                      {/* Montant & COD */}
+                      <td className="py-2.5 px-2 whitespace-nowrap">
+                        <div className="font-mono text-xs font-bold text-slate-900 dark:text-white">
                           {formatMAD(order.total)}
                         </div>
-                        <div className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                        <div className="text-[11px] font-mono mt-0.5">
                           {isPaidFull ? (
-                            <span className="text-emerald-700">100% Réglé</span>
+                            <span className="text-emerald-700 dark:text-emerald-400 font-semibold">100% Réglé</span>
                           ) : paid > 0 ? (
-                            <span>Acompte {paid} DH · Reste {remaining} DH</span>
+                            <span className="text-amber-700 dark:text-amber-400 font-medium">Acompte {paid} DH · Reste {remaining} DH</span>
                           ) : (
-                            <span>COD à la livraison</span>
+                            <span className="text-slate-400">COD à la livraison</span>
                           )}
                         </div>
                       </td>
 
-                      {/* Statut Dropdown */}
-                      <td className="py-3 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="relative inline-block">
-                          <select
-                            value={order.status === 'confirmed' ? 'processing' : order.status}
-                            onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                            className="appearance-none bg-white hover:bg-neutral-50 border border-[#eaeaea] rounded-md pl-2.5 pr-6 py-1 text-xs text-neutral-800 font-medium cursor-pointer focus:outline-none focus:border-black shadow-2xs"
+                      {/* Statut (Tableau de Bord Professional Status Badge + Dropdown) */}
+                      <td className="py-2.5 px-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="relative inline-block status-dropdown-container">
+                          <button
+                            type="button"
+                            onClick={() => setActiveStatusDropdownId(activeStatusDropdownId === order.id ? null : order.id)}
+                            className="inline-flex items-center gap-1.5 cursor-pointer hover:opacity-90 transition-opacity"
+                            title="Modifier le statut de la commande"
                           >
-                            {getStatusOptions(jobProfile).map((opt) => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown size={11} className="absolute right-2 top-2 text-neutral-400 pointer-events-none" />
+                            <ProfessionalStatusBadge status={order.status} />
+                            <ChevronDown size={11} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" />
+                          </button>
+
+                          {activeStatusDropdownId === order.id && (
+                            <div className="absolute left-0 top-full mt-1.5 w-48 bg-white dark:bg-[#18181d] rounded-xl shadow-xl border border-slate-200 dark:border-[#2a2a30] py-1.5 z-40 animate-in fade-in slide-in-from-top-1 text-left">
+                              <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100 dark:border-[#222227] mb-1">
+                                Modifier le statut
+                              </div>
+                              {getStatusOptions(jobProfile).map((opt) => (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => {
+                                    handleStatusChange(order.id, opt.value);
+                                    setActiveStatusDropdownId(null);
+                                  }}
+                                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-50 dark:hover:bg-[#222227] transition-colors cursor-pointer ${
+                                    order.status === opt.value ? 'font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-[#202026]' : 'text-slate-700 dark:text-slate-300'
+                                  }`}
+                                >
+                                  <span>{opt.label}</span>
+                                  {order.status === opt.value && <Check size={12} className="text-emerald-500" />}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </td>
 
-                      {/* Actions */}
-                      <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1.5">
+                      {/* Actions (Exact Tableau de Bord Icons) */}
+                      <td className="py-2.5 px-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="inline-flex items-center justify-end gap-1.5">
                           {/* WhatsApp Presets */}
                           <div className="relative whatsapp-dropdown-container">
                             <button
+                              type="button"
                               onClick={() => setOpenWhatsAppMenuId(openWhatsAppMenuId === order.id ? null : order.id)}
-                              className="h-7 px-2 bg-white hover:bg-neutral-50 border border-[#eaeaea] text-neutral-700 text-xs font-medium rounded transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
-                              title="Messages WhatsApp pré-rédigés"
+                              className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
+                              title="WhatsApp"
                             >
-                              <MessageCircle size={12} className="text-emerald-600" />
-                              <ChevronDown size={10} className="text-neutral-400" />
+                              <MessageCircle size={15} />
                             </button>
 
                             {openWhatsAppMenuId === order.id && (
-                              <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-[#eaeaea] py-1.5 z-30 text-left animate-in fade-in slide-in-from-top-1 text-xs font-sans">
-                                <div className="px-3 py-1 text-[10px] uppercase font-mono text-neutral-400 border-b border-[#f0f0f0] mb-1">
+                              <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-[#18181d] rounded-xl shadow-xl border border-slate-200 dark:border-[#2a2a30] py-1.5 z-40 text-left animate-in fade-in slide-in-from-top-1 text-xs">
+                                <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100 dark:border-[#222227] mb-1">
                                   WhatsApp Rapide
                                 </div>
                                 <a
@@ -1404,9 +1477,9 @@ function OrdersPageContent() {
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#222227] transition-colors"
                                 >
-                                  <CheckCircle2 size={12} className="text-emerald-500" />
+                                  <CheckCircle2 size={13} className="text-emerald-500" />
                                   <span>Confirmation commande</span>
                                 </a>
                                 <a
@@ -1414,9 +1487,9 @@ function OrdersPageContent() {
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#222227] transition-colors"
                                 >
-                                  <CreditCard size={12} className="text-amber-500" />
+                                  <CreditCard size={13} className="text-amber-500" />
                                   <span>Demande acompte (RIB)</span>
                                 </a>
                                 <a
@@ -1424,9 +1497,9 @@ function OrdersPageContent() {
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#222227] transition-colors"
                                 >
-                                  <Truck size={12} className="text-blue-500" />
+                                  <Truck size={13} className="text-sky-500" />
                                   <span>Avis d'expédition</span>
                                 </a>
                                 <a
@@ -1434,9 +1507,9 @@ function OrdersPageContent() {
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#222227] transition-colors"
                                 >
-                                  <MapPin size={12} className="text-neutral-400" />
+                                  <MapPin size={13} className="text-slate-400" />
                                   <span>Demande localisation GPS</span>
                                 </a>
                                 <a
@@ -1444,21 +1517,34 @@ function OrdersPageContent() {
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={() => setOpenWhatsAppMenuId(null)}
-                                  className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#222227] transition-colors"
                                 >
-                                  <Phone size={12} className="text-red-500" />
+                                  <Phone size={13} className="text-rose-500" />
                                   <span>Client injoignable</span>
                                 </a>
                               </div>
                             )}
                           </div>
 
-                          {/* Details Button */}
+                          {/* Phone Call Button */}
+                          {order.customerPhone && (
+                            <a
+                              href={`tel:${order.customerPhone}`}
+                              title="Appeler"
+                              className="p-1.5 rounded-lg text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
+                            >
+                              <Phone size={15} />
+                            </a>
+                          )}
+
+                          {/* Fiche Button */}
                           <button
+                            type="button"
                             onClick={() => setEditingOrder(order)}
-                            className="h-7 px-2.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium rounded transition-colors cursor-pointer"
+                            title="Gérer la commande"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#202026] transition-colors cursor-pointer"
                           >
-                            Fiche
+                            <ChevronRight size={16} />
                           </button>
                         </div>
                       </td>

@@ -33,6 +33,123 @@ h1, h2, h3, h4 {
   letter-spacing: -0.02em;
 }
 
+/* ==========================================================================
+   UNIVERSAL TABLEAU DE BORD DESIGN SYSTEM (Light & Dark Executive Theme)
+   Harmonizes all pages in the admin console to match the Tableau de Bord
+   ========================================================================== */
+
+/* ── Universal Container & Card Geometry ─────────────────────────────────── */
+.admin-shell-bg .rounded-lg,
+.admin-shell-bg .rounded-xl,
+.admin-shell-bg .rounded-2xl {
+  border-radius: 1rem !important; /* 16px rounded-2xl */
+}
+
+/* Crisp White Executive Cards in Light Mode */
+html:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/90):not(.bg-white\/95) {
+  background-color: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.85) !important; /* border-slate-200/80 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Subtle Inset Sub-Containers in Light Mode */
+html:not(.dark) .admin-shell-bg .bg-slate-50,
+html:not(.dark) .admin-shell-bg .bg-neutral-50,
+html:not(.dark) .admin-shell-bg .bg-gray-50,
+html:not(.dark) .admin-shell-bg .bg-\[\#fafafa\],
+html:not(.dark) .admin-shell-bg .bg-\[\#f8fafc\] {
+  background-color: rgba(248, 250, 252, 0.75) !important;
+  border-color: rgba(226, 232, 240, 0.8) !important;
+}
+
+/* ── Universal Table Styling (Matching Tableau de Bord) ───────────────────── */
+.admin-shell-bg table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+html:not(.dark) .admin-shell-bg table thead tr {
+  background-color: rgba(248, 250, 252, 0.85) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85) !important;
+}
+
+html:not(.dark) .admin-shell-bg table thead th {
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #64748b !important; /* text-slate-500 */
+  padding: 0.75rem 1rem !important;
+}
+
+html:not(.dark) .admin-shell-bg table tbody tr {
+  border-bottom: 1px solid rgba(241, 245, 249, 1) !important;
+  transition: background-color 0.15s ease;
+}
+
+html:not(.dark) .admin-shell-bg table tbody tr:hover {
+  background-color: rgba(248, 250, 252, 0.75) !important;
+}
+
+html:not(.dark) .admin-shell-bg table tbody tr:last-child {
+  border-bottom: none !important;
+}
+
+html:not(.dark) .admin-shell-bg table tbody td {
+  padding: 0.75rem 1rem !important;
+  font-size: 0.8125rem !important;
+  color: #1e293b;
+}
+
+/* ── Action Buttons & Controls (Matching Tableau de Bord) ─────────────────── */
+.admin-shell-bg button.bg-neutral-900,
+.admin-shell-bg button.bg-black,
+.admin-shell-bg a.bg-neutral-900,
+.admin-shell-bg a.bg-black {
+  background-color: #0f172a !important; /* Slate-900 */
+  border-radius: 0.75rem !important; /* rounded-xl */
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.15s ease;
+}
+
+.admin-shell-bg button.bg-neutral-900:hover,
+.admin-shell-bg button.bg-black:hover,
+.admin-shell-bg a.bg-neutral-900:hover,
+.admin-shell-bg a.bg-black:hover {
+  background-color: #1e293b !important;
+}
+
+/* Clean White Action Buttons */
+html:not(.dark) .admin-shell-bg button.bg-white,
+html:not(.dark) .admin-shell-bg a.bg-white:not([class*="rounded-full"]) {
+  border-radius: 0.75rem !important; /* rounded-xl */
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  color: #334155 !important;
+  font-weight: 500 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Form Controls & Search Bars */
+.admin-shell-bg input[type="text"],
+.admin-shell-bg input[type="search"],
+.admin-shell-bg select {
+  border-radius: 0.75rem !important; /* rounded-xl */
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  background-color: rgba(248, 250, 252, 0.75) !important;
+  font-size: 0.8125rem !important;
+  transition: all 0.15s ease;
+}
+
+.admin-shell-bg input[type="text"]:focus,
+.admin-shell-bg input[type="search"]:focus,
+.admin-shell-bg select:focus {
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+  background-color: #ffffff !important;
+}
+
 /* ── 0. Light Mode Admin Shell: Creative Sky Blue Gradient from Up ────────── */
 .admin-shell-bg {
   background-color: #f8fafc;

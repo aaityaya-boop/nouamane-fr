@@ -155,43 +155,43 @@ export default function AdminInventoryPage() {
   });
 
   return (
-    <div className="p-4 md:p-8 max-w-[1700px] mx-auto text-slate-900 space-y-8 animate-fadeIn">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 dark:text-slate-100">
       {/* 🌟 HERO INVENTORY HEADER */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white p-6 sm:p-8 shadow-xl border border-slate-700/50">
-        <div className="absolute -right-10 -top-10 w-72 h-72 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-1/4 -bottom-10 w-60 h-60 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-sky-200 text-xs font-semibold">
-              <Archive size={13} className="text-sky-300" />
-              <span>NAY Parfum • Inventaire & Gestion des Stocks</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Stock Flacons & Parfums en Direct
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-light">
-              Gérez les stocks en temps réel pour éviter les ruptures, mettez à jour les quantités en 1 clic et suivez les approvisionnements de la boutique en ligne.
-            </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-[#222227]">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-600 dark:text-slate-400">
+              NAY Parfums • Inventaire & Gestion des Stocks
+            </span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              {totalStockUnits} flacons en direct
+            </span>
           </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+            Stock Flacons & Parfums en Direct
+          </h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
+            Gérez les stocks en temps réel pour éviter les ruptures, mettez à jour les quantités en 1 clic et suivez les approvisionnements.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={fetchProducts}
-              disabled={isLoading}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-md border border-white/15 transition-all shadow-sm cursor-pointer"
-            >
-              <RefreshCw size={14} className={isLoading ? 'animate-spin text-sky-300' : ''} />
-              <span>Actualiser</span>
-            </button>
-            <Link
-              href="/admin/products"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1D9BF0] hover:bg-[#0284c7] text-white text-xs font-bold shadow-lg shadow-sky-500/25 transition-all"
-            >
-              <Package size={14} />
-              <span>Gérer les Fiches Produits</span>
-            </Link>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/admin/products"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+          >
+            <Package size={14} className="text-slate-300 dark:text-sky-100" />
+            <span>Catalogue Produits</span>
+          </Link>
+          <button
+            onClick={fetchProducts}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#121215] dark:hover:bg-[#18181d] border border-slate-200 dark:border-[#222227] text-xs font-medium text-slate-700 dark:text-slate-200 shadow-xs transition-all cursor-pointer"
+          >
+            <RefreshCw size={13} className={isLoading ? 'animate-spin text-slate-400' : 'text-slate-500'} />
+            <span>Actualiser</span>
+          </button>
         </div>
       </div>
 

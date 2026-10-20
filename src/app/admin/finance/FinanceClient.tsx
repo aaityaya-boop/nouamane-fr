@@ -1045,7 +1045,7 @@ export default function FinanceClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 dark:text-slate-100">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-semibold animate-in slide-in-from-bottom-5">
@@ -1055,7 +1055,7 @@ export default function FinanceClient({
       )}
 
       {/* Header with Title and Global Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-[#222227] pb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">

@@ -232,9 +232,9 @@ export default function AdminCoffretsPage() {
 
 
   return (
-    <div className="p-6 md:p-10 max-w-[1600px] mx-auto text-neutral-900 space-y-8">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 dark:text-slate-100">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-[#222227]">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Coffrets Cadeaux</h1>
           <p className="text-[13px] text-neutral-500 mt-1">Créez et gérez vos packs spéciaux et coffrets cadeaux ({products.length} au total).</p>

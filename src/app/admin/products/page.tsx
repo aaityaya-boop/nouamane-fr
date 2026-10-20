@@ -280,9 +280,9 @@ export default function AdminProductsPage() {
 
 
   return (
-    <div className="p-6 md:p-10 max-w-[1600px] mx-auto text-neutral-900 space-y-8">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 dark:text-slate-100">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-[#222227]">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Testeurs</h1>
           <p className="text-[13px] text-neutral-500 mt-1">Gérez votre catalogue de testeurs ({products.length} au total).</p>
@@ -305,7 +305,7 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Table Card */}
-      <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white dark:bg-[#121215] rounded-2xl border border-slate-200/80 dark:border-[#222227] shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden">
         <div className="p-3.5 border-b border-neutral-100 flex items-center gap-3 bg-white">
           <Search size={15} className="text-neutral-400 ml-1" />
           <input 
