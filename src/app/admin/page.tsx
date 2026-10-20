@@ -267,7 +267,7 @@ export default async function AdminDashboard() {
               Boutique en direct
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
             {canViewRevenue ? `Bonjour, ${adminFirstName}` : `Espace Confirmation & Suivi • ${adminFirstName}`}
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">

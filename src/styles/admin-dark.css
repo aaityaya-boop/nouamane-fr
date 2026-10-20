@@ -5,6 +5,34 @@
    Crisp High-Contrast Typography & Clean Professional Surfaces
    ========================================================================== */
 
+/* ── 0. Executive Inter Typography ────────────────────────────────────────── */
+html,
+body,
+.admin-shell-bg,
+button,
+input,
+select,
+textarea,
+table,
+.font-sans {
+  font-family: var(--font-admin, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Precision tabular figures for numbers, metrics, currency, and timestamps */
+.tabular-nums,
+[data-metric],
+.admin-metric-value,
+.font-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum" 1;
+}
+
+h1, h2, h3, h4 {
+  letter-spacing: -0.02em;
+}
+
 /* ── 0. Light Mode Admin Shell: Creative Sky Blue Gradient from Up ────────── */
 .admin-shell-bg {
   background-color: #f8fafc;

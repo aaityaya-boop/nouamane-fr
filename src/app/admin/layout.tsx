@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import AdminLayoutShell from "@/components/AdminLayoutShell";
 import "../globals.css";
 import "@/styles/admin-dark.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-sans",
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-admin",
   display: "swap",
 });
 
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr" className={plusJakarta.variable} suppressHydrationWarning>
+    <html lang="fr" className={`${inter.variable} ${inter.className}`} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -91,7 +91,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className={`${plusJakarta.className} bg-[#f8fafc] dark:bg-[#09090b] antialiased min-h-screen font-sans`}>
+      <body className={`${inter.className} bg-[#f8fafc] dark:bg-[#09090b] antialiased min-h-screen font-sans`}>
         <AdminLayoutShell>
           {children}
         </AdminLayoutShell>

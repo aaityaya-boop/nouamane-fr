@@ -305,7 +305,7 @@ export default function AdminHeader() {
           <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden md:inline shrink-0">
             Admin /
           </span>
-          <span className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight truncate max-w-[130px] sm:max-w-xs md:max-w-none">
+          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white tracking-tight truncate max-w-[130px] sm:max-w-xs md:max-w-none">
             {getPageContextLabel(pathname)}
           </span>
         </div>
