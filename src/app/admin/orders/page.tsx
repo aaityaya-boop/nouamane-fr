@@ -1252,7 +1252,7 @@ function OrdersPageContent() {
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-slate-50/80 dark:bg-[#18181d] text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider border-b border-slate-100 dark:border-[#222227]">
               <tr>
-                <th className="py-3 px-2 w-8 text-center">
+                <th className="py-3 px-2 w-10 text-center">
                   <button
                     onClick={handleToggleSelectAll}
                     className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-0.5 cursor-pointer"
@@ -1264,27 +1264,28 @@ function OrdersPageContent() {
                     )}
                   </button>
                 </th>
-                <th className="py-3 px-2 w-28">Commande</th>
-                <th className="py-3 px-2 w-44">Client</th>
-                <th className="py-3 px-2 w-36">Destination</th>
-                <th className="py-3 px-2">Articles</th>
-                <th className="py-3 px-2 w-28">Montant</th>
-                <th className="py-3 px-2 w-36">Statut</th>
-                <th className="py-3 px-2 text-right w-24">Actions</th>
+                <th className="py-3 px-2 whitespace-nowrap">Commande</th>
+                <th className="py-3 px-2">Client</th>
+                <th className="py-3 px-2 whitespace-nowrap">Destination</th>
+                <th className="py-3 px-2 min-w-[180px]">Articles &amp; Parfums</th>
+                <th className="py-3 px-2 min-w-[125px] whitespace-nowrap">Règlement</th>
+                <th className="py-3 px-2 whitespace-nowrap">Total</th>
+                <th className="py-3 px-2 whitespace-nowrap">Statut</th>
+                <th className="py-3 px-2 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-slate-100 dark:divide-[#222227]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16 text-slate-400">
+                  <td colSpan={9} className="text-center py-16 text-slate-400">
                     <RefreshCw size={18} className="animate-spin mx-auto mb-2 text-slate-400" />
                     Chargement des commandes...
                   </td>
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16 text-slate-400">
+                  <td colSpan={9} className="text-center py-16 text-slate-400">
                     Aucune commande trouvée.
                   </td>
                 </tr>
@@ -1319,7 +1320,7 @@ function OrdersPageContent() {
                       }`}
                     >
                       {/* Checkbox */}
-                      <td className="py-3 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-2.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => handleToggleSelectOne(order.id, e)}
                           className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-0.5 cursor-pointer"
@@ -1344,22 +1345,22 @@ function OrdersPageContent() {
                             {copiedRef === order.orderNumber ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
                           </button>
                         </div>
-                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                        <div className="text-[10.5px] text-slate-400 font-mono mt-0.5">
                           {formattedDate}
                         </div>
                       </td>
 
                       {/* Client (Avatar Circle + Name) */}
                       <td className="py-2.5 px-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-[#202026] text-slate-700 dark:text-slate-200 font-bold text-[11px] flex items-center justify-center border border-slate-200/80 dark:border-[#2d2d35] shrink-0">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-[#202026] text-slate-700 dark:text-slate-200 font-bold text-[11px] flex items-center justify-center border border-slate-200/80 dark:border-[#2d2d35] shrink-0">
                             {initials}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-semibold text-slate-900 dark:text-white truncate max-w-[110px]">
+                            <div className="font-semibold text-slate-900 dark:text-white truncate max-w-[140px] text-xs">
                               {order.customerName || 'Client NAY'}
                             </div>
-                            <div className="text-[10px] font-mono text-slate-400 mt-0.5 truncate max-w-[110px]">
+                            <div className="text-[10.5px] font-mono text-slate-400 mt-0.5 truncate max-w-[140px]">
                               {order.customerEmail || 'Client Boutique'}
                             </div>
                           </div>
@@ -1368,7 +1369,7 @@ function OrdersPageContent() {
 
                       {/* Destination & Contact */}
                       <td className="py-2.5 px-2 whitespace-nowrap">
-                        <div className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                        <div className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-xs">
                           <MapPin size={12} className="text-[#1D9BF0] shrink-0" />
                           <span>{order.shippingCity || 'Casablanca'}</span>
                         </div>
@@ -1387,30 +1388,66 @@ function OrdersPageContent() {
                         </div>
                       </td>
 
-                      {/* Articles */}
-                      <td className="py-2.5 px-2">
-                        <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-[#1f1f25] px-2 py-0.5 rounded text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                          <Package size={11} className="text-slate-400" />
-                          <span>{itemsCount} flacon{itemsCount > 1 ? 's' : ''}</span>
+                      {/* Articles & Parfums */}
+                      <td className="py-2.5 px-2 min-w-[200px]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-[#1f1f25] px-2 py-0.5 rounded text-[11px] font-semibold text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/40">
+                            <Package size={11} className="text-slate-400" />
+                            <span>{itemsCount} flacon{itemsCount > 1 ? 's' : ''}</span>
+                          </span>
+                          {parsedItems.length > 1 && (
+                            <span className="text-[10.5px] text-slate-400 font-medium">
+                              ({parsedItems.length} réf.)
+                            </span>
+                          )}
                         </div>
-                        <div className="text-[11px] text-slate-500 truncate max-w-[110px] mt-0.5" title={itemsSummary}>
+                        <div className="text-[11px] text-slate-600 dark:text-slate-300 font-medium leading-snug line-clamp-2 max-w-[230px]" title={itemsSummary}>
                           {itemsSummary}
                         </div>
                       </td>
 
-                      {/* Montant & COD */}
+                      {/* Règlement & Acompte */}
+                      <td className="py-2.5 px-2 whitespace-nowrap min-w-[125px]">
+                        {isPaidFull ? (
+                          <div>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40">
+                              <CheckCircle2 size={11} className="text-emerald-500" />
+                              <span>100% Réglé</span>
+                            </span>
+                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                              Paiement validé
+                            </div>
+                          </div>
+                        ) : paid > 0 ? (
+                          <div>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/40">
+                              <CreditCard size={11} className="text-teal-500" />
+                              <span>Acompte {paid} DH</span>
+                            </span>
+                            <div className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">
+                              Reste : <strong className="text-slate-800 dark:text-slate-200 font-semibold">{remaining} DH</strong>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-[#1e1e24] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                              <span>COD (Livraison)</span>
+                            </span>
+                            <div className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">
+                              Espèces au livreur
+                            </div>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Montant Total */}
                       <td className="py-2.5 px-2 whitespace-nowrap">
                         <div className="font-mono text-xs font-bold text-slate-900 dark:text-white">
                           {formatMAD(order.total)}
                         </div>
-                        <div className="text-[11px] font-mono mt-0.5">
-                          {isPaidFull ? (
-                            <span className="text-emerald-700 dark:text-emerald-400 font-semibold">100% Réglé</span>
-                          ) : paid > 0 ? (
-                            <span className="text-amber-700 dark:text-amber-400 font-medium">Acompte {paid} DH · Reste {remaining} DH</span>
-                          ) : (
-                            <span className="text-slate-400">COD à la livraison</span>
-                          )}
+                        <div className="text-[10.5px] text-slate-400 font-mono mt-0.5">
+                          {order.shippingCost === 0 ? 'Livraison offerte' : `Dont ${order.shippingCost || 35} DH livr.`}
                         </div>
                       </td>
 
@@ -1461,10 +1498,10 @@ function OrdersPageContent() {
                             <button
                               type="button"
                               onClick={() => setOpenWhatsAppMenuId(openWhatsAppMenuId === order.id ? null : order.id)}
-                              className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
+                              className="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
                               title="WhatsApp"
                             >
-                              <MessageCircle size={15} />
+                              <MessageCircle size={14} />
                             </button>
 
                             {openWhatsAppMenuId === order.id && (
@@ -1531,9 +1568,9 @@ function OrdersPageContent() {
                             <a
                               href={`tel:${order.customerPhone}`}
                               title="Appeler"
-                              className="p-1.5 rounded-lg text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
+                              className="p-1 rounded-lg text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
                             >
-                              <Phone size={15} />
+                              <Phone size={14} />
                             </a>
                           )}
 
@@ -1542,9 +1579,9 @@ function OrdersPageContent() {
                             type="button"
                             onClick={() => setEditingOrder(order)}
                             title="Gérer la commande"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#202026] transition-colors cursor-pointer"
+                            className="p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#202026] transition-colors cursor-pointer"
                           >
-                            <ChevronRight size={16} />
+                            <ChevronRight size={14} />
                           </button>
                         </div>
                       </td>
