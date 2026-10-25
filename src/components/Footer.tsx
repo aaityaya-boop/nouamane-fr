@@ -30,11 +30,11 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="bg-[#fafaf7] border-t border-[#e0ddd4] text-[#1A1A1A]">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-20 lg:py-24">
-        <div className="grid grid-cols-2 md:grid-cols-12 gap-y-14 gap-x-8">
+    <footer className="bg-[#fafaf7] border-t border-[#e0ddd4] text-[#1A1A1A] overflow-hidden">
+      <div className="max-w-[1400px] mx-auto px-3.5 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-24">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-y-10 sm:gap-y-14 gap-x-6 sm:gap-x-8">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-4">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-4">
             <Link href={`/${locale}/`} aria-label="NAY Parfums - Accueil" className="inline-block group">
               <div
                   className="w-16 h-16 lg:w-20 lg:h-20 transition-colors duration-500 bg-[#1A1A1A] group-hover:bg-[#0ea5e9]"
@@ -99,72 +99,75 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Boutique */}
-          <div className="md:col-span-3">
-            <h4 className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#1A1A1A]/50 mb-6">
-              {dict.footer.boutique}
-            </h4>
-            <ul className="space-y-3">
-              <li>
-                <Link href={`/${locale}/testeurs`} className="text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors inline-flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-[#0ea5e9]" />
-                  <span>{dict.footer.testers}</span>
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/parfums-originaux`} className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors">
-                  {dict.footer.sealedPerfumes}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/parfums-orientaux`} className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors">
-                  {dict.footer.orientalPerfumes}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/coffrets`} className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors">
-                  {dict.footer.giftSets}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/master-copier`} className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors">
-                  {dict.footer.masterCopy}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/shop`} className="text-[13px] font-medium text-[#1A1A1A]/90 hover:text-[#0ea5e9] transition-colors">
-                  {dict.nav.allFragrances}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Marques */}
-          <div className="md:col-span-2">
-            <h4 className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#1A1A1A]/50 mb-6">
-              {dict.nav.brands}
-            </h4>
-            <ul className="space-y-4">
-              {brands.slice(0, 5).map((b) => (
-                <li key={b.slug}>
-                  <Link
-                    href={`/${locale}/brands/${b.slug}`}
-                    className="text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors"
-                  >
-                    {b.label}
+          {/* Navigation Links (2-Column Grid on Mobile & Tablet) */}
+          <div className="col-span-1 sm:col-span-2 lg:col-span-5 grid grid-cols-2 gap-6 sm:gap-8">
+            {/* Boutique */}
+            <div>
+              <h4 className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#1A1A1A]/50 mb-4 sm:mb-6">
+                {dict.footer.boutique}
+              </h4>
+              <ul className="space-y-2.5 sm:space-y-3">
+                <li>
+                  <Link href={`/${locale}/testeurs`} className="text-[12.5px] sm:text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors inline-flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-[#0ea5e9] shrink-0" />
+                    <span>{dict.footer.testers}</span>
                   </Link>
                 </li>
-              ))}
-              <li>
-                <Link href={`/${locale}/shop`} className="text-[11px] font-bold tracking-wider text-[#0ea5e9] hover:text-[#0284c7] transition-colors uppercase mt-2 inline-block">
-                  {dict.footer.viewAll}
-                </Link>
-              </li>
-            </ul>
+                <li>
+                  <Link href={`/${locale}/parfums-originaux`} className="text-[12.5px] sm:text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors block">
+                    {dict.footer.sealedPerfumes}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${locale}/parfums-orientaux`} className="text-[12.5px] sm:text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors block">
+                    {dict.footer.orientalPerfumes}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${locale}/coffrets`} className="text-[12.5px] sm:text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors block">
+                    {dict.footer.giftSets}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${locale}/master-copier`} className="text-[12.5px] sm:text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors block">
+                    {dict.footer.masterCopy}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${locale}/shop`} className="text-[12.5px] sm:text-[13px] font-medium text-[#1A1A1A]/90 hover:text-[#0ea5e9] transition-colors block">
+                    {dict.nav.allFragrances}
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Marques */}
+            <div>
+              <h4 className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#1A1A1A]/50 mb-4 sm:mb-6">
+                {dict.nav.brands}
+              </h4>
+              <ul className="space-y-2.5 sm:space-y-3">
+                {brands.slice(0, 5).map((b) => (
+                  <li key={b.slug}>
+                    <Link
+                      href={`/${locale}/brands/${b.slug}`}
+                      className="text-[12.5px] sm:text-[13px] text-[#1A1A1A]/70 hover:text-[#0ea5e9] transition-colors block"
+                    >
+                      {b.label}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <Link href={`/${locale}/shop`} className="text-[10.5px] sm:text-[11px] font-bold tracking-wider text-[#0ea5e9] hover:text-[#0284c7] transition-colors uppercase mt-1 inline-block">
+                    {dict.footer.viewAll}
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
 
           {/* Newsletter */}
-          <div className="col-span-2 md:col-span-3">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-3 min-w-0">
             <h4 className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#1A1A1A]/50 mb-6">
               {dict.footer.newsletter}
             </h4>
@@ -198,7 +201,7 @@ export default function Footer() {
               }}
               className="flex flex-col gap-2.5"
             >
-              <div className="flex items-center border-b border-[#1A1A1A]/20 pb-3 gap-3 group focus-within:border-[#0ea5e9] transition-colors">
+              <div className="flex items-center border-b border-[#1A1A1A]/20 pb-3 gap-2 sm:gap-3 group focus-within:border-[#0ea5e9] transition-colors min-w-0">
                 <Mail size={15} className="text-[#1A1A1A]/40 group-focus-within:text-[#0ea5e9] transition-colors" />
                 <input
                   type="email"
@@ -212,7 +215,7 @@ export default function Footer() {
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="text-[#0ea5e9] text-[10px] font-bold tracking-[0.2em] uppercase hover:text-[#0284c7] transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                  className="text-[#0ea5e9] text-[10px] font-bold tracking-[0.1em] sm:tracking-[0.2em] uppercase hover:text-[#0284c7] transition-colors disabled:opacity-50 inline-flex items-center gap-1 shrink-0"
                 >
                   <span>{status === 'loading' ? dict.footer.sending : dict.footer.subscribe}</span>
                   <ArrowRight size={12} className="rtl:rotate-180" />
@@ -226,7 +229,7 @@ export default function Footer() {
               )}
             </form>
 
-            <div className="mt-10 flex flex-wrap gap-x-5 gap-y-3 text-[10px] tracking-[0.15em] text-[#1A1A1A]/50 uppercase">
+            <div className="mt-8 flex flex-wrap gap-x-4 sm:gap-x-5 gap-y-2.5 text-[9.5px] sm:text-[10px] tracking-[0.12em] text-[#1A1A1A]/50 uppercase">
               <Link href={`/${locale}/blog`} className="hover:text-[#1A1A1A]/70 font-bold transition-colors">{dict.footer.blog}</Link>
               <Link href={`/${locale}/legal/terms`} className="hover:text-[#1A1A1A]/70 transition-colors">{dict.footer.terms}</Link>
               <Link href={`/${locale}/legal/privacy`} className="hover:text-[#1A1A1A]/70 transition-colors">{dict.footer.privacy}</Link>

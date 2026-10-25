@@ -414,13 +414,13 @@ function ShopCatalogInner({
           </div>
 
           {/* Row 2: Action Controls (Filters trigger + In-Stock pill + Sort dropdown) */}
-          <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-0.5">
-            <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* Filter Toggle Button */}
               <button
                 type="button"
                 onClick={() => setFiltersOpenMobile(true)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border text-[11px] font-bold tracking-wider uppercase transition shadow-2xs shrink-0 cursor-pointer ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full border text-[10.5px] sm:text-[11px] font-bold tracking-wider uppercase transition shadow-2xs shrink-0 cursor-pointer ${
                   activeCount > 0
                     ? 'border-[#0ea5e9] bg-sky-50 text-[#0ea5e9]'
                     : 'border-[#e0ddd4] bg-white text-[#1A1A1A] hover:border-[#0ea5e9]'
@@ -439,7 +439,7 @@ function ShopCatalogInner({
               <button
                 type="button"
                 onClick={() => setInStockOnly((prev) => !prev)}
-                className={`px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full text-[10.5px] sm:text-[11px] font-semibold transition flex items-center gap-1 border shadow-2xs shrink-0 cursor-pointer ${
+                className={`px-2 py-1.5 sm:px-3 sm:py-2 rounded-full text-[10px] sm:text-[11px] font-semibold transition flex items-center gap-1 border shadow-2xs shrink-0 cursor-pointer ${
                   inStockOnly
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-300 ring-1 ring-emerald-300'
                     : 'bg-white text-[#6B6B6B] border-[#e0ddd4] hover:border-slate-400'
@@ -455,7 +455,7 @@ function ShopCatalogInner({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortKey)}
-                className="appearance-none bg-white border border-[#e0ddd4] rounded-full pl-3 pr-7 py-1.5 sm:py-2 text-[10.5px] sm:text-[11px] font-semibold tracking-wider uppercase text-[#1A1A1A] focus:outline-none focus:border-[#0ea5e9] cursor-pointer shadow-2xs"
+                className="appearance-none bg-white border border-[#e0ddd4] rounded-full pl-2.5 sm:pl-3 pr-6 sm:pr-7 py-1.5 sm:py-2 text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-[#1A1A1A] focus:outline-none focus:border-[#0ea5e9] cursor-pointer shadow-2xs"
               >
                 <option value="featured">Recommandés</option>
                 <option value="newest">Nouveautés</option>

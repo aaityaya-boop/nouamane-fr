@@ -680,12 +680,12 @@ export default function ProductClient({
                 <>
                   {/* Top Row: Quantity Stepper + Secondary "Ajouter au panier" */}
                   <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="flex items-center justify-between border border-[#e0ddd4] rounded-2xl bg-white h-12 sm:h-14 w-28 sm:w-32 shrink-0 shadow-xs px-2 rounded-xl sm:rounded-2xl">
+                    <div className="flex items-center justify-between border border-[#e0ddd4] rounded-xl sm:rounded-2xl bg-white h-12 sm:h-14 w-28 sm:w-32 shrink-0 shadow-xs px-2">
                       <button
                         type="button"
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         disabled={!inStock}
-                        className="w-8 h-8 rounded-xl flex items-center justify-center text-[#6B6B6B] hover:bg-[#fafaf7] transition"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-[#6B6B6B] hover:bg-[#fafaf7] active:scale-95 transition"
                         aria-label="Diminuer"
                       >
                         <Minus size={15} />
@@ -697,7 +697,7 @@ export default function ProductClient({
                         type="button"
                         onClick={() => setQuantity(quantity + 1)}
                         disabled={!inStock}
-                        className="w-8 h-8 rounded-xl flex items-center justify-center text-[#6B6B6B] hover:bg-[#fafaf7] transition"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-[#6B6B6B] hover:bg-[#fafaf7] active:scale-95 transition"
                         aria-label="Augmenter"
                       >
                         <Plus size={15} />

@@ -5,9 +5,10 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Search, ShoppingBag, User, Menu, X, ChevronDown, Package, ChevronRight, ShieldCheck, Truck, Sparkles } from 'lucide-react';
+import { Search, ShoppingBag, User, Heart, Compass, Menu, X, ChevronDown, Package, ChevronRight, ShieldCheck, Truck, Sparkles, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { MAIN_CATEGORIES } from '@/lib/products';
 import { useDictionary } from '@/context/DictionaryContext';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -24,6 +25,7 @@ export default function Header() {
   const pathname = usePathname();
   const dict = useDictionary();
   const cartCount = getItemCount();
+  const { count: wishlistCount } = useWishlist();
 
   const locale = pathname?.split('/')[1] || 'fr';
   const isHome = pathname === `/${locale}`;
@@ -56,16 +58,17 @@ export default function Header() {
       <header
         onMouseLeave={() => setActiveMenu(null)}
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          isSolid ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-[#e0ddd4]/60' : 'bg-transparent'
+          isSolid ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-[#e0ddd4]/60' : 'bg-[#FAF9F6]/85 backdrop-blur-md border-b border-[#111]/5'
         }`}
       >
 
         
 
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="flex items-center justify-between h-[60px] lg:h-[75px]">
+          {/* DESKTOP BAR (lg+) */}
+          <div className="hidden lg:flex items-center justify-between h-[75px]">
             {/* LEFT NAV (Desktop) */}
-            <nav className="hidden lg:flex items-center gap-5 xl:gap-7 flex-1">
+            <nav className="flex items-center gap-5 xl:gap-7 flex-1">
               {['women', 'men', 'testers', 'originaux', 'brands', 'bundles'].map((menuKey) => {
                 const labels: any = {
                   women: dict.nav?.women || 'Femme',
@@ -83,7 +86,7 @@ export default function Header() {
                   >
                     <button
                       className={`text-[11px] font-bold tracking-[0.12em] xl:tracking-[0.14em] uppercase transition-colors duration-300 flex items-center gap-1.5 h-[75px] border-b-2 whitespace-nowrap ${
-                        activeMenu === menuKey ? 'border-[#0ea5e9] text-[#0ea5e9]' : 'border-transparent ' + (isSolid ? 'text-[#1A1A1A]' : 'text-white hover:text-white/80')
+                        activeMenu === menuKey ? 'border-[#0ea5e9] text-[#0ea5e9]' : 'border-transparent text-[#1A1A1A] hover:text-[#0ea5e9]'
                       }`}
                     >
                       {labels[menuKey]}
@@ -91,16 +94,13 @@ export default function Header() {
                   </div>
                 );
               })}
-
             </nav>
 
-            {/* LOGO */}
-            <div className="flex-shrink-0 flex justify-center px-2 sm:px-4">
+            {/* LOGO (Desktop) */}
+            <div className="flex-shrink-0 flex justify-center px-4">
               <Link href={`/${locale}`} aria-label="NAY Parfums - Accueil" className="group flex flex-col items-center">
                 <div
-                  className={`w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 transition-colors duration-300 group-hover:bg-[#0ea5e9] ${
-                    isSolid ? 'bg-[#1A1A1A]' : 'bg-white'
-                  }`}
+                  className="w-16 h-16 lg:w-20 lg:h-20 transition-colors duration-300 group-hover:bg-[#0ea5e9] bg-[#1A1A1A]"
                   style={{
                     maskImage: 'url("/images/nay/Artboard%202.png")',
                     WebkitMaskImage: 'url("/images/nay/Artboard%202.png")',
@@ -115,29 +115,38 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* RIGHT ICONS */}
+            {/* RIGHT ICONS (Desktop) */}
             <div className="flex-1 flex items-center justify-end gap-5 lg:gap-6">
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className={`hidden lg:block transition-colors duration-300 ${
-                  isSolid ? 'text-[#1A1A1A] hover:text-[#0ea5e9]' : 'text-white hover:text-white/80'
-                }`}
+                className="transition-colors duration-300 text-[#1A1A1A] hover:text-[#0ea5e9] p-2"
                 aria-label="Recherche"
               >
                 <Search className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </button>
 
               <Link
+                href={`/${locale}/wishlist`}
+                className="transition-colors duration-300 relative p-2 text-[#1A1A1A] hover:text-rose-500"
+                aria-label={`Favoris (${wishlistCount} articles)`}
+              >
+                <Heart className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-rose-500 text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full leading-none">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+
+              <Link
                 id="header-cart-icon"
                 href={`/${locale}/cart`}
-                className={`transition-colors duration-300 relative flex items-center justify-center min-w-[44px] min-h-[44px] -mr-1 ${
-                  isSolid ? 'text-[#1A1A1A] hover:text-[#0ea5e9]' : 'text-white hover:text-white/80'
-                }`}
+                className="transition-colors duration-300 relative p-2 text-[#1A1A1A] hover:text-[#0ea5e9]"
                 aria-label={`Panier (${cartCount} articles)`}
               >
                 <ShoppingBag className="w-[18px] h-[18px]" strokeWidth={1.5} />
                 {cartCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 bg-[#0ea5e9] text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full leading-none">
+                  <span className="absolute top-1 right-1 bg-[#0ea5e9] text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full leading-none">
                     {cartCount}
                   </span>
                 )}
@@ -145,25 +154,87 @@ export default function Header() {
 
               <Link
                 href={`/${locale}/account`}
-                className={`hidden lg:block transition-colors duration-300 ${
-                  isSolid ? 'text-[#1A1A1A] hover:text-[#0ea5e9]' : 'text-white hover:text-white/80'
-                }`}
+                className="transition-colors duration-300 text-[#1A1A1A] hover:text-[#0ea5e9] p-2"
                 aria-label="Mon Compte"
               >
                 <User className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </Link>
 
-              <div className="hidden lg:block">
+              <div>
                 <LanguageSwitcher />
               </div>
+            </div>
+          </div>
 
+          {/* MOBILE 3-ZONE BALANCED BAR (< lg) */}
+          <div className="lg:hidden flex items-center justify-between h-[60px] w-full">
+            {/* ZONE 1: LEFT (Menu + Search, 44px targets) */}
+            <div className="flex-1 flex items-center justify-start gap-0.5">
               <button
+                type="button"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`lg:hidden flex items-center justify-center min-w-[44px] min-h-[44px] -mr-2 ${isSolid ? 'text-[#1A1A1A]' : 'text-white'}`}
-                aria-label="Menu"
+                className="w-11 h-11 flex items-center justify-center text-[#1A1A1A] hover:text-[#0ea5e9] active:scale-95 transition-all -ml-1.5"
+                aria-label={isMobileMenuOpen ? "Fermer le menu" : "Menu de navigation"}
               >
-                {isMobileMenuOpen ? <X size={24} strokeWidth={1.5} /> : <Menu size={24} strokeWidth={1.5} />}
+                {isMobileMenuOpen ? <X size={22} strokeWidth={1.8} /> : <Menu size={22} strokeWidth={1.8} />}
               </button>
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="w-11 h-11 flex items-center justify-center text-[#1A1A1A] hover:text-[#0ea5e9] active:scale-95 transition-all"
+                aria-label="Recherche rapide"
+              >
+                <Search size={20} strokeWidth={1.8} />
+              </button>
+            </div>
+
+            {/* ZONE 2: CENTER (Centered NAY Logo Monogram) */}
+            <div className="flex-shrink-0 flex items-center justify-center px-1">
+              <Link href={`/${locale}`} aria-label="NAY Parfums - Accueil" className="group flex flex-col items-center">
+                <div
+                  className="w-12 h-12 sm:w-14 sm:h-14 transition-colors duration-300 group-hover:bg-[#0ea5e9] bg-[#1A1A1A]"
+                  style={{
+                    maskImage: 'url("/images/nay/Artboard%202.png")',
+                    WebkitMaskImage: 'url("/images/nay/Artboard%202.png")',
+                    maskSize: 'contain',
+                    WebkitMaskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                    WebkitMaskPosition: 'center',
+                  }}
+                />
+              </Link>
+            </div>
+
+            {/* ZONE 3: RIGHT (Wishlist + Cart, 44px targets) */}
+            <div className="flex-1 flex items-center justify-end gap-0.5">
+              <Link
+                href={`/${locale}/wishlist`}
+                className="w-11 h-11 relative flex items-center justify-center text-[#1A1A1A] hover:text-rose-500 active:scale-95 transition-all"
+                aria-label={`Favoris (${wishlistCount} articles)`}
+              >
+                <Heart size={20} strokeWidth={1.8} />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 bg-rose-500 text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full leading-none shadow-xs">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+
+              <Link
+                id="header-cart-icon-mobile"
+                href={`/${locale}/cart`}
+                className="w-11 h-11 relative flex items-center justify-center text-[#1A1A1A] hover:text-[#0ea5e9] active:scale-95 transition-all -mr-1.5"
+                aria-label={`Panier (${cartCount} articles)`}
+              >
+                <ShoppingBag size={20} strokeWidth={1.8} />
+                {cartCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 bg-[#0ea5e9] text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full leading-none shadow-xs">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
             </div>
           </div>
         </div>
@@ -202,7 +273,7 @@ export default function Header() {
                       <div>
                         <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A] mb-5">Collections & Formats</div>
                         <ul className="space-y-4">
-                          <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs/women`} className="text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors flex items-center gap-2">✨ Testeurs Femme (100% Authentiques)</Link></li>
+                          <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs/women`} className="text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors flex items-center gap-2">✨ Testeurs Femme (Qualité Supérieure)</Link></li>
                           <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/parfums-originaux`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors">Parfums Originaux Scellés</Link></li>
                           <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/master-copier`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors">Parfums Master Copy</Link></li>
                           <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/shop/women`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors">Toute la Sélection Femme</Link></li>
@@ -237,7 +308,7 @@ export default function Header() {
                       <div>
                         <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A] mb-5">Collections & Formats</div>
                         <ul className="space-y-4">
-                          <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs/men`} className="text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors flex items-center gap-2">✨ Testeurs Homme (100% Authentiques)</Link></li>
+                          <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs/men`} className="text-[13px] font-semibold text-[#0ea5e9] hover:text-[#0284c7] transition-colors flex items-center gap-2">✨ Testeurs Homme (Qualité Supérieure)</Link></li>
                           <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/parfums-originaux`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors">Parfums Originaux Scellés</Link></li>
                           <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/master-copier`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors">Parfums Master Copy</Link></li>
                           <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/shop/men`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors">Toute la Sélection Homme</Link></li>
@@ -264,7 +335,7 @@ export default function Header() {
                         <ul className="space-y-4">
                           <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs/women`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors flex items-center justify-between font-medium">Testeurs Femme <ChevronRight size={14} className="text-[#9A9A9A]"/></Link></li>
                           <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs/men`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors flex items-center justify-between font-medium">Testeurs Homme <ChevronRight size={14} className="text-[#9A9A9A]"/></Link></li>
-                          <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors flex items-center justify-between font-medium">Tous les Testeurs Originaux <ChevronRight size={14} className="text-[#9A9A9A]"/></Link></li>
+                          <li><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs`} className="text-[13px] text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors flex items-center justify-between font-medium">Tous les Testeurs de Luxe <ChevronRight size={14} className="text-[#9A9A9A]"/></Link></li>
                           <li className="pt-2"><Link onClick={() => setActiveMenu(null)} href={`/${locale}/testeurs`} className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9] flex items-center gap-1">Voir tout le catalogue testeurs <ChevronRight size={14}/></Link></li>
                         </ul>
                       </div>
@@ -414,95 +485,128 @@ export default function Header() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden bg-white border-t border-[#e0ddd4] overflow-y-auto"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="lg:hidden bg-white border-t border-[#e0ddd4] overflow-y-auto shadow-2xl"
               style={{ maxHeight: 'calc(100vh - 60px)' }}
             >
-              <div className="px-6 py-8 space-y-8">
-                <div className="flex items-center justify-between pb-3 border-b border-[#e0ddd4]">
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">{dict.common?.language || 'Langue'}</span>
-                  <LanguageSwitcher />
+              <div className="px-5 py-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] space-y-6">
+                {/* Drawer Top Header: Language Switcher & Quick Close */}
+                <div className="flex items-center justify-between pb-3.5 border-b border-[#e0ddd4]/70">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A]">
+                      {dict.common?.language || 'Langue'}
+                    </span>
+                    <LanguageSwitcher />
+                  </div>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-10 h-10 rounded-full bg-[#f4f3ef] hover:bg-[#e0ddd4] flex items-center justify-center text-[#1A1A1A] transition-colors active:scale-95"
+                    aria-label="Fermer le menu"
+                  >
+                    <X size={18} strokeWidth={2} />
+                  </button>
                 </div>
 
-                {/* Mobile Search Bar */}
+                {/* Instant Mobile Search Bar */}
                 <div 
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     setIsSearchOpen(true);
                   }}
-                  className="flex items-center gap-3 bg-[#f8fafc] border border-[#e0ddd4] rounded-xl px-4 py-3 cursor-text"
+                  className="flex items-center gap-3 bg-[#f8fafc] border border-[#e0ddd4] rounded-2xl px-4 py-3.5 cursor-text hover:border-[#0ea5e9] transition-colors shadow-xs"
                 >
-                  <Search className="w-5 h-5 text-[#9A9A9A]" />
-                  <span className="text-[14px] text-[#9A9A9A]">{dict.nav?.searchPlaceholder || 'Rechercher un parfum, une marque...'}</span>
+                  <Search className="w-5 h-5 text-[#0ea5e9]" />
+                  <span className="text-[13px] text-[#6B6B6B] flex-1 font-medium">
+                    {dict.nav?.searchPlaceholder || 'Rechercher un parfum, une marque...'}
+                  </span>
                 </div>
 
-                {/* Mobile Categories */}
-                <div className="space-y-6">
-                  {/* EXPLORER SECTION (Added for Mobile) */}
-                  <div className="border-b border-[#e0ddd4] pb-6 bg-[#f8fafc] -mx-6 px-6 pt-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="w-2 h-2 rounded-full bg-[#0ea5e9]"></span>
-                      <div className="heading-font text-2xl text-[#1A1A1A]">{dict.nav?.collections || 'Collections'}</div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 pl-4 rtl:pl-0 rtl:pr-4 border-l-2 rtl:border-l-0 rtl:border-r-2 border-[#0ea5e9]/50">
-                      <Link 
-                        href={`/${locale}/testeurs`} 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="text-[15px] font-bold text-[#0ea5e9] flex items-center justify-between"
-                      >
-                        {dict.nav?.testersLuxury || '✨ Testeurs de Luxe (Authentiques)'} <ChevronRight size={16} className="rtl:rotate-180" />
-                      </Link>
-                      <Link 
-                        href={`/${locale}/parfums-originaux`} 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="text-[14px] font-medium text-[#1A1A1A] flex items-center justify-between"
-                      >
-                        {dict.nav?.originauxSealed || 'Parfums Originaux Scellés'} <ChevronRight size={16} className="rtl:rotate-180" />
-                      </Link>
-                      <Link 
-                        href={`/${locale}/parfums-orientaux`} 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="text-[14px] font-medium text-[#1A1A1A] flex items-center justify-between"
-                      >
-                        {dict.nav?.orientalArab || 'Parfums Orientaux & Arabes'} <ChevronRight size={16} className="rtl:rotate-180" />
-                      </Link>
-                      <Link 
-                        href={`/${locale}/coffrets`} 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="text-[14px] font-medium text-[#1A1A1A] flex items-center justify-between"
-                      >
-                        {dict.nav?.bundles || 'Coffrets Cadeaux'} <ChevronRight size={16} className="rtl:rotate-180" />
-                      </Link>
-                      <Link 
-                        href={`/${locale}/master-copier`} 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="text-[14px] text-[#555] flex items-center justify-between"
-                      >
-                        {dict.nav?.masterCopy || 'Parfums Master Copy'} <ChevronRight size={16} className="rtl:rotate-180" />
-                      </Link>
-                      <Link 
-                        href={`/${locale}/shop`} 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="text-[14px] font-bold text-[#111] uppercase tracking-wider flex items-center justify-between pt-2 border-t border-[#e0ddd4]"
-                      >
-                        {dict.nav?.allBoutique || 'Toute La Boutique (Tous les parfums)'} <ChevronRight size={16} className="rtl:rotate-180" />
-                      </Link>
-                    </div>
+                {/* Collections Exclusives Block */}
+                <div className="rounded-2xl bg-gradient-to-br from-[#faf9f6] via-white to-[#f4f3ef] border border-[#e0ddd4] p-4 space-y-2.5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-[#0ea5e9]" />
+                    <span className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#1A1A1A]">
+                      {dict.nav?.collections || 'Collections Privées'}
+                    </span>
                   </div>
 
+                  <Link 
+                    href={`/${locale}/testeurs`} 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#e0ddd4]/80 text-[#0ea5e9] font-bold text-[14px] shadow-xs hover:border-[#0ea5e9] transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles size={16} className="text-[#0ea5e9]" />
+                      <span>{dict.nav?.testersLuxury || 'Testeurs de Luxe (Authentiques)'}</span>
+                    </span>
+                    <ChevronRight size={16} className="rtl:rotate-180 text-[#0ea5e9]" />
+                  </Link>
+
+                  <Link 
+                    href={`/${locale}/parfums-originaux`} 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#e0ddd4]/80 text-[#1A1A1A] font-semibold text-[13.5px] hover:text-[#0ea5e9] transition-all"
+                  >
+                    <span>{dict.nav?.originauxSealed || 'Parfums Originaux Scellés'}</span>
+                    <ChevronRight size={16} className="rtl:rotate-180 text-[#9A9A9A]" />
+                  </Link>
+
+                  <Link 
+                    href={`/${locale}/parfums-orientaux`} 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#e0ddd4]/80 text-[#1A1A1A] font-semibold text-[13.5px] hover:text-[#0ea5e9] transition-all"
+                  >
+                    <span>{dict.nav?.orientalArab || 'Parfums Orientaux & Arabes'}</span>
+                    <ChevronRight size={16} className="rtl:rotate-180 text-[#9A9A9A]" />
+                  </Link>
+
+                  <Link 
+                    href={`/${locale}/coffrets`} 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#e0ddd4]/80 text-[#1A1A1A] font-semibold text-[13.5px] hover:text-[#0ea5e9] transition-all"
+                  >
+                    <span>{dict.nav?.bundles || 'Coffrets Cadeaux'}</span>
+                    <ChevronRight size={16} className="rtl:rotate-180 text-[#9A9A9A]" />
+                  </Link>
+
+                  <Link 
+                    href={`/${locale}/shop`} 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-[#1A1A1A] text-white font-bold text-[13px] tracking-wider uppercase shadow-md active:scale-98 transition-all mt-1"
+                  >
+                    <span>{dict.nav?.allBoutique || 'Toute La Boutique'}</span>
+                    <ChevronRight size={16} className="rtl:rotate-180 text-white" />
+                  </Link>
+                </div>
+
+                {/* Luxury Reassurance Banner */}
+                <div className="bg-[#f0f9ff] border border-sky-200/70 rounded-2xl p-3.5 space-y-1.5 text-center">
+                  <div className="text-[11px] font-bold text-[#0369a1] flex items-center justify-center gap-1.5">
+                    <ShieldCheck size={14} className="text-[#0ea5e9]" />
+                    <span>0 DH d'avance · Essayez avant de payer</span>
+                  </div>
+                  <p className="text-[10px] text-sky-800/80 leading-relaxed">
+                    Livraison 24–48h partout au Maroc avec inspection du colis avant paiement.
+                  </p>
+                </div>
+
+                {/* Gender Universes */}
+                <div className="space-y-4">
                   {MAIN_CATEGORIES.map((cat) => {
                     const catTitle = cat.slug === 'women' ? (dict.categories?.womenLabel || cat.label)
                       : cat.slug === 'men' ? (dict.categories?.menLabel || cat.label)
                       : (dict.categories?.unisexLabel || cat.label);
                     return (
-                      <div key={cat.slug} className="border-b border-[#e0ddd4] pb-6 last:border-0 last:pb-0">
+                      <div key={cat.slug} className="border-b border-[#e0ddd4]/70 pb-4 last:border-0 last:pb-0">
                         <Link 
                           href={`/${locale}/shop/${cat.slug}`} 
                           onClick={() => setIsMobileMenuOpen(false)}
-                          className="heading-font text-2xl text-[#1A1A1A] block mb-4"
+                          className="heading-font text-xl text-[#1A1A1A] font-bold flex items-center justify-between mb-2.5"
                         >
-                          {catTitle}
+                          <span>{catTitle}</span>
+                          <ChevronRight size={15} className="rtl:rotate-180 text-[#9A9A9A]" />
                         </Link>
-                        <div className="grid grid-cols-2 gap-3 pl-2 rtl:pl-0 rtl:pr-2">
+                        <div className="grid grid-cols-2 gap-2 pl-2 rtl:pl-0 rtl:pr-2">
                           {cat.subcategories.map(sub => {
                             const rawLabel = (sub as any).label;
                             const subLabel = sub.key === 'floral' ? (dict.categories?.subFloral || rawLabel)
@@ -514,9 +618,9 @@ export default function Header() {
                             return (
                               <Link 
                                 key={sub.slug}
-                                href={`/${locale}/shop/${cat.slug}?sub=${sub.slug}`}
+                                href={`/${locale}/shop/${cat.slug}?sub=${sub.slug}`} 
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="text-[14px] text-[#6B6B6B]"
+                                className="text-[13px] text-[#6B6B6B] hover:text-[#0ea5e9] py-1 transition-colors"
                               >
                                 {subLabel}
                               </Link>
@@ -526,82 +630,99 @@ export default function Header() {
                       </div>
                     );
                   })}
-                  <div className="border-b border-[#e0ddd4] pb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="heading-font text-2xl text-[#1A1A1A]">{dict.nav?.brands || 'Marques'}</div>
-                      {brands.length > 4 && (
-                        <button
-                          onClick={() => setShowAllMobileBrands(!showAllMobileBrands)}
-                          className="text-[#9E1B1B] text-sm font-semibold px-2 py-1 flex items-center gap-1"
-                        >
-                          {showAllMobileBrands ? (dict.nav?.seeLess || '(-) Voir moins') : (dict.nav?.seeMore || '(+) Voir plus')}
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 pl-2 rtl:pl-0 rtl:pr-2">
-                      {(showAllMobileBrands ? brands : brands.slice(0, 4)).map(brand => (
-                        <Link 
-                          key={brand.slug}
-                          href={`/${locale}/brands/${brand.slug}`}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="flex flex-col items-center justify-center border border-[#e0ddd4] bg-[#f8fafc] rounded-lg p-3 hover:border-[#0ea5e9] transition-colors"
-                        >
-                          <div className="relative w-full h-10 mb-2">
-                            <Image 
-                              src={brand.image || `/images/brands/${brand.slug?.toLowerCase()}-logo.jpg`} 
-                              alt={brand.name} 
-                              fill
-                              sizes="(max-width: 768px) 50vw, 100px"
-                              className="object-contain mix-blend-multiply grayscale opacity-70" 
-                            />
-                          </div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#1A1A1A] text-center line-clamp-1">{brand.label}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
+                </div>
 
-                  <div className="border-b border-[#e0ddd4] pb-6">
-                    <Link 
-                      href={`/${locale}/coffrets`} 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="heading-font text-2xl text-[#1A1A1A] flex items-center gap-3 mb-2"
-                    >
-                      {dict.nav?.bundles || 'Coffrets Cadeaux'}
-                    </Link>
-                    <p className="text-[13px] text-[#9A9A9A]">{dict.nav?.bundlesDesc || 'Découvrez nos packs exclusifs (Jour & Nuit, Découverte...)'}</p>
+                {/* Brands Preview */}
+                <div className="border-b border-[#e0ddd4]/70 pb-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="heading-font text-xl text-[#1A1A1A] font-bold">{dict.nav?.brands || 'Marques'}</div>
+                    {brands.length > 4 && (
+                      <button
+                        onClick={() => setShowAllMobileBrands(!showAllMobileBrands)}
+                        className="text-[#0ea5e9] text-xs font-bold px-2 py-1"
+                      >
+                        {showAllMobileBrands ? (dict.nav?.seeLess || 'Voir moins') : (dict.nav?.seeMore || 'Voir plus')}
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {(showAllMobileBrands ? brands : brands.slice(0, 4)).map(brand => (
+                      <Link 
+                        key={brand.slug}
+                        href={`/${locale}/brands/${brand.slug}`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex flex-col items-center justify-center border border-[#e0ddd4] bg-[#f8fafc] rounded-xl p-2.5 hover:border-[#0ea5e9] transition-colors"
+                      >
+                        <div className="relative w-full h-8 mb-1.5">
+                          <Image 
+                            src={brand.image || `/images/brands/${brand.slug?.toLowerCase()}-logo.jpg`} 
+                            alt={brand.name} 
+                            fill
+                            sizes="(max-width: 768px) 50vw, 100px"
+                            className="object-contain mix-blend-multiply grayscale opacity-70" 
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#1A1A1A] text-center line-clamp-1">{brand.label}</span>
+                      </Link>
+                    ))}
                   </div>
                 </div>
 
-                {/* Mobile Footer Nav */}
-                <div className="pt-6 border-t border-[#e0ddd4] flex flex-col gap-5">
+                {/* VIP WhatsApp Concierge & Support */}
+                <a
+                  href="https://wa.me/212663380011?text=Bonjour%20NAY%20Parfum,%20je%20souhaite%20des%20conseils%20ou%20passer%20une%20commande."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[13px] py-3.5 px-4 rounded-2xl shadow-md active:scale-98 transition-all"
+                >
+                  <MessageCircle size={18} />
+                  <span>Assistance VIP WhatsApp (Conseil & Commande)</span>
+                </a>
+
+                {/* Mobile Secondary Utility Nav */}
+                <div className="pt-2 flex flex-col gap-3.5 text-[#1A1A1A]">
                   <Link
                     href={`/${locale}/suivi-commande`}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 text-[15px] font-medium text-[#1A1A1A]"
+                    className="flex items-center justify-between text-[14px] font-medium text-[#1A1A1A] p-2 rounded-xl hover:bg-slate-50 transition-colors"
                   >
-                    <Package className="w-5 h-5 text-[#6B6B6B]" /> {dict.nav?.trackOrder || 'Suivi de commande'}
+                    <span className="flex items-center gap-3">
+                      <Package className="w-4 h-4 text-[#0ea5e9]" />
+                      <span>{dict.nav?.trackOrder || 'Suivi de commande'}</span>
+                    </span>
+                    <ChevronRight size={15} className="text-[#9A9A9A] rtl:rotate-180" />
                   </Link>
+
+                  <Link
+                    href={`/${locale}/wishlist`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-between text-[14px] font-medium text-[#1A1A1A] p-2 rounded-xl hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Heart className="w-4 h-4 text-rose-500" />
+                      <span>{dict.nav?.wishlist || 'Mes Favoris'}</span>
+                    </span>
+                    <span className="text-[11px] font-bold bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full">
+                      {wishlistCount}
+                    </span>
+                  </Link>
+
                   <Link
                     href={`/${locale}/account`}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 text-[15px] font-medium text-[#1A1A1A]"
+                    className="flex items-center justify-between text-[14px] font-medium text-[#1A1A1A] p-2 rounded-xl hover:bg-slate-50 transition-colors"
                   >
-                    <User className="w-5 h-5 text-[#6B6B6B]" /> {dict.nav?.account || 'Mon Compte'}
-                  </Link>
-                  <Link
-                    href={`/${locale}/cart`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 text-[15px] font-medium text-[#1A1A1A]"
-                  >
-                    <ShoppingBag className="w-5 h-5 text-[#6B6B6B]" /> {dict.nav?.myCart || 'Mon Panier'} ({cartCount})
+                    <span className="flex items-center gap-3">
+                      <User className="w-4 h-4 text-[#6B6B6B]" />
+                      <span>{dict.nav?.account || 'Mon Compte'}</span>
+                    </span>
+                    <ChevronRight size={15} className="text-[#9A9A9A] rtl:rotate-180" />
                   </Link>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-
       </header>
 
       {/* SEARCH MODAL */}
