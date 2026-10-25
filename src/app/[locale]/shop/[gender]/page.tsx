@@ -209,7 +209,7 @@ export default async function CategoryPage({
       </section>
 
       {/* DESCRIPTION + SUBCATS */}
-      <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-14 border-b border-[#e0ddd4]">
+      <section className="max-w-[1400px] mx-auto px-3.5 sm:px-6 lg:px-10 py-8 sm:py-14 border-b border-[#e0ddd4]">
         <div className="grid lg:grid-cols-[1fr_auto] gap-10 items-start">
           <p className="text-[15px] lg:text-base text-[#6B6B6B] leading-[1.85] max-w-3xl">
             {category.description}

@@ -43,8 +43,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   }
 
   const currentLocale = locale || 'fr';
-  const title = `Testeurs & Parfums ${brand.label} Originaux au Maroc | Prix en MAD - NAY Parfum`;
-  const description = `Découvrez tous les testeurs et parfums ${brand.label} 100% originaux au Maroc chez NAY Parfums. Prix exceptionnels en MAD, flacons authentiques, livraison rapide 24/48h et paiement à la livraison (COD).`;
+  const title = `Testeurs & Parfums ${brand.label} au Maroc | Prix en MAD - NAY Parfum`;
+  const description = `Découvrez la collection de testeurs et parfums ${brand.label} au Maroc chez NAY Parfums. Mêmes notes et même odeur, prix exceptionnels en MAD, livraison rapide 24/48h et paiement à la livraison (COD).`;
 
   return {
     title: { absolute: title },
@@ -166,7 +166,7 @@ export default async function BrandPage({
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: `Parfums ${brand.label} au Maroc`,
-    description: `Achetez vos parfums et testeurs ${brand.label} 100% originaux au Maroc. Flacons authentiques, livraison rapide et paiement à la livraison.`,
+    description: `Achetez vos parfums et testeurs ${brand.label} au Maroc. Mêmes notes, même sillage et paiement à la livraison.`,
     url: `https://nayparfum.ma/${locale}/brands/${brand.slug}`,
     about: {
       '@type': 'Brand',

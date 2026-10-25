@@ -96,17 +96,17 @@ export default async function ShopPage() {
 
       <Header />
 
-      <section className="relative pt-32 pb-12 lg:pt-48 lg:pb-16">
+      <section className="relative pt-24 pb-8 sm:pt-28 sm:pb-10 lg:pt-36 lg:pb-14">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 text-center relative z-10 flex flex-col items-center">
           <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9] mb-4">
             Toute La Boutique
           </span>
-          <h1 className="heading-font text-5xl sm:text-6xl lg:text-[90px] leading-none tracking-tight mb-6">
+          <h1 className="heading-font text-4xl sm:text-6xl lg:text-[84px] leading-none tracking-tight mb-4 sm:mb-6">
             <span className="liquid-glace-text">L'UNIVERS</span>
             <br />
             <span className="font-serif italic font-light text-[#0ea5e9] text-4xl sm:text-5xl lg:text-[80px] liquid-glace-text">Olfactive</span>
           </h1>
-          <p className="mt-2 text-[13px] md:text-[15px] text-[#555] font-light max-w-xl leading-[2] tracking-widest uppercase mb-10">
+          <p className="mt-2 text-[13px] md:text-[15px] text-[#555] font-light max-w-xl leading-[2] tracking-widest uppercase mb-6 sm:mb-8 line-clamp-2 sm:line-clamp-none">
             Explorez l'ensemble de notre univers : <span className="font-semibold text-[#111]">Testeurs de luxe</span>, <span className="font-semibold text-[#111]">Parfums Originaux scellés</span>, Fragrances Orientales et Coffrets d'exception.
           </p>
 
@@ -129,7 +129,7 @@ export default async function ShopPage() {
       </section>
 
       {/* CATALOG */}
-      <section className="relative z-10 max-w-[1600px] mx-auto px-6 lg:px-12 py-10">
+      <section className="relative z-10 max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-12 py-6 sm:py-10">
         <Suspense fallback={<div className="text-[#9A9A9A] text-sm">Chargement du catalogue…</div>}>
           <ShopCatalog products={products} brands={dbBrands} recommendedSlugs={recommendedSlugs} />
         </Suspense>
