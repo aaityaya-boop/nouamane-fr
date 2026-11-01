@@ -301,10 +301,10 @@ export default function MobileVersionBHome({
           />
         </button>
 
-        {/* Flacon Link with Grand Scale (Fills Card Proudly) */}
+        {/* Flacon Link (Seamless Pure White Canvas) */}
         <Link
           href={`/${locale}/product/${p.slug}`}
-          className="relative w-full h-[166px] overflow-hidden rounded-2xl bg-gradient-to-b from-[#FAF9F6] to-[#F5F2EB] flex items-center justify-center my-0.5"
+          className="relative w-full h-[166px] overflow-hidden rounded-2xl bg-white flex items-center justify-center my-0.5"
         >
           <Image
             src={pImage}
@@ -312,7 +312,7 @@ export default function MobileVersionBHome({
             fill
             sizes="200px"
             unoptimized
-            className="object-contain scale-140 group-hover:scale-148 transition-transform duration-300 drop-shadow-[0_8px_16px_rgba(17,24,39,0.12)]"
+            className="object-contain scale-115 group-hover:scale-120 transition-transform duration-300 drop-shadow-[0_8px_16px_rgba(17,24,39,0.10)]"
           />
         </Link>
 

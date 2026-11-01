@@ -122,7 +122,7 @@ export default function RecentlyViewed({ currentProductId }: { currentProductId?
               className="w-[124px] shrink-0 group flex flex-col bg-white rounded-xl border border-[#ECE7DD] p-2 hover:border-[#0284c7]/40 shadow-2xs transition-all active:scale-[0.98]"
             >
               {/* Flacon Image Container */}
-              <div className="w-full h-[108px] bg-gradient-to-b from-[#FCFBF9] to-[#F7F4EE] rounded-lg relative overflow-hidden flex items-center justify-center p-1.5 mb-1.5 border border-[#F0EBE1]">
+              <div className="w-full h-[108px] bg-white rounded-lg relative overflow-hidden flex items-center justify-center p-1.5 mb-1.5">
                 {mainImg ? (
                   <Image
                     src={mainImg}
@@ -130,7 +130,7 @@ export default function RecentlyViewed({ currentProductId }: { currentProductId?
                     fill
                     sizes="124px"
                     unoptimized
-                    className="object-contain p-1 group-hover:scale-108 transition-transform duration-300 drop-shadow-[0_4px_6px_rgba(0,0,0,0.06)] mix-blend-multiply"
+                    className="object-contain p-1 group-hover:scale-108 transition-transform duration-300 drop-shadow-[0_4px_6px_rgba(0,0,0,0.06)]"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">NAY</div>

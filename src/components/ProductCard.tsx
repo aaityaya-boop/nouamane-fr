@@ -94,19 +94,15 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
 
   return (
     <>
-      <motion.div
-        variants={{ hidden: { opacity: 0.01, y: 30 }, show: { opacity: 1, y: 0 } }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="h-full js-fallback-opacity"
-      >
+      <div className="h-full">
         <Link
           href={`/${locale}/product/${product.slug}`}
           className="product-card group flex flex-col justify-between h-full bg-white border border-[#E8E2D6] rounded-2xl sm:rounded-[22px] overflow-hidden hover:border-[#0284c7]/40 hover:shadow-[0_12px_28px_-8px_rgba(2,132,199,0.08)] transition-all duration-300 shadow-2xs relative"
         >
           {/* ========================================================
-              1. FLACON SHOWCASE (Full visibility, no cut-off)
+              1. FLACON SHOWCASE (Pure, Empty, Seamless Canvas)
               ======================================================== */}
-          <div className="relative w-full h-[185px] sm:h-[240px] lg:h-[300px] overflow-hidden bg-gradient-to-b from-[#FCFBF9] to-[#F7F4EE] border-b border-[#ECE7DD] flex items-center justify-center">
+          <div className="relative w-full h-[185px] sm:h-[240px] lg:h-[290px] bg-white flex items-center justify-center p-3 sm:p-4 overflow-hidden">
             
             {/* Flacon Image */}
             <Image
@@ -115,28 +111,21 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
               fill
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-2 scale-110 sm:scale-125 group-hover:scale-118 sm:group-hover:scale-132 transition-transform duration-300 drop-shadow-[0_8px_16px_rgba(17,24,39,0.12)]"
+              className="object-contain p-2 sm:p-3 group-hover:scale-108 transition-transform duration-300 drop-shadow-[0_8px_16px_rgba(17,24,39,0.10)]"
             />
 
             {/* Out of Stock Overlay */}
             {!inStock && (
-              <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-30 flex flex-col items-center justify-center p-2 text-center">
-                <span className="text-[9.5px] sm:text-[11px] font-bold tracking-widest text-red-600 uppercase bg-white border border-red-200 px-3 py-1.5 rounded-full shadow-md">
+              <div className="absolute inset-0 bg-white/75 z-20 flex flex-col items-center justify-center p-2 text-center">
+                <span className="text-[9.5px] sm:text-[11px] font-bold tracking-widest text-red-600 uppercase bg-white border border-red-200 px-3 py-1.5 rounded-full shadow-xs">
                   {dict.productCard?.outOfStock || 'Rupture de stock'}
                 </span>
               </div>
             )}
 
-            {/* Brand Badge (Top-Left) — max-w prevents overlap with heart */}
-            <div className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 rtl:left-auto rtl:right-2 rtl:sm:right-2.5 z-20 max-w-[calc(100%-44px)] flex items-center gap-1">
-              <span className="text-[8px] sm:text-[9px] font-bold tracking-[0.12em] uppercase bg-white/95 border border-[#E5E0D4] backdrop-blur-xs text-[#111827] px-2 py-0.5 rounded-full shadow-2xs truncate">
-                {product.brandLabel}
-              </span>
-            </div>
-
-            {/* Actions (Top-Right): Heart on Mobile, Heart+Compare on Desktop */}
-            <div className="absolute top-2 sm:top-2.5 right-2 sm:right-2.5 rtl:right-auto rtl:left-2 rtl:sm:left-2.5 z-20 flex items-center gap-1.5">
-              {/* Compare Toggle (Desktop only to prevent mobile cramping) */}
+            {/* Top-Right Actions: Wishlist Heart & Desktop Compare */}
+            <div className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5 z-10 flex items-center gap-1.5">
+              {/* Compare Toggle (Desktop only) */}
               <button
                 type="button"
                 onClick={(e) => {
@@ -144,10 +133,10 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
                   e.stopPropagation();
                   toggleCompare(product);
                 }}
-                className={`hidden sm:flex w-7 h-7 sm:w-8 sm:h-8 rounded-full items-center justify-center transition-all backdrop-blur-md shadow-2xs ${
+                className={`hidden sm:flex w-7 h-7 sm:w-8 sm:h-8 rounded-full items-center justify-center transition-all shadow-2xs ${
                   isComparedProduct
                     ? 'bg-[#0284c7] text-white shadow-xs'
-                    : 'bg-white/90 hover:bg-white text-[#6B7280] hover:text-[#0284c7] border border-[#E5E0D4]'
+                    : 'bg-white/95 hover:bg-white text-[#6B7280] hover:text-[#0284c7] border border-[#E5E0D4]'
                 }`}
                 aria-label={isComparedProduct ? 'Retirer du comparateur' : 'Comparer ce parfum'}
                 title={isComparedProduct ? 'Retirer du comparateur' : 'Comparer ce parfum'}
@@ -163,42 +152,16 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
                   e.stopPropagation();
                   toggleWishlist(product.slug);
                 }}
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-md shadow-2xs cursor-pointer ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
                   isFavorite
-                    ? 'bg-white text-rose-500 ring-1 ring-rose-200'
-                    : 'bg-white/95 hover:bg-white text-[#6B7280] hover:text-rose-500 border border-[#E5E0D4]'
+                    ? 'bg-rose-50 text-rose-500 border border-rose-200'
+                    : 'bg-white/95 hover:bg-white text-slate-400 hover:text-rose-500 border border-slate-200/80 shadow-2xs'
                 }`}
                 aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               >
-                <Heart size={13} className={isFavorite ? 'fill-rose-500 text-rose-500' : 'fill-none text-[#6B7280]'} />
+                <Heart size={13} className={isFavorite ? 'fill-rose-500 text-rose-500' : 'fill-none text-slate-400'} />
               </button>
             </div>
-
-            {/* Perfume Edition / Type Minimalist Badge (Bottom-Left) */}
-            <div className="absolute bottom-2 sm:bottom-2.5 left-2 sm:left-2.5 rtl:left-auto rtl:right-2 rtl:sm:right-2.5 z-20 flex items-center">
-              <span
-                className={`text-[8px] sm:text-[8.5px] font-bold tracking-[0.14em] uppercase px-2 sm:px-2.5 py-0.5 rounded-full border shadow-2xs backdrop-blur-xs transition-colors ${edition.badgeBg} ${edition.textColor} ${edition.borderColor}`}
-                title={edition.label}
-              >
-                {edition.label}
-              </span>
-            </div>
-
-            {/* Bestseller / New Tag (Bottom-Right of Image) */}
-            {(isBestseller || isNew) && (
-              <div className="absolute bottom-2 right-2 rtl:right-auto rtl:left-2 z-10 flex items-center gap-1">
-                {isBestseller && (
-                  <span className="text-[7.5px] sm:text-[8px] font-bold tracking-wider uppercase bg-[#111827] text-white px-2 py-0.5 rounded-full shadow-2xs">
-                    {dict.productCard?.bestseller || 'Bestseller'}
-                  </span>
-                )}
-                {isNew && !isBestseller && (
-                  <span className="text-[7.5px] sm:text-[8px] font-bold tracking-wider uppercase bg-[#0284c7] text-white px-2 py-0.5 rounded-full shadow-2xs">
-                    {dict.productCard?.new || 'Nouveau'}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
 
           {/* ========================================================
@@ -206,12 +169,25 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
               ======================================================== */}
           <div className="p-2.5 sm:p-3.5 bg-white flex flex-col justify-between flex-1">
             <div>
+              {/* Brand & Edition Row (Brand on Left, Edition Pill on Right) */}
+              <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
+                <span className="text-[8.5px] sm:text-[9.5px] font-bold tracking-[0.08em] uppercase text-slate-500 truncate min-w-0">
+                  {product.brandLabel || product.brand}
+                </span>
+                <span
+                  className={`text-[7px] sm:text-[7.5px] font-bold tracking-[0.10em] uppercase px-2 py-0.5 rounded-full border shrink-0 ${edition.badgeBg} ${edition.textColor} ${edition.borderColor}`}
+                  title={edition.label}
+                >
+                  {edition.label}
+                </span>
+              </div>
+
               {/* Product Name */}
               <h3 className="font-display-modern text-[12px] sm:text-[13.5px] font-bold text-[#111827] tracking-tight leading-snug group-hover:text-[#0284c7] transition-colors line-clamp-2 min-h-[32px] sm:min-h-[36px]">
                 {product.name}
               </h3>
 
-              {/* Subtitle */}
+              {/* Subtitle / Olfactory Family */}
               <p className="text-[9px] sm:text-[10px] font-medium tracking-wide uppercase text-[#8C827A] mt-0.5 truncate">
                 {product.subcategoryLabel} · {genderLabel}
               </p>
@@ -242,7 +218,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
             {/* ========================================================
                 3. PRICE ROW & CALL TO ACTION
                 ======================================================== */}
-            <div className="mt-2 pt-1.5 border-t border-[#F0EBE1]">
+            <div className="mt-2 pt-2 border-t border-[#F0EBE1]">
               <div className="flex items-center justify-between gap-1 mb-2">
                 <div className="flex items-baseline gap-1.5 min-w-0">
                   <span className="text-[13px] sm:text-[14.5px] font-extrabold text-[#111827] whitespace-nowrap" dir="ltr">
@@ -297,7 +273,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
             </div>
           </div>
         </Link>
-      </motion.div>
+      </div>
 
       {/* Quick Buy Selection Modal (multi-variant) */}
       <QuickBuyModal

@@ -379,7 +379,7 @@ function ShopCatalogInner({
 
   return (
     <>
-      <div className="w-full">
+      <div className="w-full pb-36 sm:pb-16">
         {/* Top Control Bar */}
         <div className="flex flex-col gap-3 mb-4 pb-4 border-b border-[#e0ddd4]">
           {/* Row 1: Search Bar & Item Count */}

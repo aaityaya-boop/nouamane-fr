@@ -764,11 +764,7 @@ export default function AIChatWidget() {
               transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.4 }}
             >
               {/* Subtle Concentric Pulse Ring (Matching WhatsApp animation) */}
-              <motion.div
-                className="absolute inset-0 rounded-full border border-sky-400/50 opacity-25 pointer-events-none"
-                animate={{ scale: [1, 1.35, 1], opacity: [0.3, 0, 0.3] }}
-                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-              />
+              <div className="absolute inset-0 rounded-full border border-sky-400/50 opacity-25 animate-ping pointer-events-none" />
 
               {/* 3D Mascot Avatar Head */}
               <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-sky-400/80 shrink-0 bg-[#070e18] shadow-xs">

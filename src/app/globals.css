@@ -584,3 +584,20 @@ html[dir="rtl"] .heading-font {
 nextjs-portal {
   display: none !important;
 }
+
+
+/* Mobile Touch & Scroll Fluidity */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  .product-card {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: auto;
+  }
+}
