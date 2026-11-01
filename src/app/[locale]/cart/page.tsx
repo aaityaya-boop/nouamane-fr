@@ -25,8 +25,7 @@ import {
   ChevronRight,
   PackageCheck,
   MessageCircle,
-  Check,
-  Sparkles
+  Check
 } from 'lucide-react';
 import FreeGiftSelector from '@/components/FreeGiftSelector';
 import { useAuth } from '@/context/AuthContext';
@@ -96,16 +95,6 @@ export default function CartPage() {
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingPromoCode, setPendingPromoCode] = useState('');
-
-  // Prefill pending welcome promo code from WelcomePopup if set
-  useEffect(() => {
-    try {
-      const pending = localStorage.getItem('pending_welcome_promo');
-      if (pending && !promoInput && !appliedPromo) {
-        setPromoInput(pending);
-      }
-    } catch {}
-  }, [appliedPromo, promoInput]);
 
   // Calculate discount
   const promoDiscount = calculatePromoDiscount(cart, appliedPromo);
@@ -447,7 +436,7 @@ export default function CartPage() {
                         type="text"
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                        placeholder="EX : NAYDAY"
+                        placeholder="EX : CODE PROMO"
                         className="flex-1 border border-[#E0DDD4] rounded-xl px-3.5 py-2.5 text-[13px] bg-white uppercase placeholder:text-[#9A9A9A] focus:outline-none focus:border-[#0ea5e9] font-mono"
                       />
                       <button
@@ -459,24 +448,6 @@ export default function CartPage() {
                         {isApplyingPromo ? '…' : 'Appliquer'}
                       </button>
                     </div>
-
-                    {!appliedPromo && (
-                      <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-amber-50/70 to-orange-50/60 border border-amber-200/80 flex items-center justify-between gap-2 shadow-2xs">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <Sparkles size={13} className="text-amber-600 shrink-0" />
-                          <span className="text-[11px] text-amber-950 font-bold truncate">
-                            Offre NAYDAY : -10% dès 2 parfums
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleApplyPromo('NAYDAY')}
-                          className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-xs active:scale-95"
-                        >
-                          Appliquer NAYDAY
-                        </button>
-                      </div>
-                    )}
 
                     {promoError && (
                       <div className="text-rose-600 text-[11px] flex items-center gap-1">

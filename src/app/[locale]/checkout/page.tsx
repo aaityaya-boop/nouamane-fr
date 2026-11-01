@@ -1132,7 +1132,7 @@ function CheckoutPageInner() {
                       type="text"
                       value={promoInput}
                       onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                      placeholder="Ex : NAYDAY"
+                      placeholder="Ex : CODE PROMO"
                       className="flex-1 border border-[#e0ddd4] rounded-xl px-3 py-2 text-[13px] bg-white uppercase placeholder:text-[#9A9A9A] focus:outline-none focus:border-[#0ea5e9]"
                     />
                     <button
@@ -1144,21 +1144,6 @@ function CheckoutPageInner() {
                       {isApplyingPromo ? '…' : 'Appliquer'}
                     </button>
                   </div>
-
-                  {!appliedPromo && (
-                    <div className="mt-2 p-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/70 flex items-center justify-between gap-2 shadow-2xs">
-                      <span className="text-[10.5px] text-amber-900 font-bold truncate">
-                        Offre NAYDAY (-10% dès 2 parfums)
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleApplyPromo('NAYDAY')}
-                        className="px-2 py-0.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black text-[9.5px] uppercase tracking-wider shrink-0 transition cursor-pointer"
-                      >
-                        Appliquer
-                      </button>
-                    </div>
-                  )}
 
                   {promoError && (
                     <div className="text-rose-600 text-[11px] mt-1.5 flex items-center gap-1">

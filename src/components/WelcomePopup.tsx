@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { X, Sparkles, Copy, Check, ShoppingBag, Gift, Mail, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
+import { X, Sparkles, ShoppingBag, Mail, Send, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WelcomePopup() {
@@ -10,13 +10,12 @@ export default function WelcomePopup() {
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'exists'>('idle');
-  const [copied, setCopied] = useState(false);
   const dismissedRef = useRef(false);
 
   useEffect(() => {
-    // Check if user has dismissed the NAYDAY welcome popup in this storage cycle
+    // Check if user has dismissed the welcome popup in this session/device
     try {
-      const hasSeenPopup = localStorage.getItem('nayday_welcome_offer_seen_v2');
+      const hasSeenPopup = localStorage.getItem('nay_welcome_newsletter_seen_v3');
       if (hasSeenPopup) {
         dismissedRef.current = true;
       }
@@ -33,14 +32,14 @@ export default function WelcomePopup() {
       }
     }
 
-    // Listen for custom trigger from headers, banners, or footer
+    // Listen for custom trigger event
     const handleOpenModal = () => {
       dismissedRef.current = false;
       setIsOpen(true);
     };
     window.addEventListener('open-welcome-offer', handleOpenModal);
 
-    // Exclude automated audits, Lighthouse, and bots from automatic timer/scroll popup
+    // Exclude automated audit bots from auto-timer/scroll popup
     if (typeof window !== 'undefined') {
       const isAudit =
         navigator.webdriver === true ||
@@ -50,7 +49,7 @@ export default function WelcomePopup() {
 
     let timer: NodeJS.Timeout | undefined;
 
-    // Show popup after user scrolls > 25% or after 6 seconds of interaction
+    // Show popup after user scrolls > 25% or after 6 seconds
     const handleScroll = () => {
       if (dismissedRef.current) return;
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -80,7 +79,7 @@ export default function WelcomePopup() {
     dismissedRef.current = true;
     setIsOpen(false);
     try {
-      localStorage.setItem('nayday_welcome_offer_seen_v2', 'true');
+      localStorage.setItem('nay_welcome_newsletter_seen_v3', 'true');
     } catch {
       // Ignore storage errors
     }
@@ -95,20 +94,6 @@ export default function WelcomePopup() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
-
-  const handleCopyCode = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      navigator.clipboard.writeText('NAYDAY');
-      // Store pending promo in localStorage so Cart & Checkout auto-detect it
-      localStorage.setItem('pending_welcome_promo', 'NAYDAY');
-    } catch {
-      // Fallback
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,10 +112,6 @@ export default function WelcomePopup() {
 
       if (res.ok) {
         setStatus('success');
-        // Store code to cart/checkout storage
-        try {
-          localStorage.setItem('pending_welcome_promo', 'NAYDAY');
-        } catch {}
       } else if (data.error && data.error.includes('déjà inscrit')) {
         setStatus('exists');
       } else {
@@ -146,44 +127,36 @@ export default function WelcomePopup() {
   const isEnglish = locale === 'en';
 
   const t = {
-    badge: isArabic ? 'عرض الامتياز والترحيب · دار NAY' : isEnglish ? 'EXCLUSIVE WELCOME PRIVILEGE' : 'OFFRE PRIVILÈGE DE BIENVENUE',
-    title: 'OFFRE NAYDAY',
+    badge: isArabic ? 'عرض الترحيب الحصري' : isEnglish ? 'EXCLUSIVE WELCOME PRIVILEGE' : 'OFFRE PRIVILÈGE DE BIENVENUE',
+    title: isArabic ? 'عرض الترحيب' : isEnglish ? 'Welcome Privilege' : 'Offre de Bienvenue',
     discount: '-10%',
-    discountSub: isArabic ? 'خصم فوري' : isEnglish ? 'IMMEDIATE DISCOUNT' : 'RÉDUCTION IMMÉDIATE',
+    discountSub: isArabic ? 'على طلبكم الخاص' : isEnglish ? 'ON YOUR ORDER' : 'SUR VOTRE COMMANDE',
     condition: isArabic
-      ? 'استفد من خصم 10% فوري على طلبك ابتداءً من عطرين في سلتك باستخدام كود الامتياز NAYDAY.'
+      ? 'اشترك في نشرتنا البريدية لتصلك قسيمة الترحيب الحصرية 10%- تلقائياً عبر بريدك الإلكتروني (ابتداءً من عطرين).'
       : isEnglish
-      ? 'Enjoy an immediate 10% discount on your order when you purchase 2 or more fragrances with code NAYDAY.'
-      : 'Profitez de -10% de réduction immédiate dès 2 parfums d\'exception ajoutés à votre panier avec votre code privilège NAYDAY.',
-    codeLabel: isArabic ? 'كود الامتياز الخاص بك :' : isEnglish ? 'YOUR PRIVILEGE CODE:' : 'VOTRE CODE PRIVILÈGE :',
-    copyBtn: isArabic ? 'نسخ الكود' : isEnglish ? 'Copy Code' : 'Copier le code',
-    copiedBtn: isArabic ? 'تم النسخ !' : isEnglish ? 'Copied!' : 'Code Copié !',
-    emailIntro: isArabic
-      ? 'سجل بريدك الإلكتروني لتفعيل العرض واستلام كود NAYDAY فورا :'
-      : isEnglish
-      ? 'Enter your email to activate the offer and receive your VIP voucher:'
-      : 'Entrez votre e-mail pour activer l\'offre et recevoir votre confirmation VIP :',
-    placeholder: isArabic ? 'بريدك الإلكتروني (ex: client@gmail.com)' : isEnglish ? 'Your email address' : 'Votre adresse e-mail',
-    button: isArabic ? 'تفعيل خصم -10% NAYDAY' : isEnglish ? 'Activate My -10% Off' : 'Activer mon offre -10% NAYDAY',
-    loading: isArabic ? 'جاري التفعيل...' : isEnglish ? 'Activating...' : 'Activation en cours...',
-    successTitle: isArabic ? 'تهانينا ! تم تفعيل كود NAYDAY' : isEnglish ? 'Congratulations! NAYDAY code activated' : 'Félicitations ! Votre code NAYDAY est validé',
+      ? 'Subscribe to our newsletter to automatically receive your 10% privilege discount by email (from 2 fragrances).'
+      : 'Inscrivez-vous à notre newsletter et recevez automatiquement votre code privilège de -10% par e-mail (dès 2 parfums d\'exception).',
+    placeholder: isArabic ? 'عنوان بريدك الإلكتروني' : isEnglish ? 'Your email address' : 'Votre adresse e-mail',
+    button: isArabic ? 'أرسل لي كود 10%-' : isEnglish ? 'Receive My 10% Code' : 'Recevoir mon code -10%',
+    loading: isArabic ? 'جاري الإرسال...' : isEnglish ? 'Sending...' : 'Envoi en cours...',
+    successTitle: isArabic ? 'تحقق من بريدك الإلكتروني !' : isEnglish ? 'Check your email inbox!' : 'Vérifiez votre boîte e-mail !',
     successMsg: isArabic
-      ? 'تم إرسال تفاصيل العرض لبريدك. يمكنك الآن الاستفادة من خصم 10% عند إضافة عطرين أو أكثر لسلتك.'
+      ? 'تم إرسال كود التخفيض 10%- تلقائياً إلى بريدك الإلكتروني. تفقد صندوق الوارد والرسائل الترويجية.'
       : isEnglish
-      ? 'Your exclusive NAYDAY voucher has been sent to your inbox. Enjoy -10% on 2 or more bottles.'
-      : 'Votre privilège NAYDAY a été expédié à votre adresse. Profitez de -10% dès 2 parfums ajoutés à votre sélection.',
-    shopBtn: isArabic ? 'تسوق الآن واستفد من -10%' : isEnglish ? 'Shop Now with -10%' : 'Découvrir la boutique avec -10%',
+      ? 'Your 10% privilege code has been sent automatically to your inbox. Check your emails to use it.'
+      : 'Votre code privilège de -10% vous a été envoyé automatiquement par e-mail. Vérifiez votre boîte de réception (et vos spams).',
+    shopBtn: isArabic ? 'تصفح العطور' : isEnglish ? 'Discover fragrances' : 'Découvrir la boutique',
     existsMsg: isArabic
-      ? 'أنت مسجل بالفعل! كود NAYDAY فعال لطلبك ابتداءً من عطرين.'
+      ? 'أنت مسجل بالفعل! تم إعادة إرسال كود التخفيض إلى بريدك الإلكتروني.'
       : isEnglish
-      ? 'You are already registered! Use code NAYDAY on 2 or more perfumes.'
-      : 'Vous êtes déjà inscrit ! Le code NAYDAY est prêt pour votre commande dès 2 flacons.',
-    errorMsg: isArabic ? 'حدث خطأ ما. يرجى المحاولة لاحقاً.' : isEnglish ? 'An error occurred. Please try again.' : 'Une erreur est survenue. Veuillez réessayer.',
+      ? 'You are already registered! We have re-sent the discount code to your email.'
+      : 'Votre adresse e-mail est déjà inscrite. Le code privilège de -10% vous a été renvoyé !',
+    errorMsg: isArabic ? 'حدث خطأ. يرجى التأكد من صحة البريد الإلكتروني.' : isEnglish ? 'An error occurred. Please try again.' : 'Une erreur est survenue. Veuillez vérifier votre adresse e-mail.',
     inspectionNotice: isArabic
-      ? 'الدفع عند الاستلام · حق فحص الطرد قبل الأداء مكفول'
+      ? 'توصيل 24/48 ساعة · الدفع عند الاستلام · حق المعاينة مكفول'
       : isEnglish
-      ? 'Cash on Delivery · Inspect your parcel before paying'
-      : 'Paiement à la livraison · Droit d\'inspection avant paiement',
+      ? '24/48h delivery · Cash on delivery · Inspection guaranteed'
+      : 'Livraison 24/48h · Paiement à la livraison · Droit d\'inspection garanti',
     close: isArabic ? 'إغلاق' : isEnglish ? 'Close' : 'Fermer'
   };
 
@@ -191,119 +164,80 @@ export default function WelcomePopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[95] flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-md animate-in fade-in duration-300 print:hidden cursor-pointer"
+      className="fixed inset-0 z-[95] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300 print:hidden cursor-pointer"
       onClick={closePopup}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="nayday-modal-title"
+      aria-labelledby="welcome-modal-title"
     >
       <div
-        className="relative w-full max-w-[460px] bg-white overflow-hidden rounded-[32px] shadow-2xl border border-[#ECEAE4] animate-in zoom-in-95 duration-300 cursor-default"
+        className="relative w-full max-w-[430px] bg-white overflow-hidden rounded-[28px] shadow-2xl border border-sky-100 p-6 sm:p-8 animate-in zoom-in-95 duration-300 cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ========================================================
-            LUXURY MIDNIGHT HEADER WITH GOLDEN AMBIENT GLOW
-            ======================================================== */}
-        <div className="relative bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#1E293B] text-white p-6 sm:p-7 text-center overflow-hidden">
-          {/* Subtle Ambient Radial Glow */}
-          <div className="absolute -top-16 -right-16 w-48 h-48 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
+        {/* Close Button */}
+        <button
+          type="button"
+          onClick={closePopup}
+          className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-20 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+          aria-label={t.close}
+        >
+          <X size={16} />
+        </button>
 
-          {/* Close Button */}
-          <button
-            type="button"
-            onClick={closePopup}
-            className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-20 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95"
-            aria-label={t.close}
-          >
-            <X size={17} />
-          </button>
+        {/* MODAL HEADER: CLEAN WHITE & BRAND SKY BLUE */}
+        <div className="text-center">
+          {/* Brand Sky Blue Icon Circle */}
+          <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-[#0ea5e9] mx-auto mb-4 shadow-xs">
+            <Sparkles size={24} className="text-[#0ea5e9]" />
+          </div>
 
-          {/* Maison Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-black tracking-[0.2em] uppercase text-amber-300 shadow-xs mb-3">
-            <Sparkles size={11} className="text-amber-300 animate-pulse" />
+          {/* Privilege Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-[10px] font-bold tracking-wider uppercase text-[#0284c7] mb-2.5">
             <span>{t.badge}</span>
           </div>
 
           {/* Title */}
           <h2
-            id="nayday-modal-title"
-            className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase"
+            id="welcome-modal-title"
+            className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight"
           >
             {t.title}
           </h2>
 
-          {/* Big Discount Highlight */}
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <span className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 tracking-tight">
-              {t.discount}
-            </span>
-            <span className="text-xs sm:text-sm font-extrabold text-slate-300 uppercase tracking-widest text-left rtl:text-right leading-tight">
-              {t.discountSub}
-            </span>
+          {/* Big Discount In Brand Sky Blue */}
+          <div className="text-4xl sm:text-5xl font-black text-[#0ea5e9] tracking-tight my-1">
+            {t.discount}
           </div>
 
-          <p className="text-xs sm:text-[13px] text-slate-300/90 leading-relaxed mt-2.5 max-w-sm mx-auto font-medium">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+            {t.discountSub}
+          </div>
+
+          {/* Value Proposition Description */}
+          <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed max-w-sm mx-auto font-medium">
             {t.condition}
           </p>
         </div>
 
-        {/* ========================================================
-            MODAL BODY: VOUCHER BOX, EMAIL ACTION & TRUST
-            ======================================================== */}
-        <div className="p-5 sm:p-6 space-y-4 bg-white">
-          {/* THE OFFICIAL NAYDAY PRIVILEGE COUPON BOX */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-b from-[#FAF8F5] to-white border-2 border-dashed border-[#E0D7C6] flex items-center justify-between gap-3 shadow-xs">
-            <div className="min-w-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-0.5">
-                {t.codeLabel}
-              </span>
-              <span className="text-xl sm:text-2xl font-black tracking-[0.18em] text-[#0F172A] font-mono">
-                NAYDAY
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleCopyCode}
-              className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 ${
-                copied
-                  ? 'bg-emerald-500 text-white shadow-emerald-500/30'
-                  : 'bg-[#0F172A] hover:bg-slate-800 text-white'
-              }`}
-            >
-              {copied ? (
-                <>
-                  <Check size={14} className="text-white" />
-                  <span>{t.copiedBtn}</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={13} />
-                  <span>{t.copyBtn}</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* SUBSCRIPTION FORM / SUCCESS STATE */}
+        {/* FORM OR SUCCESS SCREEN */}
+        <div className="mt-5 space-y-4">
           {status === 'success' ? (
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3 animate-in fade-in zoom-in-95">
-              <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-sm">
-                <CheckCircle2 size={22} />
+            <div className="p-5 rounded-2xl bg-sky-50/70 border border-sky-200 text-center space-y-3 animate-in fade-in zoom-in-95">
+              <div className="w-12 h-12 rounded-full bg-[#0ea5e9] text-white flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle2 size={24} />
               </div>
               <div>
-                <h4 className="text-sm font-black text-emerald-950">
+                <h4 className="text-sm font-black text-slate-900">
                   {t.successTitle}
                 </h4>
-                <p className="text-xs text-emerald-800 leading-relaxed mt-1">
+                <p className="text-xs text-slate-600 leading-relaxed mt-1 font-medium">
                   {t.successMsg}
                 </p>
               </div>
               <Link
                 href={`/${locale}/shop`}
                 onClick={closePopup}
-                className="w-full py-3 px-4 rounded-xl bg-[#0F172A] hover:bg-black text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-98"
+                className="w-full py-3.5 px-4 rounded-xl bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-98"
               >
                 <ShoppingBag size={14} />
                 <span>{t.shopBtn}</span>
@@ -311,10 +245,6 @@ export default function WelcomePopup() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
-              <p className="text-[12px] text-slate-600 font-medium text-center">
-                {t.emailIntro}
-              </p>
-
               <div className="relative flex items-center">
                 <Mail size={16} className="absolute left-3.5 rtl:left-auto rtl:right-3.5 text-slate-400 pointer-events-none" />
                 <input
@@ -324,18 +254,18 @@ export default function WelcomePopup() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t.placeholder}
                   disabled={status === 'loading'}
-                  className="w-full bg-[#FAF8F5] border border-[#E5E0D4] rounded-xl py-3 pl-10 pr-3 rtl:pl-3 rtl:pr-10 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-all font-medium"
+                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl py-3 pl-10 pr-3 rtl:pl-3 rtl:pr-10 text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100 focus:bg-white transition-all font-medium"
                 />
               </div>
 
               {status === 'exists' && (
-                <p className="text-amber-700 text-xs text-center font-medium bg-amber-50 p-2 rounded-lg border border-amber-200">
+                <p className="text-sky-800 text-xs text-center font-medium bg-sky-50 p-2.5 rounded-xl border border-sky-200">
                   {t.existsMsg}
                 </p>
               )}
 
               {status === 'error' && (
-                <p className="text-rose-600 text-xs text-center font-medium bg-rose-50 p-2 rounded-lg border border-rose-200">
+                <p className="text-rose-600 text-xs text-center font-medium bg-rose-50 p-2.5 rounded-xl border border-rose-200">
                   {t.errorMsg}
                 </p>
               )}
@@ -343,13 +273,13 @@ export default function WelcomePopup() {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="w-full py-3 px-4 bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] hover:from-black hover:to-black text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-98 cursor-pointer"
+                className="w-full py-3.5 px-4 bg-[#0ea5e9] hover:bg-[#0284c7] text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md hover:shadow-lg shadow-sky-500/20 active:scale-98 cursor-pointer"
               >
                 {status === 'loading' ? (
                   <span>{t.loading}</span>
                 ) : (
                   <>
-                    <Gift size={15} className="text-amber-300" />
+                    <Send size={14} className="rtl:rotate-180" />
                     <span>{t.button}</span>
                   </>
                 )}
@@ -357,9 +287,9 @@ export default function WelcomePopup() {
             </form>
           )}
 
-          {/* GUARANTEE STRIP */}
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium text-center">
-            <Lock size={12} className="text-emerald-600 shrink-0" />
+          {/* REASSURANCE FOOTER */}
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-medium text-center">
+            <ShieldCheck size={13} className="text-[#0ea5e9] shrink-0" />
             <span>{t.inspectionNotice}</span>
           </div>
         </div>
