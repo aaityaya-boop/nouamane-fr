@@ -18,13 +18,17 @@ import ProductCard from '@/components/ProductCard';
 import SplitTypographyHero from '@/components/SplitTypographyHero';
 import BrandsMarquee from '@/components/BrandsMarquee';
 import FAQ from '@/components/FAQ';
+import RecentlyViewed from '@/components/RecentlyViewed';
+import MobileVersionBHome from '@/components/home/MobileVersionBHome';
 
 const CartDrawer = dynamic(() => import('@/components/CartDrawer'), { ssr: false });
 import {
   ArrowRight,
+  ChevronRight,
   MoveRight,
   Star,
   Truck,
+  Award,
   ShieldCheck,
   Gift,
   BadgeCheck,
@@ -32,6 +36,7 @@ import {
   Flame,
   Leaf,
   Sun,
+  Banknote,
 } from 'lucide-react';
 import {
   Product,
@@ -60,6 +65,12 @@ const staggerItem: any = {
   hidden: { opacity: 0, y: 30 },
   show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } }
 };
+
+interface CategoryItem {
+  slug: string;
+  labelShort: string;
+  description: string;
+}
 
 export default function HomePageClient({ 
   products, 
@@ -110,18 +121,59 @@ export default function HomePageClient({
       ? (dict.seasonal?.subtitleFall || 'Des accords ambrés, épicés et enveloppants pour sublimer les saisons fraîches.')
       : (dict.seasonal?.subtitleSpring || 'Des notes hespéridées, aquatiques et solaires pour illuminer vos journées.'));
 
-  const categoryLabels: Record<string, { label: string; desc: string }> = {
+  const isAr = locale === 'ar';
+
+  const categoryMeta: Record<string, {
+    label: string;
+    desc: string;
+    image: string;
+    tag: string;
+    curatedCount: string;
+    featuredHouses: string;
+    perfumeName: string;
+    perfumeBrand: string;
+    accords: string[];
+    gradientGlow: string;
+    badgeColor: string;
+  }> = {
     women: {
-      label: dict.categories?.womenLabel || 'Femme',
-      desc: dict.categories?.womenDesc || '',
+      label: dict.categories?.womenLabel || (isAr ? 'عطور نسائية' : 'Femme'),
+      desc: dict.categories?.womenDesc || (isAr ? 'تشكيلة نسائية ساحرة تجمع بين الأنوثة والرقي والجاذبية.' : 'Sillages floraux, fruités & gourmands créés pour elle.'),
+      image: 'https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/raw-1783986846939-Narciso_Rouge.jpg',
+      tag: isAr ? 'للنساء · أنوثة ورقي' : 'POUR ELLE · ÉLÉGANCE',
+      curatedCount: isAr ? '+95 عطراً نسائياً أصلياً' : '+95 Flacons d\'Exception',
+      featuredHouses: 'YSL · Valentino · Armani · Dior',
+      perfumeName: 'Narciso Rouge EDP',
+      perfumeBrand: 'Narciso Rodriguez',
+      accords: ['Floraux Lumineux', 'Gourmands', 'Poudrés'],
+      gradientGlow: 'bg-rose-500/10',
+      badgeColor: 'bg-rose-50 border-rose-200 text-rose-800',
     },
     men: {
-      label: dict.categories?.menLabel || 'Homme',
-      desc: dict.categories?.menDesc || '',
+      label: dict.categories?.menLabel || (isAr ? 'عطور رجالية' : 'Homme'),
+      desc: dict.categories?.menDesc || (isAr ? 'عطور رجالية قوية وثابتة تمنحك حضوراً جذاباً وكاريزما رجولية.' : 'Accords boisés, ambrés & magnétiques pour affirmer votre charisme.'),
+      image: 'https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/raw-1783986823993-Dior_Homme_Intense.jpg',
+      tag: isAr ? 'للرجال · كاريزما وأصالة' : 'POUR LUI · CHARISME',
+      curatedCount: isAr ? '+80 عطراً رجالياً أصلياً' : '+80 Flacons de Caractère',
+      featuredHouses: 'Dior · Creed · Tom Ford · Chanel',
+      perfumeName: 'Dior Homme Intense',
+      perfumeBrand: 'Christian Dior',
+      accords: ['Boisés Nobles', 'Épices Chaudes', 'Magnétiques'],
+      gradientGlow: 'bg-sky-500/10',
+      badgeColor: 'bg-sky-50 border-sky-200 text-sky-800',
     },
     unisex: {
-      label: dict.categories?.unisexLabel || 'Unisex',
-      desc: dict.categories?.unisexDesc || '',
+      label: dict.categories?.unisexLabel || (isAr ? 'عطور مشتركة ونيش' : 'Mixte & Haute Niche'),
+      desc: dict.categories?.unisexDesc || (isAr ? 'إبداعات نيش نادرة وفاخرة تتجاوز الحدود وتناسب الجنسين.' : 'Créations rares & audacieuses transcendant les frontières du genre.'),
+      image: 'https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/1788176891186-345546050-xerjoff_accento.jpg',
+      tag: isAr ? 'مجموعة مشتركة · نيش فاخر' : 'COLLECTION PRIVÉE · HAUTE NICHE',
+      curatedCount: isAr ? '+40 عطراً نيش مشترك' : '+40 Créations Rares',
+      featuredHouses: 'Xerjoff · Armani Privé · Creed',
+      perfumeName: 'Xerjoff Accento Overdose',
+      perfumeBrand: 'Xerjoff',
+      accords: ['Ananas & Jacinthe', 'Iris & Poivre Rose', 'Musc & Vétiver'],
+      gradientGlow: 'bg-amber-500/10',
+      badgeColor: 'bg-amber-50 border-amber-200 text-amber-800',
     },
   };
 
@@ -133,13 +185,14 @@ export default function HomePageClient({
         .catch(console.error);
     }
 
-    if (!config) {
-      fetch('/api/settings')
-        .then(res => res.json())
-        .then(data => setHomepageConfig(data))
-        .catch(console.error);
-    }
-  }, [initialBrands.length, config]);
+    // Always fetch latest settings from API to reflect admin updates immediately
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data && !data.error) setHomepageConfig(data);
+      })
+      .catch(console.error);
+  }, [initialBrands.length]);
 
   // Use admin-configured products if set, else fallback to tag-based
   const bestsellersDisplay = (() => {
@@ -195,84 +248,180 @@ export default function HomePageClient({
     <div className="bg-[#fafaf7] text-[#1A1A1A] overflow-x-hidden">
       <Header />
 
-      {/* ===============================
-          HERO (SPLIT TYPOGRAPHY)
-          =============================== */}
-      <SplitTypographyHero config={config} />
-      {/* ===============================
-          CATEGORY SHORTCUTS (Minimalist Editorial Aura)
-          =============================== */}
-      <section className="relative w-full bg-white overflow-hidden">
-        {/* Subtle background aura to link with Hero */}
-        <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[#0ea5e9]/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 -translate-x-1/2" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#0ea5e9]/5 rounded-full blur-[100px] pointer-events-none translate-y-1/3 translate-x-1/3" />
+      {/* ========================================================= */}
+      {/* MOBILE-ONLY HOMEPAGE (< lg): CONCEPT C "NAY SIGNATURE"    */}
+      {/* ========================================================= */}
+      <div className="block lg:hidden">
+        <MobileVersionBHome
+          products={products}
+          bestsellers={bestsellersDisplay}
+          newArrivals={newArrivals}
+          seasonalTrends={seasonalTrends}
+          seasonalTitle={isCustomFrenchSeason ? homepageConfig?.seasonalTrendTitle : (isAr ? 'اتجاهات الصيف والخريف' : 'Tendances Été-Automne')}
+          seasonalSubtitle={displaySeasonalSubtitle}
+          seasonQueryParam={seasonQueryParam}
+          latestReviews={latestReviews}
+          locale={locale}
+          dict={dict}
+        />
+      </div>
 
-        <div className="relative z-10 max-w-[1600px] mx-auto px-6 lg:px-12 pt-24 lg:pt-32 pb-16">
-          <div className="flex flex-col items-center text-center mb-16">
-            <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.5em] uppercase text-[#0ea5e9] mb-6">
-              {dict.categories?.eyebrow || 'Nos collections'}
-            </span>
-            <h2 className="heading-font text-5xl sm:text-6xl lg:text-7xl tracking-tight text-[#111] leading-none">
-              {dict.categories?.titlePrefix || 'Parcourir par'}{' '}
-              <span className="font-serif italic font-light text-[#0ea5e9]">
-                &nbsp;{dict.categories?.titleSuffix || 'Catégorie'}
+      {/* ========================================================= */}
+      {/* DESKTOP-ONLY HOMEPAGE (>= lg): UNCHANGED PRESERVED DESKTOP */}
+      {/* ========================================================= */}
+      <div className="hidden lg:block">
+        {/* ===============================
+            HERO (SPLIT TYPOGRAPHY)
+            =============================== */}
+        <SplitTypographyHero config={config} bestsellers={bestsellersDisplay} />
+
+      {/* ===============================
+          CATEGORY SHORTCUTS (Creative Haute Parfumerie 3-Portal Architecture)
+          =============================== */}
+      <section className="relative w-full bg-[#FAF9F5] py-16 sm:py-20 lg:py-28 overflow-hidden border-b border-[#ECE7DD]">
+        {/* Subtle atmospheric ambient glow */}
+        <div className="absolute top-1/2 left-0 w-[550px] h-[550px] bg-gradient-to-tr from-[#0ea5e9]/8 to-transparent rounded-full blur-[140px] pointer-events-none -translate-y-1/2 -translate-x-1/3" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-amber-500/6 to-transparent rounded-full blur-[130px] pointer-events-none translate-y-1/4 translate-x-1/4" />
+
+        <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+          
+          {/* Section Header */}
+          <div className="flex flex-col items-center text-center mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E0DDD4] shadow-2xs text-[10.5px] font-bold tracking-[0.25em] uppercase text-[#0284c7] mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9] animate-pulse" />
+              <span>{dict.categories?.eyebrow || (isAr ? 'مجموعاتنا الحصرية' : 'Nos univers olfactifs')}</span>
+            </div>
+            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#1A1A1A]">
+              {dict.categories?.titlePrefix || (isAr ? 'تصفح حسب' : 'Parcourir par')}{' '}
+              <span className="text-[#0ea5e9]">
+                {dict.categories?.titleSuffix || (isAr ? 'الفئة' : 'Catégorie')}
               </span>
             </h2>
+            <p className="mt-3 text-[13px] sm:text-[14px] text-[#6B6B6B] max-w-lg leading-relaxed">
+              {isAr ? 'ثلاث عوالم عطرية متميزة صُممت لتمنحك بصمة استثنائية تأسر الحواس.' : 'Trois univers d\'exception pour trouver la fragrance qui sublime votre personnalité.'}
+            </p>
           </div>
-        </div>
 
-        {/* Three-column Glassmorphism Marketing Cards */}
-        <div className="relative z-10 max-w-[1600px] mx-auto px-6 lg:px-12 pb-24 lg:pb-32">
+          {/* Three-Column Creative Luxury Category Cards */}
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-80px" }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch"
           >
             {MAIN_CATEGORIES.map((cat, index) => {
-              const currentCat = categoryLabels[cat.slug] || { label: cat.labelShort, desc: cat.description };
+              const currentCat = categoryMeta[cat.slug] || {
+                label: cat.labelShort,
+                desc: cat.description,
+                image: 'https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/raw-1783986823993-Dior_Homme_Intense.jpg',
+                tag: `COLLECTION 0${index + 1}`,
+                curatedCount: '+80 Flacons',
+                featuredHouses: 'Grandes Maisons',
+                perfumeName: 'Testeur Authentique',
+                perfumeBrand: 'NAY Parfums',
+                accords: ['Signature', 'Prestige', 'Tenue Longue'],
+                gradientGlow: 'bg-[#0ea5e9]/10',
+                badgeColor: 'bg-sky-50 border-sky-200 text-sky-800',
+              };
+
               return (
                 <motion.div
                   variants={staggerItem}
                   key={cat.slug}
-                  className="group cursor-pointer relative h-auto min-h-[340px] rounded-[30px] overflow-hidden bg-gradient-to-br from-[#f8fafc] to-white border border-[#e0ddd4] hover:border-[#0ea5e9]/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-700"
+                  className="group relative rounded-[28px] lg:rounded-[32px] overflow-hidden bg-white border border-[#E5E0D6] hover:border-[#0ea5e9]/50 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_rgba(14,165,233,0.12)] transition-all duration-500 flex flex-col justify-between"
                 >
-                  <Link href={`/${locale}/shop/${cat.slug}`} className="flex flex-col h-full w-full p-8 lg:p-10 relative z-10">
-                    {/* Subtle Background Accent */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#0ea5e9]/5 rounded-full blur-[40px] translate-x-1/3 -translate-y-1/3 group-hover:scale-150 transition-transform duration-1000 pointer-events-none" />
+                  <div className="flex flex-col h-full w-full p-6 sm:p-7 lg:p-8 relative z-10">
+                    
+                    {/* Ambient Glow */}
+                    <div className={`absolute top-0 right-0 w-64 h-64 ${currentCat.gradientGlow} rounded-full blur-[45px] translate-x-1/4 -translate-y-1/4 group-hover:scale-130 transition-transform duration-1000 pointer-events-none`} />
 
-                    <div className="mt-auto z-20">
-                      <div className="flex items-end justify-between mb-4">
-                        <div>
-                          <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9] mb-3 block">
-                            {dict.categories?.collectionPrefix || 'Collection'} 0{index + 1}
-                          </span>
-                          <h3 className="heading-font text-3xl lg:text-4xl text-[#1A1A1A] tracking-wide group-hover:text-[#0ea5e9] transition-colors duration-500">
+                    {/* Card Header: Collection Tag & Title */}
+                    <div className="relative z-20 flex items-start justify-between gap-4 mb-2">
+                      <div>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-[9.5px] sm:text-[10px] font-bold tracking-[0.2em] uppercase text-slate-700 mb-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9]" />
+                          <span>{currentCat.tag}</span>
+                        </div>
+                        <Link href={`/${locale}/shop/${cat.slug}`}>
+                          <h3 className="font-display text-2xl lg:text-3xl font-extrabold text-slate-950 tracking-tight group-hover:text-[#0ea5e9] transition-colors duration-300">
                             {currentCat.label}
                           </h3>
-                        </div>
-                        {/* Elegant CTA Arrow */}
-                        <div className="w-12 h-12 rounded-full border border-[#e0ddd4] bg-white flex items-center justify-center text-[#1A1A1A] group-hover:bg-[#1A1A1A] group-hover:text-white group-hover:border-[#1A1A1A] transition-all duration-500 flex-shrink-0 shadow-sm rtl:rotate-180">
-                          <ArrowRight size={18} />
-                        </div>
+                        </Link>
+                        <span className="text-[11px] font-semibold text-slate-400 block mt-0.5">
+                          {currentCat.curatedCount}
+                        </span>
                       </div>
 
-                      <p className="text-[#6B6B6B] text-[13px] font-light leading-[1.7] tracking-wide line-clamp-2 lg:pr-12 rtl:lg:pr-0 rtl:lg:pl-12">
-                        {currentCat.desc || cat.description}
-                      </p>
-                      
-                      {/* Secondary Action / Trust Signal */}
-                      <div className="mt-8 pt-6 border-t border-[#e0ddd4]/60 flex items-center justify-between">
-                        <span className="text-[10px] uppercase tracking-widest text-[#1A1A1A] font-semibold group-hover:text-[#0ea5e9] transition-colors">
-                          {dict.categories?.explore || 'Explorer'}
+                      {/* Floating Action Arrow */}
+                      <Link
+                        href={`/${locale}/shop/${cat.slug}`}
+                        aria-label={currentCat.label}
+                        className="w-11 h-11 rounded-full border border-[#ECE7DD] bg-[#FAF9F5] flex items-center justify-center text-slate-800 group-hover:bg-[#0ea5e9] group-hover:text-white group-hover:border-[#0ea5e9] transition-all duration-300 flex-shrink-0 shadow-2xs rtl:rotate-180"
+                      >
+                        <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+                      </Link>
+                    </div>
+
+                    {/* Studio Pedestal for Real Perfume Flacon */}
+                    <Link 
+                      href={`/${locale}/shop/${cat.slug}`}
+                      className="relative z-20 block my-4 h-[280px] sm:h-[300px] w-full bg-gradient-to-b from-[#FCFBF9] to-[#F5F2EB] rounded-2xl border border-[#ECE7DD] overflow-hidden cursor-pointer group/flacon p-4"
+                    >
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <Image
+                          src={currentCat.image}
+                          alt={currentCat.label}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 420px"
+                          className="object-contain p-2 transition-transform duration-700 ease-out group-hover/flacon:scale-108 drop-shadow-[0_12px_24px_rgba(0,0,0,0.12)]"
+                        />
+                      </div>
+
+                      {/* Discrete Perfume Identifier Pill */}
+                      <div className="absolute bottom-3 left-3 rtl:left-auto rtl:right-3 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-xs pointer-events-none">
+                        <span className="text-[11px] font-bold text-slate-900 block leading-tight">
+                          {currentCat.perfumeName}
                         </span>
-                        <span className="text-[9px] uppercase tracking-widest text-[#0ea5e9] font-bold bg-[#0ea5e9]/10 px-3 py-1.5 rounded-full border border-[#0ea5e9]/20">
-                          {dict.categories?.premiumQuality || 'Qualité Premium'}
+                        <span className="text-[9px] font-bold text-[#0ea5e9] tracking-wider uppercase block">
+                          {currentCat.perfumeBrand}
                         </span>
                       </div>
+                    </Link>
+
+                    {/* Olfactory Accord Tags */}
+                    <div className="relative z-20 flex items-center gap-1.5 flex-wrap mb-3">
+                      {currentCat.accords.map((accord) => (
+                        <span
+                          key={accord}
+                          className="text-[10px] font-semibold text-slate-600 bg-slate-100/90 px-2.5 py-1 rounded-full border border-slate-200/70"
+                        >
+                          {accord}
+                        </span>
+                      ))}
                     </div>
-                  </Link>
+
+                    {/* Description Text */}
+                    <p className="relative z-20 text-slate-500 text-[12.5px] font-normal leading-[1.6] line-clamp-2 mb-4">
+                      {currentCat.desc}
+                    </p>
+
+                    {/* Card Footer: Explore CTA */}
+                    <div className="relative z-20 mt-auto pt-3.5 border-t border-slate-100 flex items-center justify-between gap-3">
+                      <span className="text-[11px] font-bold text-slate-500 tracking-wide">
+                        {currentCat.featuredHouses}
+                      </span>
+
+                      <Link 
+                        href={`/${locale}/shop/${cat.slug}`}
+                        className="inline-flex items-center gap-1.5 text-[11.5px] font-bold tracking-wider uppercase text-[#0ea5e9] group-hover:text-slate-950 transition-colors"
+                      >
+                        <span>{dict.categories?.explore || (isAr ? 'استكشف التشكيلة' : 'Explorer')}</span>
+                        <ChevronRight size={14} className="rtl:rotate-180 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+                      </Link>
+                    </div>
+
+                  </div>
                 </motion.div>
               );
             })}
@@ -283,10 +432,10 @@ export default function HomePageClient({
       {/* ===============================
           FEATURED — BESTSELLERS
           =============================== */}
-      <section className="relative bg-[#f8fafc] border-y border-[#e0ddd4] overflow-hidden py-24 lg:py-32">
+      <section className="relative bg-[#f8fafc] border-y border-[#e0ddd4] overflow-hidden py-12 sm:py-16 lg:py-32">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-gradient-to-tr from-[#0ea5e9]/10 to-transparent rounded-full blur-[120px] pointer-events-none" />
         
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 mb-16 relative z-10">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 mb-8 sm:mb-16 relative z-10">
           <SectionHeader
             icon={<Flame size={16} className="text-[#0ea5e9]" />}
             eyebrow={dict.bestsellers?.eyebrow || 'Les plus vendus au Maroc'}
@@ -297,13 +446,13 @@ export default function HomePageClient({
           />
         </div>
 
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 lg:px-10 pb-16">
+        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pb-8 sm:pb-16">
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-100px" }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-7"
           >
             {bestsellersDisplay.map((p) => (
               <motion.div variants={staggerItem} key={p.id}>
@@ -333,9 +482,9 @@ export default function HomePageClient({
           {/* Left Side: Text Content */}
           <div className="w-full lg:w-[40%] px-6 lg:pl-[max(2.5rem,calc((100vw-1400px)/2+2.5rem))] rtl:lg:pl-6 rtl:lg:pr-[max(2.5rem,calc((100vw-1400px)/2+2.5rem))] mb-12 lg:mb-0">
             <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#D4AF37] mb-6 flex items-center gap-2">
-              <Sparkles size={14} /> {dict.coffrets?.eyebrow || "L'Art d'Offrir"}
+              <Gift size={14} className="text-[#0ea5e9]" /> {dict.coffrets?.eyebrow || "L'Art d'Offrir"}
             </span>
-            <h2 className="heading-font text-5xl md:text-7xl text-white tracking-wide mb-6 leading-tight">
+            <h2 className="font-display text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6 leading-tight">
               {dict.coffrets?.title || "Coffrets Cadeaux"}
             </h2>
             <p className="text-white/80 text-[16px] leading-relaxed mb-10 max-w-md">
@@ -366,9 +515,9 @@ export default function HomePageClient({
       {/* ===============================
           FEATURED — NEW ARRIVALS
           =============================== */}
-      <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-28">
         <SectionHeader
-          icon={<Sparkles size={16} className="text-[#0ea5e9]" />}
+          icon={<Award size={16} className="text-[#0ea5e9]" />}
           eyebrow={dict.newArrivals?.eyebrow || ""}
           title={dict.newArrivals?.title || "Les dernières sorties"}
           subtitle={dict.newArrivals?.subtitle || "Découvrez les nouvelles créations qui viennent d'arriver dans nos rayons."}
@@ -380,7 +529,7 @@ export default function HomePageClient({
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-7"
         >
           {newArrivals.map((p) => (
             <motion.div variants={staggerItem} key={p.id}>
@@ -401,7 +550,7 @@ export default function HomePageClient({
         <div className="absolute top-[-100px] right-[-100px] w-[500px] h-[500px] bg-[#fde047] rounded-full blur-[150px] opacity-30 pointer-events-none" />
         <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] bg-[#38bdf8] rounded-full blur-[150px] opacity-20 pointer-events-none" />
 
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-24 lg:py-32 relative z-10">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-32 relative z-10">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -416,7 +565,7 @@ export default function HomePageClient({
                   {dict.seasonal?.eyebrow || "Édition saisonnière"}
                 </span>
               </div>
-              <h2 className="heading-font text-5xl lg:text-7xl text-[#1A1A1A] tracking-wide">
+              <h2 className="font-display text-5xl lg:text-7xl font-extrabold text-[#1A1A1A] tracking-tight">
                 {titleFirstPart}<br />
                 <span className="text-[#0ea5e9] italic">{titleSecondPart}</span>
               </h2>
@@ -434,7 +583,7 @@ export default function HomePageClient({
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-100px" }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-7"
           >
             {seasonalTrends.map((p) => (
               <motion.div variants={staggerItem} key={p.id}>
@@ -453,7 +602,7 @@ export default function HomePageClient({
           <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">
             {dict.brandsSection?.eyebrow || "L'Élite de la Parfumerie"}
           </span>
-          <h2 className="heading-font text-5xl lg:text-6xl mt-4 tracking-wide">
+          <h2 className="font-display text-5xl lg:text-6xl font-extrabold mt-4 tracking-tight">
             {dict.brandsSection?.title || "5 Marques Mythiques"}
           </h2>
         </div>
@@ -487,7 +636,7 @@ export default function HomePageClient({
                 
                 {/* Vertical Text (Collapsed state on desktop) */}
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 md:opacity-100 group-hover:opacity-0 transition-opacity duration-500 pointer-events-none">
-                  <span className="heading-font text-[#1A1A1A] text-3xl -rotate-90 whitespace-nowrap tracking-widest">{brand.name}</span>
+                  <span className="font-display text-[#1A1A1A] text-3xl -rotate-90 whitespace-nowrap tracking-widest">{brand.name}</span>
                 </div>
 
                 {/* Content shown on hover */}
@@ -503,28 +652,46 @@ export default function HomePageClient({
       </section>
 
       {/* ===============================
-          VALUE PROPOSITIONS
+          VALUE PROPOSITIONS (Audited Verified Store Policies)
           =============================== */}
-      <section className="bg-[#f8fafc] text-[#1A1A1A]">
+      <section className="bg-[#fafaf7] text-[#1A1A1A] border-y border-[#e0ddd4]/70">
         <motion.div 
           variants={staggerContainer}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-50px" }}
-          className="max-w-[1400px] mx-auto px-6 lg:px-10 py-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8"
+          className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-14 lg:py-18 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8"
         >
           {[
-            { icon: <BadgeCheck size={22} strokeWidth={1.5} />, title: dict.values?.v1Title || '100% Authentiques', desc: dict.values?.v1Desc || 'Nos parfums proviennent directement des distributeurs officiels de chaque maison. Facture d\'origine sur demande.' },
-            { icon: <Truck size={22} strokeWidth={1.5} />, title: dict.values?.v2Title || 'Livraison 35Dh', desc: dict.values?.v2Desc || 'Livraison partout au Maroc avec 35Dh en 24-48h. Suivi par SMS et WhatsApp inclus.' },
-            { icon: <ShieldCheck size={22} strokeWidth={1.5} />, title: dict.values?.v3Title || 'Paiement à la livraison', desc: dict.values?.v3Desc || 'Payez en toute sérénité à la réception. Aucun risque, aucune surprise.' },
-            { icon: <Star size={22} strokeWidth={1.5} />, title: dict.values?.v4Title || 'Authenticité garantie', desc: dict.values?.v4Desc || 'Tous nos parfums sont 100% originaux et certifiés authentiques.' },
+            { 
+              icon: <ShieldCheck size={19} strokeWidth={1.8} />, 
+              title: 'Essayez avant de payer', 
+              desc: 'Ouvrez votre colis et testez le parfum devant le livreur. Si vous refusez, vous ne payez rien, aucun frais de livraison.' 
+            },
+            { 
+              icon: <Truck size={19} strokeWidth={1.8} />, 
+              title: 'Livraison 24–48h', 
+              desc: 'Délai moyen de 24 à 48h après expédition (délai total ~72h selon disponibilité du flacon) partout au Maroc.' 
+            },
+            { 
+              icon: <Award size={19} strokeWidth={1.8} />, 
+              title: 'Flacons 100% Authentiques', 
+              desc: 'Parfums originaux et testeurs de grandes maisons de luxe, issus directement de distributeurs agréés.' 
+            },
+            { 
+              icon: <Banknote size={19} strokeWidth={1.8} />, 
+              title: 'Paiement à la livraison', 
+              desc: '0 DH d\'avance exigé. Réglez en toute sérénité en espèces lors de la remise en main propre.' 
+            },
           ].map((item) => (
-            <motion.div variants={staggerItem} key={item.title} className="text-center lg:text-start">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[#0ea5e9]/40 text-[#0ea5e9] mb-4">
-                {item.icon}
+            <motion.div variants={staggerItem} key={item.title} className="text-center sm:text-start bg-white rounded-2xl p-3.5 sm:p-5 border border-[#e0ddd4]/70 shadow-2xs group flex flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-50 text-[#0ea5e9] border border-sky-100 mb-2 sm:mb-3.5 transition-all duration-300 group-hover:bg-[#0ea5e9] group-hover:text-white group-hover:scale-105">
+                  {item.icon}
+                </div>
+                <h3 className="font-display text-[13.5px] sm:text-lg font-bold tracking-tight mb-1 text-[#1A1A1A]">{item.title}</h3>
+                <p className="text-[10.5px] sm:text-[12.5px] text-[#6B6B6B] leading-[1.5] sm:leading-[1.65]">{item.desc}</p>
               </div>
-              <h3 className="heading-font text-xl tracking-wide mb-2 text-[#1A1A1A]">{item.title}</h3>
-              <p className="text-[13px] text-[#1A1A1A]/70 leading-[1.7]">{item.desc}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -551,21 +718,21 @@ export default function HomePageClient({
               <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#0ea5e9] mb-6 block">
                 {dict.reviewsSection?.eyebrow || "Ils nous font confiance"}
               </span>
-              <h2 className="heading-font text-5xl lg:text-8xl text-white tracking-wide leading-none">
+              <h2 className="font-display text-5xl lg:text-8xl font-extrabold text-white tracking-tight leading-none">
                 {dict.reviewsSection?.title || "Avis de nos clients"}
               </h2>
             </div>
             <div className="flex items-center gap-6">
               <div className="text-center">
-                <div className="heading-font text-5xl text-white">4.9</div>
+                <div className="font-display text-5xl text-white">4.9</div>
                 <div className="flex gap-1 justify-center mt-2">
-                  {[...Array(5)].map((_, j) => <Star key={j} size={12} className="text-[#0ea5e9] fill-[#0ea5e9]" />)}
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-[#0ea5e9] text-[10.5px] font-bold"><BadgeCheck size={13} /> 5/5 Exceptionnel</span>
                 </div>
                 <div className="text-[11px] text-[#9A9A9A] mt-1">{dict.reviewsSection?.averageRating || "Note moyenne"}</div>
               </div>
               <div className="w-[1px] h-16 bg-white/10" />
               <div className="text-center">
-                <div className="heading-font text-5xl text-white">500+</div>
+                <div className="font-display text-5xl text-white">500+</div>
                 <div className="text-[11px] text-[#9A9A9A] mt-1">{dict.reviewsSection?.satisfiedClients || "Clients satisfaits"}</div>
               </div>
             </div>
@@ -633,6 +800,11 @@ export default function HomePageClient({
         </div>
       </section>
 
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+        <RecentlyViewed />
+      </div>
+      </div>
+
       <BrandsMarquee brands={brands} />
       <FAQ />
 
@@ -675,7 +847,7 @@ function SectionHeader({
             {eyebrow}
           </span>
         </div>
-        <h2 className="heading-font text-4xl lg:text-5xl tracking-wide">{title}</h2>
+        <h2 className="font-display text-4xl lg:text-5xl font-extrabold text-slate-950 tracking-tight leading-none">{title}</h2>
         <p className="mt-3 text-[14px] text-[#6B6B6B] max-w-lg">{subtitle}</p>
       </div>
       <Link

@@ -1,9 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Montserrat, Tajawal } from 'next/font/google';
+import { Urbanist, Plus_Jakarta_Sans, Tajawal, DM_Serif_Display, Manrope, IBM_Plex_Sans_Arabic } from 'next/font/google';
+import localFont from 'next/font/local';
 import "../globals.css";
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
+import { ComparisonProvider } from "@/context/ComparisonContext";
+import ComparisonTray from "@/components/ComparisonTray";
+import ComparisonModal from "@/components/ComparisonModal";
+import MobileTaskbar from "@/components/MobileTaskbar";
 import { DictionaryProvider } from "@/context/DictionaryContext";
 import { getDictionary } from "@/lib/dictionaries";
 import { AuthProvider } from "@/context/AuthContext";
@@ -14,9 +20,17 @@ import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/analyti
 
 import ClientWidgets from "@/components/ClientWidgets";
 
-const montserrat = Montserrat({
+const urbanist = Urbanist({
   subsets: ['latin'],
-  weight: ['400', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-urbanist',
+  display: 'swap',
+  preload: true,
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-sans',
   display: 'swap',
   preload: true,
@@ -25,10 +39,39 @@ const montserrat = Montserrat({
 const tajawal = Tajawal({
   subsets: ['arabic'],
   weight: ['400', '500', '700'],
-  variable: '--font-arabic',
+  variable: '--font-tajawal',
   display: 'swap',
   preload: false,
 });
+
+const ibmPlexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-ibm-plex-arabic',
+  display: 'swap',
+  preload: false,
+});
+
+const dgKufi = localFont({
+  src: '../../../public/fonts/DG-Kufi.ttf',
+  variable: '--font-dg-kufi',
+  display: 'swap',
+});
+
+const dmSerif = DM_Serif_Display({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-dm-serif',
+  display: 'swap',
+});
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
+  display: 'swap',
+});
+
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -42,9 +85,9 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://nayparfum.ma'),
   title: {
     template: "%s | NAY Parfums",
-    default: "NAY Parfums - Testeurs & Parfums Originaux au Maroc",
+    default: "NAY Parfums - Haute Parfumerie & Testeurs de Luxe au Maroc",
   },
-  description: "Découvrez NAY Parfums, achetez vos parfums de luxe et testeurs 100% originaux. Livraison rapide partout au Maroc (Casablanca, Rabat...) et paiement à la livraison. عطور أصلية في المغرب",
+  description: "Découvrez NAY Parfums, vos parfums d'exception et testeurs de haute tenue au Maroc. Mêmes notes et même odeur, livraison rapide 24/48h et paiement à la livraison (Casablanca, Rabat, Marrakech...).",
   keywords: [
     "parfum original Maroc", "acheter parfum luxe Maroc", "testeur parfum authentique", "site vente parfum Maroc", 
     "parfumerie en ligne Maroc", "عطور أصلية في المغرب", "تستر عطور ماركات", "nay parfum", 
@@ -75,8 +118,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_MA",
     url: "https://nayparfum.ma",
-    title: "NAY Parfums | Testeurs & Parfums Originaux au Maroc",
-    description: "Achetez vos parfums et testeurs 100% originaux au Maroc. Livraison rapide et paiement à la livraison (Casablanca, Rabat, Marrakech, etc.).",
+    title: "NAY Parfums | Haute Parfumerie & Testeurs de Luxe au Maroc",
+    description: "Commandez vos parfums et testeurs de haute tenue au Maroc. Mêmes notes et même odeur, livraison express 24/48h et paiement à la livraison (Casablanca, Rabat, Marrakech, etc.).",
     siteName: "NAY Parfums",
     images: [
       {
@@ -89,8 +132,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "NAY Parfums | Parfums Originaux au Maroc",
-    description: "Achetez vos parfums et testeurs originaux au Maroc. Livraison rapide et paiement à la livraison.",
+    title: "NAY Parfums | Testeurs de Luxe & Parfums au Maroc",
+    description: "Commandez vos testeurs et parfums de qualité au Maroc. Même odeur et sillage garanti, livraison rapide et paiement à la livraison.",
     images: ["https://nayparfum.ma/android-chrome-512x512.png"],
   },
   robots: {
@@ -124,9 +167,9 @@ export default async function LocaleLayout({
   const dir = validLocale === 'ar' ? 'rtl' : 'ltr';
 
   const storeDescriptions = {
-    fr: "Boutique en ligne spécialisée dans la vente de parfums de luxe et testeurs 100% originaux au Maroc. Livraison rapide et paiement à la livraison.",
-    ar: "متجر إلكتروني متخصص في بيع العطور الفاخرة وتسترات أصلية 100% في المغرب. توصيل سريع والدفع عند الاستلام.",
-    en: "Online boutique specializing in luxury perfumes and authentic testers in Morocco. Fast nationwide delivery and cash on delivery.",
+    fr: "Boutique en ligne spécialisée dans la vente de parfums de luxe et testeurs de haute tenue au Maroc. Mêmes notes olfactives et même odeur, livraison rapide et paiement à la livraison.",
+    ar: "متجر إلكتروني متخصص في بيع العطور وتسترات بنفس النوتات والرائحة الأصلية في المغرب. توصيل سريع والدفع عند الاستلام.",
+    en: "Online boutique specializing in luxury perfumes and high-fidelity testers in Morocco. Same scent and notes, fast nationwide delivery and cash on delivery.",
   };
 
   const storeNames = {
@@ -136,7 +179,7 @@ export default async function LocaleLayout({
   };
 
   return (
-    <html lang={validLocale} dir={dir} className={`${montserrat.variable} ${tajawal.variable}`}>
+    <html lang={validLocale} dir={dir} className={`${urbanist.variable} ${jakarta.variable} ${tajawal.variable} ${ibmPlexArabic.variable} ${dgKufi.variable} ${dmSerif.variable} ${manrope.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
@@ -145,6 +188,12 @@ export default async function LocaleLayout({
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM Knowledge File" />
+        <link rel="alternate" type="text/plain" href="/llms-full.txt" title="Full LLM Knowledge File" />
+        <meta name="geo.region" content="MA" />
+        <meta name="geo.placename" content="Morocco" />
+        <meta name="geo.position" content="31.7917;-7.0926" />
+        <meta name="ICBM" content="31.7917, -7.0926" />
         <link rel="preload" as="image" href="/images/nay/nay-logo-new.png" fetchPriority="high" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
@@ -240,10 +289,37 @@ export default async function LocaleLayout({
                 addressLocality: "Casablanca",
                 addressRegion: "Casablanca-Settat"
               },
-              areaServed: {
-                "@type": "Country",
-                name: "Morocco"
+              areaServed: [
+                { "@type": "Country", name: "Morocco" },
+                { "@type": "City", name: "Casablanca" },
+                { "@type": "City", name: "Rabat" },
+                { "@type": "City", name: "Marrakech" },
+                { "@type": "City", name: "Tanger" },
+                { "@type": "City", name: "Fès" },
+                { "@type": "City", name: "Meknès" },
+                { "@type": "City", name: "Agadir" },
+                { "@type": "City", name: "Oujda" }
+              ],
+              hasMerchantReturnPolicy: {
+                "@type": "MerchantReturnPolicy",
+                applicableCountry: "MA",
+                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                merchantReturnDays: 7,
+                returnMethod: "https://schema.org/ReturnByMail",
+                returnFees: "https://schema.org/FreeReturn"
               },
+              knowsAbout: [
+                "Authentic Perfume Testers",
+                "Luxury Fragrances",
+                "CheckFresh Batch Code Verification",
+                "Dior",
+                "Chanel",
+                "Yves Saint Laurent",
+                "Giorgio Armani",
+                "Tom Ford",
+                "Creed",
+                "Xerjoff"
+              ],
               contactPoint: {
                 "@type": "ContactPoint",
                 telephone: "+212 663-380011",
@@ -263,9 +339,16 @@ export default async function LocaleLayout({
             {/* <SmoothScrollProvider> */}
               <AuthProvider>
                 <CartProvider>
-                  <FacebookPixel />
-                  <AnalyticsTracker />
-                  {children}
+                  <WishlistProvider>
+                    <ComparisonProvider>
+                      <FacebookPixel />
+                      <AnalyticsTracker />
+                      {children}
+                      <ComparisonTray />
+                      <ComparisonModal />
+                      <MobileTaskbar />
+                    </ComparisonProvider>
+                  </WishlistProvider>
                 </CartProvider>
               </AuthProvider>
             {/* </SmoothScrollProvider> */}

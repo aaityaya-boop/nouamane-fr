@@ -35,19 +35,19 @@ export const INTENT_LABELS: Record<string, { label: string; bg: string; text: st
 
 export function detectCustomerIntent(text: string): string {
   const lower = text.toLowerCase();
-  if (lower.includes('cadeau') || lower.includes('offrir') || lower.includes('anniversaire') || lower.includes('mariage') || lower.includes('fête')) {
+  if (lower.includes('cadeau') || lower.includes('offrir') || lower.includes('anniversaire') || lower.includes('mariage') || lower.includes('fête') || lower.includes('kado') || lower.includes('كادو') || lower.includes('هدية') || lower.includes('عرس')) {
     return 'GIFT_SEARCH';
   }
-  if (lower.includes('testeur') || lower.includes('tester') || lower.includes('original') || lower.includes('master copy') || lower.includes('authenticité')) {
+  if (lower.includes('testeur') || lower.includes('tester') || lower.includes('original') || lower.includes('master copy') || lower.includes('authenticité') || lower.includes('تيستر') || lower.includes('تيستور') || lower.includes('أصلي')) {
     return 'TESTER_INQUIRY';
   }
-  if (lower.includes('prix') || lower.includes('livraison') || lower.includes('combien') || lower.includes('paiement') || lower.includes('délai') || lower.includes('dh') || lower.includes('mad') || lower.includes('livrer')) {
+  if (lower.includes('prix') || lower.includes('livraison') || lower.includes('combien') || lower.includes('paiement') || lower.includes('délai') || lower.includes('dh') || lower.includes('mad') || lower.includes('livrer') || lower.includes('bch7al') || lower.includes('chhal') || lower.includes('taman') || lower.includes('بشحال') || lower.includes('شحال') || lower.includes('ثمن') || lower.includes('توصيل') || lower.includes('خلاص') || lower.includes('كولية') || lower.includes('colis') || lower.includes('kholos')) {
     return 'PRICE_SHIPPING';
   }
-  if (lower.includes('tenue') || lower.includes('sillage') || lower.includes('dure') || lower.includes('puissant') || lower.includes('tient') || lower.includes('reste') || lower.includes('projette')) {
+  if (lower.includes('tenue') || lower.includes('sillage') || lower.includes('dure') || lower.includes('puissant') || lower.includes('tient') || lower.includes('reste') || lower.includes('projette') || lower.includes('fowwa7') || lower.includes('fowah') || lower.includes('chadda') || lower.includes('katb9a') || lower.includes('ثابت') || lower.includes('فواح') || lower.includes('كيشد') || lower.includes('ثبات')) {
     return 'SILLAGE_PERFUME';
   }
-  if (lower.includes('problème') || lower.includes('retard') || lower.includes('réclamation') || lower.includes('trompé') || lower.includes('retour') || lower.includes('annuler')) {
+  if (lower.includes('problème') || lower.includes('retard') || lower.includes('réclamation') || lower.includes('trompé') || lower.includes('retour') || lower.includes('annuler') || lower.includes('mouchkil') || lower.includes('مشكل') || lower.includes('ترجيع')) {
     return 'COMPLAINT';
   }
   return 'RECOMMENDATION';
@@ -58,20 +58,20 @@ export function extractOlfactoryNotes(text: string): string[] {
   const matched: string[] = [];
 
   const map: Record<string, string[]> = {
-    'Vanille': ['vanille', 'vanilla', 'vanillé', 'sucré'],
-    'Oud': ['oud', 'bois de oud', 'aoud', 'oriental'],
-    'Bois de Santal': ['santal', 'sandalwood'],
-    'Boisé': ['boisé', 'bois', 'cèdre', 'vetiver', 'vétiver'],
-    'Ambre': ['ambre', 'ambré', 'amber'],
-    'Cuir': ['cuir', 'leather', 'omber leather'],
-    'Café': ['café', 'coffee', 'black opium'],
-    'Gourmand': ['gourmand', 'caramel', 'chocolat', 'miel', 'praline', 'praliné', 'sucre'],
-    'Musc': ['musc', 'musk', 'tahara', 'musqué'],
-    'Floral': ['fleur', 'floral', 'rose', 'jasmin', 'fleurs blanches', 'néroli', 'neroli'],
-    'Frais / Hespéridé': ['frais', 'agrumes', 'bergamote', 'citron', 'aquatique', 'marin', 'été'],
-    'Épicé': ['épicé', 'épices', 'cannelle', 'poivre', 'cardamome'],
-    'Tabac': ['tabac', 'tobacco', 'feuille de tabac'],
-    'Fève Tonka': ['tonka', 'fève tonka']
+    'Vanille': ['vanille', 'vanilla', 'vanillé', 'sucré', 'فاني', 'فانيلا', 'حلو'],
+    'Oud': ['oud', 'bois de oud', 'aoud', 'oriental', 'عود', 'العود', 'شرقي'],
+    'Bois de Santal': ['santal', 'sandalwood', 'صندل'],
+    'Boisé': ['boisé', 'bois', 'cèdre', 'vetiver', 'vétiver', 'خشبي', 'خشب', 'أرز'],
+    'Ambre': ['ambre', 'ambré', 'amber', 'عنبر', 'عنبري'],
+    'Cuir': ['cuir', 'leather', 'omber leather', 'جلد'],
+    'Café': ['café', 'coffee', 'black opium', 'قهوة'],
+    'Gourmand': ['gourmand', 'caramel', 'chocolat', 'miel', 'praline', 'praliné', 'sucre', 'عسل', 'كراميل'],
+    'Musc': ['musc', 'musk', 'tahara', 'musqué', 'مسك', 'طهارة'],
+    'Floral': ['fleur', 'floral', 'rose', 'jasmin', 'fleurs blanches', 'néroli', 'neroli', 'ورد', 'ياسمين', 'زهري', 'زهر'],
+    'Frais / Hespéridé': ['frais', 'agrumes', 'bergamote', 'citron', 'aquatique', 'marin', 'été', 'منعش', 'حمضيات', 'ليمون', 'صيفي'],
+    'Épicé': ['épicé', 'épices', 'cannelle', 'poivre', 'cardamome', 'توابل', 'قرفة', 'هيل'],
+    'Tabac': ['tabac', 'tobacco', 'feuille de tabac', 'تبغ'],
+    'Fève Tonka': ['tonka', 'fève tonka', 'تونكا']
   };
 
   for (const [canonical, keywords] of Object.entries(map)) {

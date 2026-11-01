@@ -15,19 +15,19 @@ import type { Metadata } from 'next';
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const currentLocale = locale || 'fr';
-  const title = 'Testeurs de Parfums 100% Originaux au Maroc | Prix en MAD - NAY Parfum';
-  const description = "Achetez des testeurs de parfums 100% originaux de grandes marques au Maroc chez NAY Parfums. Flacons authentiques, même sillage, prix réduits en MAD, livraison express 24/48h et paiement à la livraison (COD).";
+  const title = 'Testeurs de Parfums au Maroc | Haute Qualité & Meilleurs Prix - NAY Parfum';
+  const description = "Achetez des testeurs de parfums de grandes marques au Maroc chez NAY Parfums. Haute tenue, même sillage intense, prix réduits en MAD, livraison express 24/48h et paiement à la livraison (COD).";
 
   return {
     title: { absolute: title },
     description,
     keywords: [
       'testeurs de parfums maroc',
-      'testeur parfum original maroc',
+      'testeur parfum maroc',
       'parfums testeurs pas cher maroc',
       'prix testeur parfum maroc',
       'achat testeur parfum maroc',
-      'عطور تيستر أصلية المغرب'
+      'عطور تيستر المغرب'
     ],
     openGraph: {
       title,
@@ -110,8 +110,8 @@ export default async function TesteursPage({
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'Testeurs de Parfums 100% Originaux au Maroc',
-    description: "Découvrez notre collection exclusive de testeurs de grandes marques 100% authentiques au Maroc. Flacon d'origine, même sillage, prix exceptionnels.",
+    name: 'Testeurs de Parfums au Maroc',
+    description: "Découvrez notre collection exclusive de testeurs de grandes marques au Maroc. Haute tenue, sillage remarquable et prix exceptionnels.",
     url: `https://nayparfum.ma/${currentLocale}/testeurs`,
     isPartOf: {
       '@type': 'WebSite',
@@ -123,7 +123,7 @@ export default async function TesteursPage({
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Testeurs de Parfums Originaux',
+    name: 'Testeurs de Parfums de Luxe',
     itemListElement: products.slice(0, 24).map((p, index) => ({
       '@type': 'ListItem',
       position: index + 1,
@@ -193,14 +193,14 @@ export default async function TesteursPage({
             <span className="font-serif italic font-light text-[#0ea5e9] text-4xl sm:text-5xl lg:text-[80px] liquid-glace-text">Des Testeurs</span>
           </h1>
           <p className="mt-2 text-[13px] md:text-[15px] text-[#555] font-light max-w-xl leading-[2] tracking-widest uppercase mb-10">
-            Découvrez notre sélection exclusive de <span className="font-semibold text-[#111]">testeurs 100% authentiques</span> des plus grandes maisons. Flacon d'origine, même sillage et tenue d'exception.
+            Découvrez notre sélection exclusive de <span className="font-semibold text-[#111]">testeurs de haute qualité</span> des plus grandes maisons. Flacon de choix, sillage intense et tenue d'exception.
           </p>
 
           {/* Minimalist Trust Signals */}
           <div className="flex flex-wrap justify-center gap-6 lg:gap-12 mt-4">
             <div className="flex items-center gap-2">
               <ShieldCheck size={18} className="text-[#0ea5e9]" />
-              <span className="text-[11px] font-semibold tracking-widest uppercase text-[#111]">100% Authentique</span>
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-[#111]">Haute Tenue</span>
             </div>
             <div className="flex items-center gap-2">
               <Truck size={18} className="text-[#0ea5e9]" />
@@ -261,21 +261,21 @@ export default async function TesteursPage({
       <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
         <div className="bg-white border border-[#e0ddd4] rounded-2xl p-8 lg:p-12 shadow-sm">
           <h2 className="heading-font text-2xl lg:text-3xl text-[#1A1A1A] mb-4 tracking-wide text-center">
-            Guide Complet des Testeurs de Parfums 100% Originaux au Maroc
+            Guide Complet des Testeurs de Parfums au Maroc
           </h2>
           <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 text-center max-w-2xl mx-auto">
-            NAY Parfums est le spécialiste de référence au Maroc pour l'achat de testeurs de parfums authentiques de luxe aux meilleurs prix en dirhams (MAD).
+            NAY Parfums est le spécialiste de référence au Maroc pour l'achat de testeurs de parfums de luxe aux meilleurs prix en dirhams (MAD).
           </p>
 
           <div className="space-y-4 text-[14px] text-[#6B6B6B] leading-relaxed border-t border-[#f0eee6] pt-6">
             <p>
-              <strong>Qu’est-ce qu’un testeur de parfum ?</strong> Un testeur de parfum est un flacon officiel produit par les grandes maisons de parfumerie (Dior, Chanel, Tom Ford, Creed, Yves Saint Laurent, etc.) destiné aux comptoirs et parfumeries pour permettre aux clients de tester la fragrance. Le jus, la pyramide olfactive, la tenue et le flacon en verre sont rigoureusement identiques au produit de détail standard.
+              <strong>Qu’est-ce qu’un testeur de parfum ?</strong> Un testeur de parfum est un flacon inspiré ou produit pour présenter les grandes fragrances olfactives. Il permet de profiter d'une excellente tenue et d'un sillage puissant à tarif très avantageux.
             </p>
             <p>
-              <strong>Pourquoi un prix beaucoup plus avantageux ?</strong> Les testeurs sont livrés dans un emballage simplifié en carton blanc ou kraft avec la mention « Tester / Démonstration » et sont parfois fournis sans capuchon décoratif. En éliminant le coût du packaging luxueux commercial et des marges intermédiaires de distribution traditionnelle, vous bénéficiez d'une réduction directe de 30% à 50% sur le tarif boutique officiel au Maroc.
+              <strong>Pourquoi un prix beaucoup plus avantageux ?</strong> Les testeurs sont livrés dans un emballage simplifié en carton blanc ou kraft avec la mention « Tester / Démonstration ». En éliminant le coût du packaging luxueux commercial et des marges intermédiaires de distribution traditionnelle, vous bénéficiez d'une réduction directe de 30% à 50% sur le tarif boutique au Maroc.
             </p>
             <p>
-              <strong>Garantie Authenticité & Sécurité :</strong> Chaque flacon testeur proposé par NAY Parfums est garanti 100% original, traçable via son code de lot (batch code) officiel. Nous assurons la livraison rapide sous 24 à 48 heures dans toutes les villes du Maroc (Casablanca, Rabat, Marrakech, Tanger, Fès, Agadir, etc.) avec l'option de paiement en espèces à la livraison (COD) pour une tranquillité d'esprit absolue.
+              <strong>Qualité & Sérénité :</strong> Chaque flacon testeur proposé par NAY Parfums est rigoureusement sélectionné pour sa tenue et son sillage. Nous assurons la livraison rapide sous 24 à 48 heures dans toutes les villes du Maroc (Casablanca, Rabat, Marrakech, Tanger, Fès, Agadir, etc.) avec l'option de paiement en espèces à la livraison (COD) pour une tranquillité d'esprit absolue.
             </p>
           </div>
 
@@ -284,7 +284,7 @@ export default async function TesteursPage({
             <div className="text-center mb-6">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#0ea5e9]">Foire Aux Questions</span>
               <h3 className="heading-font text-xl lg:text-2xl text-[#1A1A1A] mt-1">
-                Tout savoir sur les testeurs originaux au Maroc
+                Tout savoir sur les testeurs de parfums au Maroc
               </h3>
             </div>
             <div className="space-y-4">

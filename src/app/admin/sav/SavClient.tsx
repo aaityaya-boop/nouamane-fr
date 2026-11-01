@@ -51,7 +51,7 @@ import {
   PENDING_REASONS,
   SAV_SOLUTIONS,
   safeJsonParse
-} from '@/lib/sav/savService';
+} from '@/lib/sav/savConstants';
 
 interface SavClientProps {
   currentAdmin: {

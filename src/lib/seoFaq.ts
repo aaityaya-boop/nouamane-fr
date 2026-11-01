@@ -17,8 +17,12 @@ export function getProductFaq(product: Product, locale: string = 'fr'): FaqItem[
     const productTypeAr = isTester ? 'تستر' : 'عطر';
     return [
       {
-        question: `هل ${productTypeAr} عطر ${product.name} أصلي ومضمون 100%؟`,
-        answer: `نعم، ${productTypeAr} عطر ${product.name} من دار ${brand} المعروض لدى NAY Parfum أصلي 100%. يحتوي تماماً على نفس العطر ونفس التركيز ودرجة الثبات كالزجاجة التجارية، مع إمكانية التحقق من كود الدفعة الرسمي (batch code) المحفور على القارورة.`
+        question: isTester 
+          ? `هل تستر عطر ${product.name} يقدم نفس رائحة ونوتات العطر الأصلي؟`
+          : `هل عطر ${product.name} أصلي ومضمون 100%؟`,
+        answer: isTester
+          ? `نعم، تستر عطر ${product.name} من دار ${brand} يقدم تماماً نفس النوتات العطرية، نفس الرائحة ونفس الثبات والفوحان الممتاز (8 إلى 12 ساعة). نلتزم بالشفافية الكاملة: التستر يقدم لك نفس التجربة العطرية بسعر استثنائي (299 درهم) مع ميزة فتح ومعاينة الطرد عند الاستلام قبل أداء الثمن في جميع مدن المغرب.`
+          : `نعم، عطر ${product.name} من دار ${brand} أصلي 100% في علبته الرسمية مع ضمان الجودة الكامل.`
       },
       {
         question: `ما هي مدة وتكلفة التوصيل لعطر ${product.name} في المغرب؟`,
@@ -39,8 +43,12 @@ export function getProductFaq(product: Product, locale: string = 'fr'): FaqItem[
     const productTypeEn = isTester ? 'tester' : 'fragrance';
     return [
       {
-        question: `Is the ${productTypeEn} of ${product.name} 100% authentic?`,
-        answer: `Yes, the ${productTypeEn} of ${product.name} by ${brand} sold on NAY Parfum is 100% authentic. It contains the exact same formulation, concentration, and longevity as the commercial boxed version, verified by its official batch code.`
+        question: isTester
+          ? `Does the ${product.name} tester deliver the exact same scent and notes as the original?`
+          : `Is ${product.name} 100% original?`,
+        answer: isTester
+          ? `Yes, the ${product.name} tester by ${brand} features the exact same olfactory notes, scent, and projection as the original fragrance, with remarkable 8-12h+ longevity at an accessible price of 299 MAD. You can inspect your parcel before paying upon delivery.`
+          : `Yes, ${product.name} by ${brand} is 100% original in its sealed packaging with full quality guarantee.`
       },
       {
         question: `What are the delivery times and shipping fees for ${product.name} in Morocco?`,
@@ -72,8 +80,12 @@ export function getProductFaq(product: Product, locale: string = 'fr'): FaqItem[
 
   return [
     {
-      question: `Le ${productType} de ${product.name} est-il 100% original ?`,
-      answer: `Oui, le ${productType} de ${product.name} par ${brand} vendu sur NAY Parfum est 100% authentique. Il contient exactement le même jus, la même concentration et la même tenue olfactive que le flacon commercial sous blister, vérifiable par son code de lot (batch code) officiel.`
+      question: isTester
+        ? `Le testeur de ${product.name} a-t-il la même odeur et les mêmes notes que l'original ?`
+        : `Le parfum ${product.name} est-il 100% original ?`,
+      answer: isTester
+        ? `Oui, le testeur de ${product.name} par ${brand} propose rigoureusement les mêmes notes olfactives (tête, cœur, fond), la même odeur et le même sillage que le parfum de référence, avec une excellente tenue de 8h à 12h+ pour seulement 299 MAD. Vous pouvez ouvrir et inspecter votre colis avant de régler en espèces à la livraison.`
+        : `Oui, le parfum ${product.name} par ${brand} est 100% original sous son emballage officiel scellé avec garantie complète.`
     },
     {
       question: `Quels sont les délais et tarifs de livraison pour ${product.name} au Maroc ?`,
@@ -96,8 +108,8 @@ export function getProductFaq(product: Product, locale: string = 'fr'): FaqItem[
 export function getBrandFaq(brandLabel: string): FaqItem[] {
   return [
     {
-      question: `Où acheter des testeurs et parfums ${brandLabel} 100% originaux au Maroc ?`,
-      answer: `NAY Parfum propose une collection exclusive de parfums et testeurs ${brandLabel} 100% originaux au Maroc. Tous nos flacons proviennent directement des circuits agréés et sont disponibles au meilleur prix en MAD avec livraison express à domicile.`
+      question: `Où acheter des testeurs et parfums ${brandLabel} au Maroc ?`,
+      answer: `NAY Parfum propose une sélection exclusive de testeurs et parfums ${brandLabel} au Maroc. Nos testeurs offrent les mêmes notes olfactives, la même odeur et une tenue remarquable au meilleur tarif (299 MAD) avec inspection du colis avant paiement.`
     },
     {
       question: `Quelle est la différence entre un testeur ${brandLabel} et un flacon sous blister ?`,

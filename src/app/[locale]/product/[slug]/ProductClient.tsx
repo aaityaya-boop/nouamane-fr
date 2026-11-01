@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -33,10 +33,12 @@ import {
   Wind,
   Droplets,
   BadgeCheck,
+  ArrowRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { formatMAD, Product, isProductInStock } from '@/lib/products';
+import { getProductEditionInfo } from '@/lib/productEdition';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { usePreferences } from '@/context/PreferencesContext';
@@ -83,12 +85,12 @@ export default function ProductClient({
   const locale: Locale = (['fr', 'en', 'ar'].includes(rawLocale) ? rawLocale : 'fr') as Locale;
   const t = translations[locale] || translations.fr;
 
-  // Accordion open/close state
+  // Accordion open/close state — all closed by default as requested
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    description: true,
-    notes: true,
-    specs: true,
-    delivery: true,
+    description: false,
+    notes: false,
+    specs: false,
+    delivery: false,
     faq: false,
   });
 
@@ -270,6 +272,7 @@ export default function ProductClient({
     product.slug?.toLowerCase().includes('tester') ||
     product.name?.toLowerCase().includes('testeur')
   );
+  const edition = useMemo(() => getProductEditionInfo(product, locale), [product, locale]);
   const isOrientalProduct = Boolean(
     product.subcategory === 'arabic' ||
     (product.subcategory as string) === 'oriental' ||
@@ -386,6 +389,20 @@ export default function ProductClient({
         (product.notes.heart && product.notes.heart.length > 0) ||
         (product.notes.base && product.notes.base.length > 0))
   );
+
+  // Clean tagline formatter to avoid unparsed markdown or raw dashes
+  const cleanTagline = useMemo(() => {
+    if (!product.tagline) return null;
+    let text = localizeShortDescription(product.tagline, locale);
+    if (!text) return null;
+    // Strip leading bullets/dashes
+    text = text.replace(/^[-*•\s]+/, '');
+    // Strip markdown bold/italic
+    text = text.replace(/[*_]{1,3}/g, '');
+    text = text.trim();
+    if (!text || text.length < 2) return null;
+    return text;
+  }, [product.tagline, locale]);
 
   return (
     <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen pb-24 lg:pb-16 overflow-x-hidden">
@@ -566,8 +583,11 @@ export default function ProductClient({
                 >
                   {product.brandLabel}
                 </Link>
-                <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-[#4A4A4A] border border-slate-200">
-                  {product.isTester ? 'Testeur Authentique' : 'Original Scellé'}
+                <span
+                  className={`text-[9.5px] sm:text-[10px] font-bold tracking-[0.14em] uppercase px-3 py-1 rounded-full border shadow-2xs backdrop-blur-xs transition-colors ${edition.badgeBg} ${edition.textColor} ${edition.borderColor}`}
+                  title={edition.label}
+                >
+                  {edition.label}
                 </span>
               </div>
 
@@ -575,9 +595,9 @@ export default function ProductClient({
                 {product.name}
               </h1>
 
-              {product.tagline && (
-                <p className="mt-1.5 text-[13px] sm:text-[14px] italic text-[#6B6B6B] leading-relaxed">
-                  {localizeShortDescription(product.tagline, locale)}
+              {cleanTagline && (
+                <p className="mt-1.5 text-[13px] sm:text-[14px] text-[#6B7280] font-medium leading-relaxed">
+                  {cleanTagline}
                 </p>
               )}
 
@@ -729,20 +749,43 @@ export default function ProductClient({
                     </button>
                   </div>
 
-                  {/* Primary CTA: Acheter maintenant (Direct Isolated Buy Now) */}
+                  {/* Primary CTA: Acheter maintenant (Direct Luxury Instant Buy) */}
                   <button
                     type="button"
                     id="buy-now-main-button"
                     onClick={handleBuyNow}
                     disabled={isBuyingNow || isAdding}
-                    className="btn-blue w-full h-12 sm:h-14 text-[13.5px] sm:text-[15px] font-bold tracking-wider rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/35 active:scale-[0.99]"
+                    className="group relative w-full h-13 sm:h-14 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 hover:from-black hover:via-slate-900 hover:to-black text-white rounded-xl sm:rounded-2xl flex items-center justify-between px-4 sm:px-6 transition-all duration-300 shadow-xl shadow-slate-950/20 hover:shadow-2xl hover:shadow-slate-950/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] border border-slate-800/80 overflow-hidden cursor-pointer"
                   >
+                    {/* Subtle Luxury Sheen Sweep Effect on Hover */}
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+
                     {isBuyingNow ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-full flex items-center justify-center gap-2.5">
+                        <div className="w-5 h-5 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-[13px] font-bold text-white/90 uppercase tracking-wider">
+                          {locale === 'ar' ? 'جارٍ التحويل إلى الدفع...' : 'Redirection sécurisée...'}
+                        </span>
+                      </div>
                     ) : (
                       <>
-                        <Zap size={18} className="fill-current shrink-0" />
-                        <span>Acheter maintenant · {formatMAD(currentPrice * quantity)}</span>
+                        {/* Left: Luxury Icon + Action Text */}
+                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform duration-200">
+                            <ShoppingBag size={16} strokeWidth={2.2} />
+                          </div>
+                          <span className="font-extrabold text-[13px] sm:text-[14.5px] uppercase tracking-wider text-white truncate">
+                            {t.actions.buyNow || (locale === 'ar' ? 'اشتري الآن' : 'Acheter maintenant')}
+                          </span>
+                        </div>
+
+                        {/* Right: Price Capsule + Directional Progression Arrow */}
+                        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 pl-2 rtl:pl-0 rtl:pr-2">
+                          <span className="px-2.5 py-1 rounded-lg bg-white/15 text-white font-black text-[13px] sm:text-[14px] tracking-tight backdrop-blur-xs border border-white/10 shadow-2xs">
+                            {formatMAD(currentPrice * quantity)}
+                          </span>
+                          <ArrowRight size={17} strokeWidth={2.5} className="text-white/70 group-hover:text-white group-hover:translate-x-1 rtl:group-hover:-translate-x-1 rtl:rotate-180 transition-all duration-300 shrink-0" />
+                        </div>
                       </>
                     )}
                   </button>
@@ -754,97 +797,85 @@ export default function ProductClient({
               )}
             </div>
 
-            {/* Try Before You Pay — Verified Product Page Trust Card */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-sky-50/60 border border-sky-200/80 shadow-xs space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#0ea5e9]/10 border border-[#0ea5e9]/20 flex items-center justify-center text-[#0ea5e9] shrink-0 mt-0.5">
-                  <PackageCheck size={20} />
+            {/* ====== LUXURY BUYBOX REASSURANCE TRIO ====== */}
+            <div className="pt-2 space-y-2.5">
+              {/* 3 Pillars of Trust in a Balanced 3-Card Row */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                {/* Pillar 1: Essayez avant de payer */}
+                <div className="p-3 rounded-2xl bg-white border border-[#e0ddd4] shadow-xs flex flex-col items-center justify-between hover:border-[#0ea5e9]/40 transition">
+                  <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#0ea5e9] border border-sky-100 flex items-center justify-center mb-1.5">
+                    <PackageCheck size={16} strokeWidth={2.2} />
+                  </div>
+                  <span className="font-extrabold text-[11px] sm:text-[12px] text-[#1A1A1A] block leading-tight">
+                    {locale === 'ar' ? 'جرّب قبل الدفع' : 'Essayez avant de payer'}
+                  </span>
+                  <span className="text-[9.5px] text-[#6B7280] block mt-1 leading-snug">
+                    {locale === 'ar' ? 'افحص عطرك أمام الموزع' : 'Testez devant le livreur'}
+                  </span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="heading-font text-[14px] sm:text-[15px] font-bold text-[#1A1A1A]">
-                    Essayez avant de payer
-                  </h3>
-                  <p className="text-[12px] text-[#4A4A4A] mt-1 leading-relaxed">
-                    Testez votre parfum devant le livreur. S&apos;il vous convient, vous payez. Sinon, vous ne payez rien.
-                  </p>
+
+                {/* Pillar 2: Livraison Rapide */}
+                <div className="p-3 rounded-2xl bg-white border border-[#e0ddd4] shadow-xs flex flex-col items-center justify-between hover:border-[#0ea5e9]/40 transition">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mb-1.5">
+                    <Truck size={16} strokeWidth={2.2} />
+                  </div>
+                  <span className="font-extrabold text-[11px] sm:text-[12px] text-[#1A1A1A] block leading-tight">
+                    {locale === 'ar' ? 'توصيل 24 / 48 ساعة' : 'Livraison 24h/48h'}
+                  </span>
+                  <span className="text-[9.5px] text-[#6B7280] block mt-1 leading-snug">
+                    {locale === 'ar' ? 'توصيل سريع بكل مدن المغرب' : 'Partout au Maroc avec suivi'}
+                  </span>
+                </div>
+
+                {/* Pillar 3: Authenticité */}
+                <div className="p-3 rounded-2xl bg-white border border-[#e0ddd4] shadow-xs flex flex-col items-center justify-between hover:border-[#0ea5e9]/40 transition">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center mb-1.5">
+                    <ShieldCheck size={16} strokeWidth={2.2} />
+                  </div>
+                  <span className="font-extrabold text-[11px] sm:text-[12px] text-[#1A1A1A] block leading-tight">
+                    {isTesterProduct 
+                      ? (locale === 'ar' ? 'تيستر أصلي 100%' : 'Testeur Authentique')
+                      : (locale === 'ar' ? 'عطر أصلي 100%' : '100% Authentique')}
+                  </span>
+                  <span className="text-[9.5px] text-[#6B7280] block mt-1 leading-snug">
+                    {locale === 'ar' ? 'نفس الجودة والثبات الرسمي' : 'Même jus & même sillage'}
+                  </span>
                 </div>
               </div>
 
-              {/* 3 mini step chips */}
-              <div className="pt-2.5 border-t border-sky-200/60 grid grid-cols-3 gap-2 text-center text-[10px]">
-                <div className="bg-white/80 p-1.5 rounded-lg border border-sky-100 font-semibold text-[#1A1A1A]">
-                  01 — Recevez
-                </div>
-                <div className="bg-white/80 p-1.5 rounded-lg border border-sky-100 font-semibold text-[#1A1A1A]">
-                  02 — Testez
-                </div>
-                <div className="bg-white/80 p-1.5 rounded-lg border border-sky-100 font-semibold text-[#1A1A1A]">
-                  03 — Décidez
-                </div>
+              {/* Discreet WhatsApp Advisor Link & Reassurance Anchor */}
+              <div className="pt-1 flex items-center justify-between text-[11.5px] px-1 text-[#6B7280]">
+                <a
+                  href={`https://api.whatsapp.com/send?phone=212663380011&text=${encodeURIComponent(
+                    `Bonjour NAY Parfum, j'aimerais avoir un conseil personnalisé sur ${product.name}.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 font-semibold text-emerald-700 hover:text-emerald-800 hover:underline transition"
+                >
+                  <MessageCircle size={14} className="text-emerald-600 shrink-0" />
+                  <span>{locale === 'ar' ? 'استشارة فورية مع خبير العطور عبر واتساب' : 'Besoin d’un conseil ? Échangez sur WhatsApp'}</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenSections((prev) => ({ ...prev, delivery: true }));
+                    const el = document.getElementById('accordions-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="text-[#9CA3AF] hover:text-[#0ea5e9] transition text-[11px] underline underline-offset-2"
+                >
+                  {locale === 'ar' ? 'تفاصيل الضمانات ↓' : 'Détails des garanties ↓'}
+                </button>
               </div>
-            </div>
-
-            {/* Delivery Reassurance Pill */}
-            <div className="flex items-center gap-2 text-[11px] text-[#555] px-1">
-              <Truck size={14} className="text-[#0ea5e9] shrink-0" />
-              <span>Livraison généralement 24 à 48h après expédition · Suivi partout au Maroc</span>
-            </div>
-
-            {/* Format Clarity: Tester, Oriental, or Original Retail */}
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-[#fafaf7] border border-[#e0ddd4] shadow-xs space-y-1.5">
-              {isTesterProduct ? (
-                <div className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-sky-50 text-[#0ea5e9] border border-sky-100 flex items-center justify-center shrink-0 mt-0.5">
-                    <Sparkles size={15} />
-                  </div>
-                  <div className="text-[11px] sm:text-[12px] text-[#555] leading-relaxed">
-                    <strong className="text-[#1A1A1A] block font-bold text-[12px] sm:text-[13px] mb-0.5">Format Testeur de Parfum :</strong>
-                    Flacon officiel issu des circuits de démonstration des marques et parfumeries. Il renferme exactement le même parfum, les mêmes notes olfactives et la même tenue que le flacon commercial, présenté sous conditionnement testeur selon arrivage, sans surcoût d&apos;emballage marketing.
-                  </div>
-                </div>
-              ) : isOrientalProduct ? (
-                <div className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0 mt-0.5">
-                    <Sparkles size={15} />
-                  </div>
-                  <div className="text-[11px] sm:text-[12px] text-[#555] leading-relaxed">
-                    <strong className="text-[#1A1A1A] block font-bold text-[12px] sm:text-[13px] mb-0.5">Parfum Oriental Authentique :</strong>
-                    Création originale de haute parfumerie orientale, conditionnée dans son flacon et packaging officiel d&apos;origine, sélectionnée pour l&apos;intensité de son sillage et la richesse de ses matières nobles.
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
-                    <BadgeCheck size={15} />
-                  </div>
-                  <div className="text-[11px] sm:text-[12px] text-[#555] leading-relaxed">
-                    <strong className="text-[#1A1A1A] block font-bold text-[12px] sm:text-[13px] mb-0.5">Édition Originale Scellée :</strong>
-                    Flacon neuf sous emballage et blister d&apos;origine scellé par la maison de parfum, identique à la présentation en boutique agréée.
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* WhatsApp Assistance Button */}
-            <div>
-              <a
-                href={`https://api.whatsapp.com/send?phone=212663380011&text=${encodeURIComponent(
-                  `Bonjour NAY Parfum, j'aimerais avoir des informations sur le parfum ${product.name}.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full h-12 flex items-center justify-center gap-2 bg-emerald-50/70 border border-emerald-200/80 text-emerald-800 rounded-2xl hover:bg-emerald-100/70 transition font-bold text-[12px] sm:text-[13px] active:scale-[0.99]"
-              >
-                <MessageCircle size={17} className="text-emerald-600 shrink-0" />
-                <span>Conseiller NAY Parfum sur WhatsApp</span>
-              </a>
             </div>
           </div>
         </div>
       </section>
 
       {/* ====== LUXURY PRODUCT INFORMATION ACCORDIONS ====== */}
-      <section className="bg-white border-y border-[#e0ddd4] py-12 lg:py-16">
+      <section id="accordions-section" className="bg-white border-y border-[#e0ddd4] py-12 lg:py-16">
         <div className="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           
           {/* Accordion 1: Description & Histoire */}
@@ -1025,6 +1056,53 @@ export default function ProductClient({
                     <dd className="font-bold text-[#1A1A1A] mt-0.5">Espèces à la livraison</dd>
                   </div>
                 </dl>
+
+                {/* Format Authenticity Clarity inside Accordion 3 */}
+                <div className="mt-4 p-4 rounded-2xl bg-[#fafaf7] border border-[#e0ddd4] space-y-1.5">
+                  {isTesterProduct ? (
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#0ea5e9] border border-sky-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Sparkles size={16} />
+                      </div>
+                      <div className="text-[12px] text-[#555] leading-relaxed">
+                        <strong className="text-[#1A1A1A] block font-bold text-[13px] mb-1">
+                          {locale === 'ar' ? 'ما هو تيستر العطر ؟' : 'Format Testeur de Parfum :'}
+                        </strong>
+                        {locale === 'ar'
+                          ? 'التيستر هو زجاجة عطر أصلية موجهة لمنصات العرض والتجربة في المتاجر الرسمية. يحتوي على نفس التركيز، نفس النوتات العطرية، ونفس الثبات والفوحان تماماً كما في العطر التجاري، ويُقدّم في تغليف التيستر المخصص دون كلفة التسويق الإضافية.'
+                          : "Flacon officiel issu des circuits de démonstration des marques et parfumeries agréées. Il renferme exactement le même parfum, les mêmes notes olfactives et la même tenue que le flacon commercial, présenté sous conditionnement testeur selon arrivage, sans surcoût d'emballage marketing."}
+                      </div>
+                    </div>
+                  ) : isOrientalProduct ? (
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0 mt-0.5">
+                        <Sparkles size={16} />
+                      </div>
+                      <div className="text-[12px] text-[#555] leading-relaxed">
+                        <strong className="text-[#1A1A1A] block font-bold text-[13px] mb-1">
+                          {locale === 'ar' ? 'عطر شرقي أصيل :' : 'Parfum Oriental Authentique :'}
+                        </strong>
+                        {locale === 'ar'
+                          ? 'إبداع أصلي من أرقى دور العطور الشرقية، في عبوته وتغليفه الأصلي المغلق، تم اختياره لقوة فوحانه وثراء مكوناته النبيلة.'
+                          : "Création originale de haute parfumerie orientale, conditionnée dans son flacon et packaging officiel d'origine, sélectionnée pour l'intensité de son sillage et la richesse de ses matières nobles."}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
+                        <BadgeCheck size={16} />
+                      </div>
+                      <div className="text-[12px] text-[#555] leading-relaxed">
+                        <strong className="text-[#1A1A1A] block font-bold text-[13px] mb-1">
+                          {locale === 'ar' ? 'إصدار أصلي مختوم :' : 'Édition Originale Scellée :'}
+                        </strong>
+                        {locale === 'ar'
+                          ? 'زجاجة جديدة تماماً داخل علبتها وتغليفها الأصلي المحكم من دار العطور، مطابقة تماماً لما يُعرض في البوتيكات المعتمدة.'
+                          : "Flacon neuf sous emballage et blister d'origine scellé par la maison de parfum, identique à la présentation en boutique agréée."}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -1249,7 +1327,7 @@ export default function ProductClient({
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               {relatedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} showRating={false} />
               ))}
@@ -1310,14 +1388,16 @@ export default function ProductClient({
                   id="buy-now-sticky-button"
                   onClick={handleBuyNow}
                   disabled={isBuyingNow || isAdding}
-                  className="btn-blue h-11 px-3.5 sm:px-4 text-[12px] font-bold tracking-wider rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-sky-500/20 active:scale-95"
+                  className="group relative h-11 px-4 sm:px-5 text-[12px] font-extrabold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 hover:from-black hover:to-black text-white shadow-lg shadow-slate-950/20 active:scale-95 transition-all cursor-pointer border border-slate-800 overflow-hidden"
                 >
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
                   {isBuyingNow ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-white/90 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <Zap size={14} className="fill-current shrink-0" />
-                      <span>Acheter</span>
+                      <ShoppingBag size={14} strokeWidth={2.2} className="text-white/90 shrink-0" />
+                      <span>{locale === 'ar' ? 'اشتري الآن' : 'Acheter'}</span>
+                      <ArrowRight size={13} strokeWidth={2.5} className="text-white/70 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform shrink-0" />
                     </>
                   )}
                 </button>

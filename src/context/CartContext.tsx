@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import Cookies from 'js-cookie';
 import { isProductInStock } from '@/lib/products';
+import { getTrueProductCapacity } from '@/lib/perfumeCapacity';
 
 export type CartItem = {
   id: number;
@@ -210,6 +211,7 @@ type AddInput = {
   image?: string;
   images?: string[];
   size?: string;
+  sizes?: any;
   inStock?: boolean;
   stock?: number;
 };
@@ -259,9 +261,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       saved = Cookies.get('nouamaneCart') || null;
     }
     
-    if (saved) {
+        if (saved) {
       try {
-        setCart(JSON.parse(saved));
+        const raw = JSON.parse(saved);
+        if (Array.isArray(raw)) {
+          // Heal any 50ml placeholders to their authentic maison capacity
+          const healed = raw.map((item) => ({
+            ...item,
+            size: getTrueProductCapacity(item.name, item.slug, item.size)
+          }));
+          setCart(healed);
+        } else {
+          setCart([]);
+        }
       } catch {
         setCart([]);
       }
@@ -362,7 +374,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [cart, appliedPromo, isLoaded]);
 
-  const addToCart = (product: AddInput, quantity = 1, size = '50ml') => {
+  const addToCart = (product: AddInput, quantity = 1, size?: string) => {
     // Rupture de stock protection
     if (!isProductInStock(product)) {
       console.warn(`[Cart] Ajout bloqué : le produit "${product.name}" est en rupture de stock.`);
@@ -374,7 +386,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ? parseFloat(product.price)
         : product.price;
     const image = product.image || product.images?.[0] || '';
-    const finalSize = size || product.size || '50ml';
+    
+    // Resolve authentic maison capacity (never default to 50ml)
+    let candidateSize = size || product.size;
+    if (!candidateSize && product.sizes) {
+      if (Array.isArray(product.sizes) && product.sizes.length > 0) {
+        candidateSize = product.sizes[0]?.label || (product.sizes[0]?.ml ? `${product.sizes[0].ml}ml` : undefined);
+      } else if (typeof product.sizes === 'string') {
+        try {
+          const parsed = JSON.parse(product.sizes);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            candidateSize = parsed[0]?.label || (parsed[0]?.ml ? `${parsed[0].ml}ml` : undefined);
+          }
+        } catch {}
+      }
+    }
+    const finalSize = getTrueProductCapacity(product.name, product.slug, candidateSize);
 
     setCart((prev) => {
       const existing = prev.find(

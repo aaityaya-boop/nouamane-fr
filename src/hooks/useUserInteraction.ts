@@ -14,9 +14,16 @@ export function useUserInteraction(fallbackDelayMs = 15000) {
   const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
-    // Immediate bailout for automated benchmarks and crawlers
+    // Explicit bypass for testing and verification
+    if (typeof window !== 'undefined' && (window as any).__FORCE_ENABLE_WIDGETS__) {
+      setHasInteracted(true);
+      return;
+    }
+
+    // Immediate bailout for automated benchmarks and crawlers (unless explicitly forced)
     if (
       typeof navigator !== 'undefined' &&
+      !(typeof window !== 'undefined' && (window as any).__FORCE_ENABLE_WIDGETS__) &&
       (navigator.webdriver === true ||
         /moto g|Lighthouse|PageSpeed|Chrome-Lighthouse|HeadlessChrome|PTST|Googlebot/i.test(
           navigator.userAgent

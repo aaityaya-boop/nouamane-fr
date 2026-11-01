@@ -58,9 +58,22 @@ export function normalizeMoroccanPhone(phone: string): string {
 export function arePhonesMatching(phoneA: string, phoneB: string): boolean {
   const normA = normalizeMoroccanPhone(phoneA);
   const normB = normalizeMoroccanPhone(phoneB);
-  if (!normA || !normB) return false;
-  // Strict exact comparison of full normalized numbers
-  return normA === normB;
+  if (normA && normB && normA === normB) return true;
+
+  // International phone comparison fallback:
+  // Strip all non-digit characters
+  const digitsA = (phoneA || '').replace(/\D/g, '');
+  const digitsB = (phoneB || '').replace(/\D/g, '');
+  if (!digitsA || !digitsB) return false;
+
+  if (digitsA === digitsB) return true;
+
+  // Handle leading zeros or country prefixes
+  if (digitsA.endsWith(digitsB) || digitsB.endsWith(digitsA)) {
+    const minLen = Math.min(digitsA.length, digitsB.length);
+    if (minLen >= 8) return true;
+  }
+  return false;
 }
 
 /**

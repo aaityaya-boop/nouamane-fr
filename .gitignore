@@ -40,3 +40,8 @@ dev.db
 
 .vercel
 .env*
+
+/scratch/
+*.traineddata
+local_*.png
+eng.traineddata

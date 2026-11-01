@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import HomePageClient from './HomePageClient';
 import prisma from '@/lib/prisma';
+import HomePageUnavailable from '@/components/HomePageUnavailable';
 import { Product } from '@/lib/products';
 
 export const revalidate = 60;
@@ -41,76 +42,107 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function HomePage({ 
+  params, 
+  searchParams 
+}: { 
+  params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { locale } = await params;
+  const sParams = searchParams ? await searchParams : {};
   const currentLocale = locale || 'fr';
 
-  const [dbProducts, siteConfigDb, dbReviewsDb, brandsDb] = await Promise.all([
-    prisma.product.findMany({
-      where: { published: true },
-      select: {
-        id: true,
-        sku: true,
-        name: true,
-        slug: true,
-        brandId: true,
-        brandLabel: true,
-        gender: true,
-        subcategory: true,
-        subcategoryLabel: true,
-        price: true,
-        originalPrice: true,
-        images: true,
-        sizes: true,
-        tags: true,
-        rating: true,
-        reviewCount: true,
-        inStock: true,
-        stock: true,
-        perfectSeason: true,
-        releaseDate: true,
-      }
-    }),
-    prisma.siteConfig.findFirst({
-      select: {
-        id: true,
-        heroTitle: true,
-        heroSubtitle: true,
-        featuredBestsellers: true,
-        featuredSeasonal: true,
-        featuredLatest: true,
-        seasonalTrendTitle: true,
-        seasonalTrendSubtitle: true,
-        coffretsCoverImage: true,
-      }
-    }),
-    prisma.review.findMany({
-      where: { verified: true },
-      take: 12,
-      select: {
-        id: true,
-        comment: true,
-        author: true,
-        city: true,
-        rating: true,
-        product: {
-          select: {
-            name: true,
-            slug: true,
+  let dbProducts: any[] = [];
+  let siteConfigDb: any = null;
+  let dbReviewsDb: any[] = [];
+  let brandsDb: any[] = [];
+  let isDatabaseError = false;
+
+  try {
+    if (process.env.NODE_ENV !== 'production' && sParams?.simulate_db_error === 'true') {
+      throw new Error('Simulated database connection timeout (P1001) for safety verification');
+    }
+    const res = await Promise.all([
+      prisma.product.findMany({
+        where: { published: true },
+        select: {
+          id: true,
+          sku: true,
+          name: true,
+          slug: true,
+          brandId: true,
+          brandLabel: true,
+          gender: true,
+          subcategory: true,
+          subcategoryLabel: true,
+          price: true,
+          originalPrice: true,
+          images: true,
+          sizes: true,
+          tags: true,
+          rating: true,
+          reviewCount: true,
+          inStock: true,
+          stock: true,
+          perfectSeason: true,
+          releaseDate: true,
+          isTester: true,
+        }
+      }),
+      prisma.siteConfig.findFirst({
+        select: {
+          id: true,
+          heroTitle: true,
+          heroSubtitle: true,
+          featuredBestsellers: true,
+          featuredSeasonal: true,
+          featuredLatest: true,
+          seasonalTrendTitle: true,
+          seasonalTrendSubtitle: true,
+          coffretsCoverImage: true,
+        }
+      }),
+      prisma.review.findMany({
+        where: { verified: true },
+        take: 12,
+        select: {
+          id: true,
+          comment: true,
+          author: true,
+          city: true,
+          rating: true,
+          product: {
+            select: {
+              name: true,
+              slug: true,
+            }
           }
         }
-      }
-    }),
-    prisma.brand.findMany({
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        image: true,
-      }
-    }),
-  ]);
+      }),
+      prisma.brand.findMany({
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          image: true,
+        }
+      }),
+    ]);
+    dbProducts = res[0] || [];
+    siteConfigDb = res[1] || null;
+    dbReviewsDb = res[2] || [];
+    brandsDb = res[3] || [];
+  } catch (dbErr) {
+    isDatabaseError = true;
+    console.warn('Neon database query error in HomePage:', dbErr);
+  }
+
+  // Prevent stale or fabricated commercial data from displaying during database failure or empty catalog
+  if (isDatabaseError || !dbProducts || dbProducts.length === 0) {
+    return <HomePageUnavailable locale={currentLocale} />;
+  }
 
   let siteConfig = siteConfigDb;
   if (!siteConfig) {
@@ -140,9 +172,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const sortedNewest = [...dbProducts].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()).slice(0, 8);
   sortedNewest.forEach(p => neededSlugs.add(p.slug));
 
-  // Filter and map ONLY products needed on the homepage with streamlined fields
+  // Map all published products with streamlined fields so any product in admin panel is found
   const products: Product[] = dbProducts
-    .filter(p => neededSlugs.has(p.slug) || p.subcategory === 'coffrets')
     .map((p) => {
       let parsedImages: string[] = [];
       let parsedSizes = [];
@@ -172,6 +203,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         stock: p.stock,
         perfectSeason: p.perfectSeason as any,
         releaseDate: p.releaseDate,
+        isTester: p.isTester ?? false,
         // Lightweight stubs for unused fields to prevent payload bloating
         description: '',
         notes: { top: [], heart: [], base: [] },

@@ -37,9 +37,22 @@ function getCleanDisplayName(productName: string, brandLabel: string): string {
 export async function generateMetadata({ params }: { params: Promise<{ locale?: string; slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const decodedSlug = decodeURIComponent(resolvedParams.slug);
-  const product = await prisma.product.findFirst({
-    where: { slug: decodedSlug, published: true },
-  });
+  let product: any = null;
+  try {
+    product = await prisma.product.findFirst({
+      where: { slug: decodedSlug, published: true },
+    });
+  } catch (err: any) {
+    console.warn('[generateMetadata] Prisma connection warning, retrying once...', err?.message || err);
+    await new Promise((r) => setTimeout(r, 600));
+    try {
+      product = await prisma.product.findFirst({
+        where: { slug: decodedSlug, published: true },
+      });
+    } catch (retryErr) {
+      console.error('[generateMetadata] Retry failed:', retryErr);
+    }
+  }
 
   if (!product) {
     return { title: 'Produit introuvable' };
@@ -100,77 +113,100 @@ export default async function ProductPage({
   const currentLocale = resolvedParams.locale || 'fr';
   const decodedSlug = decodeURIComponent(resolvedParams.slug);
   
-  const dbProduct = await prisma.product.findFirst({
-    where: { slug: decodedSlug, published: true },
-  });
+  let dbProduct: any = null;
+  try {
+    dbProduct = await prisma.product.findFirst({
+      where: { slug: decodedSlug, published: true },
+    });
+  } catch (err: any) {
+    console.warn('[ProductPage] Prisma connection warning, retrying once...', err?.message || err);
+    await new Promise((r) => setTimeout(r, 700));
+    try {
+      dbProduct = await prisma.product.findFirst({
+        where: { slug: decodedSlug, published: true },
+      });
+    } catch (retryErr) {
+      console.error('[ProductPage] Retry also failed:', retryErr);
+    }
+  }
 
   if (!dbProduct) {
     notFound();
   }
 
-  // Get related products (prioritize in-stock from same brand, then in-stock from same subcategory/gender)
-  const dbRelatedInStockSameBrand = await prisma.product.findMany({
-    where: { 
-      brandId: dbProduct.brandId,
-      published: true,
-      inStock: true,
-      stock: { gt: 0 },
-      id: { not: dbProduct.id }
-    },
-    take: 4
-  });
-
-  let dbRelated = [...dbRelatedInStockSameBrand];
-
-  if (dbRelated.length < 4) {
-    // Fill with in-stock products from the same subcategory and gender
-    const fillerInStock = await prisma.product.findMany({
+  // Get related products with Sprint 32 Matching Priority:
+  let dbRelated: any[] = [];
+  try {
+    const sameFamilyInStock = await prisma.product.findMany({
       where: {
         published: true,
         inStock: true,
         stock: { gt: 0 },
-        gender: dbProduct.gender,
         subcategory: dbProduct.subcategory,
-        id: { notIn: [dbProduct.id, ...dbRelated.map(p => p.id)] }
+        id: { not: dbProduct.id },
       },
-      take: 4 - dbRelated.length
+      take: 4,
     });
-    dbRelated = [...dbRelated, ...fillerInStock];
-  }
+    dbRelated = [...sameFamilyInStock];
 
-  if (dbRelated.length < 4) {
-    // Fill with general in-stock products of the same gender
-    const generalInStock = await prisma.product.findMany({
-      where: {
-        published: true,
-        inStock: true,
-        stock: { gt: 0 },
-        gender: dbProduct.gender,
-        id: { notIn: [dbProduct.id, ...dbRelated.map(p => p.id)] }
-      },
-      take: 4 - dbRelated.length
-    });
-    dbRelated = [...dbRelated, ...generalInStock];
-  }
+    if (dbRelated.length < 4) {
+      const sameBrandInStock = await prisma.product.findMany({
+        where: {
+          published: true,
+          inStock: true,
+          stock: { gt: 0 },
+          brandId: dbProduct.brandId,
+          id: { notIn: [dbProduct.id, ...dbRelated.map((p) => p.id)] },
+        },
+        take: 4 - dbRelated.length,
+      });
+      dbRelated = [...dbRelated, ...sameBrandInStock];
+    }
 
-  if (dbRelated.length < 4) {
-    // Fallback to any published product of the same brand if in-stock exhausted
-    const fallbackSameBrand = await prisma.product.findMany({
-      where: {
-        brandId: dbProduct.brandId,
-        published: true,
-        id: { notIn: [dbProduct.id, ...dbRelated.map(p => p.id)] }
-      },
-      take: 4 - dbRelated.length
-    });
-    dbRelated = [...dbRelated, ...fallbackSameBrand];
+    if (dbRelated.length < 4) {
+      const comparablePriceInStock = await prisma.product.findMany({
+        where: {
+          published: true,
+          inStock: true,
+          stock: { gt: 0 },
+          gender: dbProduct.gender,
+          price: {
+            gte: Math.max(0, dbProduct.price * 0.75),
+            lte: dbProduct.price * 1.25,
+          },
+          id: { notIn: [dbProduct.id, ...dbRelated.map((p) => p.id)] },
+        },
+        take: 4 - dbRelated.length,
+      });
+      dbRelated = [...dbRelated, ...comparablePriceInStock];
+    }
+
+    if (dbRelated.length < 4) {
+      const generalInStock = await prisma.product.findMany({
+        where: {
+          published: true,
+          inStock: true,
+          stock: { gt: 0 },
+          id: { notIn: [dbProduct.id, ...dbRelated.map((p) => p.id)] },
+        },
+        take: 4 - dbRelated.length,
+      });
+      dbRelated = [...dbRelated, ...generalInStock];
+    }
+  } catch (relatedErr) {
+    console.warn('[ProductPage] Non-critical error fetching related products:', relatedErr);
   }
 
   // Get reviews
-  const dbReviews = await prisma.review.findMany({
-    where: { productSlug: decodedSlug },
-    orderBy: { createdAt: 'desc' }
-  });
+  let dbReviews: any[] = [];
+  try {
+    dbReviews = await prisma.review.findMany({
+      where: { productSlug: decodedSlug },
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (reviewsErr) {
+    console.warn('[ProductPage] Non-critical error fetching reviews:', reviewsErr);
+  }
 
   const transformProduct = (p: any): Product => ({
     id: p.id,

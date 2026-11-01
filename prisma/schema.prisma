@@ -1741,3 +1741,117 @@ model EmployeeReclamation {
 
 
 
+
+
+// ==========================================
+// NAY SCENT MATCH — DISCOVERY PLATFORM
+// ==========================================
+
+model ScentMatchSession {
+  id                 String             @id @default(cuid())
+  sessionId          String             @unique
+  locale             String             @default("fr")
+  deviceType         String             @default("desktop")
+  genderFilter       String             @default("all")
+  minPrice           Float?             @default(250)
+  maxPrice           Float?             @default(650)
+  familyFilter       String?            @default("all")
+  status             String             @default("ACTIVE")
+  totalSwipes        Int                @default(0)
+  totalLikes         Int                @default(0)
+  totalPasses        Int                @default(0)
+  totalSaves         Int                @default(0)
+  participantName    String?
+  savedProductIds    String             @default("[]") @db.Text
+  likedProductIds    String             @default("[]") @db.Text
+  passedProductIds   String             @default("[]") @db.Text
+  result             ScentMatchResult?
+  events             ScentMatchEvent[]
+  shares             ScentMatchShare[]
+  completedAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([sessionId])
+  @@index([status])
+  @@index([deviceType])
+  @@index([createdAt])
+}
+
+model ScentMatchEvent {
+  id             String             @id @default(cuid())
+  sessionId      String
+  session        ScentMatchSession  @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  eventType      String
+  productId      Int?
+  productName    String?
+  metadata       String?            @db.Text
+  createdAt      DateTime           @default(now())
+
+  @@index([sessionId])
+  @@index([eventType])
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model ScentMatchResult {
+  id                     String            @id @default(cuid())
+  sessionId              String            @unique
+  session                ScentMatchSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  shareToken             String            @unique @default(cuid())
+  personalityKey         String
+  personalityTitle       String
+  personalityDescription String            @db.Text
+  dnaScores              String            @db.Text
+  favoriteNotes          String            @db.Text
+  topMatches             String            @db.Text
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@index([shareToken])
+  @@index([personalityKey])
+  @@index([createdAt])
+}
+
+model ScentMatchShare {
+  id             String             @id @default(cuid())
+  shareToken     String             @unique
+  sessionId      String
+  session        ScentMatchSession  @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  viewsCount     Int                @default(0)
+  lastViewedAt   DateTime?
+  isRevoked      Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([shareToken])
+  @@index([sessionId])
+}
+
+model ScentMatchFriendSession {
+  id                 String             @id @default(cuid())
+  inviteCode         String             @unique
+  hostSessionId      String
+  hostName           String             @default("Hôte")
+  friendSessionId    String?
+  friendName         String?            @default("Ami(e)")
+  status             String             @default("WAITING_FRIEND")
+  compatibilityScore Int?
+  mutualLikedIds     String             @default("[]") @db.Text
+  matchArchetype     String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([inviteCode])
+  @@index([hostSessionId])
+  @@index([friendSessionId])
+}
+
+model ScentMatchConfig {
+  id                    Int      @id @default(1)
+  isEnabled             Boolean  @default(true)
+  recommendedSwipes     Int      @default(10)
+  minSwipesForAnalysis  Int      @default(3)
+  allowEarlyFinish      Boolean  @default(true)
+  updatedAt             DateTime @updatedAt
+}

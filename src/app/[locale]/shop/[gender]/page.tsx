@@ -256,7 +256,7 @@ export default async function CategoryPage({
       </section>
 
       {/* CATALOG (locked to gender) */}
-      <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-14">
+      <section className="max-w-[1400px] mx-auto px-3.5 sm:px-6 lg:px-10 py-6 sm:py-12">
         <Suspense fallback={<div className="text-[#9A9A9A]">Chargement…</div>}>
           <ShopCatalog products={products} brands={dbBrands} lockedGender={category.key as Gender} recommendedSlugs={recommendedSlugs} />
         </Suspense>

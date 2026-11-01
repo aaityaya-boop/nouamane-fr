@@ -27,7 +27,7 @@
     "collectionsFormats": "Collections & Formats",
     "flagshipBrands": "Marques Phares",
     "testerCategories": "Catégories Testeurs",
-    "allTesters": "Tous les Testeurs Originaux",
+    "allTesters": "Tous les Testeurs de Luxe",
     "floral": "Parfums Floraux",
     "oriental": "Parfums Orientaux",
     "woody": "Parfums Boisés",
@@ -123,7 +123,7 @@
     "v3Title": "Paiement à la livraison",
     "v3Desc": "Payez en toute sérénité à la réception de votre colis. Aucun risque, aucune surprise.",
     "v4Title": "Authenticité garantie",
-    "v4Desc": "Tous nos parfums et testeurs sont 100% originaux et certifiés authentiques."
+    "v4Desc": "Nos testeurs offrent rigoureusement les mêmes notes olfactives et la même odeur que les créations de référence."
   },
   "reviewsSection": {
     "eyebrow": "Ils nous font confiance",
@@ -162,6 +162,9 @@
     "subtotal": "Sous-total",
     "totalWithDiscount": "Total avec remise",
     "checkoutButton": "Voir le panier & Commander",
+    "expressCheckout": "Commander (Paiement Express)",
+    "continueShopping": "Continuer mes achats",
+    "viewFullCart": "Voir le panier détaillé",
     "freeShippingText": "Livraison Gratuite ! 🎉",
     "shippingNotice": "Livraison partout au Maroc avec {fee}Dh",
     "decrease": "Diminuer la quantité",
@@ -209,6 +212,6 @@
     "orderTracking": "Suivi de commande",
     "returns": "Retours",
     "faq": "FAQ",
-    "copyright": "Revendeur autorisé au Maroc."
+    "copyright": "Tous droits réservés."
   }
 }

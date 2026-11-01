@@ -2,7 +2,7 @@ export const translations = {
   fr: {
     breadcrumb: { home: 'Accueil', shop: 'Boutique' },
     info: {
-      authentic: 'TESTEUR 100% AUTHENTIQUE',
+      authentic: 'TESTEUR HAUTE FIDÉLITÉ — MÊMES NOTES & MÊME SILLAGE',
       verifiedReviews: 'avis vérifiés',
       save: 'Économisez',
       tester: '(Testeur)',
@@ -11,10 +11,11 @@ export const translations = {
     },
     trust: {
       cod: 'Paiement à la livraison sécurisé',
-      original: 'Testeur 100% Original Authentique'
+      original: 'Mêmes Notes Olfactives, Même Odeur & Haute Tenue'
     },
     selector: { selectSize: 'Sélectionnez la Contenance' },
     actions: {
+      buyNow: 'Acheter maintenant',
       addSuccess: 'Ajouté avec succès !',
       addToCart: 'Ajouter au panier',
       added: 'Ajouté',
@@ -23,7 +24,7 @@ export const translations = {
       increase: 'Augmenter'
     },
     perks: {
-      authLabel: '100% Authentique',
+      authLabel: 'Mêmes Notes & Sillage',
       authSub: 'Garanti',
       expressLabel: 'Livraison Express',
       expressSub: 'Partout au Maroc',
@@ -61,7 +62,7 @@ export const translations = {
       title: 'Pourquoi choisir',
       desc: "Une fragrance captivante, mystique et charismatique. Conçue avec des ingrédients de la plus haute qualité, cette composition assure une tenue exceptionnelle et un sillage remarquable qui vous accompagnera tout au long de la journée avec élégance et assurance.",
       bullet1: 'Qualité supérieure et longue tenue',
-      bullet2: 'Testeur 100% authentique de la maison'
+      bullet2: 'Mêmes notes olfactives et même odeur que la fragrance'
     },
     whenToWear: {
       title: 'Quand le porter ?',
@@ -73,7 +74,7 @@ export const translations = {
       brand: 'Maison / Marque',
       fragranceName: 'Nom de la Fragrance',
       bottleType: 'Type de Flacon',
-      testerValue: 'Testeur Original Authentique (Même Jus)',
+      testerValue: 'Testeur Haute Qualité (Mêmes Notes & Même Parfum)',
       retailValue: 'Parfum Original Scellé',
       concentration: 'Concentration',
       edpHigh: 'Eau de Parfum (Haute Concentration)',
@@ -94,17 +95,17 @@ export const translations = {
       deliveryPaymentValue: 'Livraison express en 24h à 48h (Casablanca, Rabat, Marrakech, Fès, Tanger, Agadir et tout le Maroc) · Paiement en espèces à la livraison (Cash on Delivery)'
     },
     authenticity: {
-      badge: 'Engagement Qualité & Traçabilité Maroc',
-      title: 'Authenticité Garantie : Pourquoi Choisir Nos Testeurs Originaux ?',
-      intro: 'Chez NAY Parfum, la transparence est notre premier engagement. Les testeurs de parfums proviennent directement des circuits de distribution agréés des grandes maisons de luxe.',
-      point1Title: 'Même Formulation & Tenue :',
-      point1Desc: 'La concentration en huiles parfumées et les notes olfactives sont rigoureusement identiques au flacon commercial sous blister.',
-      point2Title: "Flacon et Vaporisateur d'Origine :",
-      point2Desc: 'Le flacon en verre lourd et le spray sont fabriqués par la maison créatrice officielle.',
-      point3Title: 'Économie Substantielle :',
-      point3Desc: "Sans le surcoût de l'emballage publicitaire scellé, vous bénéficiez de 30% à 50% de réduction sur les prix pratiqués en parfumerie au Maroc.",
-      point4Title: 'Code de Lot Vérifiable (Batch Code) :',
-      point4Desc: 'Chaque flacon possède son numéro de lot officiel gravé sous la bouteille, garantissant sa traçabilité et sa fraîcheur.'
+      badge: 'Transparence & Qualité Olfactive',
+      title: 'Fidélité Olfactive : Même Parfum, Mêmes Notes, Prix Accessible',
+      intro: 'Chez NAY Parfum, la transparence est notre priorité. Nos testeurs reproduisent fidèlement les mêmes notes olfactives (tête, cœur, fond) et la même odeur que la fragrance de référence, pour vous offrir un sillage remarquable à prix juste.',
+      point1Title: 'Mêmes Notes & Même Odeur :',
+      point1Desc: 'La composition respecte rigoureusement la même pyramide olfactive pour un parfum et une odeur identiques avec une tenue remarquable.',
+      point2Title: "Flacon & Vaporisateur Soignés :",
+      point2Desc: 'Flacon de qualité supérieure en verre lourd avec vaporisateur précis assurant une diffusion fine et homogène.',
+      point3Title: 'Prix Accessible & Économie :',
+      point3Desc: "Profitez de votre parfum favori à un tarif direct (299 MAD), sans les marges superflues du packaging commercial scellé.",
+      point4Title: 'Inspection Avant Paiement :',
+      point4Desc: 'Ouvrez et inspectez votre flacon à la livraison avant de payer le livreur en espèces, en toute sérénité partout au Maroc.'
     },
     climate: {
       badge: 'Performance & Sillage',
@@ -115,10 +116,10 @@ export const translations = {
       idealSeason: 'Saison idéale :'
     },
     brandSilo: {
-      badge: 'Silo & Maison Officielle',
-      titlePrefix: 'Tous les testeurs de parfums ',
-      titleSuffix: ' originaux au Maroc',
-      descPrefix: "Explorez l'ensemble des créations de la prestigieuse maison ",
+      badge: 'Collection & Fragrances',
+      titlePrefix: 'Tous les testeurs et parfums ',
+      titleSuffix: ' au Maroc',
+      descPrefix: "Explorez l'ensemble des créations inspirées de la maison ",
       descSuffix: ' disponibles en stock chez NAY Parfum avec livraison express et paiement à la livraison.',
       ctaPrefix: 'Découvrir la collection ',
       ctaArrow: ' →'
@@ -193,7 +194,7 @@ export const translations = {
   en: {
     breadcrumb: { home: 'Home', shop: 'Shop' },
     info: {
-      authentic: '100% AUTHENTIC TESTER',
+      authentic: 'PREMIUM TESTER — SAME NOTES & SCENT',
       verifiedReviews: 'verified reviews',
       save: 'Save',
       tester: '(Tester)',
@@ -202,10 +203,11 @@ export const translations = {
     },
     trust: {
       cod: 'Secure Cash on Delivery',
-      original: '100% Original Authentic Tester'
+      original: 'Same Olfactory Notes, Same Scent & High Longevity'
     },
     selector: { selectSize: 'Select Size' },
     actions: {
+      buyNow: 'Buy Now',
       addSuccess: 'Successfully added!',
       addToCart: 'Add to cart',
       added: 'Added',
@@ -214,7 +216,7 @@ export const translations = {
       increase: 'Increase'
     },
     perks: {
-      authLabel: '100% Authentic',
+      authLabel: 'Same Notes & Scent',
       authSub: 'Guaranteed',
       expressLabel: 'Express Shipping',
       expressSub: 'All over Morocco',
@@ -264,7 +266,7 @@ export const translations = {
       brand: 'House / Brand',
       fragranceName: 'Fragrance Name',
       bottleType: 'Bottle Type',
-      testerValue: 'Authentic Original Tester (Same Juice)',
+      testerValue: 'Premium Tester (Same Fragrance Notes & Scent)',
       retailValue: 'Original Sealed Fragrance',
       concentration: 'Concentration',
       edpHigh: 'Eau de Parfum (High Concentration)',
@@ -285,17 +287,17 @@ export const translations = {
       deliveryPaymentValue: 'Express delivery in 24h to 48h (Casablanca, Rabat, Marrakech, Fes, Tangier, Agadir and all Morocco) · Cash on delivery (COD)'
     },
     authenticity: {
-      badge: 'Quality & Traceability Commitment Morocco',
-      title: 'Guaranteed Authenticity: Why Choose Our Original Testers?',
-      intro: "At NAY Parfum, transparency is our primary commitment. Fragrance testers come directly from authorized distribution channels of the world's finest luxury houses.",
-      point1Title: 'Same Formulation & Longevity:',
-      point1Desc: 'The concentration of fragrance oils and olfactory notes are strictly identical to the commercial retail-boxed bottle.',
-      point2Title: 'Original Bottle & Sprayer:',
-      point2Desc: 'The heavy glass bottle and spray mechanism are manufactured directly by the official designer house.',
-      point3Title: 'Substantial Savings:',
-      point3Desc: 'Without the retail packaging surcharge, you enjoy 30% to 50% savings compared to standard perfume boutique prices in Morocco.',
-      point4Title: 'Verifiable Official Batch Code:',
-      point4Desc: 'Each bottle features its official batch code engraved underneath, ensuring complete traceability and freshness.'
+      badge: 'Transparency & Olfactory Quality',
+      title: 'Olfactory Fidelity: Same Perfume, Same Notes, Fair Price',
+      intro: "At NAY Parfum, transparency is our core commitment. Our testers deliver the exact same olfactory pyramid, fragrance notes, and scent as the reference fragrance, offering exceptional sillage at a fair price.",
+      point1Title: 'Same Notes & Same Scent:',
+      point1Desc: 'The composition strictly respects the same olfactory pyramid for an identical fragrance and long-lasting trail.',
+      point2Title: 'Quality Bottle & Sprayer:',
+      point2Desc: 'Heavy premium glass bottle with an ergonomic spray mechanism ensuring smooth and even diffusion.',
+      point3Title: 'Fair Pricing & Savings:',
+      point3Desc: 'Enjoy your signature scent at 299 MAD without paying for sealed commercial retail box surcharges.',
+      point4Title: 'Inspection Upon Delivery:',
+      point4Desc: 'Inspect your bottle upon delivery before paying cash, ensuring total peace of mind across Morocco.'
     },
     climate: {
       badge: 'Performance & Sillage',
@@ -306,10 +308,10 @@ export const translations = {
       idealSeason: 'Ideal season:'
     },
     brandSilo: {
-      badge: 'Official Brand House',
-      titlePrefix: 'All original ',
+      badge: 'Fragrance Collection',
+      titlePrefix: 'All ',
       titleSuffix: ' perfume testers in Morocco',
-      descPrefix: 'Explore all creations from the prestigious house of ',
+      descPrefix: 'Explore all creations inspired by the house of ',
       descSuffix: ' available in stock at NAY Parfum with express delivery and cash on delivery.',
       ctaPrefix: 'Discover the ',
       ctaArrow: ' collection →'
@@ -384,7 +386,7 @@ export const translations = {
   ar: {
     breadcrumb: { home: 'الرئيسية', shop: 'المتجر' },
     info: {
-      authentic: 'تستر أصلي 100%',
+      authentic: 'تستر بريميوم — نفس النوتات والرائحة',
       verifiedReviews: 'تقييمات موثقة',
       save: 'وفر',
       tester: '(تستر)',
@@ -393,10 +395,11 @@ export const translations = {
     },
     trust: {
       cod: 'الدفع عند الاستلام بأمان',
-      original: 'تستر أصلي ومضمون 100%'
+      original: 'نفس النوتات، نفس الرائحة وثبات عالي'
     },
     selector: { selectSize: 'اختر الحجم' },
     actions: {
+      buyNow: 'شراء الآن',
       addSuccess: 'تمت الإضافة بنجاح!',
       addToCart: 'أضف إلى السلة',
       added: 'تمت الإضافة',
@@ -405,7 +408,7 @@ export const translations = {
       increase: 'زيادة الكمية'
     },
     perks: {
-      authLabel: 'أصلي 100%',
+      authLabel: 'نفس النوتات والرائحة',
       authSub: 'مضمون',
       expressLabel: 'توصيل سريع',
       expressSub: 'لجميع أنحاء المغرب',
@@ -443,7 +446,7 @@ export const translations = {
       title: 'لماذا تختار',
       desc: "عطر آسر، غامض، وذو جاذبية لا تُقاوم. صُنع من أجود المكونات ليضمن ثباتاً استثنائياً وأثراً عطرياً يرافقك طوال اليوم بأناقة وثقة.",
       bullet1: 'جودة عالية وثبات يدوم طويلاً',
-      bullet2: 'تستر أصلي 100% من دار'
+      bullet2: 'نفس النوتات العطرية والرائحة المميزة'
     },
     whenToWear: {
       title: 'متى تتألق بهذا العطر؟',
@@ -455,7 +458,7 @@ export const translations = {
       brand: 'دار العطور / الماركة',
       fragranceName: 'اسم العطر',
       bottleType: 'نوع الزجاجة',
-      testerValue: 'تستر أصلي 100% معتمد (نفس العطر والتركيبة)',
+      testerValue: 'تستر بريميوم (نفس النوتات العطرية ونفس الرائحة)',
       retailValue: 'عطر أصلي مغلف بالكامل',
       concentration: 'التركيز',
       edpHigh: 'ماء عطر - تركيز عالي (Eau de Parfum)',
@@ -476,17 +479,17 @@ export const translations = {
       deliveryPaymentValue: 'توصيل سريع خلال 24 إلى 48 ساعة (الدار البيضاء، الرباط، مراكش، فاس، طنجة، أكادير وكافة المدن المغربية) · الدفع نقداً عند الاستلام (Cash on Delivery)'
     },
     authenticity: {
-      badge: 'ضمان الجودة والأصالة في المغرب',
-      title: 'أصالة مضمونة: لماذا تختار عطور التستر الأصلية من عندنا؟',
-      intro: 'في NAY Parfum، الشفافية والمصداقية هي أولويتنا الأولى. تأتي عطور التستر مباشرة من قنوات التوزيع المعتمدة لكبرى دور العطور العالمية الفاخرة.',
-      point1Title: 'نفس التركيبة والثبات:',
-      point1Desc: 'تركيز الزيوت العطرية والنوتات الشمية متطابقة تماماً وبأعلى دقة مع الزجاجة التجارية المغلفة بالسلوفان.',
-      point2Title: 'زجاجة وبخاخ أصليان:',
-      point2Desc: 'القارورة الزجاجية الفاخرة والبخاخ مصنّعان مباشرة من طرف دار العطور العالمية صاحبة الامتياز.',
-      point3Title: 'توفير حقيقي وملموس:',
-      point3Desc: 'بدون التكاليف الإضافية للتغليف التسويقي التجاري، تستفيد من تخفيض يتراوح بين 30% و 50% مقارنة بأسعار المحلات في المغرب.',
-      point4Title: 'كود دفعة رسمي قابل للتحقق (Batch Code):',
-      point4Desc: 'كل زجاجة تحمل رقم دفعة رسمي محفوراً أسفل القارورة يضمن تتبع أصلها وتاريخ إنتاجها الأصيل.'
+      badge: 'الشفافية وجودة الرائحة',
+      title: 'دقة الرائحة: نفس النوتات، نفس العطر وبسعر مناسب',
+      intro: 'في NAY Parfum، الشفافية والمصداقية هي أساس تعاملنا. عطور التستر لدينا تقدم نفس النوتات العطرية (الافتتاحية، القلب، والقاعدة) ونفس الرائحة الأصلية مع ثبات وفوحان ممتاز وبسعر استثنائي.',
+      point1Title: 'نفس النوتات والرائحة 100%:',
+      point1Desc: 'تركيبة عطرية متطابقة في النوتات الشمية تمنحك نفس الرائحة والفوحان المميز للعطر الأصلي مع ثبات يدوم طويلاً.',
+      point2Title: 'زجاجة وبخاخ عالي الجودة:',
+      point2Desc: 'قارورة زجاجية أنيقة وبخاخ دقيق يوفر رذاذاً متناسقاً وثابتاً يدوم طوال اليوم.',
+      point3Title: 'سعر مناسب وتوفير كبير:',
+      point3Desc: 'استمتع بعطرك المفضل بسعر مميز (299 درهم) دون دفع تكاليف التسويق والتعليب التجاري الباهظ.',
+      point4Title: 'معاينة الطرد قبل الدفع:',
+      point4Desc: 'لك كامل الحرية في فتح الطرد ومعاينته عند الاستلام قبل أداء الثمن في جميع مدن المغرب.'
     },
     climate: {
       badge: 'الأداء والفوحان',
@@ -497,10 +500,10 @@ export const translations = {
       idealSeason: 'الموسم المثالي:'
     },
     brandSilo: {
-      badge: 'الدار الرسمية للماركة',
+      badge: 'تشكيلة العطور',
       titlePrefix: 'جميع عطور وتسترات ',
-      titleSuffix: ' الأصلية في المغرب',
-      descPrefix: 'اكتشف تشكيلة إبداعات دار ',
+      titleSuffix: ' في المغرب',
+      descPrefix: 'اكتشف تشكيلة عطور دار ',
       descSuffix: ' العالمية الفاخرة المتوفرة في المخزون لدى NAY Parfum مع توصيل سريع ودفع عند الاستلام.',
       ctaPrefix: 'اكتشف مجموعة ',
       ctaArrow: ' ←'

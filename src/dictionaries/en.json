@@ -123,7 +123,7 @@
     "v3Title": "Cash on Delivery",
     "v3Desc": "Order with total confidence and pay upon delivery. Inspect your package before paying.",
     "v4Title": "Guaranteed Authenticity",
-    "v4Desc": "Every bottle and tester is guaranteed 100% authentic with remarkable longevity and sillage."
+    "v4Desc": "Our testers strictly deliver the exact same olfactory notes, scent, and long-lasting sillage."
   },
   "reviewsSection": {
     "eyebrow": "They Trust Us",
@@ -162,6 +162,9 @@
     "subtotal": "Subtotal",
     "totalWithDiscount": "Total with discount",
     "checkoutButton": "View Cart & Checkout",
+    "expressCheckout": "Proceed to Checkout",
+    "continueShopping": "Continue Shopping",
+    "viewFullCart": "View Detailed Cart",
     "freeShippingText": "Free Shipping! 🎉",
     "shippingNotice": "Nationwide delivery across Morocco at {fee} MAD",
     "decrease": "Decrease quantity",
@@ -209,6 +212,6 @@
     "orderTracking": "Track Order",
     "returns": "Returns Policy",
     "faq": "FAQ",
-    "copyright": "Authorized luxury fragrance retailer in Morocco."
+    "copyright": "All rights reserved."
   }
 }

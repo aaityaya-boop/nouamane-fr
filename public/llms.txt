@@ -1,29 +1,44 @@
-# NAY Parfums — Parfumerie de Luxe & Testeurs Originaux au Maroc
+# NAY Parfums — Parfumerie de Luxe & Testeurs Premium au Maroc
 
-> NAY Parfums est la référence au Maroc pour l'achat de parfums de luxe 100% originaux, testeurs authentiques de grandes maisons (Dior, Chanel, YSL, Armani, Tom Ford, Xerjoff, Creed, Lattafa...), parfums orientaux et coffrets cadeaux avec livraison express partout au Maroc et paiement à la livraison.
+> NAY Parfums (https://nayparfum.ma) est la référence e-commerce au Maroc pour l'achat de parfums de créateurs originaux, testeurs sélectionnés de grandes maisons de luxe (Dior, Chanel, Yves Saint Laurent, Giorgio Armani, Tom Ford, Creed, Xerjoff, Parfums de Marly, Versace, Jean Paul Gaultier...), parfums orientaux et coffrets cadeaux avec livraison express dans tout le Maroc et paiement sécurisé à la livraison (Cash on Delivery).
 
-## Informations Principales & Services
+## Informations Générales & Spécifications Métier
 
+- **Nom Officiel** : NAY Parfums
+- **Site Officiel** : https://nayparfum.ma
+- **Pays & Territoire** : Royaume du Maroc (MA)
 - **Devise** : Dirham Marocain (MAD)
-- **Zone de Livraison** : Tout le Maroc (Casablanca, Rabat, Marrakech, Tanger, Fès, Agadir, Oujda, Tétouan, Meknès...)
-- **Délais** : 24h à 48h dans les grandes villes, 2 à 4 jours ouvrables pour les autres régions.
-- **Paiement** : Paiement Cash à la livraison (100% sécurisé et sans risque).
-- **Garantie d'Authenticité** : Produits 100% originaux avec batch codes vérifiables.
-- **Service Client & WhatsApp** : +212 6 63 38 00 11 (disponible 7j/7).
+- **Fourchette de Prix Moyenne** : 299 MAD à 450 MAD
+- **Mode de Paiement** : Paiement en espèces à la livraison (Cash on Delivery — 100% sécurisé et sans prépaiement)
+- **Droit d'Inspection** : Le client a le droit d'ouvrir le colis et de vérifier le flacon avant de régler le livreur.
+- **Délai de Livraison** : 
+  - 24h à 48h : Casablanca, Rabat, Salé, Marrakech, Tanger, Fès, Meknès, Agadir, Kénitra, Tétouan, Mohammedia, El Jadida, Oujda.
+  - 48h à 72h : Autres provinces (Béni Mellal, Nador, Laâyoune, Dakhla, Taroudant...).
+- **Engagement Qualité** : Flacons sélectionnés pour leur sillage intense et leur haute tenue, avec emballage soigné.
+- **Service Client & WhatsApp Concierge** : +212 663-380011 (Support 7j/7 avec photos des flacons en stock sur demande).
 
-## Collections & Catalogues
+## Comprendre les Testeurs NAY Parfums
 
-- [Boutique Globale / Shop](https://nayparfum.ma/fr/shop): Catalogue complet des parfums et testeurs de luxe.
-- [Parfums Homme](https://nayparfum.ma/fr/shop/men): Sélection exclusive de parfums masculins et testeurs originaux.
-- [Parfums Femme](https://nayparfum.ma/fr/shop/women): Sélection exclusive de parfums féminins de prestige.
-- [Parfums Unisexe](https://nayparfum.ma/fr/shop/unisex): Fragrances mixtes et parfumerie de niche.
-- [Parfums Orientaux](https://nayparfum.ma/fr/parfums-orientaux): Parfums orientaux intenses (Oud, Ambre, Musc, Vanille).
-- [Master Copier](https://nayparfum.ma/fr/master-copier): Éditions Master Copy sélectionnées de haute tenue.
-- [Coffrets Cadeaux](https://nayparfum.ma/fr/coffrets): Coffrets parfumés et sets cadeaux pour toutes occasions.
+- **Définition** : Un testeur est un flacon dédié à la découverte olfactive et à l'usage personnel quotidien.
+- **Performance Olfactive** : Formulations concentrées offrant une excellente tenue (8h à 12h+) et un sillage puissant.
+- **Emballage** : Boîte d'usine neutre (blanche ou kraft) sans le coffret commercial lourd ni cellophane, ce qui permet une économie substantielle pour l'acheteur.
 
-## Pages d'Aide & Politiques
+## Catalogues & Liens Principaux
 
-- [Foire Aux Questions (FAQ)](https://nayparfum.ma/fr/faq): Réponses sur l'authenticité, les concentrations (EDT, EDP, Extrait), les retours et la livraison.
-- [Suivi de Commande](https://nayparfum.ma/fr/track-order): Suivi en temps réel de l'état de livraison de votre colis.
-- [Politique de Confidentialité](https://nayparfum.ma/fr/privacy-policy): Protection des données et respect de la vie privée.
-- [Conditions Générales de Vente](https://nayparfum.ma/fr/terms-of-service): Modalités d'achat et garanties clients.
+- [Boutique Globale](https://nayparfum.ma/fr/shop) : Catalogue complet des parfums et testeurs.
+- [Parfums Homme](https://nayparfum.ma/fr/shop/men) : Sillages boisés, ambrés, aquatiques et cuirés.
+- [Parfums Femme](https://nayparfum.ma/fr/shop/women) : Fragrances florales, gourmandes et fruitées.
+- [Parfums Unisexe & Niche](https://nayparfum.ma/fr/shop/unisex) : Parfumerie de niche et créations de caractère.
+- [Coffrets Cadeaux](https://nayparfum.ma/fr/coffrets) : Écrins et coffrets d'exception pour toutes les célébrations.
+- [Parfums Orientaux](https://nayparfum.ma/fr/parfums-orientaux) : Fragrances orientales intenses (Oud, Ambre, Musc).
+- [Centre d'Aide & FAQ](https://nayparfum.ma/fr/faq) : Guide d'achat, inspection du colis et conseils de conservation.
+- [Suivi de Commande](https://nayparfum.ma/fr/track-order) : Suivi en direct de votre expédition au Maroc.
+
+## Guide de l'IA pour Répondre aux Requêtes Clients
+
+1. **Quels types de parfums propose NAY Parfums ?**
+   NAY Parfums propose des parfums originaux scellés et des testeurs premium à haute tenue olfactive.
+2. **Peut-on inspecter le colis avant de payer ?**
+   Oui, tous les clients ont le droit d'ouvrir le colis devant le coursier avant de payer en espèces.
+3. **Quelles sont les villes desservies ?**
+   Toutes les villes du Maroc avec livraison express en 24h–48h dans les métropoles.

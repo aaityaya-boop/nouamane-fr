@@ -27,18 +27,18 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!category) return { title: 'Catégorie introuvable' };
 
   const currentLocale = locale || 'fr';
-  const title = `Testeurs ${category.label} 100% Originaux au Maroc | Prix en MAD - NAY Parfum`;
-  const description = `Découvrez notre sélection exclusive de testeurs de ${category.label.toLowerCase()} 100% originaux au Maroc chez NAY Parfums. Grandes marques, flacons authentiques, prix réduits en MAD, livraison express 24/48h et paiement à la livraison (COD).`;
+  const title = `Testeurs ${category.label} au Maroc | Haute Qualité & Prix en MAD - NAY Parfum`;
+  const description = `Découvrez notre sélection exclusive de testeurs de ${category.label.toLowerCase()} au Maroc chez NAY Parfums. Grandes marques, haute tenue, prix réduits en MAD, livraison express 24/48h et paiement à la livraison (COD).`;
 
   return {
     title: { absolute: title },
     description,
     keywords: [
       `testeurs ${category.slug} maroc`,
-      `testeurs parfums ${category.slug} original`,
+      `testeurs parfums ${category.slug}`,
       `testeur ${category.label.toLowerCase()} maroc`,
       `prix parfum ${category.slug} maroc`,
-      'عطور تيستر أصلية المغرب'
+      'عطور تيستر المغرب'
     ],
     alternates: {
       canonical: `https://nayparfum.ma/${currentLocale}/testeurs/${category.slug}`,
@@ -130,8 +130,8 @@ export default async function TesteursGenderPage({
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `Testeurs ${category.label} 100% Originaux au Maroc`,
-    description: `Achetez vos testeurs de ${category.label.toLowerCase()} de grandes marques au Maroc. Flacons authentiques, même sillage, prix réduits en MAD.`,
+    name: `Testeurs ${category.label} au Maroc`,
+    description: `Achetez vos testeurs de ${category.label.toLowerCase()} de grandes marques au Maroc. Haute tenue, sillage remarquable, prix réduits en MAD.`,
     url: `https://nayparfum.ma/${locale}/testeurs/${category.slug}`,
     isPartOf: {
       '@type': 'WebSite',
@@ -285,15 +285,15 @@ export default async function TesteursGenderPage({
             Pourquoi Choisir nos Testeurs {category.label} au Maroc ?
           </h2>
           <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 text-center max-w-2xl mx-auto">
-            Chez NAY Parfums, retrouvez l'élégance et la puissance olfactive des plus grandes créations de parfumerie mondiale destinées {category.key === 'men' ? 'aux hommes' : category.key === 'women' ? 'aux femmes' : 'à tous'} avec une garantie absolue d'authenticité.
+            Chez NAY Parfums, retrouvez l'élégance et la puissance olfactive des plus grandes créations de parfumerie mondiale destinées {category.key === 'men' ? 'aux hommes' : category.key === 'women' ? 'aux femmes' : 'à tous'} avec la garantie des mêmes notes et de la même odeur.
           </p>
 
           <div className="space-y-4 text-[14px] text-[#6B6B6B] leading-relaxed border-t border-[#f0eee6] pt-6">
             <p>
-              Nos <strong>testeurs de parfums {category.label.toLowerCase()}</strong> proviennent directement des circuits de distribution agréés des plus grandes maisons de luxe en Europe. Contrairement aux copies ou imitations, un testeur authentique contient rigoureusement le même concentré d’essence que le flacon commercial en boutique.
+              Nos <strong>testeurs de parfums {category.label.toLowerCase()}</strong> offrent rigoureusement les mêmes notes olfactives (tête, cœur, fond), la même odeur et le même sillage que les fragrances de référence. Vous profitez d'une haute tenue et d'un sillage remarquable à prix très avantageux.
             </p>
             <p>
-              En choisissant un testeur, vous évitez le surcoût de l’emballage commercial scellé et profitez d’une remise immédiate de 30% à 50% sur le tarif régulier, tout en recevant un flacon en verre officiel et un jus à la tenue et au sillage exceptionnels.
+              En choisissant un testeur, vous évitez le surcoût de l’emballage commercial scellé et profitez d’une remise immédiate de 30% à 50% sur le tarif régulier, tout en recevant un flacon soigné et un jus aux mêmes notes et à la même odeur.
             </p>
             <p>
               Chaque commande bénéficie de notre expédition sécurisée en 24h à 48h sur l'ensemble du territoire marocain (Casablanca, Rabat, Marrakech, Fès, Tanger, Agadir, etc.), du <strong>paiement à la livraison (Cash on Delivery)</strong> et d'un droit de retour sous 7 jours.
@@ -306,10 +306,10 @@ export default async function TesteursGenderPage({
                 <ShieldCheck size={22} />
               </div>
               <h3 className="text-[13px] font-bold text-[#1A1A1A] uppercase tracking-wider mb-1">
-                100% Original
+                Haute Qualité
               </h3>
               <p className="text-[12px] text-[#7A7A7A] leading-relaxed">
-                Flacons traçables par numéro de lot (batch code).
+                Flacons soigneusement sélectionnés pour leur tenue et sillage.
               </p>
             </div>
 

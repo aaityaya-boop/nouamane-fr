@@ -598,8 +598,8 @@ export function localizeLongDescription(
     // Generic fallback for any other French descriptive paragraph
     if (l.startsWith('Ce produit est un parfum de démonstration')) {
       out.push(isAr
-        ? `تستر أصلي 100% معتمد من دار **${product.brandLabel}**. يتميز بنفس تركيبة وثبات العطر الأصلي مع توفير استثنائي وضمان الأصالة.`
-        : `100% authentic original tester from **${product.brandLabel}**. Features the exact same fragrance and longevity as the retail bottle with exceptional savings.`);
+        ? `تستر بريميوم بنفس النوتات والرائحة والتركيبة الشمية لعطر **${product.brandLabel}**. يتميز بنفس النوتات والرائحة وثبات عالي مع توفير كبير ومعاينة عند الاستلام.`
+        : `Premium tester with the exact same olfactory notes, scent, and longevity as **${product.brandLabel}**. Features identical notes and exceptional savings with parcel inspection.`);
       continue;
     }
 

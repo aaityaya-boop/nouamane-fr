@@ -10,7 +10,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, ShoppingBag } from 'lucide-react';
+import { X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, ShoppingBag, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart, calculatePromoDiscount } from '@/context/CartContext';
 import Image from 'next/image';
@@ -241,7 +241,7 @@ export default function CartDrawer() {
                   {appliedPromo && promoDiscount > 0 ? (
                     <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm">🏷️</span>
+                        <Tag size={16} className="text-emerald-600 shrink-0" />
                         <div>
                           <div className="text-xs font-bold text-neutral-900">{dict.cartDrawer.promoCode} ({appliedPromo.code})</div>
                           <div className="text-[10px] text-emerald-600">{dict.cartDrawer.discountApplied}</div>
@@ -252,7 +252,7 @@ export default function CartDrawer() {
                   ) : !appliedPromo && appliedDeal && dealDiscount > 0 ? (
                     <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm">🎉</span>
+                        <Tag size={16} className="text-[#0ea5e9] shrink-0" />
                         <div>
                           <div className="text-xs font-bold text-neutral-900">{appliedDeal.badgeText || appliedDeal.title}</div>
                           <div className="text-[10px] text-neutral-500">{dict.cartDrawer.autoDealApplied}</div>

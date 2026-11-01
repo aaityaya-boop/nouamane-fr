@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Minus, Zap, Check, AlertCircle } from 'lucide-react';
+import { X, Plus, Minus, Check, AlertCircle, ShoppingBag, ArrowRight } from 'lucide-react';
 import { formatMAD, isProductInStock, type Product } from '@/lib/products';
 
 type QuickBuyModalProps = {
@@ -196,24 +196,44 @@ export default function QuickBuyModal({ product, isOpen, onClose }: QuickBuyModa
             type="button"
             onClick={handleBuyNow}
             disabled={!inStock || isSubmitting}
-            className={`w-full py-3.5 px-6 rounded-2xl text-[13px] font-bold tracking-wider flex items-center justify-center gap-2 shadow-lg transition active:scale-95 ${
+            className={`group relative w-full h-13 sm:h-14 px-5 rounded-2xl text-[13px] font-extrabold tracking-wider uppercase flex items-center justify-between shadow-xl transition-all active:scale-[0.98] overflow-hidden ${
               inStock
-                ? 'btn-blue shadow-sky-500/25'
-                : 'bg-slate-100 text-[#9A9A9A] cursor-not-allowed'
+                ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 hover:from-black hover:via-slate-900 hover:to-black text-white border border-slate-800 shadow-slate-950/25 cursor-pointer'
+                : 'bg-slate-100 text-[#9A9A9A] cursor-not-allowed border border-slate-200'
             }`}
           >
+            {/* Subtle Luxury Sheen Sweep Effect on Hover */}
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+
             {isSubmitting ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-full flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-bold text-white/90 uppercase tracking-wider">
+                  {locale === 'ar' ? 'جارٍ التحويل...' : 'Redirection sécurisée...'}
+                </span>
+              </div>
             ) : inStock ? (
               <>
-                <Zap size={16} className="fill-current" />
-                <span>ACHETER MAINTENANT</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform duration-200">
+                    <ShoppingBag size={15} strokeWidth={2.2} />
+                  </div>
+                  <span className="truncate">
+                    {locale === 'ar' ? 'اشتري الآن' : 'ACHETER MAINTENANT'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 pl-2 rtl:pl-0 rtl:pr-2">
+                  <span className="px-2.5 py-1 rounded-lg bg-white/15 text-white font-black text-xs tracking-tight border border-white/10">
+                    {formatMAD(totalPrice)}
+                  </span>
+                  <ArrowRight size={16} strokeWidth={2.5} className="text-white/70 group-hover:text-white group-hover:translate-x-1 rtl:group-hover:-translate-x-1 rtl:rotate-180 transition-all duration-200" />
+                </div>
               </>
             ) : (
-              <>
+              <div className="w-full flex items-center justify-center gap-2 text-slate-500 font-bold text-xs uppercase">
                 <AlertCircle size={16} />
-                <span>RUPTURE DE STOCK</span>
-              </>
+                <span>{locale === 'ar' ? 'غير متوفر حالياً' : 'RUPTURE DE STOCK'}</span>
+              </div>
             )}
           </button>
         </motion.div>

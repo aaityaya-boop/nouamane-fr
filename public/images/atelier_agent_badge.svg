@@ -1,0 +1,137 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0f223d" />
+      <stop offset="60%" stop-color="#091424" />
+      <stop offset="100%" stop-color="#050a12" />
+    </radialGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="35%" stop-color="#eab308" />
+      <stop offset="70%" stop-color="#ca8a04" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#bae6fd" />
+      <stop offset="50%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Circular Base with Fine Atelier Guilloché Rings -->
+  <circle cx="256" cy="256" r="250" fill="url(#bgGrad)" />
+  <circle cx="256" cy="256" r="248" fill="none" stroke="url(#goldGrad)" stroke-width="2.5" opacity="0.9" />
+  <circle cx="256" cy="256" r="238" fill="none" stroke="url(#skyGrad)" stroke-width="1.2" stroke-dasharray="4 6" opacity="0.6" />
+  <circle cx="256" cy="256" r="226" fill="none" stroke="url(#goldGrad)" stroke-width="1" opacity="0.4" />
+
+  <!-- Botanical Artisan Laurel Branches (Left & Right) -->
+  <g stroke="url(#goldGrad)" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+    <!-- Left Branch -->
+    <path d="M 140 380 C 110 320, 110 220, 150 150" />
+    <path d="M 126 350 Q 110 340 115 325 Q 128 335 126 350 Z" fill="url(#goldGrad)" opacity="0.7" />
+    <path d="M 118 300 Q 102 290 108 275 Q 120 285 118 300 Z" fill="url(#goldGrad)" opacity="0.7" />
+    <path d="M 118 250 Q 102 240 110 225 Q 122 235 118 250 Z" fill="url(#goldGrad)" opacity="0.7" />
+    <path d="M 128 200 Q 115 190 125 175 Q 135 188 128 200 Z" fill="url(#goldGrad)" opacity="0.7" />
+    <path d="M 145 160 Q 135 148 148 135 Q 155 150 145 160 Z" fill="url(#goldGrad)" opacity="0.7" />
+
+    <!-- Right Branch -->
+    <path d="M 372 380 C 402 320, 402 220, 362 150" />
+    <path d="M 386 350 Q 402 340 397 325 Q 384 335 386 350 Z" fill="url(#goldGrad)" opacity="0.7" />
+    <path d="M 394 300 Q 410 290 404 275 Q 392 285 394 300 Z" fill="url(#goldGrad)" opacity="0.7" />
+    <path d="M 394 250 Q 410 240 402 225 Q 390 235 394 250 Z" fill="url(#goldGrad)" opacity="0.7" />
+    <path d="M 384 200 Q 397 190 387 175 Q 377 188 384 200 Z" fill="url(#goldGrad)" opacity="0.7" />
+    <path d="M 367 160 Q 377 148 364 135 Q 357 150 367 160 Z" fill="url(#goldGrad)" opacity="0.7" />
+  </g>
+
+  <!-- Central Hand-Engraved Flacon Silhouette -->
+  <!-- Radiant Backlight Halo -->
+  <circle cx="256" cy="270" r="95" fill="url(#skyGrad)" opacity="0.12" filter="url(#subtleGlow)" />
+
+  <!-- Perfume Flacon Cap & Sprayer -->
+  <rect x="236" y="112" width="40" height="32" rx="4" fill="url(#goldGrad)" />
+  <rect x="246" y="144" width="20" height="18" fill="url(#skyGrad)" />
+  <line x1="226" y1="162" x2="286" y2="162" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Perfume Flacon Body -->
+  <path d="M 196 172 
+           L 316 172 
+           C 328 172, 336 182, 334 196 
+           L 322 340 
+           C 320 354, 308 364, 294 364 
+           L 218 364 
+           C 204 364, 192 354, 190 340 
+           L 178 196 
+           C 176 182, 184 172, 196 172 Z" 
+        fill="#0b1728" 
+        stroke="url(#goldGrad)" 
+        stroke-width="3.5" 
+        stroke-linejoin="round" />
+
+  <!-- Glass Inner Facets & Highlights -->
+  <path d="M 204 186 L 308 186 L 298 348 L 214 348 Z" 
+        fill="none" 
+        stroke="url(#skyGrad)" 
+        stroke-width="1.5" 
+        opacity="0.45" />
+
+  <!-- Amber/Gold Juice Gradient Inside -->
+  <path d="M 207 225 L 305 225 L 296 345 L 216 345 Z" 
+        fill="url(#goldGrad)" 
+        opacity="0.22" />
+
+  <!-- Stylized Monogram NAY on Bottle Label -->
+  <rect x="216" y="235" width="80" height="74" rx="6" fill="#08101d" stroke="url(#goldGrad)" stroke-width="1.8" />
+  
+  <text x="256" y="272" 
+        font-family="'Cinzel', 'Playfair Display', 'Times New Roman', serif" 
+        font-size="24" 
+        font-weight="900" 
+        letter-spacing="5" 
+        fill="url(#goldGrad)" 
+        text-anchor="middle">
+    NAY
+  </text>
+  
+  <text x="256" y="294" 
+        font-family="'Cinzel', 'Playfair Display', 'Times New Roman', serif" 
+        font-size="9" 
+        font-weight="700" 
+        letter-spacing="3" 
+        fill="url(#skyGrad)" 
+        text-anchor="middle">
+    PARFUMS
+  </text>
+
+  <!-- Star of Excellence at Top Apex -->
+  <g fill="url(#goldGrad)" transform="translate(256, 78)">
+    <polygon points="0,-16 4,-4 16,0 4,4 0,16 -4,4 -16,0 -4,-4" />
+    <circle cx="0" cy="0" r="2.5" fill="#ffffff" />
+  </g>
+
+  <!-- Curving Atelier Inscription Arc Top & Bottom -->
+  <text x="256" y="420" 
+        font-family="'Cinzel', 'Playfair Display', 'Times New Roman', serif" 
+        font-size="13" 
+        font-weight="800" 
+        letter-spacing="6" 
+        fill="url(#skyGrad)" 
+        text-anchor="middle">
+    CONCIERGERIE PRIVÉE
+  </text>
+
+  <text x="256" y="442" 
+        font-family="'Cinzel', 'Playfair Display', 'Times New Roman', serif" 
+        font-size="9.5" 
+        font-weight="700" 
+        letter-spacing="4" 
+        fill="url(#goldGrad)" 
+        text-anchor="middle" 
+        opacity="0.85">
+    HAUTE PARFUMERIE · MAROC
+  </text>
+</svg>
