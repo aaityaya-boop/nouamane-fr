@@ -312,7 +312,7 @@ export default function MobileVersionBHome({
             fill
             sizes="200px"
             unoptimized
-            className="object-contain scale-115 group-hover:scale-120 transition-transform duration-300 drop-shadow-[0_8px_16px_rgba(17,24,39,0.10)]"
+            className="object-contain scale-105 group-hover:scale-110 transition-transform duration-300 mix-blend-multiply"
           />
         </Link>
 

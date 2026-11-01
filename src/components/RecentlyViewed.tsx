@@ -130,7 +130,7 @@ export default function RecentlyViewed({ currentProductId }: { currentProductId?
                     fill
                     sizes="124px"
                     unoptimized
-                    className="object-contain p-1 group-hover:scale-108 transition-transform duration-300 drop-shadow-[0_4px_6px_rgba(0,0,0,0.06)]"
+                    className="object-contain p-1 group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">NAY</div>

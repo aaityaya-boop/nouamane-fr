@@ -374,7 +374,7 @@ export default function HomePageClient({
                           alt={currentCat.label}
                           fill
                           sizes="(max-width: 1024px) 100vw, 420px"
-                          className="object-contain p-2 transition-transform duration-700 ease-out group-hover/flacon:scale-108 drop-shadow-[0_12px_24px_rgba(0,0,0,0.12)]"
+                          className="object-contain p-2 transition-transform duration-700 ease-out group-hover/flacon:scale-105 mix-blend-multiply"
                         />
                       </div>
 

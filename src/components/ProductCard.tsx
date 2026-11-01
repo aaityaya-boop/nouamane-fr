@@ -104,14 +104,14 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
               ======================================================== */}
           <div className="relative w-full h-[185px] sm:h-[240px] lg:h-[290px] bg-white flex items-center justify-center p-3 sm:p-4 overflow-hidden">
             
-            {/* Flacon Image */}
+            {/* Flacon Image (Pure seamless floating bottle, zero box shadow, zero background) */}
             <Image
               src={pImage}
               alt={`Parfum ${product.name} au Maroc - NAY Parfums`}
               fill
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-2 sm:p-3 group-hover:scale-108 transition-transform duration-300 drop-shadow-[0_8px_16px_rgba(17,24,39,0.10)]"
+              className="object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
             />
 
             {/* Out of Stock Overlay */}
