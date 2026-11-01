@@ -116,52 +116,12 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
 
             {/* Out of Stock Overlay */}
             {!inStock && (
-              <div className="absolute inset-0 bg-white/75 z-20 flex flex-col items-center justify-center p-2 text-center">
+              <div className="absolute inset-0 bg-white/80 z-20 flex flex-col items-center justify-center p-2 text-center">
                 <span className="text-[9.5px] sm:text-[11px] font-bold tracking-widest text-red-600 uppercase bg-white border border-red-200 px-3 py-1.5 rounded-full shadow-xs">
                   {dict.productCard?.outOfStock || 'Rupture de stock'}
                 </span>
               </div>
             )}
-
-            {/* Top-Right Actions: Wishlist Heart & Desktop Compare */}
-            <div className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5 z-10 flex items-center gap-1.5">
-              {/* Compare Toggle (Desktop only) */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleCompare(product);
-                }}
-                className={`hidden sm:flex w-7 h-7 sm:w-8 sm:h-8 rounded-full items-center justify-center transition-all shadow-2xs ${
-                  isComparedProduct
-                    ? 'bg-[#0284c7] text-white shadow-xs'
-                    : 'bg-white/95 hover:bg-white text-[#6B7280] hover:text-[#0284c7] border border-[#E5E0D4]'
-                }`}
-                aria-label={isComparedProduct ? 'Retirer du comparateur' : 'Comparer ce parfum'}
-                title={isComparedProduct ? 'Retirer du comparateur' : 'Comparer ce parfum'}
-              >
-                <ArrowRightLeft size={12} className={isComparedProduct ? 'stroke-[2.5] text-white' : 'text-[#6B7280]'} />
-              </button>
-
-              {/* Wishlist Heart Toggle */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleWishlist(product.slug);
-                }}
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-                  isFavorite
-                    ? 'bg-rose-50 text-rose-500 border border-rose-200'
-                    : 'bg-white/95 hover:bg-white text-slate-400 hover:text-rose-500 border border-slate-200/80 shadow-2xs'
-                }`}
-                aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-              >
-                <Heart size={13} className={isFavorite ? 'fill-rose-500 text-rose-500' : 'fill-none text-slate-400'} />
-              </button>
-            </div>
           </div>
 
           {/* ========================================================
@@ -169,17 +129,54 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
               ======================================================== */}
           <div className="p-2.5 sm:p-3.5 bg-white flex flex-col justify-between flex-1">
             <div>
-              {/* Brand & Edition Row (Brand on Left, Edition Pill on Right) */}
-              <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
-                <span className="text-[8.5px] sm:text-[9.5px] font-bold tracking-[0.08em] uppercase text-slate-500 truncate min-w-0">
-                  {product.brandLabel || product.brand}
-                </span>
-                <span
-                  className={`text-[7px] sm:text-[7.5px] font-bold tracking-[0.10em] uppercase px-2 py-0.5 rounded-full border shrink-0 ${edition.badgeBg} ${edition.textColor} ${edition.borderColor}`}
-                  title={edition.label}
-                >
-                  {edition.label}
-                </span>
+              {/* Row 1: Brand & Edition (Left), Wishlist Heart & Compare (Right) */}
+              <div className="flex items-center justify-between gap-1.5 mb-1.5 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0 truncate">
+                  <span className="text-[8.5px] sm:text-[9.5px] font-bold tracking-[0.08em] uppercase text-slate-500 truncate">
+                    {product.brandLabel || product.brand}
+                  </span>
+                  <span
+                    className={`text-[7px] sm:text-[7.5px] font-bold tracking-[0.10em] uppercase px-2 py-0.5 rounded-full border shrink-0 ${edition.badgeBg} ${edition.textColor} ${edition.borderColor}`}
+                    title={edition.label}
+                  >
+                    {edition.label}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  {/* Desktop Compare Toggle */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleCompare(product);
+                    }}
+                    className={`hidden sm:flex w-6 h-6 rounded-full items-center justify-center transition-all ${
+                      isComparedProduct
+                        ? 'bg-[#0284c7] text-white'
+                        : 'text-slate-400 hover:text-[#0284c7]'
+                    }`}
+                    aria-label="Comparer ce parfum"
+                    title={isComparedProduct ? 'Retirer du comparateur' : 'Comparer ce parfum'}
+                  >
+                    <ArrowRightLeft size={11} className={isComparedProduct ? 'stroke-[2.5] text-white' : 'text-slate-400'} />
+                  </button>
+
+                  {/* Wishlist Heart Toggle */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleWishlist(product.slug);
+                    }}
+                    className="w-6 h-6 rounded-full flex items-center justify-center transition-colors text-slate-400 hover:text-rose-500 cursor-pointer"
+                    aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                  >
+                    <Heart size={13} className={isFavorite ? 'fill-rose-500 text-rose-500' : 'fill-none text-slate-400'} />
+                  </button>
+                </div>
               </div>
 
               {/* Product Name */}

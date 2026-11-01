@@ -36,7 +36,7 @@ export default function MobileTaskbar() {
     <>
       <nav
         aria-label="Navigation mobile"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/92 backdrop-blur-2xl border-t border-[#ECEAE4]/90 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] px-2 pt-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] transition-all select-none print:hidden rounded-t-[22px]"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#ECEAE4] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] px-2 pt-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] transition-all select-none print:hidden rounded-t-[22px]"
       >
         <div className="max-w-md mx-auto grid grid-cols-5 items-end">
           

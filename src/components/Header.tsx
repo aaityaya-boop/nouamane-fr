@@ -165,8 +165,8 @@ export default function Header() {
           isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
         } ${
           isSolid 
-            ? 'bg-white/95 backdrop-blur-xl border-b border-[#ECEAE4]/90 shadow-[0_2px_15px_rgba(0,0,0,0.04)]' 
-            : 'bg-[#FAF9F6]/90 backdrop-blur-xl border-b border-[#111]/5'
+            ? 'bg-white border-b border-[#ECEAE4] shadow-[0_2px_15px_rgba(0,0,0,0.04)]' 
+            : 'bg-[#FAF9F6] border-b border-[#111]/5'
         }`}
       >
         <div className="grid grid-cols-3 items-center h-[58px] px-3 sm:px-4">

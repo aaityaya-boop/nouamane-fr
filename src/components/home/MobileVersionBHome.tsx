@@ -293,7 +293,7 @@ export default function MobileVersionBHome({
             toggleWishlist(p.slug);
           }}
           aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
-          className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5 z-10 w-8 h-8 rounded-full bg-white/95 backdrop-blur-xs border border-[#ECEAE4] flex items-center justify-center text-[#111827] hover:text-rose-500 active:scale-85 transition shadow-2xs cursor-pointer"
+          className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5 z-10 w-8 h-8 rounded-full bg-white border border-[#ECEAE4] flex items-center justify-center text-[#111827] hover:text-rose-500 active:scale-85 transition shadow-2xs cursor-pointer"
         >
           <Heart 
             size={13.5} 
