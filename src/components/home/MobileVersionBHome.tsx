@@ -455,7 +455,7 @@ export default function MobileVersionBHome({
                     priority
                     unoptimized
                     sizes="240px"
-                    className="object-contain scale-115 group-hover:scale-120 transition-transform duration-300 drop-shadow-[0_12px_22px_rgba(17,24,39,0.12)]"
+                    className="object-contain scale-125 group-hover:scale-130 transition-transform duration-300 mix-blend-multiply"
                   />
                 </motion.div>
               </AnimatePresence>

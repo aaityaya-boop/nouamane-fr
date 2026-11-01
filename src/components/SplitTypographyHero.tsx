@@ -340,7 +340,7 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
                     priority
                     unoptimized
                     sizes="300px"
-                    className="object-contain transition-transform duration-500 group-hover:scale-105"
+                    className="object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
                   />
                 </motion.div>
               </AnimatePresence>
@@ -669,7 +669,7 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
                       fill
                       priority
                       sizes="(max-width: 768px) 100vw, 440px"
-                      className="object-contain transition-transform duration-700 ease-out group-hover:scale-108"
+                      className="object-contain transition-transform duration-700 ease-out group-hover:scale-108 mix-blend-multiply"
                     />
                   </motion.div>
                 </AnimatePresence>
