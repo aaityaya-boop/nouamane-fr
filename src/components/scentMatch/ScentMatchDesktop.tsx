@@ -201,7 +201,7 @@ export default function ScentMatchDesktop({
       {/* 3-PANEL LUXURY EDITORIAL GRID */}
       <div className="grid grid-cols-12 gap-8 items-start flex-1">
         {/* ================= LEFT PANEL: FILTERS & PROGRESS ================= */}
-        <aside className="col-span-3 space-y-6 bg-slate-50/80 dark:bg-slate-900/40 p-6 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <aside className="col-span-3 space-y-5 bg-white/95 dark:bg-slate-900/60 p-6 rounded-[32px] border border-[#E8E2D6] dark:border-slate-800 shadow-sm backdrop-blur-sm">
           {/* Progress Tracker */}
           <div className="space-y-3">
             <div className="flex items-center justify-between text-xs">
@@ -332,44 +332,59 @@ export default function ScentMatchDesktop({
 
           {currentProduct ? (
             <div className="relative w-full flex items-center justify-center z-10">
-              {/* 2nd Card Behind (3D Depth Stack) */}
+              {/* 2nd Card Behind (3D Depth Stack - Tinder Deck) */}
               {nextNextProduct && (
-                <div className="absolute top-0 w-full max-w-[390px] h-[430px] sm:h-[480px] rounded-[28px] bg-[#0c121e]/80 border border-slate-700/50 opacity-40 scale-[0.88] -translate-y-5 pointer-events-none transition-all shadow-lg z-0 overflow-hidden flex items-center justify-center">
-                  <div className="relative w-36 h-36 opacity-30">
+                <div className="absolute top-0 w-full max-w-[400px] h-[480px] sm:h-[520px] rounded-[32px] bg-white border border-[#E8E2D6] opacity-45 scale-[0.92] translate-y-6 rotate-[-2deg] pointer-events-none transition-all duration-300 shadow-md z-0 overflow-hidden flex flex-col justify-between p-4">
+                  <div className="flex justify-between items-center opacity-50">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                      {nextNextProduct.brandLabel}
+                    </span>
+                    <span className="text-xs font-bold text-slate-800">
+                      {nextNextProduct.price} MAD
+                    </span>
+                  </div>
+                  <div className="relative w-36 h-36 mx-auto my-auto opacity-50 overflow-hidden">
                     <Image
                       src={nextNextProduct.images[0] || '/images/placeholder-perfume.png'}
                       alt=""
                       fill
-                      className="object-contain"
+                      unoptimized={true}
+                      className="object-contain mix-blend-multiply scale-[1.3]"
                     />
+                  </div>
+                  <div className="opacity-50">
+                    <h4 className="text-xs font-bold text-slate-800 truncate">
+                      {nextNextProduct.name}
+                    </h4>
                   </div>
                 </div>
               )}
 
-              {/* 1st Card Behind (3D Depth Stack) */}
+              {/* 1st Card Behind (3D Depth Stack - Tinder Deck) */}
               {nextProduct && (
-                <div className="absolute top-0 w-full max-w-[390px] h-[430px] sm:h-[480px] rounded-[28px] bg-[#0c121e] border border-slate-700/60 opacity-75 scale-[0.94] -translate-y-2.5 pointer-events-none transition-all shadow-xl z-0 overflow-hidden flex flex-col justify-between p-4">
+                <div className="absolute top-0 w-full max-w-[400px] h-[480px] sm:h-[520px] rounded-[32px] bg-white border border-[#E8E2D6] opacity-85 scale-[0.96] translate-y-3 rotate-[2deg] pointer-events-none transition-all duration-300 shadow-xl z-10 overflow-hidden flex flex-col justify-between p-4">
                   <div className="flex justify-between items-center opacity-70">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">
                       {nextProduct.brandLabel}
                     </span>
-                    <span className="text-xs font-black text-white">
+                    <span className="text-xs font-black text-slate-900">
                       {nextProduct.price} MAD
                     </span>
                   </div>
-                  <div className="relative w-40 h-40 mx-auto my-auto opacity-75">
+                  <div className="relative w-44 h-44 mx-auto my-auto opacity-80 overflow-hidden">
                     <Image
                       src={nextProduct.images[0] || '/images/placeholder-perfume.png'}
                       alt=""
                       fill
-                      className="object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.5)]"
+                      unoptimized={true}
+                      className="object-contain mix-blend-multiply scale-[1.35]"
                     />
                   </div>
                   <div className="opacity-70">
-                    <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">
+                    <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider block">
                       {nextProduct.subcategoryLabel}
                     </span>
-                    <h4 className="text-sm font-bold text-white truncate">
+                    <h4 className="text-sm font-black text-slate-900 truncate">
                       {nextProduct.name}
                     </h4>
                   </div>
@@ -420,7 +435,7 @@ export default function ScentMatchDesktop({
         </main>
 
         {/* ================= RIGHT PANEL: LIKED FRAGRANCES & DNA SUMMARY ================= */}
-        <aside className="col-span-3 space-y-6 bg-slate-50/80 dark:bg-slate-900/40 p-6 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+        <aside className="col-span-3 space-y-5 bg-white/95 dark:bg-slate-900/60 p-6 rounded-[32px] border border-[#E8E2D6] dark:border-slate-800 shadow-sm backdrop-blur-sm">
           {/* Liked Perfumes Feed */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -452,13 +467,13 @@ export default function ScentMatchDesktop({
                     className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 hover:border-sky-300 cursor-pointer transition-all shadow-2xs group"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="relative w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 p-1 flex-shrink-0">
+                      <div className="relative w-11 h-11 rounded-xl bg-[#FAF8F5] dark:bg-slate-800 p-1 flex-shrink-0 border border-[#E8E2D6] dark:border-slate-700">
                         <Image
                           src={p.images[0] || '/images/placeholder-perfume.png'}
                           alt={p.name}
                           fill
-                          className="object-contain"
-                          sizes="40px"
+                          className="object-contain mix-blend-multiply dark:mix-blend-normal p-0.5"
+                          sizes="44px"
                         />
                       </div>
                       <div className="min-w-0">

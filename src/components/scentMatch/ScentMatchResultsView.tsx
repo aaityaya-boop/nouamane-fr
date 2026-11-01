@@ -247,7 +247,7 @@ export default function ScentMatchResultsView({
                       src={item.product.images[0] || '/images/placeholder-perfume.png'}
                       alt={item.product.name}
                       fill
-                      className="object-contain p-1"
+                      className="object-contain p-1 mix-blend-multiply dark:mix-blend-normal"
                       sizes="120px"
                     />
                   </div>

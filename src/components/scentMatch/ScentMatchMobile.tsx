@@ -237,37 +237,49 @@ export default function ScentMatchMobile({
       <div className="flex-1 flex items-center justify-center relative w-full my-auto z-10">
         {currentProduct ? (
           <div className="relative w-full flex items-center justify-center">
-            {/* 2nd Card Behind (3D Stack Depth) */}
+            {/* 2nd Card Behind (3D Stack Depth - Tinder Deck) */}
             {nextNextProduct && (
-              <div className="absolute top-0 w-full max-w-[390px] h-[430px] sm:h-[480px] rounded-[28px] bg-[#0c121e]/80 border border-slate-700/50 opacity-40 scale-[0.88] -translate-y-4 pointer-events-none transition-all shadow-lg z-0 overflow-hidden flex items-center justify-center">
-                <div className="relative w-32 h-32 opacity-30">
+              <div className="absolute top-0 w-full max-w-[400px] h-[480px] sm:h-[520px] rounded-[32px] bg-white border border-[#E8E2D6] opacity-45 scale-[0.92] translate-y-6 rotate-[-2deg] pointer-events-none transition-all duration-300 shadow-md z-0 overflow-hidden flex flex-col justify-between p-4">
+                <div className="flex justify-between items-center opacity-50">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">{nextNextProduct.brandLabel}</span>
+                  <span className="text-xs font-bold text-slate-800">{nextNextProduct.price} MAD</span>
+                </div>
+                <div className="relative w-36 h-36 mx-auto my-auto opacity-50 overflow-hidden">
                   <Image
                     src={nextNextProduct.images[0] || '/images/placeholder-perfume.png'}
                     alt=""
                     fill
-                    className="object-contain"
+                    unoptimized={true}
+                    className="object-contain mix-blend-multiply scale-[1.3]"
                   />
+                </div>
+                <div className="opacity-50">
+                  <h4 className="text-xs font-bold text-slate-800 truncate">{nextNextProduct.name}</h4>
                 </div>
               </div>
             )}
 
-            {/* 1st Card Behind (3D Stack Depth) */}
+            {/* 1st Card Behind (3D Stack Depth - Tinder Deck) */}
             {nextProduct && (
-              <div className="absolute top-0 w-full max-w-[390px] h-[430px] sm:h-[480px] rounded-[28px] bg-[#0c121e] border border-slate-700/60 opacity-75 scale-[0.94] -translate-y-2 pointer-events-none transition-all shadow-xl z-0 overflow-hidden flex flex-col justify-between p-4">
-                <div className="flex justify-between items-center opacity-60">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-300">{nextProduct.brandLabel}</span>
-                  <span className="text-xs font-bold text-white">{nextProduct.price} MAD</span>
+              <div className="absolute top-0 w-full max-w-[400px] h-[480px] sm:h-[520px] rounded-[32px] bg-white border border-[#E8E2D6] opacity-85 scale-[0.96] translate-y-3 rotate-[2deg] pointer-events-none transition-all duration-300 shadow-xl z-10 overflow-hidden flex flex-col justify-between p-4">
+                <div className="flex justify-between items-center opacity-70">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">{nextProduct.brandLabel}</span>
+                  <span className="text-xs font-black text-slate-900">{nextProduct.price} MAD</span>
                 </div>
-                <div className="relative w-36 h-36 mx-auto my-auto opacity-70">
+                <div className="relative w-44 h-44 mx-auto my-auto opacity-80 overflow-hidden">
                   <Image
                     src={nextProduct.images[0] || '/images/placeholder-perfume.png'}
                     alt=""
                     fill
-                    className="object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.5)]"
+                    unoptimized={true}
+                    className="object-contain mix-blend-multiply scale-[1.35]"
                   />
                 </div>
-                <div className="opacity-60">
-                  <h4 className="text-sm font-bold text-white truncate">{nextProduct.name}</h4>
+                <div className="opacity-70">
+                  <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider block">
+                    {nextProduct.subcategoryLabel}
+                  </span>
+                  <h4 className="text-sm font-black text-slate-900 truncate">{nextProduct.name}</h4>
                 </div>
               </div>
             )}
