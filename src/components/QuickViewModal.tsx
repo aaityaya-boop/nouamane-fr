@@ -55,6 +55,8 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
           >
             {/* Close Button */}
             <button
+              type="button"
+              aria-label="Fermer la vue rapide"
               onClick={onClose}
               className="absolute top-6 right-6 rtl:right-auto rtl:left-6 z-20 w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-colors border border-[#e0ddd4]"
             >

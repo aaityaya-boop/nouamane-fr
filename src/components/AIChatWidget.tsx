@@ -621,7 +621,8 @@ export default function AIChatWidget() {
                 <button
                   type="button"
                   onClick={removeAttachedImage}
-                  className="p-1 text-slate-400 hover:text-rose-400 transition-colors"
+                  aria-label="Supprimer la photo jointe"
+                  className="p-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
                 >
                   <X size={15} />
                 </button>

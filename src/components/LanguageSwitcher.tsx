@@ -20,6 +20,7 @@ export default function LanguageSwitcher() {
   // Extract current locale from pathname
   const currentLocale = pathname.split('/')[1];
   const currentLang = languages.find(l => l.code === currentLocale) || languages[0];
+  const isAr = currentLocale === 'ar';
 
   const handleLanguageChange = (newLocale: string) => {
     setIsOpen(false);
@@ -34,28 +35,42 @@ export default function LanguageSwitcher() {
   return (
     <div className="relative z-50">
       <button 
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-[12px] font-semibold tracking-wider hover:text-gray-600 transition-colors uppercase"
+        aria-label={isAr ? `تغيير اللغة (الحالية: ${currentLang.name})` : `Changer de langue (actuelle : ${currentLang.name})`}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        title={isAr ? `تغيير اللغة (${currentLang.name})` : `Changer de langue (${currentLang.name})`}
+        className="flex items-center gap-1.5 text-[12px] font-semibold tracking-wider hover:text-gray-600 transition-colors uppercase cursor-pointer"
       >
-        <Globe size={16} />
-        <span className="hidden md:inline">{currentLang.code}</span>
+        <Globe size={16} aria-hidden="true" />
+        <span className="text-[11.5px] font-bold uppercase">{currentLang.code}</span>
+        <span className="sr-only">{isAr ? 'تغيير لغة الموقع' : 'Changer la langue du site'}</span>
       </button>
 
       {isOpen && (
         <>
-          <div className="fixed inset-0" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-40 bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden py-1">
+          <div className="fixed inset-0" onClick={() => setIsOpen(false)} aria-hidden="true" />
+          <div 
+            role="listbox"
+            aria-label={isAr ? 'قائمة اللغات' : 'Choix de la langue'}
+            className="absolute right-0 rtl:right-auto rtl:left-0 top-full mt-2 w-40 bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden py-1 z-50"
+          >
             {languages.map((lang) => (
               <button
                 key={lang.code}
+                type="button"
+                role="option"
+                aria-selected={currentLocale === lang.code}
+                aria-label={`Passer en ${lang.name}`}
                 onClick={() => handleLanguageChange(lang.code)}
-                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-gray-50 transition-colors ${
-                  currentLocale === lang.code ? 'font-bold bg-gray-50' : 'text-gray-700'
+                className={`w-full text-left rtl:text-right px-4 py-2 text-sm flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer ${
+                  currentLocale === lang.code ? 'font-bold bg-gray-50 text-[#0284c7]' : 'text-gray-700'
                 }`}
-                dir="ltr"
+                dir={lang.code === 'ar' ? 'rtl' : 'ltr'}
               >
                 <span>{lang.name}</span>
-                <span>{lang.flag}</span>
+                <span aria-hidden="true">{lang.flag}</span>
               </button>
             ))}
           </div>
