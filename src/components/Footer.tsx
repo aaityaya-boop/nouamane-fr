@@ -360,7 +360,9 @@ export default function Footer() {
                 {dict.footer.newsletter}
               </h4>
               <p className="text-[#6B7280] text-[11.5px] sm:text-[12px] leading-[1.6] mt-1 mb-4">
-                {dict.footer.newsletterDesc}
+                {isAr
+                  ? 'انضم إلى الدائرة الخاصة واستفد من خصم 10% فوري مع كود NAYDAY ابتداءً من عطرين.'
+                  : 'Rejoignez Le Cercle Privé et profitez de -10% immédiat sur votre sélection dès 2 parfums avec le code NAYDAY.'}
               </p>
 
               {/* Newsletter Form */}

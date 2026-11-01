@@ -230,8 +230,31 @@ export default function Header() {
           isSolid ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-[#e0ddd4]/60' : 'bg-[#FAF9F6]/85 backdrop-blur-md border-b border-[#111]/5'
         }`}
       >
-
-        
+        {/* NAYDAY WELCOME OFFER TOP ANNOUNCEMENT STRIP */}
+        <div className="bg-[#0B1120] text-white text-[11px] py-1.5 px-4 font-medium transition-colors border-b border-white/5">
+          <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <span className="font-semibold text-slate-200">
+                {isAr
+                  ? 'عرض الترحيب NAYDAY : خصم 10% فوري ابتداءً من عطرين مع كود'
+                  : 'Offre de Bienvenue NAYDAY : -10% immédiat dès 2 parfums avec le code'}
+              </span>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-welcome-offer'))}
+                className="bg-amber-400/15 hover:bg-amber-400 text-amber-300 hover:text-slate-950 border border-amber-400/40 px-2 py-0.5 rounded font-black tracking-widest text-[10px] transition-all cursor-pointer font-mono"
+              >
+                NAYDAY
+              </button>
+            </div>
+            <div className="flex items-center gap-4 text-slate-400 text-[10.5px]">
+              <span>{isAr ? 'توصيل مجاني ابتداءً من 800 درهم' : 'Livraison offerte dès 800 MAD'}</span>
+              <span>·</span>
+              <span>{isAr ? 'حق فحص العطر قبل الأداء' : 'Inspection avant paiement'}</span>
+            </div>
+          </div>
+        </div>
 
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 relative">
           {/* DESKTOP BAR (lg+): True 3-Zone Equilibrium with Centered NAY Logo */}
@@ -656,6 +679,35 @@ export default function Header() {
 
               {/* SECTION 1: GAMMES ET COLLECTIONS (Atelier 2x2 Grid) */}
               <div>
+                {/* NAYDAY WELCOME PRIVILEGE BANNER */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    window.dispatchEvent(new CustomEvent('open-welcome-offer'));
+                  }}
+                  className="mb-3 w-full text-left rtl:text-right block p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-300/60 shadow-2xs transition-all active:scale-98 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-700 shrink-0">
+                        <Gift size={16} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 block truncate">
+                          {isAr ? 'عرض الترحيب الحصري' : 'OFFRE DE BIENVENUE'}
+                        </span>
+                        <span className="text-xs font-bold text-slate-900 block truncate">
+                          {isAr ? 'خصم 10% مع كود NAYDAY' : '-10% avec le code NAYDAY'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md bg-[#0F172A] text-white shrink-0 font-mono">
+                      NAYDAY
+                    </span>
+                  </div>
+                </button>
+
                 {/* NAY SCENT MATCH HERO BANNER */}
                 <Link
                   href={`/${locale}/scent-match`}
