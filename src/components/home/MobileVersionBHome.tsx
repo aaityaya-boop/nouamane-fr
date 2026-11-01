@@ -270,38 +270,7 @@ export default function MobileVersionBHome({
         key={p.id}
         className="w-[156px] sm:w-[172px] shrink-0 snap-start bg-white rounded-[20px] border border-[#ECEAE4] p-2.5 flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-md transition-all duration-300 relative group"
       >
-        {/* Top Badges / Ranking */}
-        <div className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5 z-10 flex items-center gap-1 pointer-events-none">
-          {options?.rank !== undefined && (
-            <span className="font-body-modern bg-[#111827] text-white text-[7.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
-              N° {options.rank < 10 ? `0${options.rank}` : options.rank}
-            </span>
-          )}
-          {options?.badge && (
-            <span className={`font-body-modern ${options.badgeColor || 'bg-[#0284c7] text-white'} text-[7.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-2xs`}>
-              {options.badge}
-            </span>
-          )}
-        </div>
-
-        {/* Wishlist Heart */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleWishlist(p.slug);
-          }}
-          aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
-          className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5 z-10 w-8 h-8 rounded-full bg-white border border-[#ECEAE4] flex items-center justify-center text-[#111827] hover:text-rose-500 active:scale-85 transition shadow-2xs cursor-pointer"
-        >
-          <Heart 
-            size={13.5} 
-            className={isFav ? "fill-rose-500 text-rose-500" : "text-[#6B7280]"} 
-          />
-        </button>
-
-        {/* Flacon Link (Seamless Pure White Canvas) */}
+        {/* Flacon Link (Seamless Pure White Canvas, 100% empty of any overlays) */}
         <Link
           href={`/${locale}/product/${p.slug}`}
           className="relative w-full h-[166px] overflow-hidden rounded-2xl bg-white flex items-center justify-center my-0.5"
@@ -312,18 +281,51 @@ export default function MobileVersionBHome({
             fill
             sizes="200px"
             unoptimized
-            className="object-contain scale-105 group-hover:scale-110 transition-transform duration-300 mix-blend-multiply"
+            className="object-contain p-2 scale-105 group-hover:scale-110 transition-transform duration-300 mix-blend-multiply"
           />
         </Link>
 
-        {/* Info */}
+        {/* Info & Metadata */}
         <div className="pt-2 border-t border-[#F3F0EA] flex flex-col justify-between flex-1">
           <div>
-            <span className="font-body-modern text-[9px] font-semibold uppercase tracking-[0.16em] text-[#8C827A] block truncate">
-              {p.brandLabel || 'HAUTE PARFUMERIE'}
-            </span>
+            {/* Row 1: Brand & Badge (Left), Heart (Right) */}
+            <div className="flex items-center justify-between gap-1 mb-1 min-w-0">
+              <div className="flex items-center gap-1 min-w-0 truncate">
+                {options?.rank !== undefined && (
+                  <span className="font-body-modern bg-[#111827] text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                    N° {options.rank < 10 ? `0${options.rank}` : options.rank}
+                  </span>
+                )}
+                {options?.badge && (
+                  <span className={`font-body-modern ${options.badgeColor || 'bg-[#0284c7] text-white'} text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0`}>
+                    {options.badge}
+                  </span>
+                )}
+                <span className="font-body-modern text-[8.5px] font-semibold uppercase tracking-[0.14em] text-[#8C827A] truncate">
+                  {p.brandLabel || 'HAUTE PARFUMERIE'}
+                </span>
+              </div>
+
+              {/* Wishlist Heart */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleWishlist(p.slug);
+                }}
+                aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                className="w-6 h-6 rounded-full flex items-center justify-center text-[#111827] hover:text-rose-500 active:scale-85 transition shrink-0 cursor-pointer"
+              >
+                <Heart 
+                  size={13} 
+                  className={isFav ? "fill-rose-500 text-rose-500" : "text-[#9CA3AF]"} 
+                />
+              </button>
+            </div>
+
             <Link href={`/${locale}/product/${p.slug}`}>
-              <h3 className="font-body-modern text-[11.5px] font-bold text-[#111827] line-clamp-2 min-h-[30px] leading-tight mt-0.5 hover:text-[#0284c7] transition">
+              <h3 className="font-body-modern text-[11.5px] font-bold text-[#111827] line-clamp-2 min-h-[30px] leading-tight hover:text-[#0284c7] transition">
                 {p.name}
               </h3>
             </Link>
