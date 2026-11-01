@@ -249,12 +249,12 @@ function OrderConfirmationInner() {
                       key={`${item.id}-${item.size}`}
                       className="flex items-center gap-4 py-4"
                     >
-                      <div className="relative w-16 h-20 bg-transparent rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="relative w-16 h-20 bg-white rounded-xl border border-[#E8E2D6] overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-2xs">
                         <Image
                           src={item.image}
                           alt={item.name}
                           fill
-                          className="object-cover"
+                          className="object-contain scale-115 mix-blend-multiply"
                         />
                       </div>
                       <div className="flex-1 min-w-0">

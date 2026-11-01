@@ -92,12 +92,12 @@ export default function QuickBuyModal({ product, isOpen, onClose }: QuickBuyModa
           {/* Header */}
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#f8fafc] border border-[#e0ddd4] overflow-hidden shrink-0">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border border-[#E8E2D6] overflow-hidden shrink-0 flex items-center justify-center">
                 <Image
                   src={product.images[0] || '/placeholder.jpg'}
                   alt={product.name}
                   fill
-                  className="object-cover"
+                  className="object-contain scale-120 mix-blend-multiply"
                 />
               </div>
               <div>

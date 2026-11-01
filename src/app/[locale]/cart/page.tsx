@@ -58,12 +58,12 @@ function CartFlaconImage({ src, alt }: { src?: string; alt: string }) {
         src={hasError ? fallbackImg : imgSrc}
         alt={alt}
         fill
-        sizes="112px"
+        sizes="110px"
         onError={() => {
           setHasError(true);
           setImgSrc(fallbackImg);
         }}
-        className="object-contain p-1 mix-blend-multiply group-hover:scale-108 transition-transform duration-300 drop-shadow-[0_4px_8px_rgba(0,0,0,0.06)]"
+        className="object-contain scale-125 group-hover:scale-130 transition-transform duration-300 mix-blend-multiply"
       />
     </div>
   );
@@ -284,7 +284,7 @@ export default function CartPage() {
                         {/* Product Flacon Thumbnail in Creative Studio Pedestal */}
                         <Link
                           href={`/${locale}/product/${item.slug}`}
-                          className="w-20 h-24 sm:w-26 sm:h-30 rounded-2xl bg-gradient-to-b from-[#FCFBF9] to-[#F5F2EB] border border-[#ECE7DD] relative overflow-hidden shrink-0 group flex items-center justify-center p-2 shadow-2xs hover:border-[#0ea5e9]/50 transition-all duration-300"
+                          className="w-22 h-24 sm:w-26 sm:h-28 rounded-2xl bg-white border border-[#E8E2D6] relative overflow-hidden shrink-0 group flex items-center justify-center p-1 shadow-2xs hover:border-[#0ea5e9]/50 transition-all duration-300"
                         >
                           <CartFlaconImage
                             src={item.image}

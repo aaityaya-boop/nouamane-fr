@@ -698,8 +698,8 @@ function CheckoutPageInner() {
                 <div className="py-3 space-y-3 max-h-64 overflow-y-auto">
                   {effectiveCart.map((item) => (
                     <div key={`${item.id}-${item.size}`} className="flex items-center gap-3">
-                      <div className="relative w-12 h-14 bg-white rounded-xl border border-[#e0ddd4] overflow-hidden shrink-0">
-                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                      <div className="relative w-12 h-14 bg-white rounded-xl border border-[#E8E2D6] overflow-hidden shrink-0 flex items-center justify-center">
+                        <Image src={item.image} alt={item.name} fill className="object-contain scale-120 mix-blend-multiply" />
                         <span className="absolute -top-1 -right-1 bg-[#1A1A1A] text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold">
                           {item.quantity}
                         </span>
@@ -1051,12 +1051,12 @@ function CheckoutPageInner() {
                       key={`${item.id}-${item.size}`}
                       className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#fafaf7] border border-[#e0ddd4]"
                     >
-                      <div className="relative w-14 h-16 bg-white rounded-xl border border-[#e0ddd4] overflow-hidden shrink-0">
+                      <div className="relative w-14 h-16 bg-white rounded-xl border border-[#E8E2D6] overflow-hidden shrink-0 flex items-center justify-center">
                         <Image
                           src={item.image || '/placeholder.jpg'}
                           alt={item.name}
                           fill
-                          className="object-cover"
+                          className="object-contain scale-120 mix-blend-multiply"
                         />
                         <span className="absolute -top-1 -right-1 bg-[#1A1A1A] text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold">
                           {item.quantity}

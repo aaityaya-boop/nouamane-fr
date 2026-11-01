@@ -164,14 +164,14 @@ export default function CartDrawer() {
                       <Link
                         href={`/${locale}/product/${item.slug}`}
                         onClick={() => setIsOpen(false)}
-                        className="w-20 h-24 bg-[#f8fafc] rounded-xl overflow-hidden flex-shrink-0 relative border border-[#e0ddd4]"
+                        className="w-20 h-24 bg-white rounded-2xl overflow-hidden shrink-0 relative border border-[#E8E2D6] flex items-center justify-center group shadow-2xs"
                       >
                         <Image
                           src={item.image}
                           alt={item.name}
                           fill
                           sizes="80px"
-                          className="object-cover"
+                          className="object-contain scale-120 group-hover:scale-125 transition-transform duration-300 mix-blend-multiply"
                         />
                       </Link>
 
