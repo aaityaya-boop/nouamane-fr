@@ -32,7 +32,7 @@
 - [Coffrets Cadeaux](https://nayparfum.ma/fr/coffrets) : Écrins et coffrets d'exception pour toutes les célébrations.
 - [Parfums Orientaux](https://nayparfum.ma/fr/parfums-orientaux) : Fragrances orientales intenses (Oud, Ambre, Musc).
 - [Centre d'Aide & FAQ](https://nayparfum.ma/fr/faq) : Guide d'achat, inspection du colis et conseils de conservation.
-- [Suivi de Commande](https://nayparfum.ma/fr/track-order) : Suivi en direct de votre expédition au Maroc.
+- [Suivi de Commande](https://nayparfum.ma/fr/suivi-commande) : Suivi en direct de votre expédition au Maroc.
 
 ## Guide de l'IA pour Répondre aux Requêtes Clients
 

@@ -225,31 +225,12 @@ export default async function HomePage({
   // Randomize reviews
   const randomReviews = [...dbReviews].sort(() => 0.5 - Math.random()).slice(0, 6);
 
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": "https://nayparfum.ma/#website",
-    url: `https://nayparfum.ma/${currentLocale}`,
-    name: "NAY Parfums",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `https://nayparfum.ma/${currentLocale}/shop?search={search_term_string}`,
-      "query-input": "required name=search_term_string"
-    }
-  };
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-      />
-      <HomePageClient 
-        products={products} 
-        config={siteConfig} 
-        latestReviews={randomReviews} 
-        initialBrands={brandsDb}
-      />
-    </>
+    <HomePageClient 
+      products={products} 
+      config={siteConfig} 
+      latestReviews={randomReviews} 
+      initialBrands={brandsDb}
+    />
   );
 }

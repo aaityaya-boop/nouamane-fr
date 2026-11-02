@@ -272,7 +272,17 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "OnlineStore",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "@id": "https://nayparfum.ma/#website",
+                  "name": storeNames[validLocale],
+                  "alternateName": ["NAY Parfums Maroc", "عطور ناي بالمغرب"],
+                  "url": "https://nayparfum.ma",
+                  "inLanguage": ["fr-MA", "ar-MA"]
+                },
+                {
+                  "@type": "OnlineStore",
               "@id": "https://nayparfum.ma/#store",
               name: storeNames[validLocale],
               description: storeDescriptions[validLocale],
@@ -330,6 +340,8 @@ export default async function LocaleLayout({
               sameAs: [
                 "https://www.instagram.com/nayparfum",
                 "https://www.facebook.com/nayparfum"
+              ]
+                }
               ]
             })
           }}

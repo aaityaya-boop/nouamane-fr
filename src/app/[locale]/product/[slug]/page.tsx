@@ -266,9 +266,6 @@ export default async function ProductPage({
 
   const productTypeDescription = transformedProduct.isTester ? 'Testeur original' : 'Parfum original scellé';
 
-  const priceValidUntil = new Date();
-  priceValidUntil.setFullYear(priceValidUntil.getFullYear() + 1);
-
   const jsonLd: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -286,7 +283,6 @@ export default async function ProductPage({
       url: `https://nayparfum.ma/${currentLocale}/product/${transformedProduct.slug}`,
       priceCurrency: 'MAD',
       price: transformedProduct.price,
-      priceValidUntil: priceValidUntil.toISOString().split('T')[0],
       itemCondition: 'https://schema.org/NewCondition',
       availability: transformedProduct.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
@@ -335,6 +331,8 @@ export default async function ProductPage({
       '@type': 'AggregateRating',
       ratingValue: transformedProduct.rating.toFixed(1),
       reviewCount: transformedProduct.reviewCount,
+      bestRating: 5,
+      worstRating: 1,
     } : undefined,
   };
 

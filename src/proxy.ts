@@ -98,8 +98,49 @@ export default async function proxy(request: NextRequest) {
     return res;
   }
 
-  // --- 2.5. PERMANENT 301 REDIRECTS (OBSOLETE / LEGACY PRODUCT URLS) ---
-  const legacyProductRedirects: Record<string, string> = {
+  // --- 2.5. PERMANENT 301 REDIRECTS (OBSOLETE / LEGACY PRODUCT & CATEGORY URLS) ---
+  const legacyExactRedirects: Record<string, string> = {
+    // Categories & Catalogues
+    "/categories/hommes": "/fr/shop/men",
+    "/fr/categories/hommes": "/fr/shop/men",
+    "/ar/categories/hommes": "/ar/shop/men",
+    "/categories/femmes": "/fr/shop/women",
+    "/fr/categories/femmes": "/fr/shop/women",
+    "/ar/categories/femmes": "/ar/shop/women",
+    "/categories/unisex": "/fr/shop/unisex",
+    "/fr/categories/unisex": "/fr/shop/unisex",
+    "/ar/categories/unisex": "/ar/shop/unisex",
+    "/catalogue/testeurs": "/fr/testeurs",
+    "/fr/catalogue/testeurs": "/fr/testeurs",
+    "/ar/catalogue/testeurs": "/ar/testeurs",
+    "/collections/oud-oriental": "/fr/parfums-orientaux",
+    "/fr/collections/oud-oriental": "/fr/parfums-orientaux",
+    "/ar/collections/oud-oriental": "/ar/parfums-orientaux",
+    "/blog/top-parfums-homme-longue-tenue": "/fr/blog",
+    "/fr/blog/top-parfums-homme-longue-tenue": "/fr/blog",
+    "/ar/blog/top-parfums-homme-longue-tenue": "/ar/blog",
+    "/track-order": "/fr/suivi-commande",
+    "/fr/track-order": "/fr/suivi-commande",
+    "/ar/track-order": "/ar/suivi-commande",
+    "/privacy": "/fr/legal/privacy",
+    "/terms": "/fr/legal/terms",
+    "/returns": "/fr/legal/returns",
+
+    // Specific product legacy slugs
+    "/products/sauvage-dior": "/fr/product/Sauvage-Eau-De-Parfum",
+    "/fr/products/sauvage-dior": "/fr/product/Sauvage-Eau-De-Parfum",
+    "/product/sauvage-dior": "/fr/product/Sauvage-Eau-De-Parfum",
+    "/fr/product/sauvage-dior": "/fr/product/Sauvage-Eau-De-Parfum",
+    "/products/bleu-de-chanel": "/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester",
+    "/fr/products/bleu-de-chanel": "/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester",
+    "/product/bleu-de-chanel": "/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester",
+    "/fr/product/bleu-de-chanel": "/fr/product/chanel-bleu-de-chanel-eau-de-parfum-tester",
+    "/products/baccarat-rouge-540": "/fr/product/baccarat-rouge-540-tester",
+    "/fr/products/baccarat-rouge-540": "/fr/product/baccarat-rouge-540-tester",
+    "/product/baccarat-rouge-540": "/fr/product/baccarat-rouge-540-tester",
+    "/fr/product/baccarat-rouge-540": "/fr/product/baccarat-rouge-540-tester",
+
+    // Existing legacy redirects
     "/fr/product/Yves-Saint-Laurent-La-Nuit-De-L'Homme-Bleu-Électrique-Eau-de-Toilette": "/fr/product/YSL-La-Nuit-De-L-Homme-Bleu-Électrique-Eau-de-Toilette",
     "/product/Yves-Saint-Laurent-La-Nuit-De-L'Homme-Bleu-Électrique-Eau-de-Toilette": "/fr/product/YSL-La-Nuit-De-L-Homme-Bleu-Électrique-Eau-de-Toilette",
     "/product/Absolu-Aventus-Creed": "/fr/product/Creed-Absolu-Aventus-Tester",
@@ -112,6 +153,49 @@ export default async function proxy(request: NextRequest) {
     "/fr/product/Pack-louis-Vuitton-Imagination%20L'Immensit%C3%A9": "/fr/brands/Louis-Vuitton",
     "/product/Pack-louis-Vuitton-Imagination L'Immensité": "/fr/brands/Louis-Vuitton",
     "/product/Pack-louis-Vuitton-Imagination%20L'Immensit%C3%A9": "/fr/brands/Louis-Vuitton",
+
+    // Sprint 46 verified 1-hop exact redirects for 13 legacy variant slugs with exact catalog matches
+    "/product/Jean Paul Gaultier-jpg-le-male-elixir-tester": "/fr/product/Jean-Paul-Gaultier-jpg-le-male-elixir-tester",
+    "/product/Jean%20Paul%20Gaultier-jpg-le-male-elixir-tester": "/fr/product/Jean-Paul-Gaultier-jpg-le-male-elixir-tester",
+    "/fr/product/Jean Paul Gaultier-jpg-le-male-elixir-tester": "/fr/product/Jean-Paul-Gaultier-jpg-le-male-elixir-tester",
+    "/fr/product/Jean%20Paul%20Gaultier-jpg-le-male-elixir-tester": "/fr/product/Jean-Paul-Gaultier-jpg-le-male-elixir-tester",
+
+    "/product/parfums-de-marly-layton-eau-de-parfum-tester": "/fr/product/layton-parfums-de-marly-layton-eau-de-parfum-tester",
+    "/fr/product/parfums-de-marly-layton-eau-de-parfum-tester": "/fr/product/layton-parfums-de-marly-layton-eau-de-parfum-tester",
+
+    "/product/lost-cherry-tester": "/fr/product/lost-cherry-tom-ford-tester",
+    "/fr/product/lost-cherry-tester": "/fr/product/lost-cherry-tom-ford-tester",
+
+    "/product/cinema-tester": "/fr/product/cinéma-yves-saint-laurent-cinema-tester",
+    "/fr/product/cinema-tester": "/fr/product/cinéma-yves-saint-laurent-cinema-tester",
+
+    "/product/armani-stronger-with-you-intensely-tester": "/fr/product/stronger-with-you-intensely-tester",
+    "/fr/product/armani-stronger-with-you-intensely-tester": "/fr/product/stronger-with-you-intensely-tester",
+
+    "/product/tom-ford-fabulous-tester": "/fr/product/fabulous-tom-ford-tester",
+    "/fr/product/tom-ford-fabulous-tester": "/fr/product/fabulous-tom-ford-tester",
+
+    "/product/yves-saint-laurent-ysl-myself-eau-de-parfum-tester": "/fr/product/yves-saint-laurent-ysl-myslf-eau-de-parfum-tester-1",
+    "/fr/product/yves-saint-laurent-ysl-myself-eau-de-parfum-tester": "/fr/product/yves-saint-laurent-ysl-myslf-eau-de-parfum-tester-1",
+
+    "/product/my-way-tester": "/fr/product/my-way-EDP-tester",
+    "/fr/product/my-way-tester": "/fr/product/my-way-EDP-tester",
+
+    "/product/armani-prive-vert-malachite-eau-de-parfum-tester": "/fr/product/vert-malachite-armani-prive-eau-de-parfum-tester",
+    "/fr/product/armani-prive-vert-malachite-eau-de-parfum-tester": "/fr/product/vert-malachite-armani-prive-eau-de-parfum-tester",
+
+    "/product/dior-sauvage-elixir-eau-de-parfum-tester": "/fr/product/dior-sauvage-elixir-tester",
+    "/fr/product/dior-sauvage-elixir-eau-de-parfum-tester": "/fr/product/dior-sauvage-elixir-tester",
+
+    "/product/dolce-gabbana-the-one-tester": "/fr/product/dolce-gabbana-the-one-eau-de-parfum-tester",
+    "/fr/product/dolce-gabbana-the-one-tester": "/fr/product/dolce-gabbana-the-one-eau-de-parfum-tester",
+
+    "/product/miss-dior-le-parfum-tester": "/fr/product/miss-dior-parfum-tester",
+    "/fr/product/miss-dior-le-parfum-tester": "/fr/product/miss-dior-parfum-tester",
+
+    "/product/black-opium-overed-tester": "/fr/product/black-opium-overed-ysl-tester",
+    "/fr/product/black-opium-overed-tester": "/fr/product/black-opium-overed-ysl-tester",
+    // (Discontinued items without catalog equivalents handled below via explicit HTTP 404 to prevent Soft 404s)
   };
 
   let decodedPath = pathname;
@@ -119,9 +203,52 @@ export default async function proxy(request: NextRequest) {
     decodedPath = decodeURIComponent(pathname);
   } catch {}
 
-  const matchedRedirect = legacyProductRedirects[pathname] || legacyProductRedirects[decodedPath];
+  // Legitimate 404 for discontinued perfumes with no direct catalog equivalent
+  // Follows Google official site migration guidance: avoids Soft 404 degradation on brand hubs
+  const discontinuedGaps = [
+    '/product/dolce-gabbana-the-one-desire-eau-de-parfum-tester',
+    '/fr/product/dolce-gabbana-the-one-desire-eau-de-parfum-tester',
+    '/product/scandal-tester',
+    '/fr/product/scandal-tester',
+    '/product/versace-eros-tester',
+    '/fr/product/versace-eros-tester',
+    '/product/dior-poison-girl-eau-de-parfum-tester',
+    '/fr/product/dior-poison-girl-eau-de-parfum-tester',
+    '/product/yves-saint-laurent-y-le-parfum-tester',
+    '/fr/product/yves-saint-laurent-y-le-parfum-tester',
+    '/product/yves-saint-laurent-myslf-absolu-tester',
+    '/fr/product/yves-saint-laurent-myslf-absolu-tester',
+  ];
+  if (discontinuedGaps.includes(pathname) || discontinuedGaps.includes(decodedPath)) {
+    return NextResponse.rewrite(new URL('/_not-found', request.url), { status: 404 });
+  }
+
+  const matchedRedirect = legacyExactRedirects[pathname] || legacyExactRedirects[decodedPath];
   if (matchedRedirect) {
     return NextResponse.redirect(new URL(`${matchedRedirect}${request.nextUrl.search}`, request.url), 301);
+  }
+
+  // Dynamic regex for plural /products/ -> singular /product/
+  // Handles: /products/:slug, /fr/products/:slug, /ar/products/:slug, /en/products/:slug
+  const pluralProductsMatch = pathname.match(/^(\/(fr|ar|en))?\/products(\/(.*))?$/);
+  if (pluralProductsMatch) {
+    const loc = pluralProductsMatch[2] || defaultLocale;
+    const rest = pluralProductsMatch[3] || '';
+    return NextResponse.redirect(new URL(`/${loc}/product${rest}${request.nextUrl.search}`, request.url), 301);
+  }
+
+  // Dynamic 301 for unlocalized single product: /product/:slug -> /fr/product/:slug
+  const unlocalizedProductMatch = pathname.match(/^\/product(\/(.*))?$/);
+  if (unlocalizedProductMatch) {
+    const rest = unlocalizedProductMatch[1] || '';
+    return NextResponse.redirect(new URL(`/fr/product${rest}${request.nextUrl.search}`, request.url), 301);
+  }
+
+  // Dynamic 301 for unlocalized brands: /brands/:slug -> /fr/brands/:slug
+  const unlocalizedBrandsMatch = pathname.match(/^\/brands(\/(.*))?$/);
+  if (unlocalizedBrandsMatch) {
+    const rest = unlocalizedBrandsMatch[1] || '';
+    return NextResponse.redirect(new URL(`/fr/brands${rest}${request.nextUrl.search}`, request.url), 301);
   }
 
   // --- 3. LOCALE REDIRECTION ---

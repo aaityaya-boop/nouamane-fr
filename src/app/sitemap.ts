@@ -131,6 +131,55 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
       alternates: makeAlternates('/fr/blog', '/ar/blog'),
     },
+    {
+      url: `${baseUrl}/fr/scent-match`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+      alternates: makeAlternates('/fr/scent-match', '/ar/scent-match'),
+    },
+    {
+      url: `${baseUrl}/fr/faq`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      alternates: makeAlternates('/fr/faq', '/ar/faq'),
+    },
+    {
+      url: `${baseUrl}/fr/contact`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.75,
+      alternates: makeAlternates('/fr/contact', '/ar/contact'),
+    },
+    {
+      url: `${baseUrl}/fr/suivi-commande`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.75,
+      alternates: makeAlternates('/fr/suivi-commande', '/ar/suivi-commande'),
+    },
+    {
+      url: `${baseUrl}/fr/legal/privacy`,
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+      alternates: makeAlternates('/fr/legal/privacy', '/ar/legal/privacy'),
+    },
+    {
+      url: `${baseUrl}/fr/legal/returns`,
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+      alternates: makeAlternates('/fr/legal/returns', '/ar/legal/returns'),
+    },
+    {
+      url: `${baseUrl}/fr/legal/terms`,
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+      alternates: makeAlternates('/fr/legal/terms', '/ar/legal/terms'),
+    },
   ];
 
   // 2. Dynamic Product Pages
