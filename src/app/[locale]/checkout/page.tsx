@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useCart, calculatePromoDiscount } from '@/context/CartContext';
 import { formatMAD, MOROCCAN_CITIES } from '@/lib/products';
 import { ALL_COUNTRIES, POPULAR_COUNTRIES, CountryCode } from '@/lib/countryCodes';
+import { validateAndNormalizePhone, formatCheckoutPhone } from '@/lib/phone';
 import Cookies from 'js-cookie';
 import {
   Lock,
@@ -290,7 +291,7 @@ function CheckoutPageInner() {
           items: cart,
           totalValue: subtotal,
           customerName: `${form.firstName} ${form.lastName}`.trim(),
-          customerPhone: `${selectedCountry.dial} ${form.phone.trim()}`,
+          customerPhone: formatCheckoutPhone(form.phone, selectedCountry.dial),
           customerEmail: form.email.trim(),
           customerCity: form.city,
           status: 'ACTIVE',
@@ -379,15 +380,12 @@ function CheckoutPageInner() {
     e.preventDefault();
     if (effectiveCart.length === 0 || isSubmitting) return;
 
-    const cleanPhone = form.phone.replace(/[\s\-\.\(\)]/g, '');
-    if (cleanPhone.length < 6) {
-      alert('Veuillez renseigner un numéro de téléphone WhatsApp valide pour coordonner la livraison.');
+    const fullPhoneNumber = formatCheckoutPhone(form.phone, selectedCountry.dial);
+    const phoneCheck = validateAndNormalizePhone(fullPhoneNumber);
+    if (!phoneCheck.isValid) {
+      alert(phoneCheck.error || 'Veuillez renseigner un numéro de téléphone WhatsApp valide (ex: 06 XX XX XX XX ou 07 XX XX XX XX) pour coordonner la livraison.');
       return;
     }
-
-    const fullPhoneNumber = form.phone.startsWith('+')
-      ? form.phone.trim()
-      : `${selectedCountry.dial} ${form.phone.trim()}`;
 
     if (appliedPromo && !customer) {
       setPendingPromoCode(appliedPromo.code);
@@ -424,7 +422,8 @@ function CheckoutPageInner() {
       });
 
       if (!res.ok) {
-        throw new Error('Order failed');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || errData.message || 'Order failed');
       }
 
       const { orderNumber, invoiceToken } = await res.json();
@@ -488,9 +487,11 @@ function CheckoutPageInner() {
       });
 
       setIsSubmitting(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Une erreur est survenue lors de la validation. Veuillez vérifier vos informations et réessayer.');
+      alert(err?.message && err.message !== 'Order failed'
+        ? err.message
+        : 'Une erreur est survenue lors de la validation. Veuillez vérifier vos informations et réessayer.');
       setIsSubmitting(false);
     }
   };

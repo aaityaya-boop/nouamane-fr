@@ -6,6 +6,7 @@ import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
 import { createAdminNotification } from '@/lib/notificationService';
 import { createInvoiceToken } from '@/lib/orderAuth';
+import { validateAndNormalizePhone } from '@/lib/phone';
 
 /**
  * POST /api/orders — Create a new order.
@@ -48,22 +49,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Moroccan Phone Validation
-    const rawPhone = customerPhone.replace(/\s+/g, '');
-    const phoneRegex = /^(?:(?:\+|00)212|0)[5-7]\d{8}$/;
-    if (!phoneRegex.test(rawPhone)) {
+    // Phone Validation and Normalization (Supports 06, 07, 05, +212, and International)
+    const phoneResult = validateAndNormalizePhone(customerPhone);
+    if (!phoneResult.isValid) {
       return NextResponse.json(
-        { error: 'Numéro de téléphone invalide. Veuillez entrer un numéro marocain valide (ex: 06XXXXXXXX ou +2126XXXXXXXX).' },
+        { error: phoneResult.error || 'Numéro de téléphone invalide. Veuillez entrer un numéro marocain valide (ex: 06XXXXXXXX ou 07XXXXXXXX).' },
         { status: 400 }
       );
     }
-    // Normalize to 06XXXXXXXX format for consistency if it starts with +212 or 00212
-    let normalizedPhone = rawPhone;
-    if (normalizedPhone.startsWith('+212')) {
-      normalizedPhone = '0' + normalizedPhone.slice(4);
-    } else if (normalizedPhone.startsWith('00212')) {
-      normalizedPhone = '0' + normalizedPhone.slice(5);
-    }
+    const normalizedPhone = phoneResult.normalized;
 
     // Generate order number: NF-<timestamp base36>-<random>
     const orderNumber = `NF-${Date.now().toString(36).toUpperCase()}-${Math.floor(

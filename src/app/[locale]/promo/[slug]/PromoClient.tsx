@@ -6,6 +6,7 @@ import Link from 'next/link';
 import LandingHeader from '@/components/landing/LandingHeader';
 import LandingFooter from '@/components/landing/LandingFooter';
 import { formatMAD, Product } from '@/lib/products';
+import { validateAndNormalizePhone } from '@/lib/phone';
 import { 
   Truck, 
   ShieldCheck, 
@@ -142,11 +143,10 @@ export default function PromoClient({
     e.preventDefault();
     setOrderError(null);
 
-    // Validate Moroccan phone number (must start with 05, 06, 07 or +212)
-    const cleanPhone = customerPhone.replace(/\s+/g, '');
-    const phoneRegex = /^(?:(?:\+|00)212|0)[5-7]\d{8}$/;
-    if (!phoneRegex.test(cleanPhone)) {
-      setOrderError('Veuillez entrer un numéro de téléphone marocain valide (ex: 06 12 34 56 78 ou +212 6...)');
+    // Validate and normalize Moroccan or international phone number
+    const phoneResult = validateAndNormalizePhone(customerPhone);
+    if (!phoneResult.isValid) {
+      setOrderError(phoneResult.error || 'Veuillez entrer un numéro de téléphone marocain valide (ex: 06 12 34 56 78 ou 07 XX XX XX XX)');
       return;
     }
 
@@ -164,8 +164,8 @@ export default function PromoClient({
 
       const payload = {
         customerName: customerName.trim(),
-        customerEmail: `${cleanPhone.replace(/[^0-9]/g, '')}@client.nayparfum.ma`,
-        customerPhone: cleanPhone,
+        customerEmail: `${phoneResult.normalized.replace(/[^0-9]/g, '')}@client.nayparfum.ma`,
+        customerPhone: phoneResult.normalized,
         shippingAddress: shippingAddress.trim(),
         shippingCity: shippingCity,
         shippingPostalCode: '20000',

@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
 import { POPULAR_COUNTRIES, ALL_COUNTRIES, type CountryCode } from '@/lib/countryCodes';
+import { formatCheckoutPhone } from '@/lib/phone';
 
 interface SuiviClientProps {
   initialOrderNumber?: string;
@@ -220,13 +221,13 @@ export default function SuiviClient({
       return;
     }
 
-    const fullPhone = `${selectedCountry.dial} ${phoneInput}`.trim();
+    const fullPhone = formatCheckoutPhone(phoneInput, selectedCountry.dial);
     await executeLookup(targetOrder, fullPhone);
   };
 
   const handleRefresh = async () => {
     if (!verifiedOrder) return;
-    const fullPhone = `${selectedCountry.dial} ${phoneInput}`.trim();
+    const fullPhone = formatCheckoutPhone(phoneInput, selectedCountry.dial);
     await executeLookup(verifiedOrder.orderNumber, fullPhone);
   };
 
