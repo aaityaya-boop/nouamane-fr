@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { syncAllPurchaseOrdersExpenses } from '@/lib/syncSupplierExpenses';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin();
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, [
+      'suppliers.manage_payments',
+      'finance.edit_expense',
+      'finance.add_expense',
+    ]);
+    if (errorResponse) return errorResponse;
 
     const result = await syncAllPurchaseOrdersExpenses();
 

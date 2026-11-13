@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { getUnifiedCustomers } from '@/lib/unifiedCustomers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, [
+      'customers.view',
+      'orders.view',
+      'orders.confirm',
+    ]);
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const search = (searchParams.get('q') || '').toLowerCase().trim();

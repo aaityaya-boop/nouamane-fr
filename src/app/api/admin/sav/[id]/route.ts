@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
-import { hasPermission } from '@/lib/auth/rbac/accessControl';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { SAV_CATEGORIES } from '@/lib/sav/savService';
 
 interface RouteContext {
@@ -11,10 +10,8 @@ interface RouteContext {
 export async function GET(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.view')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, ['claims.view', 'orders.view']);
+    if (errorResponse) return errorResponse;
 
     const claim = await prisma.claimTicket.findFirst({
       where: {
@@ -119,10 +116,13 @@ export async function GET(request: Request, context: RouteContext) {
 export async function PUT(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.edit')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'claims.manage',
+      'claims.close_reopen',
+      'claims.assign',
+      'orders.edit',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
 
     const body = await request.json();
     const {
@@ -370,10 +370,8 @@ export async function PUT(request: Request, context: RouteContext) {
 export async function DELETE(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.edit')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, ['claims.close_reopen', 'orders.delete']);
+    if (errorResponse || !admin) return errorResponse!;
 
     const existing = await prisma.claimTicket.findUnique({
       where: { id },

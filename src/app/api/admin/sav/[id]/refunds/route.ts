@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
-import { hasPermission } from '@/lib/auth/rbac/accessControl';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
+import { hasAnyPermission } from '@/lib/auth/rbac/accessControl';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -10,10 +10,13 @@ interface RouteContext {
 export async function POST(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.edit')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'claims.manage',
+      'claims.approve_refund',
+      'orders.refund',
+      'orders.edit',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
 
     const body = await request.json();
     const {
@@ -101,6 +104,12 @@ export async function POST(request: Request, context: RouteContext) {
 
     // 2. CONFIRM REFUND (COMPLETED)
     if (action === 'CONFIRM') {
+      if (!hasAnyPermission(admin, ['claims.approve_refund', 'orders.refund'])) {
+        return NextResponse.json(
+          { error: 'Privilèges insuffisants pour confirmer un remboursement financier.', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
       if (!refundId) {
         return NextResponse.json({ error: 'ID du remboursement requis.' }, { status: 400 });
       }
@@ -208,6 +217,12 @@ export async function POST(request: Request, context: RouteContext) {
 
     // 3. CANCEL REFUND
     if (action === 'CANCEL') {
+      if (!hasAnyPermission(admin, ['claims.approve_refund', 'orders.refund'])) {
+        return NextResponse.json(
+          { error: 'Privilèges insuffisants pour annuler un remboursement financier.', code: 'FORBIDDEN' },
+          { status: 403 }
+        );
+      }
       if (!refundId) {
         return NextResponse.json({ error: 'ID du remboursement requis.' }, { status: 400 });
       }

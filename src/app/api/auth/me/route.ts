@@ -3,20 +3,32 @@ import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-);
+function getCustomerJwtSecret(): Uint8Array {
+  return new TextEncoder().encode(
+    process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
+  );
+}
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('customer_token')?.value;
+    let token: string | undefined;
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get('customer_token')?.value;
+    } catch {
+      const cookieHeader = request?.headers?.get('cookie') || '';
+      const match = cookieHeader.match(/(?:^|;\s*)customer_token=([^;]+)/);
+      if (match) token = decodeURIComponent(match[1]);
+    }
 
     if (!token) {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getCustomerJwtSecret());
+    if (!payload.id || payload.purpose === 'ORDER_TRACKING' || payload.tokenType === 'ADMIN_SESSION') {
+      return NextResponse.json({ authenticated: false }, { status: 401 });
+    }
     
     // Fetch full user details from DB
     const customer = await prisma.customer.findUnique({

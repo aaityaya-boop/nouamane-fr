@@ -18,6 +18,9 @@ export async function PUT(request: Request) {
     }
 
     const { payload } = await jwtVerify(token, JWT_SECRET);
+    if (!payload.id || payload.purpose === 'ORDER_TRACKING' || payload.tokenType === 'ADMIN_SESSION') {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
     const customerId = payload.id as string;
 
     const body = await request.json();

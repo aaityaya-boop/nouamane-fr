@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function GET(request: Request) {
   try {
+    const auth = await requirePermission(request, 'reviews.view');
+    if (!auth.authorized) return auth.response!;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
@@ -148,6 +151,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const auth = await requirePermission(request, 'reviews.moderate');
+    if (!auth.authorized) return auth.response!;
     const body = await request.json();
     const { author, city, productSlug, rating, title, comment, verified } = body;
 

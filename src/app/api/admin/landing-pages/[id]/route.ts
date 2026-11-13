@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAnyPermission, requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_landing_pages']);
+    if (!auth.authorized) return auth.response!;
     const id = (await params).id;
     const page = await prisma.landingPage.findUnique({
       where: { id }
@@ -19,6 +22,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_landing_pages');
+    if (!auth.authorized) return auth.response!;
     const id = (await params).id;
     const body = await req.json();
 
@@ -48,6 +53,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_landing_pages');
+    if (!auth.authorized) return auth.response!;
     const id = (await params).id;
     await prisma.landingPage.delete({
       where: { id }

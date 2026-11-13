@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import prisma from '@/lib/prisma';
@@ -49,11 +49,10 @@ export default async function BlogPostPreviewPage({
 }: {
   params: Promise<{ id: string; locale?: string }>;
 }) {
-  const cookieStore = await cookies();
-  const isAdmin = cookieStore.has('admin_token') || cookieStore.has('admin_session');
+  const admin = await getAuthenticatedAdmin();
 
-  // If not admin, do not reveal drafts
-  if (!isAdmin) {
+  // If not an authenticated active admin, do not reveal drafts
+  if (!admin) {
     redirect('/admin/login');
   }
 

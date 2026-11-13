@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { errorResponse } = await requireAnyPermission(request, ['products.edit', 'products.edit_price']);
+    if (errorResponse) return errorResponse;
+
     const { id } = await params;
     const body = await request.json();
     
@@ -146,6 +150,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { errorResponse } = await requirePermission(request, 'products.delete');
+    if (errorResponse) return errorResponse;
+
     const { id } = await params;
     const productId = parseInt(id, 10);
     

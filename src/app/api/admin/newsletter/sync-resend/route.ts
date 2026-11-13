@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,8 +10,10 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_newsletter');
+    if (!auth.authorized) return auth.response!;
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'Clé Resend manquante' }, { status: 500 });

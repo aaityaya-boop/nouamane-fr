@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { cookies } from 'next/headers';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { errorResponse } = await requireAnyPermission(request, ['marketing.view', 'marketing.manage_seo']);
+    if (errorResponse) return errorResponse;
+
     const { id } = await params;
     const post = await prisma.blogPost.findUnique({
       where: { id }
@@ -19,10 +22,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const cookieStore = await cookies();
-    if (!cookieStore.has('admin_token') && !cookieStore.has('admin_session')) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requirePermission(request, 'marketing.manage_seo');
+    if (errorResponse) return errorResponse;
 
     const { id } = await params;
     const data = await request.json();
@@ -55,10 +56,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const cookieStore = await cookies();
-    if (!cookieStore.has('admin_token') && !cookieStore.has('admin_session')) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requirePermission(request, 'marketing.manage_seo');
+    if (errorResponse) return errorResponse;
 
     const { id } = await params;
     await prisma.blogPost.delete({

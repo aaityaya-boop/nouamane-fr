@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAnyPermission, requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const auth = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_landing_pages']);
+    if (!auth.authorized) return auth.response!;
     const pages = await prisma.landingPage.findMany({
       orderBy: { createdAt: 'desc' }
     });
@@ -17,6 +20,8 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_landing_pages');
+    if (!auth.authorized) return auth.response!;
     const body = await req.json();
     const productSlugsData = typeof body.productSlugs === 'string'
       ? body.productSlugs

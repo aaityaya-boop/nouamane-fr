@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { crawlUrl, processCrawlResult } from "@/lib/seo-ai/crawler";
+import { requirePermission } from "@/lib/auth/rbac/serverGuard";
 
 export async function POST(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const { url } = await request.json();
 
     if (!url) {

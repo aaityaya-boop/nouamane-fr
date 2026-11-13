@@ -1,11 +1,29 @@
 import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
+import { ALL_ROLES } from './rbac/roles';
 
-const JWT_SECRET_STRING = process.env.JWT_SECRET || 'nouamane_super_secret_key_2024';
-const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
+function getAdminJwtSecret(): Uint8Array {
+  const secretString = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'nouamane_super_secret_key_2024';
+  return new TextEncoder().encode(secretString);
+}
+
+export const VALID_ADMIN_ROLES = new Set<string>([
+  ...ALL_ROLES.map((r) => r.id.toUpperCase()),
+  'SUPER_ADMIN',
+  'ADMIN',
+  'STAFF',
+]);
+
+export function isValidAdminRole(role: unknown): role is string {
+  if (typeof role !== 'string' || !role.trim()) return false;
+  const normalized = role.trim().toUpperCase();
+  if (normalized === 'AMBASSADOR' || normalized === 'CUSTOMER') return false;
+  return VALID_ADMIN_ROLES.has(normalized);
+}
 
 export interface AdminJWTPayload {
+  tokenType?: 'ADMIN_SESSION';
   userId: string;
   name: string;
   email: string;
@@ -57,6 +75,7 @@ export async function createAdminToken(payload: AdminJWTPayload, rememberMe: boo
     : null;
 
   return new SignJWT({
+    tokenType: 'ADMIN_SESSION',
     userId: payload.userId,
     name: payload.name,
     email: payload.email,
@@ -66,21 +85,37 @@ export async function createAdminToken(payload: AdminJWTPayload, rememberMe: boo
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(expiration)
-    .sign(JWT_SECRET);
+    .sign(getAdminJwtSecret());
 }
 
 /**
- * Verify a JWT and extract payload
+ * Verify a JWT and extract payload.
+ * Strictly rejects customer, order-tracking, and ambassador tokens.
  */
 export async function verifyAdminToken(token: string): Promise<AdminJWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getAdminJwtSecret());
     if (!payload || typeof payload !== 'object') return null;
+
+    // Reject tokens created for other purposes (e.g., ORDER_TRACKING or CUSTOMER_SESSION)
+    if (payload.purpose && payload.purpose !== 'ADMIN_SESSION') return null;
+    if (payload.tokenType && payload.tokenType !== 'ADMIN_SESSION') return null;
+
+    const userId = typeof payload.userId === 'string' ? payload.userId.trim() : '';
+    const email = typeof payload.email === 'string' ? payload.email.trim() : '';
+    const role = typeof payload.role === 'string' ? payload.role.trim() : '';
+
+    // Legitimate admin tokens always carry explicit userId, email, and a valid admin role
+    if (!userId || !email || !isValidAdminRole(role)) {
+      return null;
+    }
+
     return {
-      userId: (payload.userId as string) || (payload.sub as string) || '',
+      tokenType: 'ADMIN_SESSION',
+      userId,
       name: (payload.name as string) || 'Admin',
-      email: (payload.email as string) || '',
-      role: (payload.role as string) || 'OWNER',
+      email,
+      role,
       avatar: (payload.avatar as string) || null,
     };
   } catch {
@@ -145,7 +180,8 @@ export async function getAuthenticatedAdmin(req?: Request): Promise<AdminUserSaf
       },
     });
 
-    if (!user || user.status !== 'ACTIVE') return null;
+    if (!user || user.status !== 'ACTIVE' || !isValidAdminRole(user.role)) return null;
+    if (payload.email && user.email.toLowerCase() !== payload.email.toLowerCase()) return null;
 
     // Throttle updating lastActivityAt (every 30s)
     const now = new Date();
@@ -164,15 +200,19 @@ export async function getAuthenticatedAdmin(req?: Request): Promise<AdminUserSaf
 }
 
 /**
- * Default Seed for the Two Owners
+ * Default Seed for the Two Owners (Disabled in production)
  */
 export async function seedDefaultOwnersIfEmpty(): Promise<void> {
+  if (process.env.NODE_ENV === 'production') {
+    return;
+  }
   try {
     const count = await prisma.adminUser.count();
-    if (count >= 2) return;
+    if (count > 0) return;
 
-    const defaultPassword = 'NayParfum2026!';
-    const defaultHash = await hashPassword(defaultPassword);
+    const initialPassword = process.env.INITIAL_ADMIN_PASSWORD;
+    if (!initialPassword) return;
+    const defaultHash = await hashPassword(initialPassword);
 
     const owners = [
       {

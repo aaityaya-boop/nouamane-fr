@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
-import { hasPermission } from '@/lib/auth/rbac/accessControl';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { safeJsonParse } from '@/lib/sav/savService';
 
 interface RouteContext {
@@ -11,10 +10,12 @@ interface RouteContext {
 export async function POST(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.edit')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'claims.manage',
+      'claims.create',
+      'orders.edit',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
 
     const body = await request.json();
     const { name, url, type = 'IMAGE', size } = body;

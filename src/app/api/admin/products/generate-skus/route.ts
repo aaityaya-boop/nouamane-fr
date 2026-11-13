@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function POST(request: Request) {
   try {
+    const { errorResponse } = await requirePermission(request, 'products.edit');
+    if (errorResponse) return errorResponse;
+
     const products = await prisma.product.findMany({
       where: {
         OR: [

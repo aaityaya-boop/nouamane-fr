@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { recordStatusTransition, generateFallbackTimeline } from '@/lib/orders/timeline';
 import { createAdminNotification } from '@/lib/notificationService';
 
 export async function GET(request: Request) {
   try {
+    const { errorResponse } = await requirePermission(request, 'orders.view');
+    if (errorResponse) return errorResponse;
+
     const orders = await prisma.order.findMany({
       include: {
         timeline: {
@@ -35,7 +38,16 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'orders.edit',
+      'orders.change_status',
+      'orders.confirm',
+      'orders.prepare',
+      'orders.cancel',
+      'orders.refund',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
+
     const body = await request.json();
     const { id, status, customerName, city, total, carrier, trackingNumber, customNote, actorNameOverride } = body;
 
@@ -189,5 +201,105 @@ export async function PUT(request: Request) {
   } catch (error) {
     console.error('Error updating admin order:', error);
     return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { user: admin, errorResponse } = await requirePermission(request, 'orders.delete');
+    if (errorResponse || !admin) return errorResponse!;
+
+    const body = await request.json().catch(() => ({}));
+    const { searchParams } = new URL(request.url);
+    const id = body.id || searchParams.get('id');
+    const ids: string[] = body.ids || (id ? [id] : []);
+    const deleteTestOnly = body.deleteTestOnly || searchParams.get('deleteTestOnly') === 'true';
+
+    let targetIds: string[] = [];
+
+    if (deleteTestOnly) {
+      // Find all test/fake orders in the DB
+      const allOrders = await prisma.order.findMany({
+        select: {
+          id: true,
+          orderNumber: true,
+          customerName: true,
+          customerEmail: true,
+          customerPhone: true,
+          shippingAddress: true,
+          status: true,
+        },
+      });
+
+      const testOrders = allOrders.filter((order) => {
+        const name = (order.customerName || '').toLowerCase();
+        const email = (order.customerEmail || '').toLowerCase();
+        const num = (order.orderNumber || '').toUpperCase();
+        const phone = (order.customerPhone || '').replace(/\D/g, '');
+        const addr = (order.shippingAddress || '').toLowerCase();
+
+        return (
+          name.includes('test') ||
+          name.includes('fake') ||
+          name.includes('essai') ||
+          name.includes('demo') ||
+          email.includes('test') ||
+          email.includes('fake') ||
+          email.includes('example.com') ||
+          num.includes('TEST') ||
+          phone === '0000000000' ||
+          phone === '0600000000' ||
+          phone === '123456789' ||
+          addr.includes('test address') ||
+          addr.includes('adresse test') ||
+          order.status === 'test'
+        );
+      });
+
+      targetIds = testOrders.map((o) => o.id);
+    } else {
+      targetIds = ids;
+    }
+
+    if (!targetIds || targetIds.length === 0) {
+      return NextResponse.json({ error: 'Aucune commande à supprimer trouvée.' }, { status: 400 });
+    }
+
+    // Perform transaction delete
+    await prisma.$transaction(async (tx) => {
+      // Delete timeline events
+      await tx.orderTimelineEvent.deleteMany({
+        where: { orderId: { in: targetIds } },
+      });
+      // Delete claim refunds associated with these orders
+      await tx.claimRefund.deleteMany({
+        where: { orderId: { in: targetIds } },
+      });
+      // Delete claims associated
+      await tx.claimTicket.deleteMany({
+        where: { orderId: { in: targetIds } },
+      });
+      // Delete the orders
+      await tx.order.deleteMany({
+        where: { id: { in: targetIds } },
+      });
+    });
+
+    // Notify audit
+    createAdminNotification({
+      type: 'ORDER',
+      title: 'Suppression de commandes 🗑️',
+      message: `${targetIds.length} commande(s) ${deleteTestOnly ? 'test / factice(s)' : ''} ont été définitivement supprimées par ${admin?.name || 'Admin'}.`,
+      link: '/admin/orders',
+    }).catch(() => {});
+
+    return NextResponse.json({
+      success: true,
+      deletedCount: targetIds.length,
+      deletedIds: targetIds,
+    });
+  } catch (error) {
+    console.error('Error deleting order(s):', error);
+    return NextResponse.json({ error: 'Échec de la suppression des commandes' }, { status: 500 });
   }
 }

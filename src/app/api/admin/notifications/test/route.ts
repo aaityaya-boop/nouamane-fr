@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createAdminNotification } from '@/lib/notificationService';
+import { requireAdmin } from '@/lib/auth/rbac/serverGuard';
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAdmin(req);
+    if (!auth.authorized) return auth.response!;
     const body = await req.json().catch(() => ({}));
     const testType = body.type || 'ORDER';
 

@@ -3,9 +3,13 @@ import prisma from '@/lib/prisma';
 import { testMetaConnection } from '@/lib/ads/meta-api';
 import { testTikTokConnection } from '@/lib/ads/tiktok-api';
 import { testGoogleConnection } from '@/lib/ads/google-api';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { errorResponse } = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_campaigns']);
+    if (errorResponse) return errorResponse;
+
     const integrations = await prisma.adAccountIntegration.findMany({
       orderBy: { platform: 'asc' },
     });
@@ -26,6 +30,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const { errorResponse } = await requirePermission(req, 'marketing.manage_campaigns');
+    if (errorResponse) return errorResponse;
+
     const body = await req.json();
     const { platform, accountId, accessToken, pixelId, currency, exchangeRateToMAD, accountName, testOnly } = body;
 

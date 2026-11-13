@@ -1,9 +1,12 @@
 import { NextRequest } from 'next/server';
 import { notificationEmitter } from '@/lib/realtimeEvents';
+import { requireAdmin } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.authorized) return auth.response!;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({

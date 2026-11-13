@@ -67,6 +67,7 @@ export async function POST(request: Request) {
 
     // 3. Issue our standard internal JWT so the rest of the app works flawlessly
     const token = await new SignJWT({ 
+      tokenType: 'CUSTOMER_SESSION',
       id: customer.id, 
       email: customer.email, 
       name: customer.name,

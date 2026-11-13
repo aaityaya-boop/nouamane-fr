@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const auth = await requirePermission(request, 'messages.view');
+    if (!auth.authorized) return auth.response!;
     const messages = await prisma.contactMessage.findMany({
       orderBy: { createdAt: 'desc' }
     });
@@ -15,6 +18,8 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const auth = await requirePermission(request, 'messages.reply');
+    if (!auth.authorized) return auth.response!;
     const body = await request.json();
     const { id, status } = body;
 

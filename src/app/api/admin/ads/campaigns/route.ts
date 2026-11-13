@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { syncAdSpendToAdminExpense } from '@/lib/ads/ad-sync-service';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function GET(req: Request) {
   try {
+    const { errorResponse } = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_campaigns']);
+    if (errorResponse) return errorResponse;
+
     const { searchParams } = new URL(req.url);
     const platform = searchParams.get('platform');
     const status = searchParams.get('status');
@@ -31,6 +35,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const { errorResponse } = await requirePermission(req, 'marketing.manage_campaigns');
+    if (errorResponse) return errorResponse;
+
     const body = await req.json();
     const {
       name,

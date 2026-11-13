@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requirePermission } from "@/lib/auth/rbac/serverGuard";
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const origin = new URL(request.url).origin;
     const sitemapUrl = `${origin}/sitemap.xml`;
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -197,10 +197,8 @@ const analyticsCache = new Map<string, AnalyticsCacheEntry>();
 
 export async function GET(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requirePermission(request, 'dashboard.view');
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || '30d';

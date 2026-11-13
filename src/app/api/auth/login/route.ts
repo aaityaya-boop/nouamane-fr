@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 
     // Generate JWT
     const token = await new SignJWT({ 
+      tokenType: 'CUSTOMER_SESSION',
       id: customer.id, 
       email: customer.email, 
       name: customer.name,

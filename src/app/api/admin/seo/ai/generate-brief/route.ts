@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const body = await req.json();
     const { opportunityId } = body;
 

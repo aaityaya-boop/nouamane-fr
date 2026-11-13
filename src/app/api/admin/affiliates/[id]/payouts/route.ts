@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { cookies } from 'next/headers';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  const { errorResponse } = await requireAnyPermission(request, ['marketing.manage_affiliates', 'finance.add_expense']);
+  if (errorResponse) return errorResponse;
 
   try {
     const affiliate = await prisma.affiliate.findUnique({

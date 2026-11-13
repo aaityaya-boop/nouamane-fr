@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { recordTimelineEvent } from '@/lib/orders/timeline';
 
 export async function POST(
@@ -9,7 +9,13 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const admin = await getAuthenticatedAdmin(request);
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'orders.manage_attachments',
+      'orders.edit',
+      'orders.prepare',
+      'orders.confirm',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
     const body = await request.json();
     const { attachmentUrl, attachmentName, attachmentType, description, actorNameOverride } = body;
 

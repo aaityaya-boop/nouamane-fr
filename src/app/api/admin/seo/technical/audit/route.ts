@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const auth = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_seo']);
+    if (!auth.authorized) return auth.response!;
     const startTime = Date.now();
 
     // 1. Query real DB counts

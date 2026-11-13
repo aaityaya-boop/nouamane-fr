@@ -3,6 +3,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { PRODUCTS } from '@/lib/products';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -279,6 +280,8 @@ function generateSmartFallbackLandingPage(
 
 export async function POST(req: Request) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_landing_pages');
+    if (!auth.authorized) return auth.response!;
     const body: GenerateLandingPageRequest = await req.json();
     const { mode, selectedProductSlug, customProduct, angle } = body;
 

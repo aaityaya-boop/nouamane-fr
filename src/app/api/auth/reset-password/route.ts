@@ -69,6 +69,7 @@ export async function POST(request: Request) {
 
     // Generate JWT auth token to automatically log the customer in
     const token = await new SignJWT({
+      tokenType: 'CUSTOMER_SESSION',
       id: updatedCustomer.id,
       email: updatedCustomer.email,
       name: updatedCustomer.name,

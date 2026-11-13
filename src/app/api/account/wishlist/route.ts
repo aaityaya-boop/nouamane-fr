@@ -22,6 +22,9 @@ export async function PUT(request: Request) {
     try {
       const verified = await jwtVerify(token, JWT_SECRET);
       payload = verified.payload;
+      if (!payload.id || payload.purpose === 'ORDER_TRACKING' || payload.tokenType === 'ADMIN_SESSION') {
+        return NextResponse.json({ error: 'Session invalide' }, { status: 401 });
+      }
     } catch (e) {
       return NextResponse.json({ error: 'Session invalide' }, { status: 401 });
     }

@@ -1,9 +1,27 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { REVIEWS } from '@/lib/reviews';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const { user, errorResponse } = await requirePermission(request, 'settings.manage_security');
+    if (errorResponse || !user) return errorResponse!;
+
+    if (user.role !== 'OWNER' && user.role !== 'CO_OWNER') {
+      return NextResponse.json(
+        { error: 'Seuls les fondateurs (OWNER) peuvent exécuter cette opération.', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
+
+    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_PRODUCTION_SEED !== 'true') {
+      return NextResponse.json(
+        { error: 'Les opérations de seed sont désactivées en production.', code: 'PRODUCTION_SEED_DISABLED' },
+        { status: 403 }
+      );
+    }
+
     let count = 0;
     
     for (const review of REVIEWS) {

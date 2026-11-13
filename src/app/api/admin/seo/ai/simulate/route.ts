@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const { prompt, platform = 'ChatGPT' } = await req.json();
 
     if (!prompt || typeof prompt !== 'string') {

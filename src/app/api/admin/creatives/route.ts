@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { logAdminActivity } from '@/lib/activityLogger';
 import prisma from '@/lib/prisma';
 
 export async function GET(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, [
+      'marketing.view',
+      'marketing.manage_creatives',
+      'marketing.manage_campaigns',
+    ]);
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const platform = searchParams.get('platform') || 'ALL';
@@ -79,10 +81,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'marketing.manage_creatives',
+      'marketing.manage_campaigns',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
 
     const body = await request.json();
     const {

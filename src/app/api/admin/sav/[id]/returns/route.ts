@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { hasPermission } from '@/lib/auth/rbac/accessControl';
 
 interface RouteContext {
@@ -10,10 +10,13 @@ interface RouteContext {
 export async function POST(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.edit')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'claims.restock',
+      'claims.manage',
+      'inventory.adjust',
+      'orders.edit',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
 
     const body = await request.json();
     const {
@@ -132,7 +135,7 @@ export async function POST(request: Request, context: RouteContext) {
           }
 
           // Check permissions for restock
-          if (!hasPermission(admin, 'inventory.adjust') && !hasPermission(admin, 'orders.edit')) {
+          if (!hasPermission(admin, 'inventory.adjust') && !hasPermission(admin, 'claims.restock') && !hasPermission(admin, 'orders.edit')) {
             throw new Error('Vous n\'avez pas la permission de réintégrer des articles en stock.');
           }
 

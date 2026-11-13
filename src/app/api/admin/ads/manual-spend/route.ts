@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { syncAdSpendToAdminExpense } from '@/lib/ads/ad-sync-service';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function POST(req: Request) {
   try {
+    const { errorResponse } = await requireAnyPermission(req, ['marketing.manage_campaigns', 'finance.add_expense']);
+    if (errorResponse) return errorResponse;
+
     const body = await req.json();
     const { platform, date, spend, impressions, clicks, conversions, revenue, notes } = body;
 

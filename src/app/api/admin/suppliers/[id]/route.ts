@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const admin = await getAuthenticatedAdmin();
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, ['suppliers.view', 'inventory.suppliers']);
+    if (errorResponse) return errorResponse;
 
     const { id } = await params;
     const supplier = await prisma.supplier.findUnique({
@@ -34,10 +32,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const admin = await getAuthenticatedAdmin();
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requirePermission(request, 'suppliers.edit');
+    if (errorResponse) return errorResponse;
 
     const { id } = await params;
     const data = await request.json();
@@ -84,10 +80,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const admin = await getAuthenticatedAdmin();
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requirePermission(request, 'suppliers.delete');
+    if (errorResponse) return errorResponse;
 
     const { id } = await params;
     await prisma.supplier.delete({

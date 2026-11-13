@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getGscClient } from '@/lib/gsc';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function POST(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const settings = await prisma.seoSettings.findFirst();
     if (!settings || !settings.googleSearchConsoleConnected || !settings.googlePropertyUrl) {
       return NextResponse.json({ error: 'Google Search Console not connected' }, { status: 400 });

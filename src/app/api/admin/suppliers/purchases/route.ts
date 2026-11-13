@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { syncPurchaseOrderExpense, deletePurchaseOrderExpense } from '@/lib/syncSupplierExpenses';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin();
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, [
+      'suppliers.create',
+      'suppliers.edit',
+      'inventory.suppliers',
+    ]);
+    if (errorResponse) return errorResponse;
 
     const data = await request.json();
     const { 
@@ -134,10 +136,11 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin();
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, [
+      'suppliers.edit',
+      'suppliers.manage_payments',
+    ]);
+    if (errorResponse) return errorResponse;
 
     const data = await request.json();
     const { 
@@ -222,10 +225,11 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin();
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, [
+      'suppliers.delete',
+      'suppliers.manage_payments',
+    ]);
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

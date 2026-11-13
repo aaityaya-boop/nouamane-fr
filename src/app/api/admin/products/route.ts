@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 async function createSectionCopies(source: any, pendingSections: any) {
   if (!pendingSections) return;
@@ -92,6 +93,9 @@ async function createSectionCopies(source: any, pendingSections: any) {
 
 export async function GET(request: Request) {
   try {
+    const { errorResponse } = await requirePermission(request, 'products.view');
+    if (errorResponse) return errorResponse;
+
     const products = await prisma.product.findMany({
       orderBy: { createdAt: 'desc' },
     });
@@ -103,6 +107,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const { errorResponse } = await requirePermission(request, 'products.create');
+    if (errorResponse) return errorResponse;
+
     const body = await request.json();
     
     // Convert arrays/objects to JSON strings for SQLite

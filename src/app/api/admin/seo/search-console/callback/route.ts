@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getOAuth2Client } from '@/lib/gsc';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 const encrypt = (text: string) => Buffer.from(text).toString('base64');
 
 export async function GET(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
 

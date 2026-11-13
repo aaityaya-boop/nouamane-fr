@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getOrGenerateAiVisibilityData } from '@/lib/seo/aiVisibilityService';
+import { requireAnyPermission, requirePermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_seo']);
+    if (!auth.authorized) return auth.response!;
     const data = await getOrGenerateAiVisibilityData();
     return NextResponse.json({ success: true, data });
   } catch (error) {
@@ -14,6 +17,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     // 1. Audit catalog
     const [productsCount, productsWithNotes, siteConfig] = await Promise.all([
       prisma.product.count(),

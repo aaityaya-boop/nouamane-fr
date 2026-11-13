@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { errorResponse } = await requirePermission(req, 'products.view');
+    if (errorResponse) return errorResponse;
+
     const brands = await prisma.brand.findMany({
       orderBy: { createdAt: 'desc' }
     });
@@ -14,6 +18,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const { errorResponse } = await requireAnyPermission(req, ['products.create', 'products.edit']);
+    if (errorResponse) return errorResponse;
+
     const data = await req.json();
     const { slug, name, label, description, image } = data;
 

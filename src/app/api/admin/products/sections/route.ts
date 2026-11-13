@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,10 +23,8 @@ function normalizeName(name: string): string {
  */
 export async function GET(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requirePermission(request, 'products.view');
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const name = searchParams.get('name') || '';
@@ -97,10 +95,8 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, ['products.create', 'products.edit']);
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const { sourceProductId, targetSection, price, stock, originalPrice } = body;

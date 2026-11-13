@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 const BlogGenerationSchema = z.object({
   title: z.string().describe("Titre accrocheur et optimisé SEO pour le marché marocain"),
@@ -95,11 +95,8 @@ function generateSmartMoroccanContent(topic: string, category: string, tone: str
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    // Allow either admin_token or admin_session for safety
-    if (!cookieStore.has('admin_token') && !cookieStore.has('admin_session')) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-    }
+    const { errorResponse } = await requirePermission(request, 'marketing.manage_seo');
+    if (errorResponse) return errorResponse;
 
     const body = await request.json();
     const { 

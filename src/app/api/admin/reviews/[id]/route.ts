@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requirePermission(request, 'reviews.moderate');
+    if (!auth.authorized) return auth.response!;
     const { id } = await params;
     const reviewId = parseInt(id, 10);
     const body = await request.json();
@@ -72,6 +75,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requirePermission(request, 'reviews.moderate');
+    if (!auth.authorized) return auth.response!;
     const { id } = await params;
     const reviewId = parseInt(id, 10);
 

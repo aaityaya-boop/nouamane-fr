@@ -4,6 +4,17 @@ import { verifyPassword, createAdminToken, seedDefaultOwnersIfEmpty } from '@/li
 import { logAdminActivity } from '@/lib/activityLogger';
 import { createAdminNotification } from '@/lib/notificationService';
 
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const MAX_FAILED_ATTEMPTS = 8;
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+
+const REJECTED_FALLBACK_PASSWORDS = new Set(['nouamane2024', 'NayParfum2026!']);
+
+function getRateLimitKey(request: Request, identifier: string): string {
+  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  return `${forwarded}:${identifier}`;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -18,36 +29,54 @@ export async function POST(request: Request) {
       );
     }
 
-    // Ensure initial owner accounts exist in database
-    try {
-      await seedDefaultOwnersIfEmpty();
-    } catch (e) {
-      console.error('Seed error:', e);
+    const rateKey = getRateLimitKey(request, identifier);
+    const nowMs = Date.now();
+    const attemptEntry = loginAttempts.get(rateKey);
+    if (attemptEntry && attemptEntry.resetAt > nowMs && attemptEntry.count >= MAX_FAILED_ATTEMPTS) {
+      return NextResponse.json(
+        { error: 'Trop de tentatives de connexion. Veuillez réessayer dans quelques minutes.' },
+        { status: 429 }
+      );
     }
 
-    // 1. Find user in AdminUser table
-    let user = await prisma.adminUser.findFirst({
+    // Explicitly reject retired hardcoded fallback passwords
+    if (REJECTED_FALLBACK_PASSWORDS.has(password)) {
+      const prev = loginAttempts.get(rateKey);
+      loginAttempts.set(rateKey, {
+        count: prev && prev.resetAt > nowMs ? prev.count + 1 : 1,
+        resetAt: nowMs + LOGIN_WINDOW_MS,
+      });
+      return NextResponse.json(
+        { error: 'Identifiant ou mot de passe incorrect.' },
+        { status: 401 }
+      );
+    }
+
+    // Ensure initial owner accounts exist only in non-production environments if empty
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        await seedDefaultOwnersIfEmpty();
+      } catch (e) {
+        console.error('Seed error:', e);
+      }
+    }
+
+    // 1. Find user in AdminUser table by exact case-insensitive email match
+    const user = await prisma.adminUser.findFirst({
       where: {
-        OR: [
-          { email: { equals: identifier, mode: 'insensitive' } },
-          { email: { startsWith: identifier, mode: 'insensitive' } },
-          { name: { contains: identifier, mode: 'insensitive' } },
-        ],
+        email: { equals: identifier, mode: 'insensitive' },
       },
     });
 
-    // Fallback for generic "admin"
-    if (!user && (identifier === 'admin' || identifier === 'contact@nayparfum.ma')) {
-      user = await prisma.adminUser.findFirst({
-        where: { role: 'OWNER' },
-        orderBy: { createdAt: 'asc' },
-      });
-    }
-
     if (!user) {
+      const prev = loginAttempts.get(rateKey);
+      loginAttempts.set(rateKey, {
+        count: prev && prev.resetAt > nowMs ? prev.count + 1 : 1,
+        resetAt: nowMs + LOGIN_WINDOW_MS,
+      });
       return NextResponse.json(
-        { error: 'Compte administrateur introuvable.' },
-        { status: 404 }
+        { error: 'Identifiant ou mot de passe incorrect.' },
+        { status: 401 }
       );
     }
 
@@ -58,29 +87,29 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Verify password
+    // 2. Strictly verify password against bcrypt hash (no hardcoded/legacy fallbacks)
     let isMatch = false;
     try {
-      isMatch = await verifyPassword(password, user.passwordHash);
+      if (user.passwordHash) {
+        isMatch = await verifyPassword(password, user.passwordHash);
+      }
     } catch {
       isMatch = false;
     }
-    
-    // Master pass / Default fallback
-    if (!isMatch) {
-      const config = await prisma.siteConfig.findFirst().catch(() => null);
-      const legacyPass = config?.adminPassword || 'nouamane2024';
-      if (password === legacyPass || password === 'nouamane2024' || password === 'NayParfum2026!') {
-        isMatch = true;
-      }
-    }
 
     if (!isMatch) {
+      const prev = loginAttempts.get(rateKey);
+      loginAttempts.set(rateKey, {
+        count: prev && prev.resetAt > nowMs ? prev.count + 1 : 1,
+        resetAt: nowMs + LOGIN_WINDOW_MS,
+      });
       return NextResponse.json(
         { error: 'Mot de passe incorrect pour ce compte.' },
         { status: 401 }
       );
     }
+
+    loginAttempts.delete(rateKey);
 
     // 3. Update timestamps
     const now = new Date();

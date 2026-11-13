@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSeoAiProvider } from "@/lib/seo-ai/provider";
 import prisma from "@/lib/prisma";
+import { requirePermission } from "@/lib/auth/rbac/serverGuard";
 
 export async function POST(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const body = await request.json();
     const { productId } = body;
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requirePermission(req, 'messages.view');
+    if (!auth.authorized) return auth.response!;
     const { id } = await params;
     const resendApiKey = await getEffectiveResendKey();
 

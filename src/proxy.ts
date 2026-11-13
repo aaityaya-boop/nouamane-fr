@@ -5,9 +5,60 @@ import { jwtVerify } from 'jose';
 const locales = ['fr', 'en', 'ar'];
 const defaultLocale = 'fr';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-);
+function getAdminJwtSecret(): Uint8Array {
+  return new TextEncoder().encode(
+    process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
+  );
+}
+
+const VALID_ADMIN_ROLES = new Set<string>([
+  'OWNER',
+  'CO_OWNER',
+  'GENERAL_MANAGER',
+  'OPERATIONS_MANAGER',
+  'STOCK_MANAGER',
+  'INVENTORY_ASSISTANT',
+  'ORDER_CONFIRMATION_LEAD',
+  'ORDER_CONFIRMATION_AGENT',
+  'ORDER_PREPARATION_LEAD',
+  'ORDER_PREPARATION_AGENT',
+  'SHIPPING_LOGISTICS_COORDINATOR',
+  'CUSTOMER_SUPPORT_LEAD',
+  'CUSTOMER_SUPPORT_AGENT',
+  'CRM_RETENTION_SPECIALIST',
+  'MARKETING_DIRECTOR',
+  'MEDIA_BUYER',
+  'CONTENT_CREATOR',
+  'COMMUNITY_MANAGER',
+  'SEO_BLOG_SPECIALIST',
+  'PRODUCT_CATALOG_MANAGER',
+  'FINANCE_DIRECTOR',
+  'ACCOUNTANT',
+  'HR_ADMIN',
+  'DEVELOPER_IT',
+  'AUDITOR_CONSULTANT',
+  'GUEST_VIEWER',
+  'SUPER_ADMIN',
+  'ADMIN',
+  'STAFF',
+]);
+
+function isValidAdminJwtPayload(payload: unknown): boolean {
+  if (!payload || typeof payload !== 'object') return false;
+  const p = payload as Record<string, unknown>;
+
+  if (p.purpose && p.purpose !== 'ADMIN_SESSION') return false;
+  if (p.tokenType && p.tokenType !== 'ADMIN_SESSION') return false;
+
+  const userId = typeof p.userId === 'string' ? p.userId.trim() : '';
+  const email = typeof p.email === 'string' ? p.email.trim() : '';
+  const role = typeof p.role === 'string' ? p.role.trim().toUpperCase() : '';
+
+  if (!userId || !email || !email.includes('@') || !role) return false;
+  if (role === 'AMBASSADOR' || role === 'CUSTOMER') return false;
+
+  return VALID_ADMIN_ROLES.has(role);
+}
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -41,14 +92,18 @@ export default async function proxy(request: NextRequest) {
   // --- 1. ADMIN SECURITY ---
   const isLoginPage = pathname === '/admin/login';
   const isAdminRoute = pathname.startsWith('/admin') && !isLoginPage;
-  const isAdminApiRoute = pathname.startsWith('/api/admin') && pathname !== '/api/admin/login';
+  const isAdminApiRoute =
+    (pathname.startsWith('/api/admin') && pathname !== '/api/admin/login') ||
+    pathname.startsWith('/api/scent-match/admin');
 
   if (isLoginPage) {
     const token = request.cookies.get('admin_token')?.value || request.cookies.get('admin_session')?.value;
     if (token) {
       try {
-        await jwtVerify(token, JWT_SECRET);
-        return NextResponse.redirect(new URL('/admin', request.url));
+        const { payload } = await jwtVerify(token, getAdminJwtSecret());
+        if (isValidAdminJwtPayload(payload)) {
+          return NextResponse.redirect(new URL('/admin', request.url));
+        }
       } catch {
         // Token invalid, allow to login page
       }
@@ -63,8 +118,8 @@ export default async function proxy(request: NextRequest) {
     let isValid = false;
     if (token) {
       try {
-        await jwtVerify(token, JWT_SECRET);
-        isValid = true;
+        const { payload } = await jwtVerify(token, getAdminJwtSecret());
+        isValid = isValidAdminJwtPayload(payload);
       } catch (error) {
         console.error('Invalid token in middleware:', error);
       }

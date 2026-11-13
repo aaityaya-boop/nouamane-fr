@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAnyPermission(req, ['messages.view', 'marketing.view', 'dashboard.view']);
+    if (!auth.authorized) return auth.response!;
     const { id } = await params;
     const conversation = await prisma.advisorConversation.findUnique({
       where: { id },
@@ -51,6 +54,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAnyPermission(req, ['messages.reply', 'marketing.manage_campaigns']);
+    if (!auth.authorized) return auth.response!;
     const { id } = await params;
 
     // Delete associated messages first then conversation

@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { sendNaydayWelcomeEmail } from '@/lib/email/emailService';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_newsletter');
+    if (!auth.authorized) return auth.response!;
     const body = await request.json();
     const { email, emails } = body;
 

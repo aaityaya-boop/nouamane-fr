@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { errorResponse } = await requireAnyPermission(request, ['marketing.view', 'marketing.manage_promotions']);
+    if (errorResponse) return errorResponse;
+
     const promos = await prisma.promoCode.findMany({
       orderBy: { createdAt: 'desc' }
     });
@@ -42,6 +46,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const { errorResponse } = await requirePermission(request, 'marketing.manage_promotions');
+    if (errorResponse) return errorResponse;
+
     const body = await request.json();
     const {
       code,
@@ -122,6 +129,9 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
+    const { errorResponse } = await requirePermission(request, 'marketing.manage_promotions');
+    if (errorResponse) return errorResponse;
+
     const body = await request.json();
     const { id, isActive, applicableScope, categories, productIds, value, type, minOrderAmount, minQuantity, requiresAccount } = body;
 
@@ -154,6 +164,9 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const { errorResponse } = await requirePermission(request, 'marketing.manage_promotions');
+    if (errorResponse) return errorResponse;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

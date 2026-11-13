@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { dispatchGenericEmail } from '@/lib/email/emailService';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,8 +41,10 @@ function categorizeSubject(subject: string): { type: string; label: string; colo
   return { type: 'GENERAL', label: 'Communication Officielle', color: 'slate' };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const auth = await requirePermission(req, 'messages.view');
+    if (!auth.authorized) return auth.response!;
     const resendApiKey = await getEffectiveResendKey();
 
     // 1. Inbound Contact Messages from Neon DB
@@ -149,6 +152,8 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requirePermission(req, 'messages.reply');
+    if (!auth.authorized) return auth.response!;
     const body = await req.json();
     const { to, subject, message, html, contactMessageId } = body;
 
@@ -235,6 +240,8 @@ ${(message || '').replace(/\n/g, '<br>')}
 
 export async function PUT(req: Request) {
   try {
+    const auth = await requirePermission(req, 'messages.reply');
+    if (!auth.authorized) return auth.response!;
     const { id, status } = await req.json();
     if (!id || !status) {
       return NextResponse.json({ error: 'ID et statut requis' }, { status: 400 });
@@ -254,6 +261,8 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const auth = await requirePermission(req, 'messages.reply');
+    if (!auth.authorized) return auth.response!;
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAdmin, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { logAdminActivity } from '@/lib/activityLogger';
 import {
   parseBillMetadata,
@@ -19,13 +19,13 @@ export const revalidate = 0;
 // GET /api/admin/bills - Fetch all bills (employee deposits + purchase orders)
 export async function GET(req: Request) {
   try {
-    const currentAdmin = await getAuthenticatedAdmin(req);
-    if (!currentAdmin) {
-      return NextResponse.json({ error: 'Session expirée. Veuillez vous reconnecter.' }, { status: 401 });
-    }
-    if (currentAdmin.status !== 'ACTIVE') {
-      return NextResponse.json({ error: 'Compte inactif.' }, { status: 403 });
-    }
+    const { user: currentAdmin, errorResponse } = await requireAnyPermission(req, [
+      'bills.view',
+      'bills.submit',
+      'suppliers.view',
+      'finance.view_costs',
+    ]);
+    if (errorResponse || !currentAdmin) return errorResponse!;
 
     const { searchParams } = new URL(req.url);
     const statusFilter = searchParams.get('status') || 'ALL'; // ALL, PENDING, PAID, OVERDUE
@@ -241,13 +241,8 @@ export async function GET(req: Request) {
 // POST /api/admin/bills - Deposit a new bill to pay (Accessible to ALL employees)
 export async function POST(req: Request) {
   try {
-    const currentAdmin = await getAuthenticatedAdmin(req);
-    if (!currentAdmin) {
-      return NextResponse.json({ error: 'Session expirée. Veuillez vous reconnecter.' }, { status: 401 });
-    }
-    if (currentAdmin.status !== 'ACTIVE') {
-      return NextResponse.json({ error: 'Compte inactif.' }, { status: 403 });
-    }
+    const { user: currentAdmin, errorResponse } = await requireAdmin(req);
+    if (errorResponse || !currentAdmin) return errorResponse!;
 
     const body = await req.json();
     const {
@@ -387,13 +382,12 @@ export async function POST(req: Request) {
 // PATCH /api/admin/bills - Mark bill as paid or update details
 export async function PATCH(req: Request) {
   try {
-    const currentAdmin = await getAuthenticatedAdmin(req);
-    if (!currentAdmin) {
-      return NextResponse.json({ error: 'Session expirée. Veuillez vous reconnecter.' }, { status: 401 });
-    }
-    if (currentAdmin.status !== 'ACTIVE') {
-      return NextResponse.json({ error: 'Compte inactif.' }, { status: 403 });
-    }
+    const { user: currentAdmin, errorResponse } = await requireAnyPermission(req, [
+      'suppliers.manage_payments',
+      'finance.edit_expense',
+      'finance.add_expense',
+    ]);
+    if (errorResponse || !currentAdmin) return errorResponse!;
 
     const body = await req.json();
     const { id, source, action = 'MARK_PAID', paymentMethod = 'VIREMENT', paidAt, paymentVoucherUrl = '', notes = '' } = body;
@@ -515,13 +509,12 @@ export async function PATCH(req: Request) {
 // DELETE /api/admin/bills - Cancel or delete a bill
 export async function DELETE(req: Request) {
   try {
-    const currentAdmin = await getAuthenticatedAdmin(req);
-    if (!currentAdmin) {
-      return NextResponse.json({ error: 'Session expirée. Veuillez vous reconnecter.' }, { status: 401 });
-    }
-    if (currentAdmin.status !== 'ACTIVE') {
-      return NextResponse.json({ error: 'Compte inactif.' }, { status: 403 });
-    }
+    const { user: currentAdmin, errorResponse } = await requireAnyPermission(req, [
+      'suppliers.manage_payments',
+      'finance.edit_expense',
+      'finance.add_expense',
+    ]);
+    if (errorResponse || !currentAdmin) return errorResponse!;
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');

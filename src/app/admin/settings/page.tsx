@@ -24,7 +24,6 @@ export default async function SettingsPage() {
     config = await prisma.siteConfig.create({
       data: {
         adminUsername: 'admin',
-        adminPassword: 'nouamane2024',
         shippingFee: 35,
         contactPhone: '+212 663-380011',
         contactEmail: 'contact@nayparfum.ma',
@@ -38,8 +37,9 @@ export default async function SettingsPage() {
     });
   }
 
+  const { adminPassword, smtpPass, resendApiKey, ...safeConfig } = config;
   const serializedConfig = {
-    ...config,
+    ...safeConfig,
     updatedAt: config.updatedAt ? config.updatedAt.toISOString() : undefined,
   };
 

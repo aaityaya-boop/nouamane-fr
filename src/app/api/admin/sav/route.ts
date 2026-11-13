@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
-import { hasPermission } from '@/lib/auth/rbac/accessControl';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { generateNextSavTicketNumber, safeJsonParse, SAV_CATEGORIES } from '@/lib/sav/savService';
 
 export async function GET(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.view')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, ['claims.view', 'orders.view']);
+    if (errorResponse || !admin) return errorResponse!;
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search')?.trim() || '';
@@ -192,10 +189,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.edit')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'claims.create',
+      'claims.manage',
+      'orders.edit',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
 
     const body = await request.json();
     const {

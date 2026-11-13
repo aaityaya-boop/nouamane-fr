@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requirePermission } from "@/lib/auth/rbac/serverGuard";
 
 const PREDEFINED_TOPICS = [
   { name: "Parfum Homme", keywords: ["homme", "rajel", "men", "رجالي", "للرجال"] },
@@ -16,6 +17,8 @@ const PREDEFINED_TOPICS = [
 
 export async function POST(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const keywords = await prisma.seoKeyword.findMany();
     let newTopicsCount = 0;
     let mappedKeywordsCount = 0;

@@ -1,9 +1,47 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { PRODUCTS, BRANDS } from '@/lib/products';
+import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+function isSeedDisabledInProduction(): boolean {
+  return process.env.NODE_ENV === 'production' && process.env.ALLOW_PRODUCTION_SEED !== 'true';
+}
+
+export async function GET(request: Request) {
+  const { errorResponse } = await requirePermission(request, 'settings.manage_security');
+  if (errorResponse) return errorResponse;
+
+  return NextResponse.json(
+    {
+      error: 'Opération de seed bloquée par sécurité sur GET. Utilisez POST uniquement en environnement de développement.',
+      code: 'SEED_DISABLED',
+    },
+    { status: 403 }
+  );
+}
+
+export async function POST(request: Request) {
   try {
+    const { user, errorResponse } = await requirePermission(request, 'settings.manage_security');
+    if (errorResponse || !user) return errorResponse!;
+
+    if (user.role !== 'OWNER' && user.role !== 'CO_OWNER') {
+      return NextResponse.json(
+        { error: 'Seuls les fondateurs (OWNER) peuvent exécuter cette opération.', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+    }
+
+    if (isSeedDisabledInProduction()) {
+      return NextResponse.json(
+        {
+          error: 'Les opérations de seed du catalogue sont désactivées en production pour protéger les données existantes.',
+          code: 'PRODUCTION_SEED_DISABLED',
+        },
+        { status: 403 }
+      );
+    }
+
     // 1. Seed Brands
     for (const brand of BRANDS) {
       await prisma.brand.upsert({

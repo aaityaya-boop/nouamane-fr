@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { put } from '@vercel/blob';
 import { getBlobReadWriteToken } from '@/lib/blob';
+import { requireAdmin } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -10,6 +11,8 @@ export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAdmin(request);
+    if (!auth.authorized) return auth.response!;
     let fileBuffer: Buffer | null = null;
     let mimeType = 'image/jpeg';
     let originalName = 'upload.jpg';

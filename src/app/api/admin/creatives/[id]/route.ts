@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 import { logAdminActivity } from '@/lib/activityLogger';
 import prisma from '@/lib/prisma';
 
@@ -8,10 +8,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, [
+      'marketing.view',
+      'marketing.manage_creatives',
+      'marketing.manage_campaigns',
+    ]);
+    if (errorResponse) return errorResponse;
 
     const { id } = await params;
     const creative = await prisma.adminCreative.findUnique({
@@ -39,10 +41,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'marketing.manage_creatives',
+      'marketing.manage_campaigns',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
 
     const { id } = await params;
     const body = await request.json();
@@ -114,10 +117,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-    }
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'marketing.manage_creatives',
+      'marketing.manage_campaigns',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
 
     const { id } = await params;
     const creative = await prisma.adminCreative.findUnique({ where: { id } });

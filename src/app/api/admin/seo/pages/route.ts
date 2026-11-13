@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAnyPermission, requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function GET(req: Request) {
   try {
+    const auth = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_seo']);
+    if (!auth.authorized) return auth.response!;
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q') || '';
 
@@ -54,6 +57,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const body = await req.json();
     const { productId, seoTitle, metaDescription, focusKeyword, seoScore } = body;
 

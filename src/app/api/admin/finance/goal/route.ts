@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { errorResponse } = await requireAnyPermission(request, [
+      'dashboard.view',
+      'dashboard.view_financials',
+      'finance.view_revenue',
+    ]);
+    if (errorResponse) return errorResponse;
+
     const config = await prisma.siteConfig.findFirst({
       select: { monthlyRevenueGoal: true },
     });
@@ -18,7 +25,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin();
+    const { user: admin, errorResponse } = await requireAnyPermission(request, [
+      'finance.edit_expense',
+      'dashboard.view_financials',
+      'settings.edit',
+    ]);
+    if (errorResponse || !admin) return errorResponse!;
     const body = await request.json();
     const goal = Number(body.monthlyRevenueGoal);
 

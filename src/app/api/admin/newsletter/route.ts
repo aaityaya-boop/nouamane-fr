@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendNaydayWelcomeEmail } from '@/lib/email/emailService';
+import { requireAnyPermission, requirePermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const auth = await requireAnyPermission(request, ['marketing.view', 'marketing.manage_newsletter']);
+    if (!auth.authorized) return auth.response!;
     const [subscribers, orders] = await Promise.all([
       prisma.newsletterSubscriber.findMany({
         orderBy: { createdAt: 'desc' },
@@ -105,6 +108,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_newsletter');
+    if (!auth.authorized) return auth.response!;
     const body = await request.json();
     const { action, email, emails, sendWelcomeEmail } = body;
 
@@ -179,6 +184,8 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const auth = await requirePermission(request, 'marketing.manage_newsletter');
+    if (!auth.authorized) return auth.response!;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const email = searchParams.get('email');

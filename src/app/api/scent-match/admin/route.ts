@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { errorResponse } = await requireAnyPermission(req, [
+      'marketing.view',
+      'marketing.view_analytics',
+      'dashboard.view',
+    ]);
+    if (errorResponse) return errorResponse;
+
     // 1. Config
     const config = await prisma.scentMatchConfig.findFirst({
       where: { id: 1 }
@@ -175,6 +183,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const { errorResponse } = await requireAnyPermission(req, [
+      'marketing.manage_campaigns',
+      'marketing.manage_promotions',
+      'settings.edit',
+    ]);
+    if (errorResponse) return errorResponse;
+
     const body = await req.json();
     const { isEnabled, recommendedSwipes, minSwipesForAnalysis, allowEarlyFinish } = body;
 

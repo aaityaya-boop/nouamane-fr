@@ -1,19 +1,15 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { cookies } from 'next/headers';
 import { hashPassword } from '@/lib/affiliate-auth';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  const { errorResponse } = await requireAnyPermission(request, ['marketing.view', 'marketing.manage_affiliates']);
+  if (errorResponse) return errorResponse;
 
   try {
     const affiliate = await prisma.affiliate.findUnique({
@@ -41,7 +37,8 @@ export async function GET(
       return NextResponse.json({ error: 'Ambassadeur non trouvé' }, { status: 404 });
     }
 
-    return NextResponse.json(affiliate);
+    const { passwordHash, ...safeAffiliate } = affiliate;
+    return NextResponse.json(safeAffiliate);
   } catch (error) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
@@ -52,12 +49,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  const { errorResponse } = await requirePermission(request, 'marketing.manage_affiliates');
+  if (errorResponse) return errorResponse;
 
   try {
     const data = await request.json();
@@ -131,12 +124,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  const { errorResponse } = await requirePermission(request, 'marketing.manage_affiliates');
+  if (errorResponse) return errorResponse;
 
   try {
     await prisma.affiliate.delete({ where: { id } });

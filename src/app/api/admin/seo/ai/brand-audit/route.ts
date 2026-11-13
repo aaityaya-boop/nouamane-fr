@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAnyPermission, requirePermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_seo']);
+  if (!auth.authorized) return auth.response!;
   const mockBrandAudit = {
     brandName: 'NAY Parfum',
     consistencyScore: 92,
@@ -19,6 +22,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const body = await req.json().catch(() => ({}));
     const { brandName = 'OurBrand' } = body;
 

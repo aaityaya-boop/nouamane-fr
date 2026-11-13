@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function GET(req: Request) {
   try {
+    const auth = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_seo']);
+    if (!auth.authorized) return auth.response!;
     const { searchParams } = new URL(req.url);
     const days = parseInt(searchParams.get('days') || '28', 10);
     const dateCutoff = new Date();

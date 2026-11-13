@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getConseillerAnalyticsData } from '@/lib/advisor/advisorAnalytics';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {
+    const auth = await requireAnyPermission(req, ['messages.view', 'marketing.view', 'dashboard.view']);
+    if (!auth.authorized) return auth.response!;
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search')?.trim() || '';
     const intent = searchParams.get('intent')?.trim() || '';

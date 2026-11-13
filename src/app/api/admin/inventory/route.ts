@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createAdminNotification } from '@/lib/notificationService';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { errorResponse } = await requireAnyPermission(request, ['inventory.view', 'products.view']);
+    if (errorResponse) return errorResponse;
+
     const products = await prisma.product.findMany({
       orderBy: { stock: 'asc' },
       select: {
@@ -51,6 +55,9 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const { errorResponse } = await requirePermission(request, 'inventory.adjust');
+    if (errorResponse) return errorResponse;
+
     const { id, stock } = await request.json();
 
     if (!id || stock === undefined) {

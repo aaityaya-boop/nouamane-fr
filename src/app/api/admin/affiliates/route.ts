@@ -1,17 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { cookies } from 'next/headers';
 import { hashPassword } from '@/lib/affiliate-auth';
+import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+export async function GET(request: Request) {
+  const { errorResponse } = await requireAnyPermission(request, ['marketing.view', 'marketing.manage_affiliates']);
+  if (errorResponse) return errorResponse;
 
   try {
     const affiliates = await prisma.affiliate.findMany({
@@ -28,7 +24,8 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(affiliates);
+    const sanitized = affiliates.map(({ passwordHash, ...rest }) => rest);
+    return NextResponse.json(sanitized);
   } catch (error) {
     console.error('Error fetching affiliates:', error);
     return NextResponse.json({ error: 'Failed to fetch affiliates' }, { status: 500 });
@@ -36,12 +33,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  const { errorResponse } = await requirePermission(request, 'marketing.manage_affiliates');
+  if (errorResponse) return errorResponse;
 
   try {
     const data = await request.json();

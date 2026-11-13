@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAuthenticatedAdmin } from '@/lib/auth/adminAuth';
-import { hasPermission } from '@/lib/auth/rbac/accessControl';
+import { requireAnyPermission } from '@/lib/auth/rbac/serverGuard';
 
 export async function GET(request: Request) {
   try {
-    const admin = await getAuthenticatedAdmin(request);
-    if (!admin || !hasPermission(admin, 'orders.view')) {
-      return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 403 });
-    }
+    const { errorResponse } = await requireAnyPermission(request, ['claims.view', 'claims.create', 'orders.view']);
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('q')?.trim() || '';

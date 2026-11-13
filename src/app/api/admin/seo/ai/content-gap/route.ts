@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAnyPermission, requirePermission } from '@/lib/auth/rbac/serverGuard';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAnyPermission(req, ['marketing.view', 'marketing.manage_seo']);
+    if (!auth.authorized) return auth.response!;
     const opportunities = await prisma.seoOpportunity.findMany({
       where: { type: 'AI_CONTENT_GAP' },
       orderBy: { priority: 'desc' },
@@ -17,6 +20,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requirePermission(req, 'marketing.manage_seo');
+    if (!auth.authorized) return auth.response!;
     const body = await req.json().catch(() => ({}));
     const { topic = 'Default Topic' } = body;
 
