@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import crypto from 'crypto';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export async function POST(req: Request) {
   try {
-    const { pathname, referrer, userAgent, visitorId, type } = await req.json();
+    const clientIp = getClientIp(req);
+    const rate = checkRateLimit(`track_visit:${clientIp}`, 120, 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json({ success: true, throttled: true });
+    }
+
+    const { pathname: rawPathname, referrer: rawReferrer, userAgent: rawUa, visitorId: rawVisitorId, type } = await req.json();
+    const pathname = typeof rawPathname === 'string' ? rawPathname.slice(0, 300) : '/';
+    const referrer = typeof rawReferrer === 'string' ? rawReferrer.slice(0, 500) : '';
+    const userAgent = typeof rawUa === 'string' ? rawUa.slice(0, 300) : '';
+    const visitorId = typeof rawVisitorId === 'string' ? rawVisitorId.slice(0, 80) : '';
     
     // Parse device from userAgent
     let device = 'Desktop';

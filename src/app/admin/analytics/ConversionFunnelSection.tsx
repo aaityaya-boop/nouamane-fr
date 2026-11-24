@@ -25,8 +25,8 @@ export default function ConversionFunnelSection({
   return (
     <div className="space-y-6">
       {/* ── 1. FUNNEL HEADER & METRICS ──────────────────────────────────────── */}
-      <div className="bg-white dark:bg-[#121215] rounded-lg p-5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+      <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
           <div>
             <div className="flex items-center gap-2 mb-0.5">
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
@@ -114,8 +114,8 @@ export default function ConversionFunnelSection({
       </div>
 
       {/* ── 2. CONVERSION OPTIMIZATION PLAYBOOK BY FUNNEL STAGE ──────────────── */}
-      <div className="bg-white dark:bg-[#121215] rounded-lg p-5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
-        <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+      <div className="spatial-card rounded-2xl p-5 sm:p-6 space-y-4">
+        <div className="pb-3 border-b border-slate-100 dark:border-white/[0.06]">
           <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
             Recommandations d&apos;Optimisation du Tunnel
           </h3>
@@ -126,7 +126,7 @@ export default function ConversionFunnelSection({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
           {/* Card 1: Etape Visite -> Produits */}
-          <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-2">
+          <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-2">
             <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">
               Étape 1 : Visite ➔ Produits
             </div>
@@ -139,7 +139,7 @@ export default function ConversionFunnelSection({
           </div>
 
           {/* Card 2: Etape Fiche -> Panier */}
-          <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-2">
+          <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-2">
             <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">
               Étape 2 : Fiche ➔ Panier
             </div>
@@ -152,7 +152,7 @@ export default function ConversionFunnelSection({
           </div>
 
           {/* Card 3: Etape Panier -> Caisse */}
-          <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-2">
+          <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-2">
             <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">
               Étape 3 : Panier ➔ Caisse
             </div>
@@ -165,7 +165,7 @@ export default function ConversionFunnelSection({
           </div>
 
           {/* Card 4: Etape Caisse -> Commande */}
-          <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-2">
+          <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-2">
             <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">
               Étape 4 : Caisse ➔ Confirmation
             </div>

@@ -263,34 +263,34 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
   const topProduct = analytics?.topRecommendedProducts?.[0];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6" suppressHydrationWarning>
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-10" suppressHydrationWarning>
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-[#0f172a] to-slate-900 text-white p-6 rounded-2xl shadow-sm border border-slate-800">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400">
-              <Bot size={22} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0b1322] dark:bg-[#0f172a] text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-800/90 dark:border-sky-500/20">
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white shrink-0">
+              <MessageSquare size={20} />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Conseiller NAY (IA)</h1>
-                <span className="text-[11px] font-semibold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  100% Données Réelles en Direct
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Conseiller Clientèle &amp; Ventes</h1>
+                <span className="text-[10.5px] font-semibold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                  En Direct
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-300">
-                Analyse en temps réel des questions de vos vrais clients, intentions d'achat et parfums suggérés par l'IA.
+              <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
+                Analyse des questions clients, préférences olfactives et recommandations de la boutique.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full md:w-auto shrink-0">
           <button
             onClick={fetchData}
             disabled={mounted ? loading : false}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 transition-all cursor-pointer disabled:opacity-50"
+            className="h-10 sm:h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 transition-all cursor-pointer disabled:opacity-50"
             title="Rafraîchir les données"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -300,7 +300,8 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
           <button
             onClick={handleExportCSV}
             disabled={mounted ? conversations.length === 0 : true}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-[#1D9BF0] hover:bg-sky-500 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
+            style={{ backgroundColor: 'var(--admin-accent, #0ea5e9)' }}
+            className="h-10 sm:h-9 flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs hover:opacity-95 cursor-pointer disabled:opacity-50"
             title="Exporter en CSV"
           >
             <Download size={14} />
@@ -402,10 +403,10 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto max-w-full">
         <button
           onClick={() => setActiveTab('ANALYTICS')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'ANALYTICS'
               ? 'bg-slate-900 text-white shadow-2xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -417,7 +418,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
 
         <button
           onClick={() => setActiveTab('EXPLORER')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'EXPLORER'
               ? 'bg-slate-900 text-white shadow-2xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -429,7 +430,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
 
         <button
           onClick={() => setActiveTab('QUESTIONS')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'QUESTIONS'
               ? 'bg-slate-900 text-white shadow-2xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -445,8 +446,8 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
         <div className="space-y-6">
           {(!analytics?.totalConversations || analytics.totalConversations === 0) && (
             <div className="bg-sky-50/70 border border-sky-200/80 rounded-2xl p-6 text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-white border border-sky-200 text-[#1D9BF0] flex items-center justify-center mx-auto shadow-2xs">
-                <Bot size={24} />
+              <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-800 flex items-center justify-center mx-auto shadow-2xs">
+                <MessageSquare size={22} />
               </div>
               <h3 className="text-sm font-bold text-slate-900">En attente des premières conversations réelles</h3>
               <p className="text-xs text-slate-600 max-w-lg mx-auto">
@@ -707,7 +708,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
                   })
                 ) : (
                   <div className="p-8 text-center text-slate-400 text-xs space-y-2">
-                    <Bot size={28} className="mx-auto text-slate-300" />
+                    <MessageSquare size={24} className="mx-auto text-slate-300" />
                     <p>Aucune conversation ne correspond à vos filtres.</p>
                   </div>
                 )}
@@ -797,7 +798,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
                         >
                           {m.role === 'assistant' && (
                             <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0 mt-1 shadow-2xs">
-                              <Bot size={15} />
+                              <MessageSquare size={14} />
                             </div>
                           )}
 
@@ -852,7 +853,7 @@ export default function ConseillerClient({ currentAdmin }: { currentAdmin: any }
                 </>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400 space-y-2">
-                  <Bot size={36} className="text-slate-300" />
+                  <MessageSquare size={32} className="text-slate-300" />
                   <div className="text-sm font-bold text-slate-700">Sélectionnez une conversation</div>
                   <p className="text-xs max-w-sm">
                     Cliquez sur une session à gauche pour inspecter la transcription détaillée et les suggestions du conseiller.

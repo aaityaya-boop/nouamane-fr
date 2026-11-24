@@ -22,7 +22,8 @@ import {
   PackageCheck,
   ChevronDown,
   ShoppingBag,
-  ArrowRight
+  ArrowRight,
+  AlertTriangle,
 } from 'lucide-react';
 
 const MOROCCAN_CITIES = [
@@ -83,7 +84,7 @@ export default function PromoClient({
       qty: 2,
       price: mainProduct ? Math.round(mainProduct.price * 1.75) : 790,
       originalPrice: mainProduct ? Math.round((mainProduct.originalPrice || mainProduct.price * 1.35) * 2) : 1300,
-      badge: '🔥 LE PLUS COMMANDÉ · Livraison Gratuite',
+      badge: 'LE PLUS COMMANDÉ · Livraison Gratuite',
       isPopular: true
     },
     {
@@ -93,7 +94,7 @@ export default function PromoClient({
       qty: 3,
       price: mainProduct ? Math.round(mainProduct.price * 2.3) : 1050,
       originalPrice: mainProduct ? Math.round((mainProduct.originalPrice || mainProduct.price * 1.35) * 3) : 1950,
-      badge: '👑 SUPER ÉCONOMIE · 1 Flacon Offert',
+      badge: 'PRIVILÈGE MAISON · 1 Flacon Offert',
       isPopular: false
     }
   ];
@@ -589,8 +590,9 @@ export default function PromoClient({
             </div>
 
             {orderError && (
-              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
-                ⚠️ {orderError}
+              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+                <AlertTriangle size={15} className="shrink-0" />
+                <span>{orderError}</span>
               </div>
             )}
 
@@ -665,7 +667,10 @@ export default function PromoClient({
                 <div>
                   <span className="text-gray-600">Pack sélectionné : </span>
                   <strong className="text-gray-900">{activeBundle?.title}</strong>
-                  <div className="text-emerald-700 font-semibold mt-0.5">🚚 Livraison Gratuite incluse</div>
+                  <div className="text-emerald-700 font-semibold mt-0.5 flex items-center gap-1.5">
+                    <Truck size={13} className="shrink-0" />
+                    <span>Livraison Gratuite incluse</span>
+                  </div>
                 </div>
                 <div className="text-right">
                   <div className="text-gray-500 text-[11px]">Total à la réception :</div>
@@ -853,8 +858,8 @@ export default function PromoClient({
               <CheckCircle2 size={36} />
             </div>
 
-            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-              Commande Confirmée 🎉
+            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-200 inline-flex items-center gap-1.5">
+              <CheckCircle2 size={13} /> Commande Confirmée
             </span>
 
             <h3 className="text-2xl font-black text-gray-900 mt-3 mb-2">

@@ -1,20 +1,37 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`product_review:${clientIp}`, 5, 60 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json({ error: 'Trop d’avis envoyés récemment. Veuillez patienter.' }, { status: 429 });
+    }
+
     const { slug } = await params;
     const decodedSlug = decodeURIComponent(slug);
     const body = await request.json();
 
     const { author, city, rating, title, comment } = body;
 
-    if (!author || !rating || !title || !comment) {
+    if (
+      !author ||
+      !rating ||
+      !title ||
+      !comment ||
+      typeof author !== 'string' ||
+      typeof title !== 'string' ||
+      typeof comment !== 'string'
+    ) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const parsedRating = Math.min(5, Math.max(1, parseInt(String(rating), 10) || 5));
 
     // Check if product exists
     const product = await prisma.product.findUnique({
@@ -29,11 +46,11 @@ export async function POST(
     await prisma.review.create({
       data: {
         productSlug: decodedSlug,
-        author,
-        city: city || 'Maroc',
-        rating: parseInt(rating, 10),
-        title,
-        comment,
+        author: author.trim().slice(0, 80),
+        city: typeof city === 'string' && city.trim() ? city.trim().slice(0, 60) : 'Maroc',
+        rating: parsedRating,
+        title: title.trim().slice(0, 140),
+        comment: comment.trim().slice(0, 2000),
       }
     });
 

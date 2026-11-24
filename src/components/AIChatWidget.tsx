@@ -69,12 +69,14 @@ export default function AIChatWidget() {
   const isEnglish = locale === 'en';
 
   const welcomeContent = isArabic
-    ? "مرحباً بكم في **دار NAY Parfums** · خدمة الزبناء والكونسيرج الخاص 🏛️\n\nأنا مستشاركم ومساعدكم المعتمد. يسعدني مرافقتكم والإجابة على **كافة استفساراتكم** حول الموقع، الطلبيات، والعطور:\n\n• 📷 **البحث عن عطر بالصورة :** يمكنكم تحميل صورة أي قنينة تبحثون عنها عبر أيقونة الكاميرا بالأسفل وسنتحقق من توفرها فوراً.\n• 📦 **تتبع طلبيتكم :** المساعدة في معرفة حالة شحنتكم وتاريخ وصولها في أي مدينة بالمغرب عبر صفحة [تتبع الطلبية](/ar/suivi-commande).\n• 💎 **اختيار وتنسيق العطور :** ترشيح أفضل العطور الثابتة والفواحة من عطور التيستور (Testers) أو العلب الأصلية المختومة.\n• 🛡️ **ضمانات الشراء :** توصيل سريع 24-48 ساعة، 0 درهم تسبيق، مع **الحق الكامل في فتح الطرد ومعاينة القنينة قبل سداد المبلغ**."
+    ? "مرحباً بكم في **دار NAY Parfums** · خدمة الزبناء والكونسيرج الخاص\n\nأنا مستشاركم ومساعدكم المعتمد. يسعدني مرافقتكم والإجابة على **كافة استفساراتكم** حول الموقع، الطلبيات، والعطور:\n\n• **البحث عن عطر بالصورة :** يمكنكم تحميل صورة أي قنينة تبحثون عنها عبر أيقونة الكاميرا بالأسفل وسنتحقق من توفرها فوراً.\n• **تتبع طلبيتكم :** المساعدة في معرفة حالة شحنتكم وتاريخ وصولها في أي مدينة بالمغرب عبر صفحة [تتبع الطلبية](/ar/suivi-commande).\n• **اختيار وتنسيق العطور :** ترشيح أفضل العطور الثابتة والفواحة من عطور التيستور (Testers) أو العلب الأصلية المختومة.\n• **ضمانات الشراء :** توصيل سريع 24-48 ساعة، 0 درهم تسبيق، مع **الحق الكامل في فتح الطرد ومعاينة القنينة قبل سداد المبلغ**."
     : isEnglish
-    ? "Welcome to **NAY Parfums Atelier** · Customer Support & Private Concierge 🏛️\n\nI am your dedicated boutique client advisor. I am at your service to assist you with **everything on our website and boutique**:\n\n• 📷 **Search by Bottle Photo:** You can upload a photo of any perfume bottle using the camera button below to check immediate stock and pricing.\n• 📦 **Order Tracking:** Real-time updates on your shipment status via our [Order Tracking page](/en/suivi-commande).\n• 💎 **Bespoke Olfactory Advice:** Tailored recommendations from our curated Tester catalog (299-499 DH) or sealed retail editions.\n• 🛡️ **Risk-Free Guarantees:** 24-48h express delivery, 0 DH advance, and **full right to inspect your bottle before paying the courier**."
-    : "Bienvenue à l'**Atelier NAY Parfums** · Service Client & Conseil Privé 🏛️\n\nJe suis votre conseiller dédié de la Maison. Je suis à votre entière disposition pour vous accompagner sur **l'ensemble de nos services et du catalogue** :\n\n• 📷 **Recherche par photo de flacon :** Vous pouvez envoyer la photo de n'importe quel parfum grâce au bouton caméra ci-dessous pour vérifier sa disponibilité et son tarif.\n• 📦 **Suivi de commande direct :** Localisation de votre colis en temps réel via notre page [Suivi de Commande](/fr/suivi-commande).\n• 💎 **Conseil & Authenticité :** Explications détaillées sur nos Testeurs de prestige (299-499 DH) et nos parfums originaux scellés.\n• 🛡️ **Garanties NAY :** Expédition express 24-48h dans tout le Maroc, 0 DH d'avance, avec **droit d'ouvrir et inspecter votre flacon avant tout paiement au livreur**.";
+    ? "Welcome to **NAY Parfums Atelier** · Customer Support & Private Concierge\n\nI am your dedicated boutique client advisor. I am at your service to assist you with **everything on our website and boutique**:\n\n• **Search by Bottle Photo:** You can upload a photo of any perfume bottle using the camera button below to check immediate stock and pricing.\n• **Order Tracking:** Real-time updates on your shipment status via our [Order Tracking page](/en/suivi-commande).\n• **Bespoke Olfactory Advice:** Tailored recommendations from our curated Tester catalog (299-499 DH) or sealed retail editions.\n• **Risk-Free Guarantees:** 24-48h express delivery, 0 DH advance, and **full right to inspect your bottle before paying the courier**."
+    : "Bienvenue à l'**Atelier NAY Parfums** · Service Client & Conseil Privé\n\nJe suis votre conseiller dédié de la Maison. Je suis à votre entière disposition pour vous accompagner sur **l'ensemble de nos services et du catalogue** :\n\n• **Recherche par photo de flacon :** Vous pouvez envoyer la photo de n'importe quel parfum grâce au bouton caméra ci-dessous pour vérifier sa disponibilité et son tarif.\n• **Suivi de commande direct :** Localisation de votre colis en temps réel via notre page [Suivi de Commande](/fr/suivi-commande).\n• **Conseil & Authenticité :** Explications détaillées sur nos Testeurs de prestige (299-499 DH) et nos parfums originaux scellés.\n• **Garanties NAY :** Expédition express 24-48h dans tout le Maroc, 0 DH d'avance, avec **droit d'ouvrir et inspecter votre flacon avant tout paiement au livreur**.";
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, setMessages } = useChat({
+  const [isListening, setIsListening] = useState(false);
+
+  const { messages, input, handleInputChange, handleSubmit, setInput, isLoading, append, setMessages } = useChat({
     api: '/api/chat',
     body: {
       conversationId,
@@ -312,7 +314,7 @@ export default function AIChatWidget() {
   );
   const whatsappUrl = `https://wa.me/212663380011?text=${whatsappMessage}`;
 
-  const userName = customer?.name ? customer.name.split(' ')[0] : 'Ayoub';
+  const userName = customer?.name?.trim() ? customer.name.trim().split(/\s+/)[0] : null;
 
   return (
     <>
@@ -346,7 +348,7 @@ export default function AIChatWidget() {
 
               {/* Center Mode / Status Pill */}
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#161f2e]/80 border border-[#232f44] text-[11px] font-bold text-slate-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span className="tracking-wide">NAY AI Agent</span>
               </div>
 
@@ -386,12 +388,16 @@ export default function AIChatWidget() {
                   {/* HeyGen-style Greeting Headline */}
                   <h3 className="heading-font text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
                     {isArabic
-                      ? `أهلاً بك، ${userName}.`
-                      : `Bonjour, ${userName}.`}
+                      ? (userName ? `أهلاً بك، ${userName}.` : 'أهلاً بك.')
+                      : isEnglish
+                      ? (userName ? `Hello, ${userName}.` : 'Hello.')
+                      : (userName ? `Bonjour, ${userName}.` : 'Bonjour.')}
                   </h3>
                   <p className="text-[13px] text-slate-400 font-medium mt-1">
                     {isArabic
                       ? 'كيف يمكنني مساعدتك اليوم؟'
+                      : isEnglish
+                      ? 'How can I assist you today?'
                       : "Comment puis-je vous guider aujourd'hui ?"}
                   </p>
 
@@ -459,7 +465,6 @@ export default function AIChatWidget() {
                                     key={idx}
                                     className="relative rounded-xl overflow-hidden border border-white/20 bg-black/40 shadow-sm max-w-[200px]"
                                   >
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                       src={att.url}
                                       alt={att.name || 'Photo'}
@@ -601,7 +606,6 @@ export default function AIChatWidget() {
               <div className="px-3.5 py-2 bg-[#141b27] border-t border-[#1f293d] flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-sky-400/80 shrink-0 shadow-xs">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={attachedImage.previewUrl}
                       alt="Aperçu"
@@ -670,11 +674,42 @@ export default function AIChatWidget() {
                   className="flex-1 bg-transparent text-[13px] outline-none text-white placeholder:text-slate-500 py-1.5 px-1 font-normal"
                 />
 
-                {/* Voice Mic Icon Indicator */}
+                {/* Voice Mic Input via Web Speech API */}
                 <button
                   type="button"
-                  className="p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                  title="Entrée vocale"
+                  onClick={() => {
+                    const SpeechRecognitionCtor =
+                      typeof window !== 'undefined'
+                        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+                        : null;
+                    if (!SpeechRecognitionCtor) {
+                      setInput((prev) =>
+                        prev ? prev : isArabic ? 'أبحث عن عطر...' : 'Je recherche un parfum...'
+                      );
+                      return;
+                    }
+                    const recognition = new SpeechRecognitionCtor();
+                    recognition.lang = isArabic ? 'ar-MA' : isEnglish ? 'en-US' : 'fr-FR';
+                    recognition.interimResults = false;
+                    recognition.maxAlternatives = 1;
+                    setIsListening(true);
+                    recognition.onresult = (event: any) => {
+                      const transcript = event?.results?.[0]?.[0]?.transcript || '';
+                      if (transcript) {
+                        setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+                      }
+                      setIsListening(false);
+                    };
+                    recognition.onerror = () => setIsListening(false);
+                    recognition.onend = () => setIsListening(false);
+                    recognition.start();
+                  }}
+                  className={`p-1.5 transition-colors cursor-pointer ${
+                    isListening
+                      ? 'text-rose-400 animate-pulse'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title={isListening ? 'Écoute en cours...' : 'Entrée vocale'}
                   aria-label="Microphone"
                 >
                   <Mic size={17} />

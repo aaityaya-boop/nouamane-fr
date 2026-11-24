@@ -39,10 +39,12 @@ import {
   Zap,
   Banknote,
   Landmark,
-  FileText
+  FileText,
+  Palette
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminPushNotificationSettings from '@/components/admin/AdminPushNotificationSettings';
+import AdminAppearanceStudio from '@/components/admin/AdminAppearanceStudio';
 
 
 // Custom SVG Icons for Social Networks
@@ -117,7 +119,7 @@ interface SettingsClientProps {
   adminUsers?: AdminUserItem[];
 }
 
-type TabKey = 'general' | 'alerts' | 'shipping' | 'hero' | 'contact' | 'security' | 'notifications';
+type TabKey = 'general' | 'appearance' | 'alerts' | 'shipping' | 'hero' | 'contact' | 'security' | 'notifications';
 
 export default function SettingsClient({ initialConfig, adminUser, adminUsers }: SettingsClientProps) {
   const [config, setConfig] = useState<SiteConfigData>(initialConfig);
@@ -298,17 +300,18 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
   }, [config.adminPassword]);
 
   const tabs: Array<{ key: TabKey; label: string; icon: any; badge?: string }> = [
-    { key: 'general', label: 'Identité & Boutique', icon: Building2 },
-    { key: 'alerts', label: 'Destinataires & Alertes Emails', icon: Mail, badge: 'Nouveau' },
-    { key: 'shipping', label: 'Livraison & Expédition', icon: Truck },
-    { key: 'hero', label: 'Vitrine & Bannière Hero', icon: LayoutTemplate },
-    { key: 'contact', label: 'Contact & Réseaux Sociaux', icon: Phone },
-    { key: 'security', label: 'Sécurité & Accès', icon: Lock },
-    { key: 'notifications', label: 'Notifications Push PWA', icon: Bell },
+    { key: 'general', label: 'Identité', icon: Building2 },
+    { key: 'appearance', label: 'Apparence & Design', icon: Palette },
+    { key: 'alerts', label: 'Alertes Emails', icon: Mail },
+    { key: 'shipping', label: 'Livraison', icon: Truck },
+    { key: 'hero', label: 'Vitrine Hero', icon: LayoutTemplate },
+    { key: 'contact', label: 'Contacts & Réseaux', icon: Phone },
+    { key: 'security', label: 'Sécurité', icon: Lock },
+    { key: 'notifications', label: 'Push PWA', icon: Bell },
   ];
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-28 text-slate-900">
+    <div className="space-y-6 max-w-6xl mx-auto pb-28 text-slate-900 dark:text-slate-100">
       {/* Toast notification */}
       <AnimatePresence>
         {toast && (
@@ -316,7 +319,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium backdrop-blur-md ${
+            className={`fixed top-20 left-3 right-3 sm:left-auto sm:top-6 sm:right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium backdrop-blur-md ${
               toast.type === 'success'
                 ? 'bg-emerald-900/90 text-white border-emerald-700/50 shadow-emerald-950/20'
                 : 'bg-rose-900/90 text-white border-rose-700/50 shadow-rose-950/20'
@@ -333,53 +336,40 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
       </AnimatePresence>
 
       {/* Main Header */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-7 shadow-xs relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-50/60 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -mb-16 w-64 h-64 bg-slate-50/80 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-7 shadow-2xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5">
           <div className="space-y-1.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-slate-100 text-slate-700 border border-slate-200/80">
-                <Store size={12} className="text-slate-600" />
-                Maison NAY Parfums
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-500 dark:text-slate-400">
+              <span>Maison NAY Parfums</span>
+              <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+              <span className="inline-flex items-center gap-1.5 normal-case tracking-normal font-medium text-emerald-700 dark:text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Boutique Active
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/70">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Boutique En Ligne Active
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200/70">
-                🇲🇦 Maroc (Casablanca) • MAD
-              </span>
+              <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+              <span className="normal-case tracking-normal font-medium">Casablanca · MAD</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5 pt-1">
-              <span>Paramètres & Configuration</span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5 pt-0.5">
+              <span>Paramètres &amp; Configuration</span>
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
               Gérez les paramètres fondamentaux de votre boutique : identité de marque, tarifs de livraison, vitrine d&apos;accueil, coordonnées officielles et sécurité des accès.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <Link
-              href="/"
-              target="_blank"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200 transition-all shadow-xs"
-            >
-              <ExternalLink size={14} className="text-slate-600" />
-              <span>Voir la boutique</span>
-            </Link>
-
+          <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
             <button
+              type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-black transition-all shadow-xs disabled:opacity-60 cursor-pointer"
+              style={{ backgroundColor: 'var(--admin-accent, #0f172a)' }}
+              className="w-full md:w-auto inline-flex items-center justify-center gap-2 h-10 sm:h-9 px-4 rounded-xl text-xs font-bold text-white hover:opacity-95 transition-all shadow-xs disabled:opacity-60 cursor-pointer"
             >
               {isSaving ? <Loader2 size={14} className="animate-spin text-white" /> : <Save size={14} />}
               <span>Enregistrer</span>
-              <span className="hidden sm:inline-block text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300 font-mono">
+              <span className="hidden sm:inline-block text-[10px] bg-white/20 px-1.5 py-0.5 rounded text-white font-mono">
                 ⌘S
               </span>
             </button>
@@ -387,22 +377,22 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
         </div>
 
         {/* Quick status bar */}
-        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-[#2e2e36] flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <Clock size={13} className="text-slate-400" />
-              Dernière mise à jour : <strong className="text-slate-700 font-medium">{lastSavedTime}</strong>
+              Dernière mise à jour : <strong className="text-slate-700 dark:text-white font-medium">{lastSavedTime}</strong>
             </span>
-            <span className="hidden sm:inline text-slate-300">•</span>
+            <span className="hidden sm:inline text-slate-300 dark:text-zinc-700">•</span>
             <span className="hidden sm:flex items-center gap-1.5">
-              <ShieldCheck size={13} className="text-emerald-600" />
-              Admin actif : <strong className="text-slate-700 font-medium">{adminUser?.name || 'Administrateur'}</strong>
+              <ShieldCheck size={13} className="text-emerald-600 dark:text-emerald-400" />
+              Admin actif : <strong className="text-slate-700 dark:text-white font-medium">{adminUser?.name || 'Administrateur'}</strong>
             </span>
           </div>
 
           {isDirty && (
-            <span className="inline-flex items-center gap-1.5 text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full font-medium text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+            <span className="inline-flex items-center gap-1.5 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 px-2.5 py-0.5 rounded-full font-medium text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
               Modifications non sauvegardées
             </span>
           )}
@@ -410,7 +400,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
       </div>
 
       {/* Modern Tab Navigation */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-slate-100/90 border border-slate-200/80 rounded-2xl overflow-x-auto scrollbar-none shadow-xs">
+      <div className="flex items-center justify-between gap-1 p-1.5 bg-slate-100/90 dark:bg-[#18181c] border border-slate-200/80 dark:border-[#2e2e36] rounded-2xl overflow-x-auto scrollbar-none shadow-2xs">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -418,17 +408,17 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer relative ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11.5px] font-semibold transition-all whitespace-nowrap cursor-pointer relative ${
                 isActive
-                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200/60'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  ? 'bg-white dark:bg-[#28282e] text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-[#383842]'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-[#222227]'
               }`}
             >
-              <Icon size={15} className={isActive ? 'text-amber-600' : 'text-slate-500'} />
+              <Icon size={14} className={isActive ? 'text-[#0284c7] dark:text-[#38bdf8]' : 'text-slate-500 dark:text-zinc-500'} />
               <span>{tab.label}</span>
               {tab.badge && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
+                  isActive ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300' : 'bg-slate-200 dark:bg-[#2e2e36] text-slate-700 dark:text-zinc-300'
                 }`}>
                   {tab.badge}
                 </span>
@@ -454,7 +444,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
                 <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/80">
                     <Building2 size={18} />
                   </div>
                   <div>
@@ -545,11 +535,11 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                   </div>
                 </div>
 
-                <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 flex items-start gap-3">
-                  <Info size={18} className="text-amber-700 shrink-0 mt-0.5" />
-                  <div className="text-xs text-amber-900 leading-relaxed space-y-1">
-                    <p className="font-semibold text-amber-950">Boutique 100% en Ligne — Expédition Partout au Maroc</p>
-                    <p className="text-amber-800">
+                <div className="bg-slate-50/90 border border-slate-200/80 border-l-2 border-l-[#0ea5e9] rounded-xl p-4 flex items-start gap-3">
+                  <Info size={17} className="text-[#0284c7] shrink-0 mt-0.5" />
+                  <div className="text-xs text-slate-700 leading-relaxed space-y-1">
+                    <p className="font-semibold text-slate-900">Boutique 100% en Ligne — Expédition Partout au Maroc</p>
+                    <p className="text-slate-600">
                       Toutes les commandes sont préparées dans notre centre logistique et expédiées directement à l&apos;adresse du client sous 24h à 48h. Aucun atelier public n&apos;est ouvert aux visiteurs.
                     </p>
                   </div>
@@ -559,18 +549,16 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
 
             {/* Right 1 Col: Brand Identity Preview Card */}
             <div className="space-y-6">
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Aperçu Carte de Marque</h3>
 
-                {/* Luxury Brand Card Mockup */}
-                <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 rounded-2xl p-5 text-white shadow-md relative overflow-hidden border border-amber-500/20">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-
+                {/* Maison Obsidian Brand Card Mockup */}
+                <div className="bg-[#0b1322] rounded-2xl p-5 text-white shadow-sm relative overflow-hidden border border-slate-800">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-serif font-bold text-lg">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.08] border border-white/[0.14] flex items-center justify-center text-sky-300 font-serif font-bold text-lg">
                       N
                     </div>
-                    <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                    <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-md bg-white/[0.06] text-slate-300 border border-white/10">
                       Haute Parfumerie
                     </span>
                   </div>
@@ -580,9 +568,9 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                     {config.heroTitle || "L'Essence de l'Élégance & Extraits Rares"}
                   </p>
 
-                  <div className="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                    <span className="flex items-center gap-1 text-amber-400/90 font-medium">
-                      <BadgeCheck size={13} />
+                  <div className="mt-5 pt-3 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-slate-400">
+                    <span className="flex items-center gap-1 text-slate-200 font-medium">
+                      <BadgeCheck size={13} className="text-sky-400" />
                       Marque Déposée
                     </span>
                     <span className="font-mono text-slate-300">Maroc • Casablanca</span>
@@ -622,17 +610,16 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
             className="space-y-6"
           >
             {/* Top Overview Banner */}
-            <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white rounded-2xl p-6 sm:p-7 border border-amber-500/20 shadow-md relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="bg-[#0b1322] text-white rounded-2xl p-6 sm:p-7 border border-slate-800 shadow-sm relative overflow-hidden">
               <div className="relative z-10 max-w-3xl space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1.5">
-                    <Mail size={12} />
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/[0.08] text-slate-200 border border-white/10 flex items-center gap-1.5">
+                    <Mail size={12} className="text-sky-300" />
                     Réseau d&apos;Alertes Temps Réel
                   </span>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Passerelle Resend Cloud Active
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Passerelle Resend Active
                   </span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
@@ -651,7 +638,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
                 <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
                   <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/80">
                         <Users size={18} />
                       </div>
                       <div>
@@ -942,7 +929,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
                 <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/80">
                     <Truck size={18} />
                   </div>
                   <div>
@@ -1162,7 +1149,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
               {/* Left col: Hero texts */}
               <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
                 <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/80">
                     <LayoutTemplate size={18} />
                   </div>
                   <div>
@@ -1209,7 +1196,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
               {/* Right col: Coffrets and Trends */}
               <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
                 <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/80">
                     <Sparkles size={18} />
                   </div>
                   <div>
@@ -1490,7 +1477,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
                 <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/80">
                     <Lock size={18} />
                   </div>
                   <div>
@@ -1646,6 +1633,20 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
             <AdminPushNotificationSettings />
           </motion.div>
         )}
+
+        {/* ========================================================================= */}
+        {/* TAB 8: THÈME, POLICE & STUDIO DESIGN GLOBAL */}
+        {/* ========================================================================= */}
+        {activeTab === 'appearance' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            <AdminAppearanceStudio />
+          </motion.div>
+        )}
       </div>
 
       {/* ========================================================================= */}
@@ -1657,7 +1658,7 @@ export default function SettingsClient({ initialConfig, adminUser, adminUsers }:
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-6 inset-x-0 z-40 max-w-2xl mx-auto px-4"
+            className="fixed bottom-20 lg:bottom-6 inset-x-0 z-40 max-w-2xl mx-auto px-4"
           >
             <div className="bg-slate-900/95 text-white border border-slate-700/80 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">

@@ -17,8 +17,12 @@ export default function ClientWidgets() {
 
   if (!ready) return null;
 
-  // Keep checkout tunnel completely distraction-free
-  const isCheckoutTunnel = pathname?.includes('/checkout') || pathname?.includes('/order-confirmation');
+  // Keep cart & checkout funnel completely distraction-free (no WhatsApp / AI / popups)
+  const isCheckoutTunnel =
+    pathname === '/cart' ||
+    Boolean(pathname?.match(/^\/(?:fr|en|ar)\/cart(?:\/|$)/)) ||
+    pathname?.includes('/checkout') ||
+    pathname?.includes('/order-confirmation');
   if (isCheckoutTunnel) {
     return (
       <div className="print:hidden">

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { crawlUrl, processCrawlResult } from "@/lib/seo-ai/crawler";
 import { requirePermission } from "@/lib/auth/rbac/serverGuard";
+import { assertSafeCrawlUrl } from "@/lib/security/ssrf";
 
 export async function POST(request: Request) {
   try {
@@ -8,22 +9,40 @@ export async function POST(request: Request) {
     if (!auth.authorized) return auth.response!;
     const { url } = await request.json();
 
-    if (!url) {
+    if (!url || typeof url !== 'string') {
       return NextResponse.json({ error: "Missing URL to crawl" }, { status: 400 });
     }
 
-    // Ensure it's a valid URL and preferably same-domain (we can enforce baseUrl if needed)
-    let targetUrl = url;
-    if (url.startsWith("/")) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nayparfum.ma";
-      targetUrl = `${baseUrl}${url}`;
+    const baseAppUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nayparfum.ma";
+    let targetUrl = url.trim();
+    if (targetUrl.startsWith("/")) {
+      targetUrl = `${baseAppUrl}${targetUrl}`;
     }
 
-    // For absolute URLs, you might want to enforce it belongs to the domain
-    const urlObj = new URL(targetUrl);
-    const baseUrl = urlObj.origin;
+    let urlObj: URL;
+    try {
+      urlObj = await assertSafeCrawlUrl(targetUrl);
+    } catch (ssrfErr: any) {
+      return NextResponse.json(
+        { error: ssrfErr?.message || "URL cible non autorisée" },
+        { status: 400 }
+      );
+    }
 
-    const result = await crawlUrl(targetUrl, baseUrl);
+    // Restrict SEO crawler exclusively to configured storefront host(s)
+    const allowedHosts = new Set(['nayparfum.ma', 'www.nayparfum.ma']);
+    try {
+      allowedHosts.add(new URL(baseAppUrl).hostname.toLowerCase());
+    } catch {}
+    if (!allowedHosts.has(urlObj.hostname.toLowerCase())) {
+      return NextResponse.json(
+        { error: "Le crawler SEO est restreint aux domaines autorisés du site." },
+        { status: 403 }
+      );
+    }
+
+    const baseUrl = urlObj.origin;
+    const result = await crawlUrl(urlObj.toString(), baseUrl);
     
     // Save to DB and generate issues
     await processCrawlResult(result);
@@ -33,8 +52,8 @@ export async function POST(request: Request) {
       result
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Crawl API Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Crawl failed" }, { status: 500 });
   }
 }

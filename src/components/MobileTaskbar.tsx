@@ -25,11 +25,12 @@ export default function MobileTaskbar() {
   // Determine active tab
   const isCheckout = pathname?.includes('/checkout') || pathname?.includes('/order-confirmation');
   const isProduct = pathname?.includes('/product/');
-  if (isCheckout || isProduct) return null;
+  const isCart = pathname?.includes('/cart');
+  // On populated cart, replace generic bottom nav with the cart page's dedicated sticky Checkout CTA bar
+  if (isCheckout || isProduct || (isCart && cartCount > 0)) return null;
 
   const isHome = pathname === `/${locale}` || pathname === `/${locale}/` || pathname === '/';
   const isShop = pathname?.includes('/shop') || pathname?.includes('/parfums-originaux') || pathname?.includes('/testeurs');
-  const isCart = pathname?.includes('/cart');
   const isWishlist = pathname?.includes('/wishlist');
 
   return (

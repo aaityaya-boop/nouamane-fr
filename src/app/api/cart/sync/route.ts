@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
+import { verifyCustomerToken } from '@/lib/security/jwt';
+
+const ALLOWED_CART_STATUS = new Set(['ACTIVE', 'ABANDONED', 'COMPLETED']);
 
 export async function POST(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`cart_sync:${clientIp}`, 45, 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 });
+    }
+
     const body = await request.json();
     const {
       sessionId,
       items,
       totalValue,
-      customerId,
       customerName,
       customerPhone,
       customerEmail,
@@ -16,57 +26,68 @@ export async function POST(request: Request) {
       status
     } = body;
 
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
+    if (!sessionId || typeof sessionId !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(sessionId.trim())) {
+      return NextResponse.json({ error: 'Invalid session ID' }, { status: 400 });
     }
 
+    const cleanSessionId = sessionId.trim();
+    const safeStatus = typeof status === 'string' && ALLOWED_CART_STATUS.has(status) ? status : 'ACTIVE';
+
+    // Never trust unauthenticated body.customerId — resolve solely from verified customer_token cookie
+    let verifiedCustomerId: string | undefined;
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get('customer_token')?.value;
+      if (token) {
+        const payload = await verifyCustomerToken(token);
+        if (payload?.id) verifiedCustomerId = payload.id;
+      }
+    } catch {}
+
     const contactData = {
-      ...(customerName ? { customerName: String(customerName).trim() } : {}),
-      ...(customerPhone ? { customerPhone: String(customerPhone).trim() } : {}),
-      ...(customerEmail ? { customerEmail: String(customerEmail).trim().toLowerCase() } : {}),
-      ...(customerCity ? { customerCity: String(customerCity).trim() } : {}),
-      ...(status ? { status } : {}),
-      ...(customerId ? { customerId } : {})
+      ...(customerName && typeof customerName === 'string' ? { customerName: customerName.trim().slice(0, 120) } : {}),
+      ...(customerPhone && typeof customerPhone === 'string' ? { customerPhone: customerPhone.trim().slice(0, 40) } : {}),
+      ...(customerEmail && typeof customerEmail === 'string' ? { customerEmail: customerEmail.trim().toLowerCase().slice(0, 150) } : {}),
+      ...(customerCity && typeof customerCity === 'string' ? { customerCity: customerCity.trim().slice(0, 80) } : {}),
+      status: safeStatus,
+      ...(verifiedCustomerId ? { customerId: verifiedCustomerId } : {}),
     };
 
     if (!Array.isArray(items) || items.length === 0) {
-      // If cart is cleared or empty
       await prisma.liveCartSession.upsert({
-        where: { sessionId },
+        where: { sessionId: cleanSessionId },
         update: {
           items: '[]',
           totalValue: 0,
           lastActivity: new Date(),
-          status: status || 'ACTIVE',
           ...contactData
         },
         create: {
-          sessionId,
+          sessionId: cleanSessionId,
           items: '[]',
           totalValue: 0,
-          status: status || 'ACTIVE',
           ...contactData
         }
       });
       return NextResponse.json({ success: true });
     }
 
-    const itemsJson = JSON.stringify(items);
+    const boundedItems = items.slice(0, 50);
+    const itemsJson = JSON.stringify(boundedItems);
+    const safeTotal = Number.isFinite(Number(totalValue)) && Number(totalValue) >= 0 ? Number(totalValue) : 0;
 
     await prisma.liveCartSession.upsert({
-      where: { sessionId },
+      where: { sessionId: cleanSessionId },
       update: {
         items: itemsJson,
-        totalValue: Number(totalValue) || 0,
+        totalValue: safeTotal,
         lastActivity: new Date(),
-        status: status || 'ACTIVE',
         ...contactData
       },
       create: {
-        sessionId,
+        sessionId: cleanSessionId,
         items: itemsJson,
-        totalValue: Number(totalValue) || 0,
-        status: status || 'ACTIVE',
+        totalValue: safeTotal,
         ...contactData
       }
     });

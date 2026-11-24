@@ -3,24 +3,31 @@ import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { calculateFriendCompatibility, parseNotes } from '@/lib/scentMatch/engine';
 import { QueueProduct } from '@/lib/scentMatch/types';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const rate = checkRateLimit(`sm_friends:${clientIp}`, 30, 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 });
+    }
+
     const body = await req.json();
     const { action, hostSessionId, hostName, inviteCode, friendSessionId, friendName } = body;
 
     if (action === 'create') {
-      if (!hostSessionId) {
-        return NextResponse.json({ error: 'hostSessionId is required' }, { status: 400 });
+      if (!hostSessionId || typeof hostSessionId !== 'string' || !/^[a-zA-Z0-9_-]{6,100}$/.test(hostSessionId.trim())) {
+        return NextResponse.json({ error: 'Invalid hostSessionId' }, { status: 400 });
       }
 
-      const code = `NAY-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+      const code = `NAY-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
       const friendSession = await prisma.scentMatchFriendSession.create({
         data: {
           inviteCode: code,
-          hostSessionId,
-          hostName: hostName || 'Hôte',
+          hostSessionId: hostSessionId.trim(),
+          hostName: typeof hostName === 'string' && hostName.trim() ? hostName.trim().slice(0, 60) : 'Hôte',
           status: 'WAITING_FRIEND'
         }
       });
@@ -33,12 +40,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === 'join') {
-      if (!inviteCode || !friendSessionId) {
+      if (!inviteCode || !friendSessionId || typeof inviteCode !== 'string' || typeof friendSessionId !== 'string') {
         return NextResponse.json({ error: 'inviteCode and friendSessionId are required' }, { status: 400 });
       }
 
       const existing = await prisma.scentMatchFriendSession.findUnique({
-        where: { inviteCode }
+        where: { inviteCode: inviteCode.trim().toUpperCase() }
       });
 
       if (!existing) {
@@ -46,10 +53,10 @@ export async function POST(req: NextRequest) {
       }
 
       const updated = await prisma.scentMatchFriendSession.update({
-        where: { inviteCode },
+        where: { inviteCode: inviteCode.trim().toUpperCase() },
         data: {
-          friendSessionId,
-          friendName: friendName || 'Ami(e)',
+          friendSessionId: friendSessionId.trim().slice(0, 100),
+          friendName: typeof friendName === 'string' && friendName.trim() ? friendName.trim().slice(0, 60) : 'Ami(e)',
           status: 'BOTH_COMPLETED'
         }
       });

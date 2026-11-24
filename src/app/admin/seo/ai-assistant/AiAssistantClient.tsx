@@ -8,6 +8,8 @@ export default function AiAssistantClient({ keywords, products }: { keywords: an
   const [selectedKeywordId, setSelectedKeywordId] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applyStatus, setApplyStatus] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +37,7 @@ export default function AiAssistantClient({ keywords, products }: { keywords: an
     if (!selectedProductId) return;
     setIsLoading(true);
     setError(null);
+    setApplyStatus(null);
     try {
       const res = await fetch("/api/admin/seo/ai/product", {
         method: "POST",
@@ -48,6 +51,32 @@ export default function AiAssistantClient({ keywords, products }: { keywords: an
       setError(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleApplyToProduct = async () => {
+    if (!selectedProductId || !result?.aiAnalysis) return;
+    setIsApplying(true);
+    setError(null);
+    setApplyStatus(null);
+    try {
+      const res = await fetch("/api/admin/seo/pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: Number(selectedProductId),
+          seoTitle: result.aiAnalysis.seoTitle,
+          metaDescription: result.aiAnalysis.metaDescription,
+          focusKeyword: result.aiAnalysis.focusKeyword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to apply SEO metadata");
+      setApplyStatus("SEO Title, Meta Description & Focus Keyword applied to product.");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -193,9 +222,31 @@ export default function AiAssistantClient({ keywords, products }: { keywords: an
                   </div>
                 </div>
              </div>
+             {applyStatus && (
+               <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm font-medium">
+                 {applyStatus}
+               </div>
+             )}
              <div className="flex gap-3 justify-end pt-4 border-t">
-                <button className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50">Reject</button>
-                <button className="px-4 py-2 text-sm text-white bg-indigo-600 rounded hover:bg-indigo-700 flex gap-2"><CheckCircle2 className="w-4 h-4" /> Apply to Product (Review first)</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResult(null);
+                    setApplyStatus(null);
+                  }}
+                  className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer"
+                >
+                  Reject
+                </button>
+                <button
+                  type="button"
+                  disabled={isApplying}
+                  onClick={handleApplyToProduct}
+                  className="px-4 py-2 text-sm text-white bg-indigo-600 rounded hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{isApplying ? "Applying..." : "Apply to Product"}</span>
+                </button>
              </div>
           </div>
         )}

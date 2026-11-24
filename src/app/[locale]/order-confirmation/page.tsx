@@ -19,6 +19,8 @@ import {
   MapPin,
   Share2,
   Printer,
+  Banknote,
+  CreditCard,
 } from 'lucide-react';
 
 type OrderConfirmation = {
@@ -213,7 +215,8 @@ function OrderConfirmationInner() {
                     {order.paymentMethod === 'cod' ? (
                       <>
                         <div className="font-semibold flex items-center gap-2">
-                          💵 Paiement à la livraison
+                          <Banknote size={16} className="text-[#0284c7] shrink-0" />
+                          <span>Paiement à la livraison</span>
                         </div>
                         <div className="text-[13px] text-[#6B6B6B] mt-2 leading-relaxed">
                           Merci de préparer{' '}
@@ -226,7 +229,8 @@ function OrderConfirmationInner() {
                     ) : (
                       <>
                         <div className="font-semibold flex items-center gap-2">
-                          💳 Carte bancaire
+                          <CreditCard size={16} className="text-[#0284c7] shrink-0" />
+                          <span>Carte bancaire</span>
                         </div>
                         <div className="text-[13px] text-[#6B6B6B] mt-2">
                           Paiement effectué avec succès.

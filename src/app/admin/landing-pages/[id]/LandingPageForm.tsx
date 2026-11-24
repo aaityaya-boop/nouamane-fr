@@ -64,7 +64,7 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
         faqs: [],
         story: '',
         whatsappNumber: '+212663380011',
-        urgencyText: '⚡ OFFRE SPÉCIALE MAROC · STOCK LIMITÉ',
+        urgencyText: 'OFFRE SPÉCIALE MAROC · STOCK LIMITÉ',
         theme: 'luxury-gold'
       };
     }
@@ -80,7 +80,7 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
           faqs: [],
           story: '',
           whatsappNumber: '+212663380011',
-          urgencyText: '⚡ OFFRE SPÉCIALE MAROC · STOCK LIMITÉ',
+          urgencyText: 'OFFRE SPÉCIALE MAROC · STOCK LIMITÉ',
           theme: 'luxury-gold'
         };
       }
@@ -93,7 +93,7 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
         faqs: parsed.faqs || [],
         story: parsed.story || '',
         whatsappNumber: parsed.whatsappNumber || '+212663380011',
-        urgencyText: parsed.urgencyText || '⚡ OFFRE SPÉCIALE MAROC · STOCK LIMITÉ',
+        urgencyText: parsed.urgencyText || 'OFFRE SPÉCIALE MAROC · STOCK LIMITÉ',
         theme: parsed.theme || 'luxury-gold'
       };
     } catch {
@@ -106,7 +106,7 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
         faqs: [],
         story: '',
         whatsappNumber: '+212663380011',
-        urgencyText: '⚡ OFFRE SPÉCIALE MAROC · STOCK LIMITÉ',
+        urgencyText: 'OFFRE SPÉCIALE MAROC · STOCK LIMITÉ',
         theme: 'luxury-gold'
       };
     }
@@ -119,17 +119,17 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
     subtitle: initialData?.subtitle || 'Offrez-vous les parfums les plus prisés au monde avec livraison express partout au Maroc.',
     heroImage: initialData?.heroImage || 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=1600&h=900',
     deadline: initialData?.deadline ? new Date(initialData.deadline).toISOString().slice(0, 16) : '',
-    badgeText: initialData?.badgeText || '⚡ OFFRE SPÉCIALE MAROC · LIVRAISON 24H',
+    badgeText: initialData?.badgeText || 'OFFRE SPÉCIALE MAROC · LIVRAISON 24H',
     status: initialData?.status || 'active',
     story: initialConfig.story || '',
     whatsappNumber: initialConfig.whatsappNumber || '+212663380011',
-    urgencyText: initialConfig.urgencyText || '🔥 Offre spéciale limitée aux 25 premières commandes d’aujourd’hui !',
+    urgencyText: initialConfig.urgencyText || 'Offre spéciale limitée aux 25 premières commandes du jour.',
     products: initialConfig.products || [],
     customProducts: initialConfig.customProducts || [],
     bundles: initialConfig.bundles?.length ? initialConfig.bundles : [
       { id: '1', title: '1x Flacon Découverte', subtitle: 'Format individuel', qty: 1, price: 450, originalPrice: 650, badge: 'Offre standard', isPopular: false },
-      { id: '2', title: 'Pack Duo (2 Flacons)', subtitle: 'Le Plus Vendu', qty: 2, price: 790, originalPrice: 1300, badge: '🔥 RECOMMANDÉ · Livraison Gratuite', isPopular: true },
-      { id: '3', title: 'Pack VIP (3 Flacons)', subtitle: 'Meilleure Offre', qty: 3, price: 1050, originalPrice: 1950, badge: '👑 1 FLACON OFFERT', isPopular: false }
+      { id: '2', title: 'Pack Duo (2 Flacons)', subtitle: 'Le Plus Vendu', qty: 2, price: 790, originalPrice: 1300, badge: 'RECOMMANDÉ · Livraison Gratuite', isPopular: true },
+      { id: '3', title: 'Pack VIP (3 Flacons)', subtitle: 'Meilleure Offre', qty: 3, price: 1050, originalPrice: 1950, badge: '1 FLACON OFFERT', isPopular: false }
     ],
     features: initialConfig.features?.length ? initialConfig.features : [
       { icon: 'ShieldCheck', title: '100% Authentique & Scellé', description: 'Flacon original sous blister avec traçabilité européenne vérifiable.' },
@@ -353,10 +353,10 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
           <button
             type="button"
             onClick={() => setIsAiModalOpen(true)}
-            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm hover:shadow transition-all cursor-pointer"
+            className="bg-white hover:bg-sky-50 border border-sky-200 text-[#0284c7] px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
           >
-            <Sparkles size={16} />
-            <span>Générer avec l'IA</span>
+            <Sparkles size={15} className="text-[#0ea5e9]" />
+            <span>Générer avec l&apos;IA</span>
           </button>
 
           {formData.slug && (
@@ -397,9 +397,9 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
           <button
             type="submit"
             disabled={loading}
-            className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            className="bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:opacity-95 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md shadow-sky-500/20 transition-all disabled:opacity-50 cursor-pointer"
           >
-            <Save size={16} />
+            <Save size={15} />
             <span>{loading ? 'Enregistrement...' : 'Enregistrer'}</span>
           </button>
         </div>
@@ -1190,8 +1190,8 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
                   <Wand2 size={22} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Générateur IA Expert Maison NAY</h3>
-                  <p className="text-xs text-gray-500">Copywriting persuasif haute conversion pour Meta & TikTok Ads.</p>
+                  <h3 className="text-lg font-bold text-gray-900">Assistant Éditorial Maison NAY</h3>
+                  <p className="text-xs text-gray-500">Structurez une page de conversion dédiée pour Meta &amp; TikTok Ads.</p>
                 </div>
               </div>
               <button
@@ -1359,7 +1359,7 @@ export default function LandingPageForm({ initialData }: { initialData?: any }) 
                 type="button"
                 disabled={aiGenerating}
                 onClick={handleGenerateWithAi}
-                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-md transition-all disabled:opacity-60 cursor-pointer"
+                className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all disabled:opacity-60 cursor-pointer"
               >
                 <Sparkles size={16} />
                 <span>{aiGenerating ? 'Génération en cours...' : 'Générer Toute la Page'}</span>

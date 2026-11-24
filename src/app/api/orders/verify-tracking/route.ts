@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { arePhonesMatching, createInvoiceToken } from '@/lib/orderAuth';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,14 @@ export async function POST(req: Request) {
     }
 
     const cleanOrderNumber = orderNumber.trim().toUpperCase();
+    const clientIp = getClientIp(req);
+    const rate = checkRateLimit(`verify_tracking:${clientIp}:${cleanOrderNumber}`, 12, 15 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Trop de tentatives de vérification pour cette commande. Veuillez réessayer plus tard.' },
+        { status: 429 }
+      );
+    }
 
     const order = await prisma.order.findUnique({
       where: { orderNumber: cleanOrderNumber },

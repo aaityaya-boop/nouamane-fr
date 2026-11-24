@@ -4,28 +4,142 @@ import { requirePermission, requireAnyPermission } from '@/lib/auth/rbac/serverG
 import { recordStatusTransition, generateFallbackTimeline } from '@/lib/orders/timeline';
 import { createAdminNotification } from '@/lib/notificationService';
 
+const extractLatestLogistics = (timeline: Array<{ carrier?: string | null; trackingNumber?: string | null }> | undefined) => {
+  if (!Array.isArray(timeline) || timeline.length === 0) {
+    return { carrier: null as string | null, trackingNumber: null as string | null };
+  }
+  let carrier: string | null = null;
+  let trackingNumber: string | null = null;
+  for (let i = timeline.length - 1; i >= 0; i--) {
+    if (!carrier && timeline[i]?.carrier) carrier = timeline[i].carrier || null;
+    if (!trackingNumber && timeline[i]?.trackingNumber) trackingNumber = timeline[i].trackingNumber || null;
+    if (carrier && trackingNumber) break;
+  }
+  return { carrier, trackingNumber };
+};
+
 export async function GET(request: Request) {
   try {
     const { errorResponse } = await requirePermission(request, 'orders.view');
     if (errorResponse) return errorResponse;
 
-    const orders = await prisma.order.findMany({
-      include: {
-        timeline: {
-          orderBy: { createdAt: 'asc' },
+    const [orders, products] = await Promise.all([
+      prisma.order.findMany({
+        include: {
+          timeline: {
+            orderBy: { createdAt: 'asc' },
+          },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.product.findMany({
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          sku: true,
+          images: true,
+          stock: true,
+          brandLabel: true,
+          subcategoryLabel: true,
+        },
+      }),
+    ]);
 
-    // Attach enriched timeline (falling back to generated progression if legacy order has 0 timeline events)
+    const getPrimaryImage = (rawImages: string | null | undefined): string | null => {
+      if (!rawImages) return null;
+      try {
+        const parsed = JSON.parse(rawImages);
+        if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+          return parsed[0];
+        }
+      } catch {
+        if (typeof rawImages === 'string' && rawImages.trim().startsWith('/')) {
+          return rawImages.trim();
+        }
+      }
+      return null;
+    };
+
+    const byId = new Map<number, (typeof products)[number]>();
+    const bySlug = new Map<string, (typeof products)[number]>();
+    const bySku = new Map<string, (typeof products)[number]>();
+    const byName = new Map<string, (typeof products)[number]>();
+
+    for (const p of products) {
+      byId.set(p.id, p);
+      if (p.slug) bySlug.set(p.slug.toLowerCase(), p);
+      if (p.sku) bySku.set(p.sku.toLowerCase(), p);
+      if (p.name) byName.set(p.name.trim().toLowerCase(), p);
+    }
+
+    const phoneOrderCounts = new Map<string, number>();
+    const emailOrderCounts = new Map<string, number>();
+    for (const o of orders) {
+      const ph = (o.customerPhone || '').replace(/\D/g, '').slice(-9);
+      if (ph) phoneOrderCounts.set(ph, (phoneOrderCounts.get(ph) || 0) + 1);
+      const em = (o.customerEmail || '').trim().toLowerCase();
+      if (em) emailOrderCounts.set(em, (emailOrderCounts.get(em) || 0) + 1);
+    }
+
+    // Attach enriched timeline, real product bottle images & stock, and customer order frequency
     const enrichedOrders = orders.map((order) => {
       const timeline = order.timeline && order.timeline.length > 0
         ? order.timeline
         : generateFallbackTimeline(order);
+
+      let parsedItems: any[] = [];
+      try {
+        parsedItems = JSON.parse(order.items || '[]');
+      } catch {
+        parsedItems = [];
+      }
+
+      const enrichedItems = parsedItems.map((item: any) => {
+        const itemId = Number(item.productId || item.id || item.product?.id || 0);
+        const itemSku = (item.sku || item.product?.sku || '').toString().trim().toLowerCase();
+        const itemSlug = (item.slug || item.product?.slug || '').toString().trim().toLowerCase();
+        const itemName = (item.name || item.product?.name || '').toString().trim().toLowerCase();
+
+        const matched =
+          (itemId ? byId.get(itemId) : undefined) ||
+          (itemSku ? bySku.get(itemSku) : undefined) ||
+          (itemSlug ? bySlug.get(itemSlug) : undefined) ||
+          (itemName ? byName.get(itemName) : undefined);
+
+        const resolvedImage =
+          item.image ||
+          item.product?.image ||
+          getPrimaryImage(matched?.images) ||
+          null;
+
+        return {
+          ...item,
+          image: resolvedImage,
+          slug: item.slug || matched?.slug || null,
+          sku: item.sku || matched?.sku || null,
+          brandLabel: matched?.brandLabel || item.brandLabel || null,
+          categoryLabel: matched?.subcategoryLabel || null,
+          currentStock: typeof matched?.stock === 'number' ? matched.stock : null,
+        };
+      });
+
+      const phKey = (order.customerPhone || '').replace(/\D/g, '').slice(-9);
+      const emKey = (order.customerEmail || '').trim().toLowerCase();
+      const customerOrdersCount = Math.max(
+        phKey ? phoneOrderCounts.get(phKey) || 1 : 1,
+        emKey ? emailOrderCounts.get(emKey) || 1 : 1
+      );
+
+      const logistics = extractLatestLogistics(timeline);
+
       return {
         ...order,
         timeline,
+        enrichedItems,
+        customerOrdersCount,
+        ...(logistics.carrier ? { carrier: logistics.carrier } : {}),
+        ...(logistics.trackingNumber ? { trackingNumber: logistics.trackingNumber } : {}),
       };
     });
 
@@ -168,6 +282,31 @@ export async function PUT(request: Request) {
       }
     }
 
+    // Persist carrier / tracking updates to timeline even when status didn't change
+    const statusChanged = Boolean(status && status !== currentOrder.status);
+    if (!statusChanged && (carrier !== undefined || trackingNumber !== undefined)) {
+      const prevLogistics = extractLatestLogistics(currentOrder.timeline);
+      const nextCarrier = typeof carrier === 'string' ? carrier.trim() : '';
+      const nextTracking = typeof trackingNumber === 'string' ? trackingNumber.trim() : '';
+      if (
+        (nextCarrier && nextCarrier !== (prevLogistics.carrier || '')) ||
+        (nextTracking && nextTracking !== (prevLogistics.trackingNumber || ''))
+      ) {
+        await prisma.orderTimelineEvent.create({
+          data: {
+            orderId: currentOrder.id,
+            status: status || currentOrder.status,
+            title: 'Bordereau transporteur mis à jour',
+            description: `${nextCarrier || prevLogistics.carrier || 'Transporteur'}${nextTracking ? ` • Suivi : ${nextTracking}` : ''}`,
+            actorName: admin?.name || actorNameOverride || 'Admin NAY',
+            actorRole: admin?.role || 'STAFF',
+            carrier: nextCarrier || prevLogistics.carrier || null,
+            trackingNumber: nextTracking || prevLogistics.trackingNumber || null,
+          },
+        }).catch((err) => console.error('Error logging carrier/tracking timeline:', err));
+      }
+    }
+
     const updated = await prisma.order.update({
       where: { id },
       data: {
@@ -187,6 +326,8 @@ export async function PUT(request: Request) {
       },
     });
 
+    const updatedLogistics = extractLatestLogistics(updated.timeline);
+
     if (status && (status.toLowerCase().includes('cancel') || status.toLowerCase().includes('annul'))) {
       createAdminNotification({
         type: 'ORDER',
@@ -197,7 +338,11 @@ export async function PUT(request: Request) {
       }).catch(() => {});
     }
 
-    return NextResponse.json(updated);
+    return NextResponse.json({
+      ...updated,
+      ...(updatedLogistics.carrier ? { carrier: updatedLogistics.carrier } : {}),
+      ...(updatedLogistics.trackingNumber ? { trackingNumber: updatedLogistics.trackingNumber } : {}),
+    });
   } catch (error) {
     console.error('Error updating admin order:', error);
     return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { detectCannibalization } from '@/lib/seo-ai/topical-authority';
 import { AlertOctagon, FileWarning, SearchX, Target } from 'lucide-react';
@@ -112,9 +113,12 @@ export default async function ContentGapsPage() {
                      <h4 className="font-bold text-gray-900">{t.name}</h4>
                      <p className="text-xs text-gray-500 mt-1">{t.keywordCount} associated keywords</p>
                    </div>
-                   <button className="text-xs font-semibold bg-white border border-blue-200 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-100">
+                   <Link
+                     href={`/admin/seo/topical-authority/${t.id}`}
+                     className="text-xs font-semibold bg-white border border-blue-200 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-100 transition-colors shrink-0"
+                   >
                      Analyze Cluster
-                   </button>
+                   </Link>
                  </div>
                ))}
              </div>

@@ -145,49 +145,47 @@ export default function ContactsDirectoryClient({
   return (
     <div className="space-y-5">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-2xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 nay-stagger">
+        <div className="nay-hero-shine rounded-2xl p-5 bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] text-white shadow-md shadow-sky-500/20">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-neutral-500">Total Contacts</span>
-            <div className="p-1.5 rounded-lg bg-neutral-100 text-neutral-700">
-              <Users size={14} />
-            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-100">TOTAL CONTACTS CRM</span>
+            <Users size={15} className="text-white/90" />
           </div>
-          <div className="mt-2 text-xl font-bold text-neutral-900">{totalContacts} contacts</div>
-          <p className="text-[11px] text-neutral-400 mt-0.5">Commandes & Comptes</p>
+          <div className="mt-2.5 text-2xl font-extrabold tabular-nums">{totalContacts}</div>
+          <p className="text-[11px] text-sky-100 mt-1">Commandes &amp; Comptes unifiés</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-2xs">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-neutral-500">Téléphones WhatsApp</span>
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">TÉLÉPHONES WHATSAPP</span>
+            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
               <Phone size={14} />
             </div>
           </div>
-          <div className="mt-2 text-xl font-bold text-neutral-900">{withPhoneCount} numéros</div>
-          <p className="text-[11px] text-neutral-400 mt-0.5">Numéros actifs pour relance</p>
+          <div className="mt-2.5 text-2xl font-extrabold text-slate-900 tabular-nums">{withPhoneCount}</div>
+          <p className="text-[11px] text-slate-500 mt-1">Numéros actifs +212</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-2xs">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-neutral-500">Clients Acheteurs</span>
-            <div className="p-1.5 rounded-lg bg-neutral-100 text-neutral-700">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">CLIENTS ACHETEURS</span>
+            <div className="p-1.5 rounded-lg bg-sky-50 text-[#0ea5e9]">
               <ShoppingBag size={14} />
             </div>
           </div>
-          <div className="mt-2 text-xl font-bold text-neutral-900">{withOrdersCount} acheteurs</div>
-          <p className="text-[11px] text-neutral-400 mt-0.5">Ayant passé commande</p>
+          <div className="mt-2.5 text-2xl font-extrabold text-slate-900 tabular-nums">{withOrdersCount}</div>
+          <p className="text-[11px] text-slate-500 mt-1">Ayant passé commande</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-2xs">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-neutral-500">Total Dépenses</span>
-            <div className="p-1.5 rounded-lg bg-neutral-100 text-neutral-700">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">VALEUR CUMULÉE</span>
+            <div className="p-1.5 rounded-lg bg-sky-50 text-[#0284c7]">
               <Sparkles size={14} />
             </div>
           </div>
-          <div className="mt-2 text-xl font-bold text-neutral-900">{formatMAD(totalSpentAll)}</div>
-          <p className="text-[11px] text-neutral-400 mt-0.5">Valeur cumulée</p>
+          <div className="mt-2.5 text-2xl font-extrabold text-slate-900 tabular-nums">{formatMAD(totalSpentAll)}</div>
+          <p className="text-[11px] text-slate-500 mt-1">Total dépenses clients</p>
         </div>
       </div>
 
@@ -236,7 +234,7 @@ export default function ContactsDirectoryClient({
 
             <button
               onClick={exportCSV}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-black text-white text-xs font-medium shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:opacity-95 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
               title="Télécharger l'export CSV"
             >
               <Download size={13} />
@@ -246,44 +244,44 @@ export default function ContactsDirectoryClient({
         </div>
 
         {/* Filter Badges */}
-        <div className="flex items-center justify-between pt-2.5 border-t border-neutral-100">
-          <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 overflow-x-auto">
             <button
               onClick={() => setActiveFilter('ALL')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                 activeFilter === 'ALL'
-                  ? 'bg-neutral-900 text-white shadow-2xs'
-                  : 'text-neutral-600 hover:bg-neutral-100'
+                  ? 'bg-[#0ea5e9] text-white shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               Tous ({totalContacts})
             </button>
             <button
               onClick={() => setActiveFilter('COMMANDES_ONLY')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                 activeFilter === 'COMMANDES_ONLY'
-                  ? 'bg-neutral-900 text-white shadow-2xs'
-                  : 'text-neutral-600 hover:bg-neutral-100'
+                  ? 'bg-[#0ea5e9] text-white shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               Provenant des Commandes ({withOrdersCount})
             </button>
             <button
               onClick={() => setActiveFilter('PHONE')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                 activeFilter === 'PHONE'
-                  ? 'bg-neutral-900 text-white shadow-2xs'
-                  : 'text-neutral-600 hover:bg-neutral-100'
+                  ? 'bg-[#0ea5e9] text-white shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               Avec Téléphone ({withPhoneCount})
             </button>
             <button
               onClick={() => setActiveFilter('VIP')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                 activeFilter === 'VIP'
-                  ? 'bg-neutral-900 text-white shadow-2xs'
-                  : 'text-neutral-600 hover:bg-neutral-100'
+                  ? 'bg-[#0ea5e9] text-white shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               Membres VIP

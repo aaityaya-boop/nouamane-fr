@@ -24,6 +24,7 @@ import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import path from 'path';
 import { detectCustomerIntent, extractOlfactoryNotes } from '@/lib/advisor/advisorAnalytics';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 type SupportedLanguage = 'darija' | 'arabic' | 'french' | 'english';
 
@@ -1177,14 +1178,29 @@ En tant que conseiller parfumeur dédié, je suis à votre écoute pour trouver 
 
 export async function POST(req: Request) {
   try {
+    const clientIp = getClientIp(req);
+    const rate = checkRateLimit(`ai_chat:${clientIp}`, 25, 5 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Trop de messages envoyés. Veuillez patienter quelques instants avant de continuer.' },
+        { status: 429 }
+      );
+    }
+
     const rawKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     const body = await req.json();
     const { messages, conversationId, sessionId, locale, imageAttachment, imageName, imageContentType } = body;
 
+    if (Array.isArray(messages) && messages.length > 40) {
+      return NextResponse.json({ error: 'Conversation trop longue. Veuillez démarrer un nouvel échange.' }, { status: 400 });
+    }
+
     // Find latest user message
     const userMessages = (messages || []).filter((m: any) => m.role === 'user');
     const latestUserMessage = userMessages[userMessages.length - 1];
-    const latestText = latestUserMessage?.content || '';
+    const latestText = typeof latestUserMessage?.content === 'string'
+      ? latestUserMessage.content.slice(0, 2000)
+      : '';
     const userLocale = locale || 'fr';
 
     // If client sent imageAttachment directly in body, attach it to latestUserMessage and messages array
@@ -1234,23 +1250,31 @@ export async function POST(req: Request) {
         if (firstImg?.url) {
           const base64Data = String(firstImg.url).replace(/^data:image\/\w+;base64,/, '');
           const imageBuf = Buffer.from(base64Data, 'base64');
-          
-          const ocrPromise = (async () => {
-            const workerPath = path.join(process.cwd(), 'node_modules/tesseract.js/src/worker-script/node/index.js');
-            const { createWorker } = await import('tesseract.js');
-            const worker = await createWorker('eng', 1, { workerPath });
-            const ret = await worker.recognize(imageBuf);
-            const recognized = ret?.data?.text?.trim() || '';
-            await worker.terminate();
-            return recognized;
-          })();
+          const isValidImageHeader =
+            imageBuf.length >= 4 &&
+            imageBuf.length <= 4 * 1024 * 1024 &&
+            ((imageBuf[0] === 0xff && imageBuf[1] === 0xd8 && imageBuf[2] === 0xff) ||
+              (imageBuf[0] === 0x89 && imageBuf[1] === 0x50 && imageBuf[2] === 0x4e && imageBuf[3] === 0x47) ||
+              (imageBuf.subarray(0, 4).toString('ascii') === 'RIFF' && imageBuf.subarray(8, 12).toString('ascii') === 'WEBP'));
 
-          const timeoutPromise = new Promise<string>((_, reject) =>
-            setTimeout(() => reject(new Error('OCR Timeout after 6s')), 6000)
-          );
+          if (isValidImageHeader) {
+            const ocrPromise = (async () => {
+              const workerPath = path.join(process.cwd(), 'node_modules/tesseract.js/src/worker-script/node/index.js');
+              const { createWorker } = await import('tesseract.js');
+              const worker = await createWorker('eng', 1, { workerPath });
+              const ret = await worker.recognize(imageBuf);
+              const recognized = ret?.data?.text?.trim() || '';
+              await worker.terminate();
+              return recognized;
+            })();
 
-          ocrText = await Promise.race([ocrPromise, timeoutPromise]);
-          console.log('>>> OCR EXTRACTED FROM BOTTLE:', ocrText.replace(/\s+/g, ' '));
+            const timeoutPromise = new Promise<string>((_, reject) =>
+              setTimeout(() => reject(new Error('OCR Timeout after 6s')), 6000)
+            );
+
+            ocrText = await Promise.race([ocrPromise, timeoutPromise]);
+            console.log('>>> OCR EXTRACTED FROM BOTTLE:', ocrText.replace(/\s+/g, ' '));
+          }
         }
       } catch (ocrErr) {
         console.warn('OCR extraction error or timeout:', ocrErr);
@@ -1265,10 +1289,15 @@ export async function POST(req: Request) {
       ? 'HOMME' 
       : ((lowerLatest.includes('femme') || lowerLatest.includes('نسائي') || lowerLatest.includes('pour elle') || lowerLatest.includes('women')) ? 'FEMME' : undefined);
 
-    // Retrieve or create the AdvisorConversation entity
-    let conv = conversationId 
-      ? await prisma.advisorConversation.findUnique({ where: { id: conversationId } })
+    // Retrieve or create the AdvisorConversation entity (verify sessionId ownership when resuming)
+    const safeSessionId = typeof sessionId === 'string' ? sessionId.trim().slice(0, 100) : '';
+    let conv = typeof conversationId === 'string' && conversationId.trim()
+      ? await prisma.advisorConversation.findUnique({ where: { id: conversationId.trim() } })
       : null;
+
+    if (conv && safeSessionId && conv.sessionId && conv.sessionId !== safeSessionId) {
+      conv = null;
+    }
 
     if (!conv) {
       conv = await prisma.advisorConversation.create({

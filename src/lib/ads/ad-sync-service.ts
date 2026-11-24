@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { fetchMetaCampaignsAndInsights } from './meta-api';
+import { fetchMetaCampaignsAndInsights, fetchMetaDailyAccountInsights } from './meta-api';
 import { fetchTikTokCampaignsAndInsights } from './tiktok-api';
 
 export interface SyncResult {
@@ -23,20 +23,27 @@ export async function syncAllAdIntegrations(): Promise<SyncResult[]> {
   for (const integration of integrations) {
     try {
       if (integration.platform === 'META' && integration.accessToken && integration.status === 'CONNECTED') {
-        const campaigns = await fetchMetaCampaignsAndInsights(
-          integration.accountId,
-          integration.accessToken,
-          integration.exchangeRateToMAD,
-          'last_30d'
-        );
+        const [campaigns, dailyInsights] = await Promise.all([
+          fetchMetaCampaignsAndInsights(
+            integration.accountId,
+            integration.accessToken,
+            integration.exchangeRateToMAD,
+            'last_30d'
+          ),
+          fetchMetaDailyAccountInsights(
+            integration.accountId,
+            integration.accessToken,
+            integration.exchangeRateToMAD,
+            'last_30d'
+          ).catch(() => []),
+        ]);
 
         let totalPlatformSpend = 0;
 
         for (const camp of campaigns) {
           totalPlatformSpend += camp.totalSpend;
 
-          // Upsert campaign
-          const savedCamp = await prisma.adCampaign.upsert({
+          await prisma.adCampaign.upsert({
             where: {
               id: `${integration.id}_${camp.externalCampaignId}`,
             },
@@ -79,28 +86,39 @@ export async function syncAllAdIntegrations(): Promise<SyncResult[]> {
               lastSyncedAt: new Date(),
             },
           });
+        }
 
-          // Save today's snapshot
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          await prisma.adDailySpend.create({
-            data: {
+        // Replace previous auto-synced Meta daily spend snapshots cleanly (prevents duplicates)
+        if (dailyInsights.length > 0) {
+          await prisma.adDailySpend.deleteMany({
+            where: {
               integrationId: integration.id,
-              campaignId: savedCamp.id,
               platform: 'META',
-              date: today,
-              spend: camp.totalSpend,
-              impressions: camp.impressions,
-              clicks: camp.clicks,
-              conversions: camp.conversions,
-              revenue: camp.conversionValue,
-              roas: camp.roas,
-              cpa: camp.cpa,
-              cpc: camp.cpc,
               syncedFromApi: true,
             },
           });
+
+          await prisma.adDailySpend.createMany({
+            data: dailyInsights.map((d) => ({
+              integrationId: integration.id,
+              platform: 'META',
+              date: d.date,
+              spend: d.spend,
+              impressions: d.impressions,
+              clicks: d.clicks,
+              conversions: d.conversions,
+              revenue: d.revenue,
+              roas: d.roas,
+              cpa: d.cpa,
+              cpc: d.cpc,
+              notes: 'API_AUTO • Meta Business Sync',
+              syncedFromApi: true,
+              syncedToExpenses: true,
+            })),
+          });
+
+          const dailyTotal = dailyInsights.reduce((acc, d) => acc + d.spend, 0);
+          if (dailyTotal > totalPlatformSpend) totalPlatformSpend = dailyTotal;
         }
 
         // Auto-sync into AdminExpense for Finance P&L

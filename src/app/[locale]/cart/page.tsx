@@ -174,18 +174,18 @@ export default function CartPage() {
   };
 
   return (
-    <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen selection:bg-[#0ea5e9] selection:text-white">
+    <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen overflow-x-hidden selection:bg-[#0ea5e9] selection:text-white">
       <Header />
 
-      <main className="pt-24 sm:pt-28 lg:pt-36 pb-48 lg:pb-24">
+      <main className="pt-20 sm:pt-28 lg:pt-36 pb-36 lg:pb-24">
         <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* HEADER & TUNNEL STEPPER */}
-          <div className="mb-8 lg:mb-12">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#e0ddd4] pb-6">
+          <div className="mb-5 sm:mb-8 lg:mb-12">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 border-b border-[#E5E0D6] pb-4 sm:pb-6">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-[#0284c7] text-[11px] font-bold uppercase tracking-wider mb-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9] animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-sky-50 border border-sky-200/80 text-[#0284c7] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9]" />
                   Atelier NAY · Panier Officiel
                 </div>
                 <h1 className="heading-font text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#1A1A1A]">
@@ -194,19 +194,19 @@ export default function CartPage() {
               </div>
 
               {/* Visual 3-Step Stepper */}
-              <div className="flex items-center gap-3 text-[11px] sm:text-[12px] font-bold">
+              <div className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-[12px] font-bold">
                 <div className="flex items-center gap-1.5 text-[#0284c7]">
-                  <span className="w-5 h-5 rounded-full bg-[#0ea5e9] text-white flex items-center justify-center text-[10px] font-bold">1</span>
+                  <span className="w-5 h-5 rounded-full bg-[#0ea5e9] text-white flex items-center justify-center text-[10px] font-bold shadow-xs">1</span>
                   <span>Panier</span>
                 </div>
-                <ChevronRight size={14} className="text-[#bbb]" />
+                <ChevronRight size={13} className="text-[#bbb]" />
                 <div className="flex items-center gap-1.5 text-[#888]">
-                  <span className="w-5 h-5 rounded-full bg-[#e0ddd4] text-[#666] flex items-center justify-center text-[10px] font-bold">2</span>
+                  <span className="w-5 h-5 rounded-full bg-[#E5E0D6] text-[#666] flex items-center justify-center text-[10px] font-bold">2</span>
                   <span>Livraison</span>
                 </div>
-                <ChevronRight size={14} className="text-[#bbb]" />
+                <ChevronRight size={13} className="text-[#bbb]" />
                 <div className="flex items-center gap-1.5 text-[#888]">
-                  <span className="w-5 h-5 rounded-full bg-[#e0ddd4] text-[#666] flex items-center justify-center text-[10px] font-bold">3</span>
+                  <span className="w-5 h-5 rounded-full bg-[#E5E0D6] text-[#666] flex items-center justify-center text-[10px] font-bold">3</span>
                   <span>Paiement COD</span>
                 </div>
               </div>
@@ -214,28 +214,28 @@ export default function CartPage() {
 
             {/* FREE SHIPPING PROGRESS METER (If cart has items) */}
             {cart.length > 0 && (
-              <div className="mt-5 p-4 rounded-2xl bg-white border border-[#e0ddd4] shadow-xs">
+              <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-white border border-[#E5E0D6] shadow-xs">
                 <div className="flex items-center justify-between gap-2 text-[12px] sm:text-[13px] mb-2 font-medium">
-                  <div className="flex items-center gap-2">
-                    <Truck size={16} className="text-[#0ea5e9] shrink-0" />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Truck size={15} className="text-[#0ea5e9] shrink-0" />
                     {remainingForFreeShipping > 0 ? (
-                      <span>
-                        Ajoutez encore <strong className="text-[#0284c7] font-bold">{formatMAD(remainingForFreeShipping)}</strong> pour profiter de la <strong>Livraison Gratuite</strong> partout au Maroc !
+                      <span className="leading-snug text-[#2B2B2B]">
+                        Ajoutez <strong className="text-[#0284c7] font-bold tabular-nums">{formatMAD(remainingForFreeShipping)}</strong> pour la <strong>Livraison Gratuite</strong> !
                       </span>
                     ) : (
                       <span className="text-emerald-700 font-bold flex items-center gap-1.5">
-                        <Check size={15} strokeWidth={3} className="text-emerald-600" />
-                        Félicitations ! Vous bénéficiez de la Livraison Gratuite Offerte !
+                        <Check size={14} strokeWidth={3} className="text-emerald-600 shrink-0" />
+                        Livraison Gratuite Offerte partout au Maroc !
                       </span>
                     )}
                   </div>
-                  <span className="font-bold text-[11px] text-[#6B6B6B] shrink-0 hidden sm:inline">
-                    {subtotal} / {FREE_SHIPPING_THRESHOLD} MAD
+                  <span className="font-bold text-[10.5px] sm:text-[11px] text-[#6B6B6B] shrink-0 tabular-nums">
+                    {Math.round(subtotal)} / {FREE_SHIPPING_THRESHOLD} MAD
                   </span>
                 </div>
                 
                 {/* Visual Bar */}
-                <div className="w-full h-2.5 bg-[#f0ede6] rounded-full overflow-hidden p-0.5">
+                <div className="w-full h-2 bg-[#f0ede6] rounded-full overflow-hidden p-0.5">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] transition-all duration-500 ease-out"
                     style={{ width: `${freeShippingProgress}%` }}
@@ -247,8 +247,8 @@ export default function CartPage() {
 
           {cart.length === 0 ? (
             /* ===== EMPTY CART STATE ===== */
-            <div className="max-w-md mx-auto text-center py-16 sm:py-24 bg-white border border-[#e0ddd4] rounded-3xl p-8 shadow-xs">
-              <div className="w-20 h-20 mx-auto rounded-full bg-[#fafaf7] border border-[#e0ddd4] flex items-center justify-center mb-5 text-[#888]">
+            <div className="max-w-md mx-auto text-center py-16 sm:py-24 bg-white border border-[#E5E0D6] rounded-3xl p-8 shadow-xs">
+              <div className="w-20 h-20 mx-auto rounded-full bg-[#fafaf7] border border-[#E5E0D6] flex items-center justify-center mb-5 text-[#888]">
                 <ShoppingBag size={32} strokeWidth={1.5} />
               </div>
               <h2 className="heading-font text-2xl font-bold text-[#1A1A1A] mb-2">
@@ -267,11 +267,11 @@ export default function CartPage() {
             </div>
           ) : (
             /* ===== CART CONTENT GRID (Creative & Elevated Luxury Architecture) ===== */
-            <div className="grid lg:grid-cols-[1fr_420px] gap-8 lg:gap-12 items-start">
+            <div className="grid lg:grid-cols-[1fr_420px] gap-6 lg:gap-12 items-start">
               
-              {/* LEFT COLUMN: ATELIER PRODUCT LIST */}
-              <div className="space-y-4">
-                <div className="bg-white border border-[#E5E0D6] rounded-3xl p-4 sm:p-7 shadow-xs divide-y divide-[#F1EDE4]">
+              {/* LEFT COLUMN: ATELIER PRODUCT LIST + EXPRESS MOBILE CTA */}
+              <div className="space-y-4 min-w-0">
+                <div className="bg-white border border-[#E5E0D6] rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs divide-y divide-[#F1EDE4]">
                   {cart.map((item) => {
                     const trueCapacity = getTrueProductCapacity(item.name, item.slug, item.size).toUpperCase();
                     const concentration = getPerfumeConcentration(item.name);
@@ -279,12 +279,12 @@ export default function CartPage() {
                     return (
                       <div
                         key={`${item.id}-${item.size}`}
-                        className="py-5 sm:py-6 first:pt-0 last:pb-0 flex flex-row items-center gap-3.5 sm:gap-6 group/item"
+                        className="py-4 sm:py-6 first:pt-0 last:pb-0 flex flex-row items-start sm:items-center gap-3.5 sm:gap-6 group/item"
                       >
                         {/* Product Flacon Thumbnail in Creative Studio Pedestal */}
                         <Link
                           href={`/${locale}/product/${item.slug}`}
-                          className="w-22 h-24 sm:w-26 sm:h-28 rounded-2xl bg-white border border-[#E8E2D6] relative overflow-hidden shrink-0 group flex items-center justify-center p-1 shadow-2xs hover:border-[#0ea5e9]/50 transition-all duration-300"
+                          className="w-20 h-24 sm:w-26 sm:h-28 rounded-xl sm:rounded-2xl bg-[#FAF9F5] border border-[#EDEAE2] relative overflow-hidden shrink-0 group flex items-center justify-center p-1.5 hover:border-[#0ea5e9]/50 transition-all duration-300"
                         >
                           <CartFlaconImage
                             src={item.image}
@@ -296,7 +296,7 @@ export default function CartPage() {
                         <div className="flex-1 min-w-0 space-y-2 w-full">
                           
                           {/* Row 1: Product Title & Delete Button */}
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start justify-between gap-2.5">
                             <Link
                               href={`/${locale}/product/${item.slug}`}
                               className="heading-font text-[14px] sm:text-[17px] font-bold text-[#1A1A1A] hover:text-[#0ea5e9] transition line-clamp-2 leading-snug"
@@ -306,17 +306,17 @@ export default function CartPage() {
                             <button
                               type="button"
                               onClick={() => removeFromCart(item.id, item.size)}
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-[#9A9A9A] hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer shrink-0 -mr-1"
+                              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[#9A9A9A] hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer shrink-0 -mr-1 -mt-0.5"
                               title="Supprimer cet article"
                               aria-label="Supprimer cet article"
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={15} />
                             </button>
                           </div>
 
                           {/* Row 2: True Capacity & Concentration Chips */}
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[10px] sm:text-[10.5px] font-extrabold tracking-wider uppercase text-[#0284c7] bg-sky-50 px-2.5 py-0.5 rounded-md border border-sky-200/80 shadow-2xs">
+                            <span className="text-[10px] sm:text-[10.5px] font-extrabold tracking-wider uppercase text-[#0284c7] bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200/80">
                               {trueCapacity}
                             </span>
                             <span className="text-[11px] sm:text-[12px] text-[#555] font-semibold">
@@ -340,7 +340,7 @@ export default function CartPage() {
                               >
                                 <Minus size={12} strokeWidth={2.5} />
                               </button>
-                              <span className="w-7 sm:w-10 text-center font-mono font-bold text-xs sm:text-sm text-[#1A1A1A]">
+                              <span className="w-7 sm:w-10 text-center font-mono font-bold text-xs sm:text-sm text-[#1A1A1A] tabular-nums">
                                 {item.quantity}
                               </span>
                               <button
@@ -354,22 +354,26 @@ export default function CartPage() {
                             </div>
 
                             {/* Line Total & Unit Price */}
-                            <div className="text-right">
-                              <div className="heading-font text-base sm:text-xl font-extrabold text-[#1A1A1A] tracking-tight">
+                            <div className="text-right tabular-nums">
+                              <div className="heading-font text-[16px] sm:text-xl font-extrabold text-[#1A1A1A] tracking-tight">
                                 {formatMAD(item.price * item.quantity)}
                               </div>
-                              <div className="text-[10px] sm:text-[11px] text-[#888] font-medium">
+                              <div className="text-[10px] sm:text-[11px] text-[#777] font-medium">
                                 {formatMAD(item.price)} / unité
                               </div>
                             </div>
                           </div>
 
-                          {/* Row 4: Professional Vector Reassurance Badge (Authenticity Guaranteed) */}
-                          <div className="pt-2 flex items-center gap-2 sm:gap-4 text-[10.5px] sm:text-[11px] text-[#6B6B6B] border-t border-[#F5F2EB] mt-2">
-                            <div className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+                          {/* Row 4: Reassurance Badge */}
+                          <div className="pt-2 flex items-center justify-between gap-2 text-[10.5px] sm:text-[11px] text-[#555] border-t border-[#F5F2EB] mt-1.5">
+                            <div className="inline-flex items-center gap-1.5 font-medium min-w-0 truncate">
                               <ShieldCheck size={13} className="text-[#0ea5e9] shrink-0" />
-                              <span>Bouchon d&apos;origine & flacon vérifié</span>
+                              <span className="truncate">Flacon &amp; bouchon d&apos;origine vérifiés</span>
                             </div>
+                            <span className="sm:hidden inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 shrink-0 whitespace-nowrap">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              En stock
+                            </span>
                           </div>
 
                         </div>
@@ -378,8 +382,55 @@ export default function CartPage() {
                   })}
                 </div>
 
-                {/* Back to Catalog Link */}
-                <div className="pt-2">
+                {/* MOBILE DIRECT EXPRESS CONFIRMATION CARD (Right under the perfumes!) */}
+                <div className="lg:hidden bg-white border border-[#E5E0D6] rounded-2xl p-4 shadow-xs space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B] block">
+                        Total à la livraison
+                      </span>
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mt-0.5">
+                        <span className="heading-font text-[22px] font-extrabold text-[#1A1A1A] tabular-nums whitespace-nowrap">
+                          {formatMAD(total)}
+                        </span>
+                        <span className={`text-[11px] font-bold whitespace-nowrap ${shipping === 0 ? 'text-emerald-700' : 'text-[#6B6B6B]'}`}>
+                          {shipping === 0 ? '· Livraison gratuite' : `· +${formatMAD(shipping)} livraison`}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold shrink-0 whitespace-nowrap">
+                      <Check size={11} strokeWidth={3} /> 0 MAD d&apos;avance
+                    </span>
+                  </div>
+
+                  <Link
+                    href={`/${locale}/checkout`}
+                    className="w-full h-12 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] text-white text-[14px] font-bold tracking-wide rounded-xl shadow-lg shadow-sky-500/25 active:scale-[0.99] flex items-center justify-center gap-2 transition"
+                  >
+                    <Lock size={15} />
+                    <span>Confirmer ma commande · {formatMAD(total)}</span>
+                    <ArrowRight size={16} />
+                  </Link>
+
+                  <div className="flex items-center justify-between pt-0.5 text-[11px]">
+                    <a
+                      href="#cart-extras"
+                      className="font-semibold text-[#0284c7] hover:underline inline-flex items-center gap-1"
+                    >
+                      <Tag size={12} />
+                      <span>Code promo / Échantillon offert ↓</span>
+                    </a>
+                    <Link
+                      href={`/${locale}/shop`}
+                      className="font-semibold text-[#6B6B6B] hover:text-[#1A1A1A]"
+                    >
+                      ← Boutique
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Back to Catalog Link (Desktop) */}
+                <div className="hidden lg:block pt-2">
                   <Link
                     href={`/${locale}/shop`}
                     className="inline-flex items-center gap-2 text-[12px] font-bold text-[#6B6B6B] hover:text-[#0ea5e9] transition group cursor-pointer"
@@ -391,7 +442,7 @@ export default function CartPage() {
               </div>
 
               {/* RIGHT COLUMN: STICKY HAUTE PARFUMERIE ORDER SUMMARY */}
-              <aside className="self-stretch">
+              <aside id="cart-extras" className="self-stretch min-w-0 scroll-mt-24">
                 <div className="lg:sticky lg:top-28 bg-white border border-[#E5E0D6] rounded-3xl p-6 lg:p-7 shadow-xs space-y-5">
                   
                   {/* Summary Title & Security Badge */}
@@ -437,7 +488,7 @@ export default function CartPage() {
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                         placeholder="EX : CODE PROMO"
-                        className="flex-1 border border-[#E0DDD4] rounded-xl px-3.5 py-2.5 text-[13px] bg-white uppercase placeholder:text-[#9A9A9A] focus:outline-none focus:border-[#0ea5e9] font-mono"
+                        className="flex-1 min-w-0 border border-[#E0DDD4] rounded-xl px-3.5 py-2.5 text-[13px] bg-white uppercase placeholder:text-[#9A9A9A] focus:outline-none focus:border-[#0ea5e9] font-mono"
                       />
                       <button
                         type="button"
@@ -585,6 +636,36 @@ export default function CartPage() {
 
       <Footer />
       <CartDrawer />
+
+      {/* STICKY MOBILE BOTTOM CHECKOUT BAR */}
+      {cart.length > 0 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[#E5E0D6] shadow-[0_-10px_30px_rgba(15,23,42,0.08)] px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] print:hidden">
+          <div className="max-w-md mx-auto flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">
+                <span>Total</span>
+                <span className="text-emerald-700">· Paiement à la réception</span>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="heading-font text-[19px] font-extrabold text-[#1A1A1A] tabular-nums leading-tight">
+                  {formatMAD(total)}
+                </span>
+                {shipping === 0 && (
+                  <span className="text-[10px] font-bold text-emerald-700">Livraison offerte</span>
+                )}
+              </div>
+            </div>
+
+            <Link
+              href={`/${locale}/checkout`}
+              className="h-12 px-5 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] text-white text-[13.5px] font-bold rounded-xl shadow-lg shadow-sky-500/25 active:scale-[0.98] inline-flex items-center justify-center gap-2 shrink-0 transition"
+            >
+              <span>Commander</span>
+              <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Obligatory Account Modal to Unlock Promo Code */}
       <PromoAuthModal

@@ -294,8 +294,9 @@ export default function FriendMatchPage({
                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                           {p.brandLabel}
                         </span>
-                        <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-black">
-                          {isAr ? 'محبوب من كلاكما ❤️' : 'Aimé par vous deux ❤️'}
+                        <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-black inline-flex items-center gap-1.5">
+                          <Heart size={12} className="fill-rose-500 text-rose-500 shrink-0" />
+                          <span>{isAr ? 'محبوب من كلاكما' : 'Aimé par vous deux'}</span>
                         </span>
                       </div>
 

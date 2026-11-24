@@ -177,9 +177,11 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { messageId, emoji } = body;
+    const { messageId, emoji, action } = body;
 
-    if (!messageId || !emoji) {
+    const targetEmoji = action === 'TOGGLE_PIN' ? '__PIN__' : emoji;
+
+    if (!messageId || !targetEmoji) {
       return NextResponse.json({ error: 'messageId et emoji requis' }, { status: 400 });
     }
 
@@ -200,20 +202,31 @@ export async function PATCH(request: Request) {
       reactions = [];
     }
 
-    const existingIdx = reactions.findIndex(
-      (r) => r.userId === admin.id && r.emoji === emoji
-    );
-
-    if (existingIdx !== -1) {
-      // Toggle off
-      reactions.splice(existingIdx, 1);
+    if (action === 'TOGGLE_PIN') {
+      const hasPin = reactions.some((r) => r.emoji === '__PIN__');
+      if (hasPin) {
+        reactions = reactions.filter((r) => r.emoji !== '__PIN__');
+      } else {
+        reactions.push({
+          emoji: '__PIN__',
+          userId: admin.id,
+          userName: admin.name,
+        });
+      }
     } else {
-      // Toggle on
-      reactions.push({
-        emoji,
-        userId: admin.id,
-        userName: admin.name,
-      });
+      const existingIdx = reactions.findIndex(
+        (r) => r.userId === admin.id && r.emoji === targetEmoji
+      );
+
+      if (existingIdx !== -1) {
+        reactions.splice(existingIdx, 1);
+      } else {
+        reactions.push({
+          emoji: targetEmoji,
+          userId: admin.id,
+          userName: admin.name,
+        });
+      }
     }
 
     const updated = await prisma.adminChatMessage.update({
@@ -236,5 +249,41 @@ export async function PATCH(request: Request) {
   } catch (error) {
     console.error('Error updating reaction:', error);
     return NextResponse.json({ error: 'Erreur lors de la réaction' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const admin = await getAuthenticatedAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'ID du message requis' }, { status: 400 });
+    }
+
+    const existing = await prisma.adminChatMessage.findUnique({
+      where: { id },
+      select: { id: true, senderId: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Message non trouvé' }, { status: 404 });
+    }
+
+    const isOwner = admin.role === 'OWNER' || admin.role === 'CO_OWNER';
+    if (existing.senderId !== admin.id && !isOwner) {
+      return NextResponse.json({ error: 'Action non autorisée' }, { status: 403 });
+    }
+
+    await prisma.adminChatMessage.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting chat message:', error);
+    return NextResponse.json({ error: 'Erreur lors de la suppression du message' }, { status: 500 });
   }
 }

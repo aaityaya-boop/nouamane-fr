@@ -1,42 +1,47 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { 
-  Send, 
-  Paperclip, 
-  Smile, 
-  Search, 
-  Check, 
-  CheckCheck, 
-  Users, 
-  Sparkles, 
-  Package, 
-  ShoppingBag, 
-  Plus, 
-  X, 
-  Trash2, 
-  RefreshCw, 
-  UserPlus, 
-  AtSign, 
-  Hash, 
-  DollarSign, 
-  ArrowUpRight, 
-  ChevronRight, 
-  MoreVertical, 
-  Pin, 
-  Eye, 
-  Zap, 
-  Copy, 
-  Mic, 
-  Play, 
-  Pause, 
-  FileText, 
-  Download, 
-  Film, 
+import {
+  Send,
+  Paperclip,
+  Smile,
+  Search,
+  Check,
+  CheckCheck,
+  Users,
+  Sparkles,
+  Package,
+  ShoppingBag,
+  Plus,
+  X,
+  Trash2,
+  RefreshCw,
+  AtSign,
+  Hash,
+  Pin,
+  PinOff,
+  Zap,
+  Copy,
+  Mic,
+  Play,
+  Pause,
+  FileText,
+  Download,
+  Film,
   Image as ImageIcon,
   Store,
-  Phone,
-  Video
+  Reply,
+  CheckSquare,
+  PanelRightOpen,
+  PanelRightClose,
+  Truck,
+  Megaphone,
+  MessageSquare,
+  CheckCircle2,
+  AlertCircle,
+  ExternalLink,
+  Crown,
+  ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatLastSeen, isUserOnline } from '@/lib/userStatus';
@@ -140,6 +145,87 @@ const QUICK_TEMPLATES = [
   { icon: '💎', label: 'Cadeau VIP', text: '💎 Client VIP récurrent : insérer un flacon testeur 5ml de prestige dans le colis.' },
 ];
 
+const CHANNEL_STARTERS: Record<string, Array<{ title: string; prompt: string }>> = {
+  GENERAL: [
+    { title: 'Point du matin NAY', prompt: '☀️ Point équipe du jour : priorités commandes COD, stock testeurs et objectifs ROAS du jour.' },
+    { title: 'Nouvelle idée boutique', prompt: '✨ Idée pour améliorer la conversion vitrine et le panier moyen :' },
+    { title: 'Validation livraison VIP', prompt: '💎 Client VIP à prioriser pour expédition express aujourd\'hui :' },
+  ],
+  STOCK: [
+    { title: 'Alerte Réassort Flacon', prompt: '📦 Réassort urgent à prévoir sur cette référence :' },
+    { title: 'Réception Fournisseur', prompt: '✅ Nouvel arrivage réceptionné et contrôlé en atelier.' },
+    { title: 'Contrôle Packaging', prompt: '🎁 Vérification stock coffrets cadeaux & rubans NAY terminée.' },
+  ],
+  ORDERS: [
+    { title: 'Grosse Commande COD', prompt: '🔥 Nouvelle commande importante à confirmer par appel prioritaire :' },
+    { title: 'Relance Client', prompt: '📞 Client injoignable au premier appel, relance WhatsApp planifiée.' },
+    { title: 'Cadeau Testeur 5ml', prompt: '💎 Merci d\'ajouter un testeur 5ml offert dans cette commande.' },
+  ],
+  MARKETING: [
+    { title: 'Perf Meta Ads / ROAS', prompt: '📈 Bilan campagnes Ads du jour : CPA, CTR et créas gagnantes à scaler :' },
+    { title: 'Brief Créatif UGC', prompt: '🎬 Nouveau script vidéo / créa à tourner pour notre prochain best-seller :' },
+    { title: 'Relance Panier', prompt: '💬 Campagne rétention WhatsApp prête pour les paniers abandonnés.' },
+  ],
+  LOGISTICS: [
+    { title: 'Ramassage Livreur', prompt: '🚚 Bordereau prêt : colis remis au transporteur pour tournée du jour.' },
+    { title: 'Changement d\'adresse', prompt: '📍 Mise à jour ville / adresse client avant expédition :' },
+    { title: 'Retour / Échange', prompt: '🔄 Colis retour réceptionné en entrepôt pour vérification.' },
+  ],
+};
+
+function getChannelVisual(slug: string, color?: string) {
+  switch (slug) {
+    case 'GENERAL':
+      return {
+        icon: Sparkles,
+        bg: 'bg-sky-500/15',
+        text: 'text-sky-600',
+        border: 'border-sky-500/25',
+        solid: 'bg-gradient-to-br from-[#0ea5e9] to-[#0284c7]',
+      };
+    case 'STOCK':
+      return {
+        icon: Package,
+        bg: 'bg-emerald-500/15',
+        text: 'text-emerald-600',
+        border: 'border-emerald-500/25',
+        solid: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
+      };
+    case 'ORDERS':
+      return {
+        icon: ShoppingBag,
+        bg: 'bg-indigo-500/15',
+        text: 'text-indigo-600',
+        border: 'border-indigo-500/25',
+        solid: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
+      };
+    case 'MARKETING':
+      return {
+        icon: Megaphone,
+        bg: 'bg-violet-500/15',
+        text: 'text-violet-600',
+        border: 'border-violet-500/25',
+        solid: 'bg-gradient-to-br from-violet-500 to-violet-600',
+      };
+    case 'LOGISTICS':
+      return {
+        icon: Truck,
+        bg: 'bg-amber-500/15',
+        text: 'text-amber-600',
+        border: 'border-amber-500/25',
+        solid: 'bg-gradient-to-br from-amber-500 to-amber-600',
+      };
+    default:
+      return {
+        icon: color === 'emerald' ? Package : Hash,
+        bg: 'bg-sky-500/15',
+        text: 'text-sky-600',
+        border: 'border-sky-500/25',
+        solid: 'bg-gradient-to-br from-[#0ea5e9] to-[#0284c7]',
+      };
+  }
+}
+
 function parseAttachments(raw: string | null | undefined): ChatAttachment[] {
   if (!raw) return [];
   try {
@@ -152,10 +238,10 @@ function parseAttachments(raw: string | null | undefined): ChatAttachment[] {
         if (lower.endsWith('.pdf') || item.startsWith('data:application/pdf')) type = 'PDF';
         else if (lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.mov') || item.startsWith('data:video/')) type = 'VIDEO';
         else if (lower.endsWith('.mp3') || lower.endsWith('.wav') || lower.endsWith('.ogg') || lower.endsWith('.m4a') || item.startsWith('data:audio/')) type = 'AUDIO';
-        return { 
-          url: item, 
-          type, 
-          name: type === 'PDF' ? 'Document.pdf' : type === 'AUDIO' ? 'Vocal.webm' : type === 'VIDEO' ? 'Vidéo.mp4' : 'Photo' 
+        return {
+          url: item,
+          type,
+          name: type === 'PDF' ? 'Document.pdf' : type === 'AUDIO' ? 'Vocal.webm' : type === 'VIDEO' ? 'Vidéo.mp4' : 'Photo',
         };
       }
       return item as ChatAttachment;
@@ -165,7 +251,7 @@ function parseAttachments(raw: string | null | undefined): ChatAttachment[] {
   }
 }
 
-function parseReactions(raw: string | null | undefined): ChatReaction[] {
+function parseAllReactionEntries(raw: string | null | undefined): ChatReaction[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -173,6 +259,37 @@ function parseReactions(raw: string | null | undefined): ChatReaction[] {
   } catch {
     return [];
   }
+}
+
+function parseVisibleReactions(raw: string | null | undefined): ChatReaction[] {
+  return parseAllReactionEntries(raw).filter((r) => r.emoji !== '__PIN__');
+}
+
+function isMessagePinned(raw: string | null | undefined): boolean {
+  return parseAllReactionEntries(raw).some((r) => r.emoji === '__PIN__');
+}
+
+function stripReplyPrefix(content: string): { replyName?: string; replySnippet?: string; body: string } {
+  const match = content.match(/^> \[reply:([^:\]]+):([^\]]*)\]\n?([\s\S]*)$/);
+  if (!match) return { body: content };
+  return {
+    replyName: match[1],
+    replySnippet: match[2],
+    body: match[3] || '',
+  };
+}
+
+function formatPreviewSnippet(content: string): string {
+  const clean = stripReplyPrefix(content).body;
+  return clean
+    .replace(/#\[product:\d+:([^:]+):[^\]]+\]/g, '💎 $1')
+    .replace(/#\[order:[^:]+:([^:]+):[^\]]+\]/g, '📦 Commande #$1');
+}
+
+function formatCompactTime(iso?: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
 export default function AdminTeamChatPage() {
@@ -192,17 +309,30 @@ export default function AdminTeamChatPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showTemplatesMenu, setShowTemplatesMenu] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<{ id: string; senderName: string; snippet: string } | null>(null);
 
-  // In-channel search
+  // Toast feedback
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  // In-channel search & Right Inspector
   const [showInChatSearch, setShowInChatSearch] = useState(false);
   const [inChatSearchQuery, setInChatSearchQuery] = useState('');
-  const [chatFilter, setChatFilter] = useState<'ALL' | 'MEDIA' | 'PRODUCTS' | 'ORDERS'>('ALL');
+  const [chatFilter, setChatFilter] = useState<'ALL' | 'MEDIA' | 'PRODUCTS' | 'ORDERS' | 'PINNED'>('ALL');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [showInspector, setShowInspector] = useState(true);
+  const [inspectorTab, setInspectorTab] = useState<'OVERVIEW' | 'SHARED' | 'PINNED'>('OVERVIEW');
 
-  // Sidebar Filter (Tous / Salons / Directs)
-  const [sidebarTab, setSidebarTab] = useState<'ALL' | 'CHANNELS' | 'DIRECT'>('ALL');
+  // Mobile 2-pane Navigation (Conversations List <-> Active Chat Room)
+  const [mobileChatView, setMobileChatView] = useState<'LIST' | 'ROOM'>('LIST');
 
-  // NAY Connect Product Catalog Modal (199 Products)
+  // Sidebar Filter (Toutes / Salons / Directs / Non-lus)
+  const [sidebarTab, setSidebarTab] = useState<'ALL' | 'CHANNELS' | 'DIRECT' | 'UNREAD'>('ALL');
+
+  // NAY Connect Product Catalog Modal
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState('');
 
@@ -213,6 +343,14 @@ export default function AdminTeamChatPage() {
   const [newGroupDesc, setNewGroupDesc] = useState('');
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [isSavingGroup, setIsSavingGroup] = useState(false);
+
+  // Chat -> Mission Modal
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDesc, setTaskDesc] = useState('');
+  const [taskPriority, setTaskPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'>('HIGH');
+  const [taskAssigneeId, setTaskAssigneeId] = useState<string>('');
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
 
   // Mentionables (ALL products, orders, members)
   const [allProducts, setAllProducts] = useState<ProductMentionItem[]>([]);
@@ -237,7 +375,7 @@ export default function AdminTeamChatPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Fetch Conversations & Mentionables (199 Products)
+  // 1. Fetch Conversations & Mentionables
   const fetchConversations = useCallback(async () => {
     try {
       const [meRes, convsRes, mentionablesRes] = await Promise.all([
@@ -313,12 +451,10 @@ export default function AdminTeamChatPage() {
     return () => clearInterval(interval);
   }, [fetchMessages]);
 
-  // Auto Scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages.length]);
 
-  // Clean up recording timer on unmount
   useEffect(() => {
     return () => {
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
@@ -329,7 +465,7 @@ export default function AdminTeamChatPage() {
   const startAudioRecording = async () => {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('L\'enregistrement audio n\'est pas supporté par votre navigateur.');
+        showToast("L'enregistrement audio n'est pas supporté par ce navigateur.");
         return;
       }
 
@@ -347,7 +483,6 @@ export default function AdminTeamChatPage() {
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         stream.getTracks().forEach((track) => track.stop());
-
         const audioFile = new window.File([audioBlob], `vocal_${Date.now()}.webm`, { type: 'audio/webm' });
         await handleUploadFile(audioFile, 'AUDIO');
       };
@@ -361,7 +496,7 @@ export default function AdminTeamChatPage() {
       }, 1000);
     } catch (err) {
       console.error('Microphone error:', err);
-      alert('Veuillez autoriser l\'accès au microphone pour enregistrer un message vocal.');
+      showToast("Veuillez autoriser l'accès au microphone pour enregistrer un vocal.");
     }
   };
 
@@ -469,20 +604,15 @@ export default function AdminTeamChatPage() {
     setMessages((prev) =>
       prev.map((msg) => {
         if (msg.id !== messageId) return msg;
-        const current = parseReactions(msg.reactions);
+        const current = parseAllReactionEntries(msg.reactions);
         const existingIdx = current.findIndex(
           (r) => r.userId === currentUser.id && r.emoji === emoji
         );
-        let updated: ChatReaction[];
-        if (existingIdx !== -1) {
-          updated = current.filter((_, i) => i !== existingIdx);
-        } else {
-          updated = [...current, { emoji, userId: currentUser.id, userName: currentUser.name }];
-        }
-        return {
-          ...msg,
-          reactions: JSON.stringify(updated),
-        };
+        const updated =
+          existingIdx !== -1
+            ? current.filter((_, i) => i !== existingIdx)
+            : [...current, { emoji, userId: currentUser.id, userName: currentUser.name }];
+        return { ...msg, reactions: JSON.stringify(updated) };
       })
     );
 
@@ -494,6 +624,51 @@ export default function AdminTeamChatPage() {
       });
     } catch (err) {
       console.error('Reaction error:', err);
+    }
+  };
+
+  // ── TOGGLE PIN MESSAGE ──────────────────────────────────────────────
+  const handleTogglePin = async (messageId: string) => {
+    if (!currentUser) return;
+    const targetMsg = messages.find((m) => m.id === messageId);
+    const wasPinned = isMessagePinned(targetMsg?.reactions);
+
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id !== messageId) return msg;
+        const current = parseAllReactionEntries(msg.reactions);
+        const updated = wasPinned
+          ? current.filter((r) => r.emoji !== '__PIN__')
+          : [...current, { emoji: '__PIN__', userId: currentUser.id, userName: currentUser.name }];
+        return { ...msg, reactions: JSON.stringify(updated) };
+      })
+    );
+
+    try {
+      await fetch('/api/admin/chat/messages', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, action: 'TOGGLE_PIN' }),
+      });
+      showToast(wasPinned ? 'Message désépinglé.' : 'Message épinglé au salon !');
+    } catch (err) {
+      console.error('Pin error:', err);
+    }
+  };
+
+  // ── DELETE MESSAGE ──────────────────────────────────────────────────
+  const handleDeleteMessage = async (messageId: string) => {
+    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    try {
+      const res = await fetch(`/api/admin/chat/messages?id=${encodeURIComponent(messageId)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        showToast('Message supprimé.');
+        fetchConversations();
+      }
+    } catch (err) {
+      console.error('Delete message error:', err);
     }
   };
 
@@ -556,15 +731,21 @@ export default function AdminTeamChatPage() {
   };
 
   // Send Message
-  const handleSendMessage = async (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent, overrideText?: string) => {
     if (e) e.preventDefault();
-    if ((!messageInput.trim() && pendingAttachments.length === 0) || isSending) return;
+    const rawInput = overrideText !== undefined ? overrideText : messageInput;
+    if ((!rawInput.trim() && pendingAttachments.length === 0) || isSending) return;
 
-    const textToSend = messageInput.trim();
+    const replyPrefix = replyingTo
+      ? `> [reply:${replyingTo.senderName}:${replyingTo.snippet.replace(/[\r\n:\]]+/g, ' ').slice(0, 75)}]\n`
+      : '';
+
+    const textToSend = `${replyPrefix}${rawInput.trim()}`.trim();
     const attachmentsToSend = [...pendingAttachments];
 
-    setMessageInput('');
+    if (overrideText === undefined) setMessageInput('');
     setPendingAttachments([]);
+    setReplyingTo(null);
     setShowEmojiPicker(false);
     setShowTemplatesMenu(false);
     setShowAttachMenu(false);
@@ -614,6 +795,68 @@ export default function AdminTeamChatPage() {
     }
   };
 
+  // Create Task from Chat Message
+  const openCreateTaskFromMessage = (msg?: ChatMessage) => {
+    const clean = msg ? stripReplyPrefix(msg.content).body.slice(0, 120) : '';
+    setTaskTitle(clean ? `Action Chat: ${clean.slice(0, 60)}` : `Action depuis #${activeChannel?.name || activeContact?.name || 'NAY Chat'}`);
+    setTaskDesc(
+      msg
+        ? `Créée depuis NAY Connect (${msg.senderName}) :\n\n"${stripReplyPrefix(msg.content).body}"`
+        : ''
+    );
+    setTaskPriority('HIGH');
+    setTaskAssigneeId(activeChatType === 'DIRECT' ? activeId : currentUser?.id || '');
+    setTaskModalOpen(true);
+  };
+
+  const handleCreateTaskSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!taskTitle.trim() || isCreatingTask) return;
+    setIsCreatingTask(true);
+    try {
+      const res = await fetch('/api/admin/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: taskTitle.trim(),
+          description: taskDesc.trim(),
+          priority: taskPriority,
+          assignedToId: taskAssigneeId || null,
+          tags: activeChatType === 'CHANNEL' ? activeId : 'NAY Chat',
+        }),
+      });
+      if (res.ok) {
+        setTaskModalOpen(false);
+        showToast('Mission créée dans Missions & Tâches !');
+      } else {
+        showToast('Impossible de créer la mission.');
+      }
+    } catch {
+      showToast('Erreur réseau lors de la création de la mission.');
+    } finally {
+      setIsCreatingTask(false);
+    }
+  };
+
+  // Export Transcript (.txt)
+  const handleExportTranscript = () => {
+    const roomTitle = activeChatType === 'CHANNEL' ? activeChannel?.name || activeId : activeContact?.name || 'Direct';
+    const lines = messages.map(
+      (m) =>
+        `[${new Date(m.createdAt).toLocaleString('fr-FR')}] ${m.senderName}: ${stripReplyPrefix(m.content).body}`
+    );
+    const blob = new Blob([`=== TRANSCRIPT NAY CONNECT : ${roomTitle} ===\n\n${lines.join('\n')}`], {
+      type: 'text/plain;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nay-chat-${activeId.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Transcript téléchargé.');
+  };
+
   // Create Group
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -642,6 +885,7 @@ export default function AdminTeamChatPage() {
           setNewGroupName('');
           setNewGroupDesc('');
           setSelectedMemberIds([]);
+          showToast(`Salon "${data.group.name}" créé !`);
         }
       }
     } catch (err) {
@@ -652,7 +896,7 @@ export default function AdminTeamChatPage() {
   };
 
   const handleUpdateGroupMembers = async () => {
-    const currentChannel = channels.find(c => c.slug === activeId);
+    const currentChannel = channels.find((c) => c.slug === activeId);
     if (!currentChannel || !currentChannel.dbId || isSavingGroup) return;
 
     setIsSavingGroup(true);
@@ -669,6 +913,7 @@ export default function AdminTeamChatPage() {
       if (res.ok) {
         await fetchConversations();
         setShowManageMembersModal(false);
+        showToast('Membres du salon mis à jour.');
       }
     } catch (err) {
       console.error('Failed to update group members:', err);
@@ -687,6 +932,7 @@ export default function AdminTeamChatPage() {
         setActiveChatType('CHANNEL');
         setActiveId('GENERAL');
         setShowManageMembersModal(false);
+        showToast('Salon supprimé.');
       }
     } catch (err) {
       console.error('Failed to delete group:', err);
@@ -694,7 +940,7 @@ export default function AdminTeamChatPage() {
   };
 
   const handleCopyMessage = (msgId: string, content: string) => {
-    navigator.clipboard?.writeText(content);
+    navigator.clipboard?.writeText(stripReplyPrefix(content).body);
     setCopiedMessageId(msgId);
     setTimeout(() => setCopiedMessageId(null), 2000);
   };
@@ -702,34 +948,87 @@ export default function AdminTeamChatPage() {
   // Active Chat Header Info
   const activeChannel = channels.find((c) => c.slug === activeId);
   const activeContact = contacts.find((c) => c.id === activeId);
+  const activeVisual = getChannelVisual(activeId, activeChannel?.color);
+  const ActiveChannelIcon = activeVisual.icon;
+
+  // Global stats
+  const totalUnreadCount = useMemo(
+    () => contacts.reduce((sum, c) => sum + (c.unreadCount || 0), 0),
+    [contacts]
+  );
+
+  const onlineMembersCount = useMemo(
+    () => allTeamMembers.filter((u) => u.id === currentUser?.id || isUserOnline(u.lastActivityAt)).length,
+    [allTeamMembers, currentUser]
+  );
 
   // Filtered Contacts
   const filteredContacts = useMemo(() => {
-    return contacts.filter((c) =>
-      c.name.toLowerCase().includes(searchContact.toLowerCase()) ||
-      c.role.toLowerCase().includes(searchContact.toLowerCase()) ||
-      (c.jobTitle && c.jobTitle.toLowerCase().includes(searchContact.toLowerCase()))
-    );
-  }, [contacts, searchContact]);
+    return contacts.filter((c) => {
+      if (sidebarTab === 'UNREAD' && (c.unreadCount || 0) === 0) return false;
+      const q = searchContact.toLowerCase();
+      return (
+        c.name.toLowerCase().includes(q) ||
+        c.role.toLowerCase().includes(q) ||
+        (c.jobTitle && c.jobTitle.toLowerCase().includes(q))
+      );
+    });
+  }, [contacts, searchContact, sidebarTab]);
 
   // Filtered Channels
   const filteredChannels = useMemo(() => {
-    return channels.filter((c) =>
-      c.name.toLowerCase().includes(searchContact.toLowerCase()) ||
-      c.description.toLowerCase().includes(searchContact.toLowerCase())
-    );
-  }, [channels, searchContact]);
+    if (sidebarTab === 'UNREAD') return [];
+    return channels.filter((c) => {
+      const q = searchContact.toLowerCase();
+      return (
+        c.name.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q)
+      );
+    });
+  }, [channels, searchContact, sidebarTab]);
 
-  // Catalog Products filtered (search among all 199 products)
+  // Catalog Products filtered
   const catalogFilteredProducts = useMemo(() => {
     if (!catalogSearch.trim()) return allProducts;
     const q = catalogSearch.toLowerCase();
-    return allProducts.filter(p => 
-      p.name.toLowerCase().includes(q) ||
-      p.brand.toLowerCase().includes(q) ||
-      p.price.toString().includes(q)
+    return allProducts.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.brand.toLowerCase().includes(q) ||
+        p.price.toString().includes(q)
     );
   }, [allProducts, catalogSearch]);
+
+  // Pinned & Extracted Shared Objects
+  const pinnedMessages = useMemo(
+    () => messages.filter((m) => isMessagePinned(m.reactions)),
+    [messages]
+  );
+
+  const sharedArtifacts = useMemo(() => {
+    const products: Array<{ id: string; name: string; price: string; brand: string; slug: string }> = [];
+    const orders: Array<{ id: string; number: string; client: string; total: string; status: string }> = [];
+    const files: Array<ChatAttachment & { msgId: string }> = [];
+
+    for (const msg of messages) {
+      const pMatches = msg.content.matchAll(/#\[product:(\d+):([^:]+):([^:]+):([^:]+):([^\]]+)\]/g);
+      for (const m of pMatches) {
+        if (!products.some((p) => p.id === m[1])) {
+          products.push({ id: m[1], name: m[2], price: m[3], brand: m[4], slug: m[5] });
+        }
+      }
+      const oMatches = msg.content.matchAll(/#\[order:([^:]+):([^:]+):([^:]+):([^:]+):([^\]]+)\]/g);
+      for (const m of oMatches) {
+        if (!orders.some((o) => o.id === m[1])) {
+          orders.push({ id: m[1], number: m[2], client: m[3], total: m[4], status: m[5] });
+        }
+      }
+      for (const att of parseAttachments(msg.attachments)) {
+        files.push({ ...att, msgId: msg.id });
+      }
+    }
+    return { products, orders, files };
+  }, [messages]);
 
   // Filtered Messages
   const displayedMessages = useMemo(() => {
@@ -741,17 +1040,10 @@ export default function AdminTeamChatPage() {
         if (!matchesContent && !matchesSender) return false;
       }
 
-      if (chatFilter === 'MEDIA') {
-        const atts = parseAttachments(msg.attachments);
-        return atts.length > 0;
-      }
-      if (chatFilter === 'PRODUCTS') {
-        return msg.content.includes('#[product:');
-      }
-      if (chatFilter === 'ORDERS') {
-        return msg.content.includes('#[order:');
-      }
-
+      if (chatFilter === 'MEDIA') return parseAttachments(msg.attachments).length > 0;
+      if (chatFilter === 'PRODUCTS') return msg.content.includes('#[product:');
+      if (chatFilter === 'ORDERS') return msg.content.includes('#[order:');
+      if (chatFilter === 'PINNED') return isMessagePinned(msg.reactions);
       return true;
     });
   }, [messages, inChatSearchQuery, chatFilter]);
@@ -760,7 +1052,6 @@ export default function AdminTeamChatPage() {
   const renderSkyTicks = (msg: ChatMessage, isMe: boolean) => {
     if (!isMe) return null;
     const isRead = msg.isRead || (activeChatType === 'CHANNEL' && msg.readBy && msg.readBy !== '[]');
-
     return (
       <span className="inline-flex items-center ml-1 text-[11px]" title={isRead ? 'Vu' : 'Envoyé'}>
         {isRead ? (
@@ -772,833 +1063,1497 @@ export default function AdminTeamChatPage() {
     );
   };
 
+  const currentStarters = CHANNEL_STARTERS[activeId] || CHANNEL_STARTERS.GENERAL;
+
   return (
-    <div className="h-[calc(100vh-125px)] flex font-sans text-slate-900 dark:text-slate-100 bg-white dark:bg-[#0c121e] rounded-2xl border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-      
-      {/* ── 1. LEFT SIDEBAR: NAY CONNECT WITH SKY BLUE ACCENTS ─────── */}
-      <aside className="w-80 sm:w-84 border-r border-slate-200 dark:border-neutral-800 bg-slate-50/60 dark:bg-[#0e1626] flex flex-col shrink-0">
-        
-        {/* NAY Connect Header */}
-        <div className="p-3.5 bg-white dark:bg-[#111c2e] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-sky-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-              {currentUser?.avatar ? (
-                <img src={currentUser.avatar} alt="Me" className="w-full h-full object-cover rounded-full" />
-              ) : (
-                <span>{(currentUser?.name || 'NA').slice(0, 2).toUpperCase()}</span>
-              )}
-            </div>
-            <div>
-              <h2 className="text-xs font-bold text-slate-900 dark:text-white leading-tight flex items-center gap-1.5">
-                <span>NAY Connect</span>
-                <span className="px-1.5 py-0.2 bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 font-extrabold text-[9px] rounded border border-sky-200/50">PRO</span>
-              </h2>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">Équipe & Canaux Directs</p>
-            </div>
+    <div className="flex flex-col gap-4 h-[calc(100vh-110px)] font-sans text-slate-900">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-24 lg:bottom-6 right-3 lg:right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in">
+          <CheckCircle2 size={15} className="text-sky-400 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* ── TOP EXECUTIVE NAY CONNECT COMMAND STRIP ─────────────────── */}
+      <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="nay-hero-shine w-10 h-10 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] text-white flex items-center justify-center shadow-sm shrink-0">
+            <MessageSquare size={18} />
           </div>
-
-          <div className="flex items-center gap-1 text-slate-500">
-            {/* Catalog Button in Header */}
-            <button
-              onClick={() => setShowCatalogModal(true)}
-              className="p-1.5 rounded-full hover:bg-sky-50 dark:hover:bg-slate-800 text-sky-500 transition-colors cursor-pointer"
-              title="Catalogue Parfums (199 références)"
-            >
-              <Store size={18} />
-            </button>
-
-            {/* New Group Button */}
-            <button
-              onClick={() => {
-                setSelectedMemberIds(allTeamMembers.map(u => u.id));
-                setShowCreateGroupModal(true);
-              }}
-              className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-              title="Nouveau salon"
-            >
-              <Plus size={18} />
-            </button>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-slate-900">
+                NAY Connect • Hub Collaboration
+              </h1>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+                PRO OS
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{onlineMembersCount} en ligne</span>
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Messagerie d&apos;équipe temps réel : partagez vos {allProducts.length} parfums, commandes COD et transformez un message en mission.
+            </p>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="p-2.5 border-b border-slate-200/70 dark:border-neutral-800 space-y-2 bg-white dark:bg-[#111c2e]">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Rechercher salon, associé..."
-              value={searchContact}
-              onChange={(e) => setSearchContact(e.target.value)}
-              className="w-full pl-9 pr-7 py-1.5 bg-slate-100 dark:bg-[#182438] border-0 rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-400"
-            />
-            {searchContact && (
-              <button onClick={() => setSearchContact('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
-                <X size={12} />
-              </button>
-            )}
-          </div>
+        {/* Executive Metric Pills & Quick Actions */}
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
+          {totalUnreadCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSidebarTab(sidebarTab === 'UNREAD' ? 'ALL' : 'UNREAD')}
+              className="col-span-2 sm:col-span-1 h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold cursor-pointer"
+            >
+              <AlertCircle size={13} />
+              <span>{totalUnreadCount} non-lu(s)</span>
+            </button>
+          )}
 
-          {/* Sky Blue Segment Tabs */}
-          <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-            <button
-              onClick={() => setSidebarTab('ALL')}
-              className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                sidebarTab === 'ALL' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 font-bold border border-sky-200/50' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Toutes
-            </button>
-            <button
-              onClick={() => setSidebarTab('CHANNELS')}
-              className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                sidebarTab === 'CHANNELS' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 font-bold border border-sky-200/50' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Salons ({channels.length})
-            </button>
-            <button
-              onClick={() => setSidebarTab('DIRECT')}
-              className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                sidebarTab === 'DIRECT' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 font-bold border border-sky-200/50' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Directs ({contacts.length})
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setShowInspector(true);
+              setInspectorTab('PINNED');
+            }}
+            className="h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer"
+          >
+            <Pin size={13} className="text-sky-600 shrink-0" />
+            <span>Épinglés ({pinnedMessages.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowCatalogModal(true)}
+            className="h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 text-xs font-bold transition-all cursor-pointer"
+          >
+            <Store size={13} className="shrink-0" />
+            <span>Catalogue ({allProducts.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedMemberIds(allTeamMembers.map((u) => u.id));
+              setShowCreateGroupModal(true);
+            }}
+            style={{ backgroundColor: 'var(--admin-accent, #0ea5e9)' }}
+            className="col-span-2 sm:col-span-1 h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-white text-xs font-semibold shadow-xs hover:opacity-95 transition-all cursor-pointer"
+          >
+            <Plus size={14} className="shrink-0" />
+            <span>Nouveau Salon</span>
+          </button>
         </div>
+      </div>
 
-        {/* Conversations Feed */}
-        <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-neutral-800/60 custom-scrollbar">
-          
-          {/* 1. CHANNELS */}
-          {(sidebarTab === 'ALL' || sidebarTab === 'CHANNELS') && (
-            <div>
-              {filteredChannels.map((channel) => {
-                const isActive = activeChatType === 'CHANNEL' && activeId === channel.slug;
-
-                return (
-                  <button
-                    key={channel.slug}
-                    onClick={() => {
-                      setActiveChatType('CHANNEL');
-                      setActiveId(channel.slug);
-                      setInChatSearchQuery('');
-                      setShowInChatSearch(false);
-                    }}
-                    className={`w-full flex items-center gap-3 p-3 text-left transition-colors cursor-pointer ${
-                      isActive
-                        ? 'bg-sky-50/70 dark:bg-sky-950/40 border-l-3 border-sky-500'
-                        : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/50'
-                    }`}
-                  >
-                    <div className="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 font-black text-sm flex items-center justify-center shrink-0 border border-sky-500/20">
-                      #
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          {channel.name}
-                        </p>
-                        <span className="text-[10px] text-slate-400 shrink-0 font-mono">
-                          {channel.memberCount || 5} m.
-                        </span>
+      {/* ── MAIN 3-COLUMN MESSAGING STUDIO SHELL ─────────────────────── */}
+      <div className="flex-1 min-h-0 flex bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        {/* ── 1. LEFT SIDEBAR RAIL (Full width on phone LIST view) ── */}
+        <aside className={`${mobileChatView === 'LIST' ? 'flex w-full' : 'hidden'} lg:flex lg:w-80 border-r border-slate-200 bg-slate-50/70 flex-col shrink-0`}>
+          {/* Quick Online Teammates Strip */}
+          {allTeamMembers.length > 0 && (
+            <div className="px-3.5 py-2.5 bg-white border-b border-slate-200/80 space-y-2">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>Équipe en Direct</span>
+                <span className="text-emerald-600">{onlineMembersCount} actif(s)</span>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
+                {allTeamMembers.map((member) => {
+                  const isMe = member.id === currentUser?.id;
+                  const online = isMe || isUserOnline(member.lastActivityAt);
+                  const isSelectedDirect = activeChatType === 'DIRECT' && activeId === member.id;
+                  return (
+                    <button
+                      key={member.id}
+                      type="button"
+                      disabled={isMe}
+                      onClick={() => {
+                        if (isMe) return;
+                        setActiveChatType('DIRECT');
+                        setActiveId(member.id);
+                        setMobileChatView('ROOM');
+                      }}
+                      title={`${member.name}${isMe ? ' (Vous)' : online ? ' • En ligne' : ''}`}
+                      className={`group flex flex-col items-center gap-1 shrink-0 ${
+                        isMe ? 'cursor-default' : 'cursor-pointer'
+                      }`}
+                    >
+                      <div
+                        className={`relative w-9 h-9 rounded-full p-0.5 transition-all ${
+                          isSelectedDirect
+                            ? 'ring-2 ring-sky-500 bg-sky-50'
+                            : online
+                            ? 'ring-1 ring-emerald-400'
+                            : 'ring-1 ring-slate-200'
+                        }`}
+                      >
+                        <div className="w-full h-full rounded-full bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] text-white font-bold text-[10px] flex items-center justify-center overflow-hidden">
+                          {member.avatar ? (
+                            <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span>{member.name.slice(0, 2).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <span
+                          className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                            online ? 'bg-emerald-500' : 'bg-slate-300'
+                          }`}
+                        />
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                        {channel.description}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+                      <span className="text-[10px] font-semibold text-slate-600 max-w-[52px] truncate">
+                        {isMe ? 'Vous' : member.name.split(' ')[0]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* 2. DIRECT CONTACTS */}
-          {(sidebarTab === 'ALL' || sidebarTab === 'DIRECT') && (
-            <div>
-              {filteredContacts.map((contact) => {
-                const isActive = activeChatType === 'DIRECT' && activeId === contact.id;
-                const online = isUserOnline(contact.lastActivityAt);
-
-                return (
-                  <button
-                    key={contact.id}
-                    onClick={() => {
-                      setActiveChatType('DIRECT');
-                      setActiveId(contact.id);
-                      setInChatSearchQuery('');
-                      setShowInChatSearch(false);
-                    }}
-                    className={`w-full flex items-center gap-3 p-3 text-left transition-colors cursor-pointer ${
-                      isActive
-                        ? 'bg-sky-50/70 dark:bg-sky-950/40 border-l-3 border-sky-500'
-                        : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/50'
-                    }`}
-                  >
-                    <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center justify-center overflow-hidden">
-                        {contact.avatar ? (
-                          <img src={contact.avatar} alt={contact.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span>{contact.name.slice(0, 2).toUpperCase()}</span>
-                        )}
-                      </div>
-                      <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#0e1626] ${
-                        online ? 'bg-sky-500' : 'bg-slate-300'
-                      }`} />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          {contact.name}
-                        </p>
-                        <span className="text-[10px] text-sky-500 shrink-0 font-medium">
-                          {online ? 'en ligne' : ''}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                          {contact.jobTitle || contact.role}
-                        </p>
-                        {(contact.unreadCount || 0) > 0 && (
-                          <span className="w-4 h-4 rounded-full bg-sky-500 text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                            {contact.unreadCount}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-        </div>
-      </aside>
-
-      {/* ── 2. MAIN ACTIVE WINDOW: SKY BLUE PROFESSIONAL CANVAS ─────── */}
-      <main className="flex-1 flex flex-col bg-slate-50/70 dark:bg-[#0c121e] overflow-hidden relative">
-        
-        {/* Clean Sky Blue Top Header */}
-        <div className="px-5 py-3 bg-white dark:bg-[#111c2e] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between z-10 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-sky-500 text-white font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
-              {activeChatType === 'CHANNEL' ? (
-                <span>#</span>
-              ) : activeContact?.avatar ? (
-                <img src={activeContact.avatar} alt={activeContact.name} className="w-full h-full object-cover" />
-              ) : (
-                <span>{(activeContact?.name || '@').slice(0, 2).toUpperCase()}</span>
-              )}
-            </div>
-
-            <div className="min-w-0">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                {activeChatType === 'CHANNEL' ? activeChannel?.name : activeContact?.name}
-              </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                {activeChatType === 'CHANNEL' 
-                  ? activeChannel?.description
-                  : (isUserOnline(activeContact?.lastActivityAt) ? <span className="text-sky-500 font-semibold">en ligne</span> : formatLastSeen(activeContact?.lastActivityAt).text)}
-              </p>
-            </div>
-          </div>
-
-          {/* Right Header Tools (Sky Blue Signature Actions) */}
-          <div className="flex items-center gap-2 shrink-0">
-            
-            {/* Open Catalog Button (199 Products) in Sky Blue */}
-            <button
-              onClick={() => setShowCatalogModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300 font-bold text-xs hover:bg-sky-100 border border-sky-200/60 transition-colors shadow-2xs cursor-pointer"
-              title="Catalogue Parfums (199 références)"
-            >
-              <Store size={14} className="text-sky-500" />
-              <span>Catalogue (199)</span>
-            </button>
-
-            {/* In-chat search */}
-            <button
-              onClick={() => setShowInChatSearch(!showInChatSearch)}
-              className={`p-2 rounded-xl transition-colors cursor-pointer ${
-                showInChatSearch ? 'bg-sky-100 text-sky-700 dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-              title="Rechercher"
-            >
-              <Search size={16} />
-            </button>
-
-            {/* Refresh */}
-            <button
-              onClick={() => fetchMessages(false)}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title="Actualiser"
-            >
-              <RefreshCw size={15} className={isLoadingMessages ? 'animate-spin text-sky-500' : ''} />
-            </button>
-          </div>
-        </div>
-
-        {/* In-Chat Search Bar */}
-        {showInChatSearch && (
-          <div className="px-4 py-2 bg-white dark:bg-[#111c2e] border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between gap-2 text-xs z-10 animate-fadeIn">
-            <div className="flex-1 relative">
+          {/* Search & Segmented Tabs */}
+          <div className="p-2.5 border-b border-slate-200/80 space-y-2 bg-white">
+            <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Rechercher dans cette discussion..."
-                value={inChatSearchQuery}
-                onChange={(e) => setInChatSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-7 py-1.5 bg-slate-100 dark:bg-[#182438] border-0 rounded-xl text-xs"
+                placeholder="Rechercher salon, collègue..."
+                value={searchContact}
+                onChange={(e) => setSearchContact(e.target.value)}
+                className="w-full pl-9 pr-7 py-1.5 bg-slate-100 border border-transparent focus:border-sky-400 focus:bg-white rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors"
               />
-              {inChatSearchQuery && (
-                <button onClick={() => setInChatSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
+              {searchContact && (
+                <button
+                  type="button"
+                  onClick={() => setSearchContact('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                >
                   <X size={12} />
                 </button>
               )}
             </div>
 
-            <div className="flex items-center gap-1 text-[11px]">
+            <div className="grid grid-cols-3 gap-1 bg-slate-100 p-0.5 rounded-xl text-[11px] font-semibold">
               <button
-                onClick={() => setChatFilter('ALL')}
-                className={`px-2.5 py-1 rounded-lg ${chatFilter === 'ALL' ? 'bg-sky-500 text-white font-bold' : 'text-slate-500'}`}
+                type="button"
+                onClick={() => setSidebarTab('ALL')}
+                className={`py-1 rounded-lg transition-all cursor-pointer ${
+                  sidebarTab === 'ALL'
+                    ? 'bg-white text-sky-700 shadow-2xs font-bold'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
-                Tous
+                Toutes
               </button>
               <button
-                onClick={() => setChatFilter('PRODUCTS')}
-                className={`px-2.5 py-1 rounded-lg ${chatFilter === 'PRODUCTS' ? 'bg-sky-500 text-white font-bold' : 'text-slate-500'}`}
+                type="button"
+                onClick={() => setSidebarTab('CHANNELS')}
+                className={`py-1 rounded-lg transition-all cursor-pointer ${
+                  sidebarTab === 'CHANNELS'
+                    ? 'bg-white text-sky-700 shadow-2xs font-bold'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
-                Parfums
+                Salons ({channels.length})
               </button>
               <button
-                onClick={() => setChatFilter('ORDERS')}
-                className={`px-2.5 py-1 rounded-lg ${chatFilter === 'ORDERS' ? 'bg-sky-500 text-white font-bold' : 'text-slate-500'}`}
+                type="button"
+                onClick={() => setSidebarTab('DIRECT')}
+                className={`py-1 rounded-lg transition-all cursor-pointer ${
+                  sidebarTab === 'DIRECT'
+                    ? 'bg-white text-sky-700 shadow-2xs font-bold'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
-                Commandes
+                Directs ({contacts.length})
               </button>
             </div>
-
-            <button onClick={() => setShowInChatSearch(false)} className="text-slate-400 hover:text-slate-600">
-              <X size={14} />
-            </button>
-          </div>
-        )}
-
-        {/* ── 2.1 MESSAGES FEED STREAM ─────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2.5 z-0 custom-scrollbar">
-          
-          {/* Centered Date Pill */}
-          <div className="flex justify-center my-1.5">
-            <span className="bg-white dark:bg-[#182438] border border-slate-200/80 dark:border-neutral-700 text-slate-500 dark:text-slate-400 text-[11px] px-3 py-1 rounded-full uppercase tracking-wider font-semibold shadow-2xs">
-              Aujourd&apos;hui • Échanges Sécurisés
-            </span>
           </div>
 
-          {isLoadingMessages && messages.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-slate-400 text-xs gap-2">
-              <RefreshCw size={16} className="animate-spin text-sky-500" />
-              <span>Chargement des messages...</span>
-            </div>
-          ) : displayedMessages.length === 0 ? (
-            
-            /* Start of Conversation */
-            <div className="py-12 max-w-sm mx-auto text-center space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-500 dark:bg-sky-950/60 dark:text-sky-300 flex items-center justify-center mx-auto shadow-xs border border-sky-200/60">
-                <Store size={26} />
+          {/* Conversations Feed */}
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100 custom-scrollbar">
+            {/* 1. CHANNELS */}
+            {(sidebarTab === 'ALL' || sidebarTab === 'CHANNELS') && filteredChannels.length > 0 && (
+              <div>
+                <div className="px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/90">
+                  Salons Opérationnels
+                </div>
+                {filteredChannels.map((channel) => {
+                  const isActive = activeChatType === 'CHANNEL' && activeId === channel.slug;
+                  const vis = getChannelVisual(channel.slug, channel.color);
+                  const ChanIcon = vis.icon;
+                  const lastPreview = channel.lastMessage
+                    ? `${channel.lastMessage.senderName.split(' ')[0]}: ${formatPreviewSnippet(channel.lastMessage.content) || '📎 Pièce jointe'}`
+                    : channel.description;
+
+                  return (
+                    <button
+                      key={channel.slug}
+                      type="button"
+                      onClick={() => {
+                        setActiveChatType('CHANNEL');
+                        setActiveId(channel.slug);
+                        setInChatSearchQuery('');
+                        setShowInChatSearch(false);
+                        setMobileChatView('ROOM');
+                      }}
+                      className={`w-full flex items-center gap-3 px-3.5 py-3 text-left transition-all cursor-pointer border-l-3 ${
+                        isActive
+                          ? 'bg-sky-50 border-sky-500'
+                          : 'border-transparent hover:bg-slate-100'
+                      }`}
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                          isActive
+                            ? `${vis.solid} text-white border-transparent shadow-xs`
+                            : `${vis.bg} ${vis.text} ${vis.border}`
+                        }`}
+                      >
+                        <ChanIcon size={17} />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <p className={`text-xs truncate ${isActive ? 'font-extrabold text-sky-900' : 'font-bold text-slate-900'}`}>
+                            {channel.name}
+                          </p>
+                          <span className="text-[10px] text-slate-400 shrink-0 font-mono">
+                            {channel.lastMessage ? formatCompactTime(channel.lastMessage.createdAt) : `${channel.memberCount || 0} m.`}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                          {lastPreview}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                Discussion #{activeChatType === 'CHANNEL' ? activeChannel?.name : activeContact?.name}
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Les échanges sont chiffrés. Tapez # ou ouvrez le catalogue des 199 parfums pour partager une fiche produit en 1 clic.
-              </p>
+            )}
+
+            {/* 2. DIRECT CONTACTS */}
+            {(sidebarTab === 'ALL' || sidebarTab === 'DIRECT' || sidebarTab === 'UNREAD') && filteredContacts.length > 0 && (
+              <div>
+                <div className="px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/90">
+                  Messages Directs
+                </div>
+                {filteredContacts.map((contact) => {
+                  const isActive = activeChatType === 'DIRECT' && activeId === contact.id;
+                  const online = isUserOnline(contact.lastActivityAt);
+                  const lastPreview = contact.lastMessage
+                    ? formatPreviewSnippet(contact.lastMessage.content) || '📎 Pièce jointe'
+                    : contact.jobTitle || contact.role;
+
+                  return (
+                    <button
+                      key={contact.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveChatType('DIRECT');
+                        setActiveId(contact.id);
+                        setInChatSearchQuery('');
+                        setShowInChatSearch(false);
+                        setMobileChatView('ROOM');
+                      }}
+                      className={`w-full flex items-center gap-3 px-3.5 py-3 text-left transition-all cursor-pointer border-l-3 ${
+                        isActive
+                          ? 'bg-sky-50 border-sky-500'
+                          : 'border-transparent hover:bg-slate-100'
+                      }`}
+                    >
+                      <div className="relative shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 font-bold text-xs flex items-center justify-center overflow-hidden">
+                          {contact.avatar ? (
+                            <img src={contact.avatar} alt={contact.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span>{contact.name.slice(0, 2).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <span
+                          className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                            online ? 'bg-emerald-500' : 'bg-slate-300'
+                          }`}
+                        />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <p className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
+                            <span>{contact.name}</span>
+                            {contact.role === 'OWNER' && <Crown size={11} className="text-amber-500 shrink-0" />}
+                          </p>
+                          <span className="text-[10px] text-sky-600 shrink-0 font-semibold">
+                            {contact.lastMessage ? formatCompactTime(contact.lastMessage.createdAt) : online ? 'en ligne' : ''}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-1 mt-0.5">
+                          <p className="text-[11px] text-slate-500 truncate">{lastPreview}</p>
+                          {(contact.unreadCount || 0) > 0 && (
+                            <span className="px-1.5 py-0.2 rounded-full bg-sky-600 text-white text-[9px] font-bold shrink-0">
+                              {contact.unreadCount}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* ── 2. CENTER CONVERSATION CANVAS ─────────────────────────── */}
+        <main className={`${mobileChatView === 'ROOM' ? 'flex w-full' : 'hidden'} lg:flex flex-1 flex-col bg-slate-50/70 overflow-hidden relative min-w-0`}>
+          {/* Active Room Header */}
+          <div className="px-3 sm:px-5 py-3 bg-white border-b border-slate-200 flex items-center justify-between gap-2 sm:gap-3 z-10 shrink-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <button
-                onClick={() => setShowCatalogModal(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition-all shadow-xs cursor-pointer mt-2"
+                type="button"
+                onClick={() => setMobileChatView('LIST')}
+                className="lg:hidden w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 cursor-pointer"
+                aria-label="Retour aux discussions"
               >
-                <Store size={14} />
-                <span>Ouvrir le Catalogue (199 Parfums)</span>
+                <ArrowLeft size={16} />
+              </button>
+              <div
+                className={`w-10 h-10 rounded-xl text-white font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-xs ${
+                  activeChatType === 'CHANNEL' ? activeVisual.solid : 'bg-gradient-to-br from-[#0ea5e9] to-[#0284c7]'
+                }`}
+              >
+                {activeChatType === 'CHANNEL' ? (
+                  <ActiveChannelIcon size={18} />
+                ) : activeContact?.avatar ? (
+                  <img src={activeContact.avatar} alt={activeContact.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{(activeContact?.name || '@').slice(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-extrabold text-slate-900 truncate">
+                    {activeChatType === 'CHANNEL' ? activeChannel?.name : activeContact?.name}
+                  </h2>
+                  {activeChatType === 'CHANNEL' && activeChannel && (
+                    <span className="hidden sm:inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                      {activeChannel.memberCount || 0} membre(s)
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 truncate">
+                  {activeChatType === 'CHANNEL'
+                    ? activeChannel?.description
+                    : isUserOnline(activeContact?.lastActivityAt)
+                    ? 'En ligne maintenant • Canal chiffré'
+                    : formatLastSeen(activeContact?.lastActivityAt).text}
+                </p>
+              </div>
+            </div>
+
+            {/* Right Header Tools */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {activeChatType === 'CHANNEL' && activeChannel && !activeChannel.isDefault && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    try {
+                      setSelectedMemberIds(JSON.parse(activeChannel.memberIds || '[]'));
+                    } catch {
+                      setSelectedMemberIds([]);
+                    }
+                    setShowManageMembersModal(true);
+                  }}
+                  className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 text-xs font-semibold transition-colors cursor-pointer"
+                  title="Gérer les membres du salon"
+                >
+                  <Users size={13} />
+                  <span>Membres</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleExportTranscript}
+                className="p-2 rounded-xl text-slate-500 hover:text-sky-700 hover:bg-sky-50 transition-colors cursor-pointer"
+                title="Exporter la discussion (.txt)"
+              >
+                <Download size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowInChatSearch(!showInChatSearch)}
+                className={`p-2 rounded-xl transition-colors cursor-pointer ${
+                  showInChatSearch
+                    ? 'bg-sky-100 text-sky-700'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                }`}
+                title="Rechercher & Filtrer"
+              >
+                <Search size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fetchMessages(false)}
+                className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                title="Actualiser"
+              >
+                <RefreshCw size={15} className={isLoadingMessages ? 'animate-spin text-sky-500' : ''} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowInspector(!showInspector)}
+                className={`p-2 rounded-xl transition-colors cursor-pointer ${
+                  showInspector
+                    ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                }`}
+                title="Panneau Contexte & Infos"
+              >
+                {showInspector ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
               </button>
             </div>
-          ) : (
-            
-            /* Messages List with Sky Blue Accents */
-            displayedMessages.map((msg) => {
-              const isMe = msg.senderId === currentUser?.id;
-              const attachments = parseAttachments(msg.attachments);
-              const reactions = parseReactions(msg.reactions);
+          </div>
 
-              return (
-                <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group/msg my-1`}>
-                  
-                  {/* Sky Blue Message Bubble */}
-                  <div className={`relative max-w-md sm:max-w-lg p-3 rounded-2xl shadow-xs ${
-                    isMe 
-                      ? 'bg-[#e0f2fe] dark:bg-[#075985] text-slate-900 dark:text-white rounded-tr-xs border border-sky-200 dark:border-sky-700/60' 
-                      : 'bg-white dark:bg-[#162232] text-slate-900 dark:text-white rounded-tl-xs border border-slate-200/90 dark:border-neutral-700/80'
-                  }`}>
-                    
-                    {/* Sender name in group */}
-                    {!isMe && activeChatType === 'CHANNEL' && (
-                      <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400 mb-0.5">
-                        {msg.senderName}
-                      </p>
-                    )}
+          {/* In-Chat Search Bar */}
+          {showInChatSearch && (
+            <div className="px-4 py-2 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs z-10">
+              <div className="flex-1 min-w-[200px] relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Filtrer par mot-clé, auteur..."
+                  value={inChatSearchQuery}
+                  onChange={(e) => setInChatSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-7 py-1.5 bg-slate-100 rounded-xl text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-sky-400"
+                />
+                {inChatSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setInChatSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
 
-                    {/* Content (Text + Tokens) */}
-                    {msg.content && <RenderMessageContent content={msg.content} isMe={isMe} />}
+              <div className="flex items-center gap-1 text-[11px]">
+                {(['ALL', 'PRODUCTS', 'ORDERS', 'MEDIA', 'PINNED'] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setChatFilter(f)}
+                    className={`px-2.5 py-1 rounded-lg font-semibold cursor-pointer ${
+                      chatFilter === f ? 'bg-sky-600 text-white' : 'text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    {f === 'ALL'
+                      ? 'Tous'
+                      : f === 'PRODUCTS'
+                      ? 'Parfums'
+                      : f === 'ORDERS'
+                      ? 'Commandes'
+                      : f === 'MEDIA'
+                      ? 'Médias'
+                      : 'Épinglés'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-                    {/* Attachments */}
-                    {attachments.length > 0 && (
-                      <div className="mt-2 space-y-1.5">
-                        {attachments.map((att, i) => {
-                          if (att.type === 'AUDIO') {
-                            return (
-                              <ChatAudioPlayer
-                                key={i}
-                                src={att.url}
-                                duration={att.duration}
-                                isMe={isMe}
-                              />
-                            );
-                          }
-                          if (att.type === 'VIDEO') {
-                            return (
-                              <ChatVideoPlayer
-                                key={i}
-                                src={att.url}
-                                name={att.name}
-                              />
-                            );
-                          }
-                          if (att.type === 'PDF') {
-                            return (
-                              <ChatPdfViewer
-                                key={i}
-                                url={att.url}
-                                name={att.name}
-                                size={att.size}
-                                isMe={isMe}
-                              />
-                            );
-                          }
-                          return (
-                            <div key={i} className="rounded-xl overflow-hidden max-h-72 border border-slate-200/80 dark:border-neutral-700">
-                              <img src={att.url} alt={att.name || 'Photo'} className="w-full h-full object-cover" />
-                            </div>
-                          );
-                        })}
+          {/* Pinned Banner */}
+          {pinnedMessages.length > 0 && (
+            <div className="px-4 py-2 bg-sky-50/90 border-b border-sky-200 flex items-center justify-between gap-2 text-xs shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <Pin size={13} className="text-sky-600 shrink-0" />
+                <span className="font-bold text-sky-800 shrink-0">Épinglé :</span>
+                <span className="text-slate-700 truncate">
+                  {stripReplyPrefix(pinnedMessages[pinnedMessages.length - 1].content).body}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowInspector(true);
+                  setInspectorTab('PINNED');
+                }}
+                className="text-[11px] font-bold text-sky-700 hover:underline shrink-0 cursor-pointer"
+              >
+                Voir tout ({pinnedMessages.length})
+              </button>
+            </div>
+          )}
+
+          {/* ── 2.1 MESSAGES FEED STREAM ────────────────────────────── */}
+          <div
+            className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 z-0 custom-scrollbar"
+            style={{
+              backgroundImage: 'radial-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px)',
+              backgroundSize: '20px 20px',
+            }}
+          >
+            {/* Centered Date Pill */}
+            <div className="flex justify-center my-1">
+              <span className="bg-white border border-slate-200 text-slate-500 text-[10px] px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-2xs">
+                Aujourd&apos;hui • Espace Sécurisé NAY
+              </span>
+            </div>
+
+            {isLoadingMessages && messages.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-400 text-xs gap-2">
+                <RefreshCw size={16} className="animate-spin text-sky-500" />
+                <span>Chargement des échanges...</span>
+              </div>
+            ) : displayedMessages.length === 0 ? (
+              /* Creative Ops Launchpad Empty State */
+              <div className="py-8 max-w-xl mx-auto space-y-5 animate-in fade-in">
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 text-center shadow-xs space-y-3">
+                  <div className={`w-14 h-14 rounded-2xl ${activeVisual.solid} text-white flex items-center justify-center mx-auto shadow-md`}>
+                    <ActiveChannelIcon size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">
+                      Bienvenue dans {activeChatType === 'CHANNEL' ? `#${activeChannel?.name}` : activeContact?.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
+                      Lancez la discussion en 1 clic ci-dessous ou insérez directement une fiche parfum (<span className="font-mono font-bold text-sky-600">#</span>), une commande COD (<span className="font-mono font-bold text-indigo-600">$</span>) ou un collègue (<span className="font-mono font-bold text-slate-700">@</span>).
+                    </p>
+                  </div>
+
+                  {/* Quick Ops Action Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCatalogModal(true)}
+                      className="p-3 rounded-2xl bg-sky-50 hover:bg-sky-100 border border-sky-200/80 text-sky-700 text-left transition-all cursor-pointer"
+                    >
+                      <Store size={16} className="mb-1.5" />
+                      <div className="text-[11px] font-bold">Parfum ({allProducts.length})</div>
+                      <div className="text-[10px] text-sky-600/80">Fiche produit</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMentionMenu({ type: 'ORDER', query: '' })}
+                      className="p-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 text-left transition-all cursor-pointer"
+                    >
+                      <ShoppingBag size={16} className="mb-1.5" />
+                      <div className="text-[11px] font-bold">Commande ($)</div>
+                      <div className="text-[10px] text-indigo-600/80">Suivi client</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowTemplatesMenu(true)}
+                      className="p-3 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-800 text-left transition-all cursor-pointer"
+                    >
+                      <Zap size={16} className="mb-1.5" />
+                      <div className="text-[11px] font-bold">Modèles</div>
+                      <div className="text-[10px] text-amber-700/80">Réponses rapides</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => openCreateTaskFromMessage()}
+                      className="p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-emerald-700 text-left transition-all cursor-pointer"
+                    >
+                      <CheckSquare size={16} className="mb-1.5" />
+                      <div className="text-[11px] font-bold">Mission</div>
+                      <div className="text-[10px] text-emerald-600/80">Créer tâche</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Conversation Starters */}
+                <div className="space-y-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                    Démarrages Rapides du Canal
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {currentStarters.map((starter, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setMessageInput(starter.prompt);
+                          inputRef.current?.focus();
+                        }}
+                        className="p-3 rounded-2xl bg-white hover:bg-sky-50/70 border border-slate-200 hover:border-sky-300 text-left transition-all shadow-2xs cursor-pointer"
+                      >
+                        <div className="text-xs font-bold text-slate-900">{starter.title}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5 line-clamp-2">{starter.prompt}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              displayedMessages.map((msg) => {
+                const isMe = msg.senderId === currentUser?.id;
+                const attachments = parseAttachments(msg.attachments);
+                const visibleReactions = parseVisibleReactions(msg.reactions);
+                const pinned = isMessagePinned(msg.reactions);
+                const parsedBody = stripReplyPrefix(msg.content);
+
+                return (
+                  <div key={msg.id} className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'} group/msg`}>
+                    {/* Incoming Avatar */}
+                    {!isMe && (
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] text-white text-[10px] font-bold flex items-center justify-center shrink-0 overflow-hidden shadow-2xs mb-1">
+                        {msg.senderAvatar || msg.sender?.avatar ? (
+                          <img
+                            src={msg.senderAvatar || msg.sender?.avatar || ''}
+                            alt={msg.senderName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>{msg.senderName.slice(0, 2).toUpperCase()}</span>
+                        )}
                       </div>
                     )}
 
-                    {/* Sky Blue Timestamp & Double Ticks */}
-                    <div className="flex items-center justify-end gap-1 text-[10px] text-slate-500 dark:text-slate-300 mt-1 select-none font-mono">
-                      <span>{new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
-                      {renderSkyTicks(msg, isMe)}
-                    </div>
+                    {/* Message Bubble */}
+                    <div
+                      className={`relative max-w-md sm:max-w-lg p-3.5 rounded-2xl shadow-2xs transition-all ${
+                        pinned ? 'ring-2 ring-amber-300/80' : ''
+                      } ${
+                        isMe
+                          ? 'bg-gradient-to-br from-[#e0f2fe] to-[#bae6fd]/70 text-slate-900 rounded-br-xs border border-sky-200'
+                          : 'bg-white text-slate-900 rounded-bl-xs border border-slate-200'
+                      }`}
+                    >
+                      {pinned && (
+                        <div className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded mb-1.5">
+                          <Pin size={10} />
+                          <span>Message épinglé</span>
+                        </div>
+                      )}
 
-                    {/* Hover Reaction Toolbar */}
-                    <div className={`absolute top-0 -translate-y-1/2 hidden group-hover/msg:flex items-center gap-0.5 p-1 bg-white dark:bg-[#162232] rounded-full shadow-md border border-slate-200 dark:border-neutral-700 z-10 ${
-                      isMe ? 'right-0' : 'left-0'
-                    }`}>
-                      {QUICK_REACTION_EMOJIS.slice(0, 4).map((emoji) => (
+                      {!isMe && activeChatType === 'CHANNEL' && (
+                        <p className="text-[11px] font-extrabold text-sky-700 mb-1">
+                          {msg.senderName}
+                        </p>
+                      )}
+
+                      {/* Quoted Reply Box */}
+                      {parsedBody.replyName && (
+                        <div className="mb-2 pl-2.5 py-1 pr-2 rounded-lg bg-slate-900/5 border-l-3 border-sky-500 text-[11px]">
+                          <div className="font-bold text-sky-700">↩ {parsedBody.replyName}</div>
+                          <div className="text-slate-600 truncate">{parsedBody.replySnippet}</div>
+                        </div>
+                      )}
+
+                      {/* Content (Text + Product/Order Tokens) */}
+                      {parsedBody.body && <RenderMessageContent content={parsedBody.body} isMe={isMe} />}
+
+                      {/* Attachments */}
+                      {attachments.length > 0 && (
+                        <div className="mt-2 space-y-1.5">
+                          {attachments.map((att, i) => {
+                            if (att.type === 'AUDIO') {
+                              return <ChatAudioPlayer key={i} src={att.url} duration={att.duration} isMe={isMe} />;
+                            }
+                            if (att.type === 'VIDEO') {
+                              return <ChatVideoPlayer key={i} src={att.url} name={att.name} />;
+                            }
+                            if (att.type === 'PDF') {
+                              return <ChatPdfViewer key={i} url={att.url} name={att.name} size={att.size} isMe={isMe} />;
+                            }
+                            return (
+                              <div key={i} className="rounded-xl overflow-hidden max-h-72 border border-slate-200">
+                                <img src={att.url} alt={att.name || 'Photo'} className="w-full h-full object-cover" />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Timestamp & Double Ticks */}
+                      <div className="flex items-center justify-end gap-1 text-[10px] text-slate-500 mt-1.5 select-none font-mono">
+                        <span>{formatCompactTime(msg.createdAt)}</span>
+                        {renderSkyTicks(msg, isMe)}
+                      </div>
+
+                      {/* Rich Hover Action Toolbar */}
+                      <div
+                        className={`absolute -top-3 opacity-0 group-hover/msg:opacity-100 pointer-events-none group-hover/msg:pointer-events-auto transition-opacity flex items-center gap-0.5 px-1.5 py-1 bg-white rounded-full shadow-lg border border-slate-200 z-20 ${
+                          isMe ? 'right-1' : 'left-1'
+                        }`}
+                      >
+                        {QUICK_REACTION_EMOJIS.slice(0, 4).map((emoji) => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => handleToggleReaction(msg.id, emoji)}
+                            className="w-5 h-5 rounded-full hover:bg-slate-100 flex items-center justify-center text-xs transition-transform hover:scale-125 cursor-pointer"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                        <span className="w-px h-3.5 bg-slate-200 mx-0.5" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReplyingTo({
+                              id: msg.id,
+                              senderName: msg.senderName,
+                              snippet: parsedBody.body || 'Pièce jointe',
+                            });
+                            inputRef.current?.focus();
+                          }}
+                          className="p-1 text-slate-500 hover:text-sky-600 cursor-pointer"
+                          title="Répondre"
+                        >
+                          <Reply size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePin(msg.id)}
+                          className={`p-1 cursor-pointer ${pinned ? 'text-amber-600' : 'text-slate-500 hover:text-amber-600'}`}
+                          title={pinned ? 'Désépingler' : 'Épingler'}
+                        >
+                          {pinned ? <PinOff size={12} /> : <Pin size={12} />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openCreateTaskFromMessage(msg)}
+                          className="p-1 text-slate-500 hover:text-emerald-600 cursor-pointer"
+                          title="Convertir en Mission"
+                        >
+                          <CheckSquare size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyMessage(msg.id, msg.content)}
+                          className="p-1 text-slate-500 hover:text-slate-800 cursor-pointer"
+                          title="Copier"
+                        >
+                          {copiedMessageId === msg.id ? <Check size={12} className="text-sky-500" /> : <Copy size={12} />}
+                        </button>
+                        {(isMe || currentUser?.role === 'OWNER' || currentUser?.role === 'CO_OWNER') && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Emoji Reactions Badge */}
+                      <MessageReactionsRow
+                        reactions={visibleReactions}
+                        currentUserId={currentUser?.id}
+                        onToggleReaction={(emoji) => handleToggleReaction(msg.id, emoji)}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* ── 3. ELEVATED COMPOSER DOCK ─────────────────────────────── */}
+          <div className="p-3 bg-white border-t border-slate-200 z-10 shrink-0 space-y-2 relative">
+            {/* Reply Preview Banner */}
+            {replyingTo && (
+              <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-sky-50 border border-sky-200 rounded-xl text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Reply size={13} className="text-sky-600 shrink-0" />
+                  <span className="font-bold text-sky-800 shrink-0">Réponse à {replyingTo.senderName} :</span>
+                  <span className="text-slate-600 truncate">{replyingTo.snippet}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReplyingTo(null)}
+                  className="text-slate-400 hover:text-slate-700"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            )}
+
+            {/* Quick-Insert Chips Bar */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setShowCatalogModal(true)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-semibold shrink-0 cursor-pointer"
+              >
+                <Hash size={11} />
+                <span>Parfum ({allProducts.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMentionMenu({ type: 'ORDER', query: '' })}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold shrink-0 cursor-pointer"
+              >
+                <ShoppingBag size={11} />
+                <span>Commande ($)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMentionMenu({ type: 'MEMBER', query: '' })}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold shrink-0 cursor-pointer"
+              >
+                <AtSign size={11} />
+                <span>Mentionner</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowTemplatesMenu(!showTemplatesMenu)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-semibold shrink-0 cursor-pointer"
+              >
+                <Zap size={11} />
+                <span>Modèles</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => openCreateTaskFromMessage()}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-semibold shrink-0 cursor-pointer"
+              >
+                <CheckSquare size={11} />
+                <span>Nouvelle Mission</span>
+              </button>
+            </div>
+
+            {/* Inline Autocomplete (Mentions, Perfumes, Orders) */}
+            {mentionMenu.type && (
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden max-h-56 overflow-y-auto">
+                <div className="p-2.5 bg-sky-50 text-[11px] font-bold text-sky-900 flex items-center justify-between border-b border-sky-100">
+                  <span>
+                    {mentionMenu.type === 'MEMBER' && 'Mentionner un collaborateur (@)'}
+                    {mentionMenu.type === 'PRODUCT' && `💎 Parfums (${allProducts.length} disponibles)`}
+                    {mentionMenu.type === 'ORDER' && `📦 Commandes Récentes (${allOrders.length})`}
+                  </span>
+                  <button type="button" onClick={() => setMentionMenu({ type: null, query: '' })}>
+                    <X size={12} />
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                  {mentionMenu.type === 'MEMBER' &&
+                    allTeamMembers
+                      .filter((m) => m.name.toLowerCase().includes(mentionMenu.query))
+                      .map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => insertMemberMention(m)}
+                          className="w-full p-2.5 hover:bg-sky-50/50 flex items-center justify-between text-xs text-left cursor-pointer"
+                        >
+                          <span className="font-semibold text-slate-800">@{m.name}</span>
+                          <span className="text-[10px] text-slate-400">{m.jobTitle || m.role}</span>
+                        </button>
+                      ))}
+
+                  {mentionMenu.type === 'PRODUCT' &&
+                    allProducts
+                      .filter(
+                        (p) =>
+                          p.name.toLowerCase().includes(mentionMenu.query) ||
+                          p.brand.toLowerCase().includes(mentionMenu.query)
+                      )
+                      .slice(0, 30)
+                      .map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => insertProductMention(p)}
+                          className="w-full p-2.5 hover:bg-sky-50/60 flex items-center justify-between text-xs text-left transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center p-0.5">
+                              {p.image ? (
+                                <img src={p.image} alt={p.name} className="w-full h-full object-contain" />
+                              ) : (
+                                <Package size={14} className="text-slate-400" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold text-slate-900 truncate">{p.name}</p>
+                              <p className="text-[10px] text-slate-500">
+                                {p.brand} • <strong className="text-sky-600 font-bold">{p.price} MAD</strong>
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full shrink-0 border border-sky-200">
+                            Insérer
+                          </span>
+                        </button>
+                      ))}
+
+                  {mentionMenu.type === 'ORDER' &&
+                    allOrders
+                      .filter(
+                        (o) =>
+                          o.orderNumber.toLowerCase().includes(mentionMenu.query) ||
+                          o.customerName.toLowerCase().includes(mentionMenu.query)
+                      )
+                      .slice(0, 25)
+                      .map((o) => (
+                        <button
+                          key={o.id}
+                          type="button"
+                          onClick={() => insertOrderMention(o)}
+                          className="w-full p-2.5 hover:bg-sky-50/50 flex items-center justify-between text-xs text-left cursor-pointer"
+                        >
+                          <div>
+                            <span className="font-bold text-slate-900">#{o.orderNumber}</span>
+                            <span className="text-[10px] text-slate-400 ml-2">{o.customerName}</span>
+                          </div>
+                          <span className="text-xs font-bold text-sky-600">{o.total} MAD</span>
+                        </button>
+                      ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pending Attachments List */}
+            {(pendingAttachments.length > 0 || isUploadingAttachment) && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {pendingAttachments.map((att, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-sky-50 rounded-xl text-xs border border-sky-200 shadow-2xs"
+                  >
+                    {att.type === 'PDF' && <FileText size={13} className="text-rose-500" />}
+                    {att.type === 'VIDEO' && <Film size={13} className="text-purple-500" />}
+                    {att.type === 'AUDIO' && <Mic size={13} className="text-sky-500" />}
+                    {att.type === 'IMAGE' && <ImageIcon size={13} className="text-sky-500" />}
+                    <span className="truncate max-w-[140px] text-[11px] font-medium">{att.name || att.type}</span>
+                    <button
+                      type="button"
+                      onClick={() => setPendingAttachments((prev) => prev.filter((_, i) => i !== idx))}
+                      className="p-0.5 text-slate-400 hover:text-slate-700"
+                    >
+                      <X size={11} />
+                    </button>
+                  </div>
+                ))}
+                {isUploadingAttachment && (
+                  <span className="text-[11px] text-sky-600 font-semibold flex items-center gap-1">
+                    <RefreshCw size={11} className="animate-spin" /> Envoi fichier...
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Voice Recording Active Bar or Standard Input */}
+            {isRecordingAudio ? (
+              <div className="flex items-center justify-between p-2.5 bg-sky-50 border border-sky-300 rounded-2xl">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse" />
+                  <span className="text-xs font-semibold text-sky-800">
+                    Enregistrement vocal : {Math.floor(recordingDuration / 60)}:
+                    {(recordingDuration % 60).toString().padStart(2, '0')}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={cancelAudioRecording}
+                    className="px-3 py-1 rounded-xl text-xs font-medium text-slate-600 hover:bg-white cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stopAudioRecording}
+                    className="px-3.5 py-1 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 cursor-pointer shadow-xs"
+                  >
+                    Terminer
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="p-2 text-slate-500 hover:text-sky-600 transition-colors cursor-pointer"
+                    title="Emojis"
+                  >
+                    <Smile size={20} />
+                  </button>
+
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-1 p-2.5 bg-white rounded-2xl shadow-2xl border border-slate-200 w-64 z-30">
+                      {EXTENDED_EMOJIS.map((emoji) => (
                         <button
                           key={emoji}
-                          onClick={() => handleToggleReaction(msg.id, emoji)}
-                          className="w-5 h-5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-xs transition-transform hover:scale-125 cursor-pointer"
+                          type="button"
+                          onClick={() => {
+                            setMessageInput((prev) => prev + emoji);
+                            setShowEmojiPicker(false);
+                            inputRef.current?.focus();
+                          }}
+                          className="w-7 h-7 rounded hover:bg-slate-100 flex items-center justify-center text-sm cursor-pointer"
                         >
                           {emoji}
                         </button>
                       ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowAttachMenu(!showAttachMenu)}
+                    className="p-2 text-slate-500 hover:text-sky-600 transition-colors cursor-pointer"
+                    title="Joindre un fichier ou média"
+                  >
+                    <Paperclip size={20} />
+                  </button>
+
+                  {showAttachMenu && (
+                    <div className="absolute bottom-full left-0 mb-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 space-y-1 text-xs z-30">
                       <button
-                        onClick={() => handleCopyMessage(msg.id, msg.content)}
-                        className="p-1 text-slate-400 hover:text-slate-700"
-                        title="Copier"
+                        type="button"
+                        onClick={() => {
+                          setShowAttachMenu(false);
+                          setShowCatalogModal(true);
+                        }}
+                        className="w-full p-2 rounded-xl hover:bg-sky-50 flex items-center gap-2.5 text-left font-bold text-sky-600 cursor-pointer"
                       >
-                        {copiedMessageId === msg.id ? <Check size={11} className="text-sky-500" /> : <Copy size={11} />}
+                        <Store size={16} />
+                        <span>Catalogue ({allProducts.length} Parfums)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => triggerUpload('.pdf,application/pdf')}
+                        className="w-full p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-left font-medium cursor-pointer"
+                      >
+                        <FileText size={16} className="text-rose-500" />
+                        <span>Document PDF</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => triggerUpload('video/*,.mp4,.webm,.mov')}
+                        className="w-full p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-left font-medium cursor-pointer"
+                      >
+                        <Film size={16} className="text-purple-500" />
+                        <span>Vidéo</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => triggerUpload('image/*')}
+                        className="w-full p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-left font-medium cursor-pointer"
+                      >
+                        <ImageIcon size={16} className="text-sky-500" />
+                        <span>Photos &amp; Médias</span>
                       </button>
                     </div>
-
-                    {/* Emoji Reactions Badge */}
-                    <MessageReactionsRow
-                      reactions={reactions}
-                      currentUserId={currentUser?.id}
-                      onToggleReaction={(emoji) => handleToggleReaction(msg.id, emoji)}
-                    />
-                  </div>
+                  )}
                 </div>
-              );
-            })
-          )}
-          <div ref={messagesEndRef} />
-        </div>
 
-        {/* ── 3. COMPOSER: SKY BLUE LUXURY ACTIONS ─────────────────── */}
-        <div className="p-3 bg-white dark:bg-[#111c2e] border-t border-slate-200 dark:border-neutral-800 z-10 shrink-0">
-          
-          {/* Inline Autocomplete (Mentions, Perfumes, Orders) */}
-          {mentionMenu.type && (
-            <div className="mb-2 bg-white dark:bg-[#162232] rounded-2xl shadow-xl border border-slate-200 dark:border-neutral-700 overflow-hidden max-h-60 overflow-y-auto animate-in fade-in slide-in-from-bottom-2">
-              <div className="p-2.5 bg-sky-50 dark:bg-[#1b2a3e] text-[11px] font-bold text-sky-900 dark:text-sky-200 flex items-center justify-between border-b border-sky-100 dark:border-neutral-700">
-                <span>
-                  {mentionMenu.type === 'MEMBER' && 'Mentionner un collaborateur (@)'}
-                  {mentionMenu.type === 'PRODUCT' && `💎 Parfums (${allProducts.length} disponibles) - Tapez pour filtrer`}
-                  {mentionMenu.type === 'ORDER' && `📦 Commandes Récentes (${allOrders.length})`}
-                </span>
-                <button onClick={() => setMentionMenu({ type: null, query: '' })}>
-                  <X size={12} />
-                </button>
-              </div>
-
-              <div className="divide-y divide-slate-100 dark:divide-neutral-800">
-                {mentionMenu.type === 'MEMBER' && (
-                  allTeamMembers
-                    .filter(m => m.name.toLowerCase().includes(mentionMenu.query))
-                    .map(m => (
-                      <button
-                        key={m.id}
-                        onClick={() => insertMemberMention(m)}
-                        className="w-full p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left"
-                      >
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">@{m.name}</span>
-                        <span className="text-[10px] text-slate-400">{m.jobTitle || m.role}</span>
+                {showTemplatesMenu && (
+                  <div className="absolute bottom-full left-12 mb-2 w-76 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 space-y-1 text-xs z-30">
+                    <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase flex items-center justify-between">
+                      <span>Réponses Rapides NAY</span>
+                      <button type="button" onClick={() => setShowTemplatesMenu(false)}>
+                        <X size={12} />
                       </button>
-                    ))
-                )}
-
-                {/* ALL 199 PRODUCTS AVAILABLE TO MENTION */}
-                {mentionMenu.type === 'PRODUCT' && (
-                  allProducts
-                    .filter(p => p.name.toLowerCase().includes(mentionMenu.query) || p.brand.toLowerCase().includes(mentionMenu.query))
-                    .map(p => (
+                    </div>
+                    {QUICK_TEMPLATES.map((tmpl, idx) => (
                       <button
-                        key={p.id}
-                        onClick={() => insertProductMention(p)}
-                        className="w-full p-2.5 hover:bg-sky-50/60 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center p-0.5">
-                            {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-contain" /> : <Package size={14} className="text-slate-400" />}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-slate-900 dark:text-white truncate">{p.name}</p>
-                            <p className="text-[10px] text-slate-500">{p.brand} • <strong className="text-sky-600 font-bold">{p.price} MAD</strong></p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full shrink-0 border border-sky-200/60">
-                          Insérer
-                        </span>
-                      </button>
-                    ))
-                )}
-
-                {mentionMenu.type === 'ORDER' && (
-                  allOrders
-                    .filter(o => o.orderNumber.toLowerCase().includes(mentionMenu.query) || o.customerName.toLowerCase().includes(mentionMenu.query))
-                    .map(o => (
-                      <button
-                        key={o.id}
-                        onClick={() => insertOrderMention(o)}
-                        className="w-full p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs text-left"
-                      >
-                        <div>
-                          <span className="font-bold text-slate-900 dark:text-white">#{o.orderNumber}</span>
-                          <span className="text-[10px] text-slate-400 ml-2">{o.customerName}</span>
-                        </div>
-                        <span className="text-xs font-bold text-sky-600 dark:text-sky-400">{o.total} MAD</span>
-                      </button>
-                    ))
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Pending Attachments List */}
-          {pendingAttachments.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 mb-2">
-              {pendingAttachments.map((att, idx) => (
-                <div key={idx} className="flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-slate-800 rounded-xl text-xs border border-sky-200/60 shadow-2xs">
-                  {att.type === 'PDF' && <FileText size={13} className="text-rose-500" />}
-                  {att.type === 'VIDEO' && <Film size={13} className="text-purple-500" />}
-                  {att.type === 'AUDIO' && <Mic size={13} className="text-sky-500" />}
-                  {att.type === 'IMAGE' && <ImageIcon size={13} className="text-sky-500" />}
-                  <span className="truncate max-w-[140px] text-[11px] font-medium">{att.name || att.type}</span>
-                  <button
-                    onClick={() => setPendingAttachments(prev => prev.filter((_, i) => i !== idx))}
-                    className="p-0.5 text-slate-400 hover:text-slate-700"
-                  >
-                    <X size={11} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Voice Recording Active Bar */}
-          {isRecordingAudio ? (
-            <div className="flex items-center justify-between p-2.5 bg-sky-50 dark:bg-sky-950/40 border border-sky-300 dark:border-sky-800 rounded-2xl">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse" />
-                <span className="text-xs font-semibold text-sky-700 dark:text-sky-300">
-                  Enregistrement vocal : {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={cancelAudioRecording}
-                  className="px-3 py-1 rounded-xl text-xs font-medium text-slate-600 hover:bg-white"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="button"
-                  onClick={stopAudioRecording}
-                  className="px-3.5 py-1 bg-sky-500 text-white rounded-xl text-xs font-bold hover:bg-sky-600 cursor-pointer shadow-xs"
-                >
-                  Terminer
-                </button>
-              </div>
-            </div>
-          ) : (
-            
-            /* Sky Blue Input Bar */
-            <div className="flex items-center gap-2">
-              
-              {/* Left Emojis Trigger */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
-                  title="Emojis"
-                >
-                  <Smile size={20} />
-                </button>
-
-                {showEmojiPicker && (
-                  <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-1 p-2.5 bg-white dark:bg-[#162232] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 w-64 z-30">
-                    {EXTENDED_EMOJIS.map((emoji) => (
-                      <button
-                        key={emoji}
+                        key={idx}
+                        type="button"
                         onClick={() => {
-                          setMessageInput((prev) => prev + emoji);
-                          setShowEmojiPicker(false);
+                          setMessageInput(tmpl.text);
+                          setShowTemplatesMenu(false);
                           inputRef.current?.focus();
                         }}
-                        className="w-7 h-7 rounded hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-sm cursor-pointer"
+                        className="w-full text-left p-2 rounded-xl hover:bg-sky-50 cursor-pointer"
                       >
-                        {emoji}
+                        <p className="font-bold text-slate-900 flex items-center gap-1.5">
+                          <span>{tmpl.icon}</span>
+                          <span>{tmpl.label}</span>
+                        </p>
+                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{tmpl.text}</p>
                       </button>
                     ))}
                   </div>
                 )}
-              </div>
 
-              {/* Attach Dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowAttachMenu(!showAttachMenu)}
-                  className="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
-                  title="Joindre un élément"
-                >
-                  <Paperclip size={20} />
-                </button>
+                <div className="flex-1 relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder={
+                      activeChatType === 'CHANNEL'
+                        ? `Écrire dans #${activeChannel?.name || 'Canal'} (# parfum, $ commande, @ membre)...`
+                        : `Écrire à ${activeContact?.name || 'Collaborateur'}...`
+                    }
+                    value={messageInput}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-100 border border-transparent focus:border-sky-400 focus:bg-white text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors"
+                  />
+                </div>
 
-                {showAttachMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-56 bg-white dark:bg-[#162232] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 p-2 space-y-1 text-xs z-30 animate-in fade-in zoom-in-95">
-                    
-                    {/* Catalog item */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowAttachMenu(false);
-                        setShowCatalogModal(true);
-                      }}
-                      className="w-full p-2 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center gap-2.5 text-left font-bold text-sky-600 dark:text-sky-400"
-                    >
-                      <Store size={16} />
-                      <span>Catalogue (199 Parfums)</span>
-                    </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
 
-                    {/* PDF item */}
-                    <button
-                      type="button"
-                      onClick={() => triggerUpload('.pdf,application/pdf')}
-                      className="w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 text-left font-medium"
-                    >
-                      <FileText size={16} className="text-rose-500" />
-                      <span>Document PDF</span>
-                    </button>
-
-                    {/* Video item */}
-                    <button
-                      type="button"
-                      onClick={() => triggerUpload('video/*,.mp4,.webm,.mov')}
-                      className="w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 text-left font-medium"
-                    >
-                      <Film size={16} className="text-purple-500" />
-                      <span>Vidéo</span>
-                    </button>
-
-                    {/* Image item */}
-                    <button
-                      type="button"
-                      onClick={() => triggerUpload('image/*')}
-                      className="w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 text-left font-medium"
-                    >
-                      <ImageIcon size={16} className="text-sky-500" />
-                      <span>Photos & Médias</span>
-                    </button>
-
-                    {/* Order item */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowAttachMenu(false);
-                        setMentionMenu({ type: 'ORDER', query: '' });
-                      }}
-                      className="w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 text-left font-medium"
-                    >
-                      <ShoppingBag size={16} className="text-indigo-500" />
-                      <span>Lier Commande ($)</span>
-                    </button>
-
-                    {/* Templates item */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowAttachMenu(false);
-                        setShowTemplatesMenu(true);
-                      }}
-                      className="w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 text-left font-medium border-t border-slate-100 dark:border-neutral-800 pt-1.5"
-                    >
-                      <Zap size={16} className="text-amber-500" />
-                      <span>Réponses Rapides</span>
-                    </button>
-                  </div>
+                {messageInput.trim() || pendingAttachments.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => handleSendMessage()}
+                    disabled={isSending}
+                    className="w-10 h-10 rounded-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] text-white flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer shrink-0"
+                    title="Envoyer"
+                  >
+                    {isSending ? <RefreshCw size={15} className="animate-spin" /> : <Send size={15} className="ml-0.5" />}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startAudioRecording}
+                    className="w-10 h-10 rounded-full bg-slate-100 hover:bg-sky-500 hover:text-white text-slate-500 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                    title="Enregistrer un vocal"
+                  >
+                    <Mic size={17} />
+                  </button>
                 )}
               </div>
+            )}
+          </div>
+        </main>
 
-              {/* Quick Template Popover */}
-              {showTemplatesMenu && (
-                <div className="absolute bottom-full left-12 mb-2 w-72 bg-white dark:bg-[#162232] rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-700 p-2 space-y-1 text-xs z-30 animate-in fade-in zoom-in-95">
-                  <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase">
-                    Réponses Rapides
+        {/* ── 3. RIGHT CONTEXT & OPS INSPECTOR SIDEBAR ───────────────── */}
+        {showInspector && (
+          <aside className="hidden lg:flex w-72 xl:w-80 border-l border-slate-200 bg-slate-50/70 flex-col shrink-0">
+            {/* Inspector Tabs */}
+            <div className="p-2.5 bg-white border-b border-slate-200 grid grid-cols-3 gap-1 text-[11px] font-semibold">
+              <button
+                type="button"
+                onClick={() => setInspectorTab('OVERVIEW')}
+                className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                  inspectorTab === 'OVERVIEW'
+                    ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Aperçu
+              </button>
+              <button
+                type="button"
+                onClick={() => setInspectorTab('SHARED')}
+                className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                  inspectorTab === 'SHARED'
+                    ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Partages ({sharedArtifacts.products.length + sharedArtifacts.orders.length + sharedArtifacts.files.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setInspectorTab('PINNED')}
+                className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                  inspectorTab === 'PINNED'
+                    ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Épinglés ({pinnedMessages.length})
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+              {inspectorTab === 'OVERVIEW' && (
+                <>
+                  {/* Context Profile Box */}
+                  <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-2xs">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-11 h-11 rounded-xl text-white flex items-center justify-center shrink-0 overflow-hidden ${
+                          activeChatType === 'CHANNEL'
+                            ? activeVisual.solid
+                            : 'bg-gradient-to-br from-[#0ea5e9] to-[#0284c7]'
+                        }`}
+                      >
+                        {activeChatType === 'CHANNEL' ? (
+                          <ActiveChannelIcon size={20} />
+                        ) : activeContact?.avatar ? (
+                          <img src={activeContact.avatar} alt={activeContact.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="font-bold text-sm">{(activeContact?.name || '@').slice(0, 2).toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-xs font-extrabold text-slate-900 truncate">
+                          {activeChatType === 'CHANNEL' ? activeChannel?.name : activeContact?.name}
+                        </h3>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {activeChatType === 'CHANNEL' ? `${activeChannel?.memberCount || 0} membres` : activeContact?.jobTitle || activeContact?.role}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 leading-relaxed bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+                      {activeChatType === 'CHANNEL'
+                        ? activeChannel?.description
+                        : `Email : ${activeContact?.email || '—'}`}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2 text-center">
+                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-2">
+                        <div className="text-sm font-extrabold text-slate-900 tabular-nums">{messages.length}</div>
+                        <div className="text-[10px] text-slate-500">Messages</div>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-2">
+                        <div className="text-sm font-extrabold text-sky-700 tabular-nums">
+                          {sharedArtifacts.products.length + sharedArtifacts.orders.length}
+                        </div>
+                        <div className="text-[10px] text-slate-500">Fiches liées</div>
+                      </div>
+                    </div>
                   </div>
-                  {QUICK_TEMPLATES.map((tmpl, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setMessageInput(tmpl.text);
-                        setShowTemplatesMenu(false);
-                        inputRef.current?.focus();
-                      }}
-                      className="w-full text-left p-2 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800"
+
+                  {/* Active Roster in Channel */}
+                  {activeChatType === 'CHANNEL' && activeChannel?.members && (
+                    <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-2.5 shadow-2xs">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Participants ({activeChannel.members.length})
+                      </div>
+                      <div className="space-y-2">
+                        {activeChannel.members.map((m) => {
+                          const isMe = m.id === currentUser?.id;
+                          const online = isMe || isUserOnline(m.lastActivityAt);
+                          return (
+                            <div key={m.id} className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="relative w-7 h-7 rounded-full bg-sky-100 text-sky-700 font-bold text-[10px] flex items-center justify-center overflow-hidden shrink-0">
+                                  {m.avatar ? (
+                                    <img src={m.avatar} alt={m.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <span>{m.name.slice(0, 2).toUpperCase()}</span>
+                                  )}
+                                  <span
+                                    className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white ${
+                                      online ? 'bg-emerald-500' : 'bg-slate-300'
+                                    }`}
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-semibold text-slate-800 truncate">
+                                    {m.name} {isMe && <span className="text-[10px] text-sky-600">(Vous)</span>}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 truncate">{m.role}</div>
+                                </div>
+                              </div>
+                              {!isMe && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveChatType('DIRECT');
+                                    setActiveId(m.id);
+                                  }}
+                                  className="text-[10px] font-semibold text-sky-600 hover:underline shrink-0 cursor-pointer"
+                                >
+                                  Direct
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quick Ops Navigation */}
+                  <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 shadow-2xs">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Raccourcis NAY OS
+                    </div>
+                    <Link
+                      href="/admin/orders"
+                      className="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-xs font-semibold text-slate-700 hover:text-sky-700 transition-colors"
                     >
-                      <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <span>{tmpl.icon}</span>
-                        <span>{tmpl.label}</span>
-                      </p>
-                      <p className="text-[10px] text-slate-500 truncate mt-0.5">{tmpl.text}</p>
-                    </button>
-                  ))}
+                      <span>Commandes &amp; COD</span>
+                      <ExternalLink size={12} />
+                    </Link>
+                    <Link
+                      href="/admin/tasks"
+                      className="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-xs font-semibold text-slate-700 hover:text-sky-700 transition-colors"
+                    >
+                      <span>Missions &amp; Tâches</span>
+                      <ExternalLink size={12} />
+                    </Link>
+                    <Link
+                      href="/admin/inventory"
+                      className="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-xs font-semibold text-slate-700 hover:text-sky-700 transition-colors"
+                    >
+                      <span>Inventaire &amp; Stock</span>
+                      <ExternalLink size={12} />
+                    </Link>
+                  </div>
+                </>
+              )}
+
+              {inspectorTab === 'SHARED' && (
+                <div className="space-y-3">
+                  {sharedArtifacts.products.length === 0 &&
+                  sharedArtifacts.orders.length === 0 &&
+                  sharedArtifacts.files.length === 0 ? (
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center text-xs text-slate-500">
+                      Aucun parfum, commande ou fichier partagé dans cette conversation.
+                    </div>
+                  ) : (
+                    <>
+                      {sharedArtifacts.products.length > 0 && (
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-2">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Parfums Cités ({sharedArtifacts.products.length})
+                          </div>
+                          {sharedArtifacts.products.map((p) => (
+                            <Link
+                              key={p.id}
+                              href={`/products/${p.slug}`}
+                              target="_blank"
+                              className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-xs"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-bold text-slate-900 truncate">{p.name}</div>
+                                <div className="text-[10px] text-sky-600 font-semibold">{p.price} MAD</div>
+                              </div>
+                              <ExternalLink size={12} className="text-slate-400 shrink-0" />
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+
+                      {sharedArtifacts.orders.length > 0 && (
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-2">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Commandes Liées ({sharedArtifacts.orders.length})
+                          </div>
+                          {sharedArtifacts.orders.map((o) => (
+                            <Link
+                              key={o.id}
+                              href={`/admin/orders?highlight=${o.id}&orderNumber=${encodeURIComponent(o.number)}`}
+                              className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 text-xs"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-bold text-slate-900">#{o.number}</div>
+                                <div className="text-[10px] text-slate-500 truncate">
+                                  {o.client} • {o.total} MAD
+                                </div>
+                              </div>
+                              <ExternalLink size={12} className="text-slate-400 shrink-0" />
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+
+                      {sharedArtifacts.files.length > 0 && (
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-2">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Médias &amp; Fichiers ({sharedArtifacts.files.length})
+                          </div>
+                          {sharedArtifacts.files.map((f, i) => (
+                            <a
+                              key={`${f.msgId}-${i}`}
+                              href={f.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-xs"
+                            >
+                              <span className="font-semibold text-slate-800 truncate">{f.name || f.type}</span>
+                              <span className="text-[10px] font-mono text-slate-400 shrink-0">{f.type}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
-              {/* Main Rounded Input Field */}
-              <div className="flex-1 relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder={
-                    activeChatType === 'CHANNEL'
-                      ? `Tapez un message dans #${activeChannel?.name || 'Canal'} (tapez # pour les 199 parfums)...`
-                      : `Tapez un message à ${activeContact?.name}...`
-                  }
-                  value={messageInput}
-                  onChange={handleInputChange}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-[#182438] text-xs font-normal text-slate-900 dark:text-white placeholder:text-slate-400 border-0 focus:outline-none focus:ring-1 focus:ring-sky-400"
-                />
-              </div>
-
-              {/* Hidden File Input */}
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileInputChange}
-                className="hidden"
-              />
-
-              {/* Right Action: Sky Blue Send Button or Mic */}
-              {messageInput.trim() || pendingAttachments.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage()}
-                  disabled={isSending}
-                  className="w-10 h-10 rounded-full bg-sky-500 hover:bg-sky-600 text-white flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer shrink-0"
-                  title="Envoyer"
-                >
-                  {isSending ? (
-                    <RefreshCw size={15} className="animate-spin" />
+              {inspectorTab === 'PINNED' && (
+                <div className="space-y-2.5">
+                  {pinnedMessages.length === 0 ? (
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center text-xs text-slate-500 space-y-1">
+                      <Pin size={18} className="mx-auto text-slate-300" />
+                      <div className="font-semibold text-slate-700">Aucun message épinglé</div>
+                      <p className="text-[11px] text-slate-400">
+                        Survolez un message important et cliquez sur l&apos;icône épingle.
+                      </p>
+                    </div>
                   ) : (
-                    <Send size={15} className="ml-0.5" />
+                    pinnedMessages.map((pm) => (
+                      <div key={pm.id} className="bg-white border border-amber-200 rounded-2xl p-3 space-y-1.5 shadow-2xs">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="font-bold text-sky-700">{pm.senderName}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePin(pm.id)}
+                            className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                            title="Désépingler"
+                          >
+                            <PinOff size={12} />
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-700 leading-relaxed">
+                          {stripReplyPrefix(pm.content).body}
+                        </p>
+                      </div>
+                    ))
                   )}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={startAudioRecording}
-                  className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-sky-500 hover:text-white text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                  title="Enregistrer un vocal"
-                >
-                  <Mic size={17} />
-                </button>
+                </div>
               )}
-
             </div>
-          )}
+          </aside>
+        )}
+      </div>
 
-        </div>
-
-      </main>
-
-      {/* ── 4. PRODUCT CATALOG MODAL (ALL 199 PERFUMES) IN SKY BLUE ─ */}
+      {/* ── 4. PRODUCT CATALOG MODAL ─────────────────────────────────── */}
       {showCatalogModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white dark:bg-[#111c2e] rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 dark:border-neutral-800 overflow-hidden animate-in zoom-in-95">
-            
-            {/* Modal Header */}
-            <div className="p-4 bg-gradient-to-r from-sky-500 to-sky-600 text-white flex items-center justify-between">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95">
+            <div className="p-4 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Store size={20} />
                 <div>
-                  <h3 className="text-sm font-bold">Catalogue Produits NAY Connect</h3>
+                  <h3 className="text-sm font-extrabold">Catalogue Produits NAY Connect</h3>
                   <p className="text-[11px] text-sky-100">
-                    {allProducts.length} parfums disponibles • Cliquez pour partager instantanément
+                    {allProducts.length} parfums disponibles • Cliquez pour insérer la fiche interactive
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowCatalogModal(false)} className="p-1 text-white/80 hover:text-white">
+              <button type="button" onClick={() => setShowCatalogModal(false)} className="p-1 text-white/80 hover:text-white">
                 <X size={18} />
               </button>
             </div>
 
-            {/* Search Bar in Catalog */}
-            <div className="p-3 border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-[#182438]">
+            <div className="p-3 border-b border-slate-200 bg-slate-50">
               <div className="relative">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -1606,31 +2561,32 @@ export default function AdminTeamChatPage() {
                   placeholder="Rechercher par nom de parfum, marque ou prix..."
                   value={catalogSearch}
                   onChange={(e) => setCatalogSearch(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#111c2e] border border-slate-200 dark:border-neutral-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/30"
+                  className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-sky-500"
                   autoFocus
                 />
                 {catalogSearch && (
-                  <button onClick={() => setCatalogSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => setCatalogSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  >
                     <X size={13} />
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Products List (All 199 products) */}
-            <div className="flex-1 overflow-y-auto p-3 divide-y divide-slate-100 dark:divide-neutral-800 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 divide-y divide-slate-100 custom-scrollbar">
               {catalogFilteredProducts.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 text-xs">
-                  Aucun parfum correspondant trouvé
-                </div>
+                <div className="p-8 text-center text-slate-400 text-xs">Aucun parfum correspondant trouvé</div>
               ) : (
                 catalogFilteredProducts.map((p) => (
                   <div
                     key={p.id}
-                    className="p-3 hover:bg-sky-50/50 dark:hover:bg-slate-800/60 rounded-xl flex items-center justify-between gap-3 transition-colors group"
+                    className="p-3 hover:bg-sky-50/50 rounded-xl flex items-center justify-between gap-3 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-neutral-700 flex items-center justify-center p-1">
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center p-1">
                         {p.image ? (
                           <img src={p.image} alt={p.name} className="w-full h-full object-contain" />
                         ) : (
@@ -1638,23 +2594,25 @@ export default function AdminTeamChatPage() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-xs text-slate-900 dark:text-white truncate">{p.name}</p>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.brand}</p>
-                        <p className="text-xs font-bold text-sky-600 dark:text-sky-400">{p.price} MAD</p>
+                        <p className="font-bold text-xs text-slate-900 truncate">{p.name}</p>
+                        <p className="text-[11px] text-slate-500">{p.brand}</p>
+                        <p className="text-xs font-bold text-sky-600">{p.price} MAD</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        p.stock > 0 ? 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300' : 'bg-rose-50 text-rose-700'
-                      }`}>
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          p.stock > 0 ? 'bg-sky-50 text-sky-700' : 'bg-rose-50 text-rose-700'
+                        }`}
+                      >
                         {p.stock > 0 ? `${p.stock} en stock` : 'Rupture'}
                       </span>
 
                       <button
                         type="button"
                         onClick={() => insertProductMention(p)}
-                        className="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-xs transition-transform hover:scale-105 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-xs cursor-pointer"
                       >
                         Partager
                       </button>
@@ -1664,12 +2622,11 @@ export default function AdminTeamChatPage() {
               )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-3 bg-slate-50 dark:bg-[#182438] border-t border-slate-200 dark:border-neutral-800 text-right">
+            <div className="p-3 bg-slate-50 border-t border-slate-200 text-right">
               <button
                 type="button"
                 onClick={() => setShowCatalogModal(false)}
-                className="px-4 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl"
+                className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Fermer
               </button>
@@ -1678,79 +2635,168 @@ export default function AdminTeamChatPage() {
         </div>
       )}
 
-      {/* ── 5. CREATE GROUP MODAL ────────────────────────────────────── */}
+      {/* ── 5. CHAT -> CREATE MISSION MODAL ──────────────────────────── */}
+      {taskModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <CheckSquare size={16} className="text-sky-600" />
+                <span>Créer une Mission depuis NAY Chat</span>
+              </h3>
+              <button type="button" onClick={() => setTaskModalOpen(false)} className="text-slate-400 hover:text-slate-700">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTaskSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Titre de la Mission *</label>
+                <input
+                  type="text"
+                  required
+                  value={taskTitle}
+                  onChange={(e) => setTaskTitle(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Contexte / Détails</label>
+                <textarea
+                  rows={3}
+                  value={taskDesc}
+                  onChange={(e) => setTaskDesc(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Priorité</label>
+                  <select
+                    value={taskPriority}
+                    onChange={(e) => setTaskPriority(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500"
+                  >
+                    <option value="LOW">Basse</option>
+                    <option value="MEDIUM">Normale</option>
+                    <option value="HIGH">Haute</option>
+                    <option value="URGENT">Urgente</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Assigner à</label>
+                  <select
+                    value={taskAssigneeId}
+                    onChange={(e) => setTaskAssigneeId(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500"
+                  >
+                    <option value="">Non assignée</option>
+                    {allTeamMembers.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setTaskModalOpen(false)}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 font-semibold cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingTask || !taskTitle.trim()}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  {isCreatingTask ? 'Création...' : 'Créer la Mission'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── 6. CREATE GROUP MODAL ────────────────────────────────────── */}
       {showCreateGroupModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-[#111c2e] rounded-2xl p-5 w-full max-w-md shadow-xl border border-slate-200 dark:border-neutral-800 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-2.5">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Créer un salon d&apos;équipe</h3>
-              <button onClick={() => setShowCreateGroupModal(false)} className="text-slate-400 hover:text-slate-700">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-5 w-full max-w-md shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <h3 className="text-sm font-extrabold text-slate-900">Créer un salon d&apos;équipe</h3>
+              <button type="button" onClick={() => setShowCreateGroupModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X size={15} />
               </button>
             </div>
 
             <form onSubmit={handleCreateGroup} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nom du Salon *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Nom du Salon *</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Équipe Influenceurs & RP"
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-neutral-700 rounded-lg text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Description</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Description</label>
                 <input
                   type="text"
                   placeholder="Ex: Coordination des campagnes et envois"
                   value={newGroupDesc}
                   onChange={(e) => setNewGroupDesc(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-neutral-700 rounded-lg text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Membres autorisés ({selectedMemberIds.length}/{allTeamMembers.length})
                 </label>
-                <div className="max-h-36 overflow-y-auto p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-neutral-700 space-y-1">
+                <div className="max-h-36 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                   {allTeamMembers.map((member) => {
                     const isSelected = selectedMemberIds.includes(member.id);
                     return (
                       <div
                         key={member.id}
                         onClick={() => {
-                          if (isSelected) setSelectedMemberIds(selectedMemberIds.filter(id => id !== member.id));
+                          if (isSelected) setSelectedMemberIds(selectedMemberIds.filter((id) => id !== member.id));
                           else setSelectedMemberIds([...selectedMemberIds, member.id]);
                         }}
-                        className={`flex items-center justify-between p-1.5 rounded-md cursor-pointer text-xs ${
-                          isSelected ? 'bg-sky-50 dark:bg-slate-700 font-semibold' : 'hover:bg-slate-100'
+                        className={`flex items-center justify-between p-1.5 rounded-lg cursor-pointer text-xs ${
+                          isSelected ? 'bg-sky-50 font-semibold text-sky-900' : 'hover:bg-slate-100'
                         }`}
                       >
                         <span>{member.name}</span>
-                        {isSelected && <Check size={12} className="text-sky-500" />}
+                        {isSelected && <Check size={12} className="text-sky-600" />}
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowCreateGroupModal(false)}
-                  className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg"
+                  className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={!newGroupName.trim() || isSavingGroup}
-                  className="px-4 py-1.5 bg-sky-500 text-white text-xs font-bold rounded-lg hover:bg-sky-600"
+                  className="px-4 py-1.5 bg-sky-600 text-white text-xs font-bold rounded-xl hover:bg-sky-700 cursor-pointer"
                 >
                   {isSavingGroup ? 'Création...' : 'Créer'}
                 </button>
@@ -1760,59 +2806,62 @@ export default function AdminTeamChatPage() {
         </div>
       )}
 
-      {/* ── 6. MANAGE GROUP MEMBERS MODAL ──────────────────────────── */}
+      {/* ── 7. MANAGE GROUP MEMBERS MODAL ──────────────────────────── */}
       {showManageMembersModal && activeChannel && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-[#111c2e] rounded-2xl p-5 w-full max-w-md shadow-xl border border-slate-200 dark:border-neutral-800 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-2.5">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Membres : #{activeChannel.name}</h3>
-              <button onClick={() => setShowManageMembersModal(false)} className="text-slate-400 hover:text-slate-700">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-5 w-full max-w-md shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <h3 className="text-sm font-extrabold text-slate-900">Membres : #{activeChannel.name}</h3>
+              <button type="button" onClick={() => setShowManageMembersModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X size={15} />
               </button>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-semibold text-slate-700">
                 Membres actifs ({selectedMemberIds.length})
               </label>
 
-              <div className="max-h-48 overflow-y-auto p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-neutral-700 space-y-1">
+              <div className="max-h-48 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                 {allTeamMembers.map((member) => {
                   const isSelected = selectedMemberIds.includes(member.id);
                   return (
                     <div
                       key={member.id}
                       onClick={() => {
-                        if (isSelected) setSelectedMemberIds(selectedMemberIds.filter(id => id !== member.id));
+                        if (isSelected) setSelectedMemberIds(selectedMemberIds.filter((id) => id !== member.id));
                         else setSelectedMemberIds([...selectedMemberIds, member.id]);
                       }}
-                      className={`flex items-center justify-between p-1.5 rounded-md cursor-pointer text-xs ${
-                        isSelected ? 'bg-sky-50 dark:bg-slate-700 font-semibold' : 'hover:bg-slate-100'
+                      className={`flex items-center justify-between p-1.5 rounded-lg cursor-pointer text-xs ${
+                        isSelected ? 'bg-sky-50 font-semibold text-sky-900' : 'hover:bg-slate-100'
                       }`}
                     >
                       <span>{member.name}</span>
-                      {isSelected && <Check size={12} className="text-sky-500" />}
+                      {isSelected && <Check size={12} className="text-sky-600" />}
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-neutral-800">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               {!activeChannel.isDefault && activeChannel.dbId ? (
                 <button
+                  type="button"
                   onClick={() => handleDeleteGroup(activeChannel.dbId!)}
-                  className="px-2 py-1 text-rose-600 text-xs font-semibold hover:bg-rose-50 rounded"
+                  className="px-2.5 py-1 text-rose-600 text-xs font-semibold hover:bg-rose-50 rounded-lg cursor-pointer"
                 >
                   Supprimer
                 </button>
-              ) : <div />}
+              ) : (
+                <div />
+              )}
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowManageMembersModal(false)}
-                  className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg"
+                  className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
                 >
                   Fermer
                 </button>
@@ -1820,7 +2869,7 @@ export default function AdminTeamChatPage() {
                   type="button"
                   onClick={handleUpdateGroupMembers}
                   disabled={isSavingGroup}
-                  className="px-4 py-1.5 bg-sky-500 text-white text-xs font-bold rounded-lg hover:bg-sky-600"
+                  className="px-4 py-1.5 bg-sky-600 text-white text-xs font-bold rounded-xl hover:bg-sky-700 cursor-pointer"
                 >
                   {isSavingGroup ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
@@ -1829,12 +2878,11 @@ export default function AdminTeamChatPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
-// ── CUSTOM AUDIO VOICE NOTE PLAYER (SKY BLUE) ────────────────────────
+// ── CUSTOM AUDIO VOICE NOTE PLAYER ───────────────────────────────────
 function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: number; isMe: boolean }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -1851,11 +2899,7 @@ function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: numb
         setTotalDuration(Math.round(audio.duration));
       }
     };
-
-    audio.ontimeupdate = () => {
-      setCurrentTime(Math.round(audio.currentTime));
-    };
-
+    audio.ontimeupdate = () => setCurrentTime(Math.round(audio.currentTime));
     audio.onended = () => {
       setIsPlaying(false);
       setCurrentTime(0);
@@ -1893,12 +2937,15 @@ function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: numb
   const progressPct = totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0;
 
   return (
-    <div className={`p-2.5 rounded-xl flex items-center gap-2.5 my-1 min-w-[220px] max-w-xs ${
-      isMe ? 'bg-black/5 dark:bg-white/10' : 'bg-slate-100 dark:bg-slate-800'
-    }`}>
+    <div
+      className={`p-2.5 rounded-xl flex items-center gap-2.5 my-1 min-w-[220px] max-w-xs ${
+        isMe ? 'bg-black/5' : 'bg-slate-100'
+      }`}
+    >
       <button
+        type="button"
         onClick={togglePlay}
-        className="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
+        className="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
       >
         {isPlaying ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
       </button>
@@ -1912,9 +2959,7 @@ function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: numb
               <span
                 key={i}
                 style={{ height: `${h}%` }}
-                className={`w-1 rounded-full ${
-                  isFilled ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
-                }`}
+                className={`w-1 rounded-full ${isFilled ? 'bg-sky-600' : 'bg-slate-300'}`}
               />
             );
           })}
@@ -1927,8 +2972,9 @@ function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: numb
       </div>
 
       <button
+        type="button"
         onClick={cyclePlaybackRate}
-        className="px-1.5 py-0.5 rounded text-[10px] font-bold border border-slate-300 dark:border-neutral-600 text-slate-700 dark:text-slate-300"
+        className="px-1.5 py-0.5 rounded text-[10px] font-bold border border-slate-300 text-slate-700 cursor-pointer"
       >
         {playbackRate}x
       </button>
@@ -1939,13 +2985,8 @@ function ChatAudioPlayer({ src, duration, isMe }: { src: string; duration?: numb
 // ── VIDEO PLAYER ─────────────────────────────────────────────────────
 function ChatVideoPlayer({ src, name }: { src: string; name?: string }) {
   return (
-    <div className="my-1.5 rounded-xl overflow-hidden border border-slate-200 dark:border-neutral-700 bg-black max-w-sm">
-      <video
-        src={src}
-        controls
-        playsInline
-        className="w-full max-h-72 object-contain bg-black"
-      />
+    <div className="my-1.5 rounded-xl overflow-hidden border border-slate-200 bg-black max-w-sm">
+      <video src={src} controls playsInline className="w-full max-h-72 object-contain bg-black" />
       {name && (
         <div className="px-2 py-1 bg-slate-900 text-white text-[10px] flex items-center gap-1.5 truncate">
           <Film size={12} className="text-slate-400 shrink-0" />
@@ -1958,12 +2999,18 @@ function ChatVideoPlayer({ src, name }: { src: string; name?: string }) {
 
 // ── PDF VIEWER ───────────────────────────────────────────────────────
 function ChatPdfViewer({ url, name, size, isMe }: { url: string; name?: string; size?: number; isMe: boolean }) {
-  const formattedSize = size ? (size > 1024 * 1024 ? `${(size / (1024 * 1024)).toFixed(1)} Mo` : `${Math.round(size / 1024)} Ko`) : '';
+  const formattedSize = size
+    ? size > 1024 * 1024
+      ? `${(size / (1024 * 1024)).toFixed(1)} Mo`
+      : `${Math.round(size / 1024)} Ko`
+    : '';
 
   return (
-    <div className={`my-1.5 p-2.5 rounded-xl border flex items-center justify-between gap-2.5 text-xs max-w-xs ${
-      isMe ? 'bg-black/5 dark:bg-white/10 border-black/10' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-neutral-700'
-    }`}>
+    <div
+      className={`my-1.5 p-2.5 rounded-xl border flex items-center justify-between gap-2.5 text-xs max-w-xs ${
+        isMe ? 'bg-white/70 border-sky-200' : 'bg-white border-slate-200'
+      }`}
+    >
       <div className="flex items-center gap-2 min-w-0">
         <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold shrink-0">
           <FileText size={16} />
@@ -1982,16 +3029,11 @@ function ChatPdfViewer({ url, name, size, isMe }: { url: string; name?: string; 
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-2.5 py-1 rounded-md bg-sky-500 text-white font-medium text-[10px] shadow-2xs hover:bg-sky-600"
+          className="px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium text-[10px] shadow-2xs hover:bg-sky-700"
         >
           Ouvrir
         </a>
-        <a
-          href={url}
-          download={name || 'document.pdf'}
-          className="p-1 rounded-md hover:bg-slate-100 text-slate-500"
-          title="Télécharger"
-        >
+        <a href={url} download={name || 'document.pdf'} className="p-1 rounded-md hover:bg-slate-100 text-slate-500" title="Télécharger">
           <Download size={12} />
         </a>
       </div>
@@ -2024,15 +3066,14 @@ function MessageReactionsRow({
   });
 
   return (
-    <div className="flex flex-wrap items-center gap-1 -mb-1 mt-0.5">
+    <div className="flex flex-wrap items-center gap-1 -mb-1 mt-1.5">
       {Object.entries(grouped).map(([emoji, data]) => (
         <button
           key={emoji}
+          type="button"
           onClick={() => onToggleReaction(emoji)}
           className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[10px] font-medium border shadow-2xs transition-colors cursor-pointer ${
-            data.hasReacted
-              ? 'bg-sky-50 border-sky-300 text-sky-900 dark:bg-sky-950/60 dark:text-sky-200'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300'
+            data.hasReacted ? 'bg-sky-50 border-sky-300 text-sky-900' : 'bg-white border-slate-200 text-slate-700'
           }`}
           title={data.users.join(', ')}
         >
@@ -2044,40 +3085,40 @@ function MessageReactionsRow({
   );
 }
 
-// ── RICH MESSAGE CONTENT PARSER (PRODUCT CATALOG CARDS) ─────────────
+// ── RICH MESSAGE CONTENT PARSER ──────────────────────────────────────
 function RenderMessageContent({ content, isMe }: { content: string; isMe: boolean }) {
   if (!content) return null;
 
   const tokens = content.split(/(#\[product:[^\]]+\]|#\[order:[^\]]+\]|@[a-zA-Z0-9_\u00C0-\u017F]+)/g);
 
   return (
-    <div className="whitespace-pre-wrap leading-relaxed">
+    <div className="whitespace-pre-wrap leading-relaxed text-[13px]">
       {tokens.map((token, idx) => {
-        
-        // PRODUCT CARD
         if (token.startsWith('#[product:')) {
           const match = token.match(/#\[product:(\d+):([^:]+):([^:]+):([^:]+):([^\]]+)\]/);
           if (match) {
-            const [, id, name, price, brand, slug] = match;
+            const [, , name, price, brand, slug] = match;
             return (
-              <div 
-                key={idx} 
-                className="my-2 p-2.5 rounded-2xl bg-white dark:bg-[#162232] border border-slate-200 dark:border-neutral-700 shadow-2xs flex items-center justify-between gap-3 text-slate-900 dark:text-white"
+              <div
+                key={idx}
+                className="my-2 p-2.5 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between gap-3 text-slate-900"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-neutral-700 flex items-center justify-center p-0.5">
-                    <Sparkles size={16} className="text-sky-500" />
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 shrink-0 border border-sky-200 flex items-center justify-center">
+                    <Sparkles size={16} className="text-sky-600" />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-bold text-xs truncate leading-tight text-slate-900 dark:text-white">{name}</p>
-                    <p className="text-[10px] text-slate-500">{brand} • <strong className="text-sky-600 dark:text-sky-400 font-bold">{price} MAD</strong></p>
+                    <p className="font-bold text-xs truncate leading-tight text-slate-900">{name}</p>
+                    <p className="text-[10px] text-slate-500">
+                      {brand} • <strong className="text-sky-600 font-bold">{price} MAD</strong>
+                    </p>
                   </div>
                 </div>
-                
+
                 <Link
                   href={`/products/${slug}`}
                   target="_blank"
-                  className="px-2.5 py-1 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-[10px] font-bold shrink-0 shadow-2xs transition-colors"
+                  className="px-2.5 py-1 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[10px] font-bold shrink-0 shadow-2xs transition-colors"
                 >
                   Voir fiche
                 </Link>
@@ -2086,31 +3127,30 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
           }
         }
 
-        // ORDER CARD
         if (token.startsWith('#[order:')) {
           const match = token.match(/#\[order:([^:]+):([^:]+):([^:]+):([^:]+):([^\]]+)\]/);
           if (match) {
             const [, id, number, client, total, status] = match;
             return (
-              <div 
-                key={idx} 
-                className="my-2 p-2.5 rounded-2xl bg-white dark:bg-[#162232] border border-slate-200 dark:border-neutral-700 shadow-2xs flex items-center justify-between gap-3 text-slate-900 dark:text-white"
+              <div
+                key={idx}
+                className="my-2 p-2.5 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between gap-3 text-slate-900"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center font-bold shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0">
                     <ShoppingBag size={16} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="font-bold text-xs truncate leading-tight">Commande #{number}</p>
-                      <span className="text-[9px] font-bold px-1.5 rounded bg-indigo-100 text-indigo-700">
-                        {status}
-                      </span>
+                      <span className="text-[9px] font-bold px-1.5 rounded bg-indigo-100 text-indigo-700">{status}</span>
                     </div>
-                    <p className="text-[10px] text-slate-500">{client} • <strong className="text-slate-900 dark:text-white">{total} MAD</strong></p>
+                    <p className="text-[10px] text-slate-500">
+                      {client} • <strong className="text-slate-900">{total} MAD</strong>
+                    </p>
                   </div>
                 </div>
-                
+
                 <Link
                   href={`/admin/orders?highlight=${id}&orderNumber=${encodeURIComponent(number)}`}
                   className="px-2.5 py-1 rounded-xl bg-indigo-600 text-white text-[10px] font-bold shrink-0 shadow-2xs hover:bg-indigo-700"
@@ -2122,14 +3162,13 @@ function RenderMessageContent({ content, isMe }: { content: string; isMe: boolea
           }
         }
 
-        // MEMBER MENTION
         if (token.startsWith('@')) {
           const clean = token.slice(1).replace(/_/g, ' ');
           return (
-            <span 
-              key={idx} 
-              className={`font-semibold px-1 py-0.2 rounded ${
-                isMe ? 'bg-sky-500/20 text-sky-900 dark:text-sky-200' : 'bg-sky-100 dark:bg-sky-950/60 text-sky-600'
+            <span
+              key={idx}
+              className={`font-semibold px-1.5 py-0.2 rounded-md ${
+                isMe ? 'bg-sky-600/15 text-sky-900' : 'bg-sky-100 text-sky-700'
               }`}
             >
               @{clean}

@@ -136,28 +136,28 @@ export default function CampaignBuilderClient({
           <span className="text-[11px] text-neutral-400">Cliquez pour pré-remplir</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 nay-stagger">
           {PRESET_TEMPLATES.map((tpl) => (
             <button
               key={tpl.id}
               type="button"
               onClick={() => applyTemplate(tpl)}
-              className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
+              className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                 selectedTemplate === tpl.id
-                  ? 'border-neutral-900 bg-neutral-900 text-white shadow-xs'
-                  : 'border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-900 shadow-2xs'
+                  ? 'border-[#0ea5e9] bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] text-white shadow-md shadow-sky-500/20'
+                  : 'border-slate-200 bg-white hover:border-sky-300 text-slate-900 shadow-2xs'
               }`}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
-                  selectedTemplate === tpl.id ? 'bg-neutral-800 text-white border-neutral-700' : tpl.badgeColor
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  selectedTemplate === tpl.id ? 'bg-white/20 text-white border-white/25' : tpl.badgeColor
                 }`}>
                   {tpl.tag}
                 </span>
                 {selectedTemplate === tpl.id && <Check size={13} className="text-white" />}
               </div>
-              <h4 className="font-semibold text-xs line-clamp-1">{tpl.name}</h4>
-              <p className={`text-[11px] mt-1 line-clamp-2 ${selectedTemplate === tpl.id ? 'text-neutral-300' : 'text-neutral-500'}`}>
+              <h4 className="font-bold text-xs line-clamp-1">{tpl.name}</h4>
+              <p className={`text-[11px] mt-1 line-clamp-2 ${selectedTemplate === tpl.id ? 'text-sky-100' : 'text-slate-500'}`}>
                 {tpl.message}
               </p>
             </button>
@@ -295,7 +295,7 @@ export default function CampaignBuilderClient({
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-neutral-900 hover:bg-black text-white font-medium text-xs rounded-lg shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:opacity-95 text-white font-semibold text-xs rounded-xl shadow-sm shadow-sky-500/20 transition-all disabled:opacity-50 cursor-pointer"
               >
                 <Save size={14} />
                 <span>{isSubmitting ? 'Enregistrement...' : 'Enregistrer la Campagne'}</span>
@@ -303,7 +303,7 @@ export default function CampaignBuilderClient({
 
               <Link
                 href="/admin/marketing/campaigns"
-                className="px-3.5 py-2 rounded-lg bg-white hover:bg-neutral-50 text-neutral-700 font-medium text-xs border border-neutral-200 transition-colors shadow-2xs"
+                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 transition-colors shadow-2xs"
               >
                 Annuler
               </Link>

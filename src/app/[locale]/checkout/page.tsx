@@ -1240,8 +1240,9 @@ function CheckoutPageInner() {
                   )}
                 </button>
 
-                <p className="text-[11px] text-[#6B6B6B] text-center leading-relaxed">
-                  🛡️ Aucun paiement en ligne · Vous avez le droit d&apos;inspecter votre commande avant de régler.
+                <p className="text-[11px] text-[#6B6B6B] text-center leading-relaxed flex items-center justify-center gap-1.5">
+                  <ShieldCheck size={14} className="text-[#0ea5e9] shrink-0" />
+                  <span>Aucun paiement en ligne · Vous avez le droit d&apos;inspecter votre commande avant de régler.</span>
                 </p>
 
                 {/* Direct WhatsApp Concierge Assistance */}

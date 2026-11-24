@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-);
+import { verifyCustomerToken } from '@/lib/security/jwt';
 
 export async function PUT(request: Request) {
   try {
@@ -17,8 +13,8 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (!payload.id || payload.purpose === 'ORDER_TRACKING' || payload.tokenType === 'ADMIN_SESSION') {
+    const payload = await verifyCustomerToken(token);
+    if (!payload) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
     const customerId = payload.id as string;
@@ -34,6 +30,9 @@ export async function PUT(request: Request) {
 
       // Verify current password if a new one is provided
       if (newPassword) {
+        if (typeof newPassword !== 'string' || newPassword.length < 8) {
+          return NextResponse.json({ error: 'Le nouveau mot de passe doit contenir au moins 8 caractères.' }, { status: 400 });
+        }
         if (!currentPassword) {
           return NextResponse.json({ error: 'Le mot de passe actuel est requis pour le modifier' }, { status: 400 });
         }
@@ -43,15 +42,26 @@ export async function PUT(request: Request) {
         }
       }
 
-      // Check if email is being changed and already used
-      if (email && email !== customer.email) {
-        const existingEmail = await prisma.customer.findUnique({ where: { email } });
+      const normalizedEmail = typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : customer.email;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        return NextResponse.json({ error: 'Adresse email invalide' }, { status: 400 });
+      }
+
+      // Check if email is being changed and already used (case-insensitive)
+      if (normalizedEmail !== customer.email.toLowerCase()) {
+        const existingEmail = await prisma.customer.findFirst({
+          where: { email: { equals: normalizedEmail, mode: 'insensitive' }, id: { not: customerId } },
+          select: { id: true },
+        });
         if (existingEmail) {
           return NextResponse.json({ error: 'Cette adresse email est déjà utilisée' }, { status: 400 });
         }
       }
 
-      const updateData: any = { name, email };
+      const updateData: Record<string, unknown> = {
+        name: typeof name === 'string' && name.trim() ? name.trim() : customer.name,
+        email: normalizedEmail,
+      };
       
       if (newPassword) {
         const salt = await bcrypt.genSalt(10);

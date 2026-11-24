@@ -5,7 +5,8 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingBag, Heart, Star, Flower, Sun, Leaf, Snowflake, Sparkles, ArrowRightLeft, Check } from 'lucide-react';
+import { ShoppingBag, Heart, Star, Flower, Sun, Leaf, Snowflake, Award, ArrowRightLeft, Check } from 'lucide-react';
+import { CodCashIcon } from '@/components/icons/MaisonIcons';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useComparison } from '@/context/ComparisonContext';
@@ -97,27 +98,27 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
       <div className="h-full">
         <Link
           href={`/${locale}/product/${product.slug}`}
-          className="product-card group flex flex-col justify-between h-full bg-white border border-[#E8E2D6] rounded-2xl sm:rounded-[22px] overflow-hidden hover:border-[#0284c7]/40 hover:shadow-[0_12px_28px_-8px_rgba(2,132,199,0.08)] transition-all duration-300 shadow-2xs relative"
+          className="product-card group flex flex-col justify-between h-full bg-white border border-[#E5E0D6] rounded-[16px] sm:rounded-[21px] overflow-hidden hover:border-[#0284c7]/45 hover:shadow-[0_14px_34px_-10px_rgba(2,132,199,0.12)] transition-all duration-300 shadow-2xs relative"
         >
           {/* ========================================================
-              1. FLACON SHOWCASE (Pure, Empty, Seamless Canvas)
+              1. GOLDEN RATIO FLACON SHOWCASE (Clean Spiral Focus)
               ======================================================== */}
-          <div className="relative w-full h-[185px] sm:h-[240px] lg:h-[290px] bg-white flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="relative w-full aspect-[1.12/1] sm:aspect-[1/1.05] bg-gradient-to-b from-[#FAF9F5]/80 to-white flex items-center justify-center p-[13px] sm:p-[21px] overflow-hidden">
             
-            {/* Flacon Image (Pure seamless floating bottle, zero box shadow, zero background) */}
+            {/* Flacon Image */}
             <Image
               src={pImage}
               alt={`Parfum ${product.name} au Maroc - NAY Parfums`}
               fill
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
+              className="object-contain p-[13px] sm:p-[18px] group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
             />
 
             {/* Out of Stock Overlay */}
             {!inStock && (
-              <div className="absolute inset-0 bg-white/80 z-20 flex flex-col items-center justify-center p-2 text-center">
-                <span className="text-[9.5px] sm:text-[11px] font-bold tracking-widest text-red-600 uppercase bg-white border border-red-200 px-3 py-1.5 rounded-full shadow-xs">
+              <div className="absolute inset-0 bg-white/85 z-20 flex flex-col items-center justify-center p-2 text-center">
+                <span className="text-[9.5px] sm:text-[11px] font-bold tracking-[0.14em] text-red-600 uppercase bg-white border border-red-200 px-3 py-1.5 rounded-full shadow-xs">
                   {dict.productCard?.outOfStock || 'Rupture de stock'}
                 </span>
               </div>
@@ -125,18 +126,18 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
           </div>
 
           {/* ========================================================
-              2. CARD DETAILS & INFORMATION
+              2. GOLDEN RATIO TYPOGRAPHY & INFORMATION HIERARCHY
               ======================================================== */}
-          <div className="p-2.5 sm:p-3.5 bg-white flex flex-col justify-between flex-1">
+          <div className="p-[13px] sm:p-[16px] lg:p-[21px] bg-white flex flex-col justify-between flex-1 border-t border-[#F4F1EA]">
             <div>
               {/* Row 1: Brand & Edition (Left), Wishlist Heart & Compare (Right) */}
-              <div className="flex items-center justify-between gap-1.5 mb-1.5 min-w-0">
+              <div className="flex items-center justify-between gap-[6px] mb-[6px] min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0 truncate">
-                  <span className="text-[8.5px] sm:text-[9.5px] font-bold tracking-[0.08em] uppercase text-slate-500 truncate">
+                  <span className="text-[9px] sm:text-[10px] font-bold tracking-[0.14em] uppercase text-[#6B7280] truncate">
                     {product.brandLabel || product.brand}
                   </span>
                   <span
-                    className={`text-[7px] sm:text-[7.5px] font-bold tracking-[0.10em] uppercase px-2 py-0.5 rounded-full border shrink-0 ${edition.badgeBg} ${edition.textColor} ${edition.borderColor}`}
+                    className={`text-[7.5px] sm:text-[8px] font-bold tracking-[0.10em] uppercase px-2 py-0.5 rounded-full border shrink-0 ${edition.badgeBg} ${edition.textColor} ${edition.borderColor}`}
                     title={edition.label}
                   >
                     {edition.label}
@@ -152,15 +153,15 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
                       e.stopPropagation();
                       toggleCompare(product);
                     }}
-                    className={`hidden sm:flex w-6 h-6 rounded-full items-center justify-center transition-all ${
+                    className={`hidden sm:flex w-7 h-7 rounded-full items-center justify-center transition-all ${
                       isComparedProduct
                         ? 'bg-[#0284c7] text-white'
-                        : 'text-slate-400 hover:text-[#0284c7]'
+                        : 'text-slate-400 hover:text-[#0284c7] hover:bg-sky-50'
                     }`}
                     aria-label="Comparer ce parfum"
                     title={isComparedProduct ? 'Retirer du comparateur' : 'Comparer ce parfum'}
                   >
-                    <ArrowRightLeft size={11} className={isComparedProduct ? 'stroke-[2.5] text-white' : 'text-slate-400'} />
+                    <ArrowRightLeft size={12} className={isComparedProduct ? 'stroke-[2.5] text-white' : 'text-slate-400'} />
                   </button>
 
                   {/* Wishlist Heart Toggle */}
@@ -171,27 +172,27 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
                       e.stopPropagation();
                       toggleWishlist(product.slug);
                     }}
-                    className="w-6 h-6 rounded-full flex items-center justify-center transition-colors text-slate-400 hover:text-rose-500 cursor-pointer"
+                    className="w-7 h-7 rounded-full flex items-center justify-center transition-colors text-slate-400 hover:text-rose-500 hover:bg-rose-50 cursor-pointer"
                     aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                   >
-                    <Heart size={13} className={isFavorite ? 'fill-rose-500 text-rose-500' : 'fill-none text-slate-400'} />
+                    <Heart size={14} className={isFavorite ? 'fill-rose-500 text-rose-500' : 'fill-none text-slate-400'} />
                   </button>
                 </div>
               </div>
 
-              {/* Product Name */}
-              <h3 className="font-display-modern text-[12px] sm:text-[13.5px] font-bold text-[#111827] tracking-tight leading-snug group-hover:text-[#0284c7] transition-colors line-clamp-2 min-h-[32px] sm:min-h-[36px]">
+              {/* Product Name (Golden Modular Scale: 13px mobile / 15px desktop, leading 1.32) */}
+              <h3 className="font-display-modern text-[13px] sm:text-[15px] font-bold text-[#111827] tracking-[-0.015em] leading-[1.32] group-hover:text-[#0284c7] transition-colors line-clamp-2 min-h-[34px] sm:min-h-[40px]">
                 {product.name}
               </h3>
 
               {/* Subtitle / Olfactory Family */}
-              <p className="text-[9px] sm:text-[10px] font-medium tracking-wide uppercase text-[#8C827A] mt-0.5 truncate">
+              <p className="text-[9.5px] sm:text-[10.5px] font-medium tracking-[0.06em] uppercase text-[#8C827A] mt-[4px] truncate">
                 {product.subcategoryLabel} · {genderLabel}
               </p>
 
               {/* Rating */}
               {showRating && (
-                <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="flex items-center gap-1.5 mt-[8px]">
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -205,7 +206,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
                       />
                     ))}
                   </div>
-                  <span className="text-[9px] sm:text-[10px] text-[#9CA3AF] font-medium">
+                  <span className="text-[9.5px] sm:text-[10.5px] text-[#8C827A] font-semibold tabular-nums">
                     {Number(product.rating).toFixed(1)} ({product.reviewCount})
                   </span>
                 </div>
@@ -213,57 +214,71 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
             </div>
 
             {/* ========================================================
-                3. PRICE ROW & CALL TO ACTION
+                3. GOLDEN PRICE ROW & DUAL 1.618 : 1 ACTION BUTTONS
                 ======================================================== */}
-            <div className="mt-2 pt-2 border-t border-[#F0EBE1]">
-              <div className="flex items-center justify-between gap-1 mb-2">
+            <div className="mt-[13px] pt-[10px] sm:pt-[13px] border-t border-[#F0EBE1]">
+              <div className="flex items-baseline justify-between gap-1.5 mb-[10px] sm:mb-[13px]">
                 <div className="flex items-baseline gap-1.5 min-w-0">
-                  <span className="text-[13px] sm:text-[14.5px] font-extrabold text-[#111827] whitespace-nowrap" dir="ltr">
+                  <span className="text-[15px] sm:text-[18px] font-extrabold text-[#111827] whitespace-nowrap tabular-nums tracking-[-0.02em]" dir="ltr">
                     {formatMAD(product.price)}
                   </span>
                   {isDiscounted && product.originalPrice && (
-                    <span className="text-[9.5px] sm:text-[10.5px] text-[#9CA3AF] line-through whitespace-nowrap" dir="ltr">
+                    <span className="text-[10px] sm:text-[11px] text-[#9CA3AF] line-through whitespace-nowrap tabular-nums" dir="ltr">
                       {formatMAD(product.originalPrice)}
                     </span>
                   )}
                 </div>
                 {isDiscounted && product.originalPrice && (
-                  <span className="text-[8px] font-bold text-rose-600 bg-rose-50 border border-rose-200/60 px-1.5 py-0.5 rounded leading-none shrink-0" dir="ltr">
+                  <span className="text-[8.5px] sm:text-[9px] font-extrabold text-rose-600 bg-rose-50 border border-rose-200/70 px-1.5 py-0.5 rounded-[6px] leading-none shrink-0 tabular-nums" dir="ltr">
                     -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
                   </span>
                 )}
               </div>
 
-              {/* Action Button: Luxury Full-Width "Ajouter au panier" */}
+              {/* Action Buttons: Golden Ratio (1.618 Primary Add + Express Buy) */}
               {inStock ? (
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className={`w-full h-8 sm:h-9 rounded-xl text-[10.5px] sm:text-[11.5px] font-bold flex items-center justify-center gap-1.5 transition-all duration-200 active:scale-[0.97] cursor-pointer shadow-2xs ${
-                    isAdded
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-[#111827] hover:bg-[#0284c7] text-white'
-                  }`}
-                  aria-label={isAr ? `أضف ${product.name} إلى السلة` : `Ajouter ${product.name} au panier`}
-                >
-                  {isAdded ? (
-                    <>
-                      <Check size={12} strokeWidth={2.5} />
-                      <span className={isAr ? 'font-arabic' : 'font-body-modern'}>
-                        {isAr ? 'تمت الإضافة ✓' : 'Ajouté ✓'}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag size={12} strokeWidth={2.2} className="text-white/90 shrink-0" />
-                      <span className={`truncate ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
-                        {isAr ? 'أضف للسلة' : 'Ajouter au panier'}
-                      </span>
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-[6px] sm:gap-[8px]">
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    className={`flex-1 h-[38px] sm:h-[42px] rounded-[11px] sm:rounded-[13px] text-[11px] sm:text-[12px] font-bold tracking-[0.02em] flex items-center justify-center gap-1.5 transition-all duration-200 active:scale-[0.97] cursor-pointer shadow-2xs min-w-0 px-2.5 ${
+                      isAdded
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-[#111827] hover:bg-[#0284c7] text-white'
+                    }`}
+                    aria-label={isAr ? `أضف ${product.name} إلى السلة` : `Ajouter ${product.name} au panier`}
+                  >
+                    {isAdded ? (
+                      <>
+                        <Check size={13} strokeWidth={2.5} className="shrink-0" />
+                        <span className={`truncate ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
+                          {isAr ? 'تمت الإضافة' : 'Ajouté'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag size={13} strokeWidth={2.2} className="text-white/90 shrink-0" />
+                        <span className={`truncate ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
+                          <span className="sm:hidden">{isAr ? 'أضف' : 'Ajouter'}</span>
+                          <span className="hidden sm:inline">{isAr ? 'أضف للسلة' : 'Ajouter au panier'}</span>
+                        </span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleQuickBuy}
+                    title={isAr ? 'شراء الدفع عند الاستلام' : 'Commander (Paiement à la livraison)'}
+                    aria-label={isAr ? `شراء ${product.name}` : `Commander ${product.name} (COD)`}
+                    className="w-[38px] sm:w-auto sm:px-3 h-[38px] sm:h-[42px] rounded-[11px] sm:rounded-[13px] bg-[#FAF9F5] hover:bg-[#111827] text-[#111827] hover:text-white border border-[#E0DDD4] hover:border-[#111827] flex items-center justify-center gap-1.5 text-[11px] font-bold transition-colors duration-200 active:scale-[0.96] shrink-0 cursor-pointer"
+                  >
+                    <CodCashIcon size={16} className="shrink-0" />
+                    <span className="hidden md:inline">{isAr ? 'شراء' : 'Acheter'}</span>
+                  </button>
+                </div>
               ) : (
-                <div className="w-full h-8 rounded-xl bg-red-50 border border-red-200/80 text-red-600 text-[9.5px] font-bold tracking-wider uppercase flex items-center justify-center">
+                <div className="w-full h-[38px] sm:h-[42px] rounded-[11px] sm:rounded-[13px] bg-red-50 border border-red-200/80 text-red-600 text-[10px] font-bold tracking-wider uppercase flex items-center justify-center">
                   {dict.productCard?.outOfStock || 'Rupture de stock'}
                 </div>
               )}

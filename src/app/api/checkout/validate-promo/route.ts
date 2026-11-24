@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-);
+import { verifyCustomerToken } from '@/lib/security/jwt';
 
 export async function POST(request: Request) {
   try {
@@ -33,16 +29,12 @@ export async function POST(request: Request) {
     const token = cookieStore.get('customer_token')?.value;
 
     if (token) {
-      try {
-        const { payload } = await jwtVerify(token, JWT_SECRET);
-        if (payload?.id) {
-          authenticatedCustomer = await prisma.customer.findUnique({
-            where: { id: payload.id as string },
-            select: { id: true, name: true, email: true }
-          });
-        }
-      } catch {
-        authenticatedCustomer = null;
+      const payload = await verifyCustomerToken(token);
+      if (payload?.id) {
+        authenticatedCustomer = await prisma.customer.findUnique({
+          where: { id: payload.id },
+          select: { id: true, name: true, email: true }
+        });
       }
     }
 

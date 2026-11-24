@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,7 +8,7 @@ export async function POST(request: Request) {
   try {
     const { email, code } = await request.json();
 
-    if (!email || !code) {
+    if (!email || !code || typeof email !== 'string') {
       return NextResponse.json(
         { error: 'Email et code de vérification requis.' },
         { status: 400 }
@@ -16,6 +17,14 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanCode = code.toString().trim();
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`verify_otp:${clientIp}:${cleanEmail}`, 8, 15 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Trop de tentatives. Veuillez réessayer plus tard ou demander un nouveau code.' },
+        { status: 429 }
+      );
+    }
 
     const customer = await prisma.customer.findFirst({
       where: {
@@ -34,7 +43,7 @@ export async function POST(request: Request) {
 
     if (!customer || !customer.resetCode || customer.resetCode !== cleanCode) {
       return NextResponse.json(
-        { error: 'Code de vérification incorrect. Veuillez vérifier le code reçu par e-mail.' },
+        { error: 'Code de vérification incorrect ou expiré.' },
         { status: 400 }
       );
     }
@@ -50,10 +59,10 @@ export async function POST(request: Request) {
       success: true,
       message: 'Code validé avec succès.',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in /api/auth/verify-code:', error);
     return NextResponse.json(
-      { error: error?.message || 'Erreur lors de la vérification du code.' },
+      { error: 'Erreur lors de la vérification du code.' },
       { status: 500 }
     );
   }

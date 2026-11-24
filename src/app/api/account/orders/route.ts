@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-
-function getCustomerJwtSecret(): Uint8Array {
-  return new TextEncoder().encode(
-    process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-  );
-}
+import { verifyCustomerToken } from '@/lib/security/jwt';
 
 export async function GET(request: Request) {
   try {
@@ -25,8 +19,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, getCustomerJwtSecret());
-    if (!payload.id || payload.purpose === 'ORDER_TRACKING' || payload.tokenType === 'ADMIN_SESSION') {
+    const payload = await verifyCustomerToken(token);
+    if (!payload) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
     

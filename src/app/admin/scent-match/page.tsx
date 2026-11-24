@@ -99,9 +99,9 @@ export default function AdminScentMatchPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] font-black uppercase tracking-widest text-sky-500">
-              NAY SCENT MATCH ANALYTICS
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              RECOMMANDATIONS & DÉCOUVERTE OLFACTIVE
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1">

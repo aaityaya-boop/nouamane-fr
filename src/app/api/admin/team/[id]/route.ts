@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth/adminAuth';
-import { getUserEffectivePermissions, canManageUser, parseCustomPermissions } from '@/lib/auth/rbac/accessControl';
+import { hashPassword, isValidAdminRole } from '@/lib/auth/adminAuth';
+import { getUserEffectivePermissions, canManageUser, parseCustomPermissions, hasPermission } from '@/lib/auth/rbac/accessControl';
 import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 import { getRoleDefinition } from '@/lib/auth/rbac/roles';
 import { logAdminActivity } from '@/lib/activityLogger';
+import { sanitizePublicUrl } from '@/lib/security/sanitize';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -119,47 +120,56 @@ export async function PATCH(req: Request, context: RouteContext) {
 
     const isOwner = currentAdmin?.role === 'OWNER' || currentAdmin?.role === 'CO_OWNER';
 
-    // If changing role to OWNER, require caller to be OWNER
-    if (body.role && (body.role === 'OWNER' || body.role === 'CO_OWNER') && !isOwner) {
-      return NextResponse.json(
-        { error: 'Seuls les Propriétaires actuels peuvent attribuer le rôle Propriétaire' },
-        { status: 403 }
-      );
-    }
-
-    // Prevent modifying permissions if caller does not have team.manage_permissions and is not owner
-    if (body.customPermissions !== undefined && !isOwner) {
-      const { user: canPerm } = await requirePermission(req, 'team.manage_permissions');
-      if (!canPerm) {
+    // Validate role string & reject elevation to OWNER/CO_OWNER/SUPER_ADMIN by non-Owners
+    const requestedRole = typeof body.role === 'string' && body.role.trim() ? body.role.trim().toUpperCase() : null;
+    if (requestedRole) {
+      if (!isValidAdminRole(requestedRole)) {
         return NextResponse.json(
-          { error: 'Vous n\'avez pas la permission de modifier les permissions directes' },
+          { error: 'Rôle administrateur invalide ou non autorisé' },
+          { status: 400 }
+        );
+      }
+      if ((requestedRole === 'OWNER' || requestedRole === 'CO_OWNER' || requestedRole === 'SUPER_ADMIN') && !isOwner) {
+        return NextResponse.json(
+          { error: 'Seuls les Propriétaires actuels peuvent attribuer ce rôle' },
           { status: 403 }
         );
       }
     }
 
-    const updateData: any = {};
+    // Prevent modifying permissions if caller does not have team.manage_permissions and is not owner
+    if (body.customPermissions !== undefined && !isOwner && !hasPermission(currentAdmin, 'team.manage_permissions')) {
+      return NextResponse.json(
+        { error: 'Vous n\'avez pas la permission de modifier les permissions directes' },
+        { status: 403 }
+      );
+    }
 
-    if (body.name !== undefined && body.name.trim()) updateData.name = body.name.trim();
-    if (body.role !== undefined && body.role.trim()) updateData.role = body.role.trim().toUpperCase();
-    if (body.jobTitle !== undefined) updateData.jobTitle = body.jobTitle ? body.jobTitle.trim() : null;
-    if (body.phone !== undefined) updateData.phone = body.phone ? body.phone.trim() : null;
+    const updateData: Record<string, unknown> = {};
+
+    if (body.name !== undefined && String(body.name).trim()) updateData.name = String(body.name).trim().slice(0, 120);
+    if (requestedRole) updateData.role = requestedRole;
+    if (body.jobTitle !== undefined) updateData.jobTitle = body.jobTitle ? String(body.jobTitle).trim().slice(0, 100) : null;
+    if (body.phone !== undefined) updateData.phone = body.phone ? String(body.phone).trim().slice(0, 30) : null;
     if (body.salary !== undefined) {
-      updateData.salary = typeof body.salary === 'number' ? body.salary : parseFloat(body.salary) || 0;
+      const sal = typeof body.salary === 'number' && Number.isFinite(body.salary) ? body.salary : parseFloat(body.salary) || 0;
+      updateData.salary = Math.max(0, sal);
     }
     if (body.salaryType !== undefined) {
       updateData.salaryType = body.salaryType || 'MONTHLY';
     }
-    if (body.avatar !== undefined) updateData.avatar = body.avatar || null;
+    if (body.avatar !== undefined) {
+      updateData.avatar = body.avatar ? sanitizePublicUrl(body.avatar, 500) : null;
+    }
     if (body.status !== undefined && (body.status === 'ACTIVE' || body.status === 'DISABLED')) {
       updateData.status = body.status;
     }
 
     // Handle password update if specified
-    if (body.newPassword && body.newPassword.trim()) {
-      if (body.newPassword.length < 6) {
+    if (body.newPassword && typeof body.newPassword === 'string' && body.newPassword.trim()) {
+      if (body.newPassword.trim().length < 8) {
         return NextResponse.json(
-          { error: 'Le nouveau mot de passe doit contenir au moins 6 caractères' },
+          { error: 'Le nouveau mot de passe doit contenir au moins 8 caractères' },
           { status: 400 }
         );
       }

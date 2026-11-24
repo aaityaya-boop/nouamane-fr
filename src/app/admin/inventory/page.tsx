@@ -1,58 +1,64 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Search, 
-  Edit2, 
-  Check, 
-  X, 
-  Archive, 
-  AlertTriangle, 
-  CheckCircle2, 
-  TrendingDown, 
-  Package, 
-  Sparkles, 
-  Plus, 
-  Minus, 
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Search,
+  Edit2,
+  Check,
+  X,
+  Archive,
+  AlertTriangle,
+  CheckCircle2,
+  TrendingDown,
+  Package,
+  Sparkles,
+  Plus,
+  Minus,
   RefreshCw,
-  ExternalLink,
   ArrowUpRight,
   Filter,
-  DollarSign,
   Layers,
   FlaskConical,
   Crown,
-  Gift
+  Gift,
+  Download,
+  ArrowUpDown,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+
+type InventoryStockFilter = 'ALL' | 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
+type InventorySectionFilter = 'ALL' | 'TESTER' | 'ORIGINAL' | 'MASTER_COPY' | 'COFFRET';
+type InventorySortOption = 'STOCK_ASC' | 'STOCK_DESC' | 'NAME_ASC' | 'PRICE_DESC';
 
 export default function AdminInventoryPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Toutes');
-  const [stockFilter, setStockFilter] = useState<'ALL' | 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK'>('ALL');
-  const [sectionFilter, setSectionFilter] = useState<'ALL' | 'TESTER' | 'ORIGINAL' | 'MASTER_COPY' | 'COFFRET'>('ALL');
-  
+  const [stockFilter, setStockFilter] = useState<InventoryStockFilter>('ALL');
+  const [sectionFilter, setSectionFilter] = useState<InventorySectionFilter>('ALL');
+  const [sortBy, setSortBy] = useState<InventorySortOption>('NAME_ASC');
+
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editStockValue, setEditStockValue] = useState<number>(0);
   const [categories, setCategories] = useState<string[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
       const res = await fetch('/api/admin/products');
       const data = await res.json();
-      // Ensure JSON strings are parsed
       const parsedData = (data || []).map((p: any) => ({
         ...p,
-        images: typeof p.images === 'string' ? JSON.parse(p.images) : p.images
+        images: typeof p.images === 'string' ? JSON.parse(p.images) : p.images,
       }));
       setProducts(parsedData);
-      
-      const uniqueSubcategories = Array.from(new Set(data.map((p: any) => p.subcategoryLabel || 'Parfums'))) as string[];
+
+      const uniqueSubcategories = Array.from(
+        new Set(data.map((p: any) => p.subcategoryLabel || 'Parfums'))
+      ) as string[];
       setCategories(['Toutes', ...uniqueSubcategories.filter(Boolean)]);
     } catch (error) {
       console.error('Failed to fetch inventory products:', error);
@@ -76,18 +82,15 @@ export default function AdminInventoryPage() {
 
   const handleQuickAdjust = async (product: any, delta: number) => {
     const newStock = Math.max(0, (product.stock || 0) + delta);
-    // Optimistic UI update
-    setProducts(products.map(p => 
-      p.id === product.id 
-        ? { ...p, stock: newStock, inStock: newStock > 0 } 
-        : p
-    ));
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, stock: newStock, inStock: newStock > 0 } : p))
+    );
 
     try {
       await fetch('/api/admin/inventory', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: product.id, stock: newStock })
+        body: JSON.stringify({ id: product.id, stock: newStock }),
       });
     } catch (error) {
       console.error(error);
@@ -96,451 +99,729 @@ export default function AdminInventoryPage() {
   };
 
   const handleSaveStock = async (id: number) => {
-    setIsUpdating(true);
-    // Optimistic UI update
-    setProducts(products.map(p => 
-      p.id === id 
-        ? { ...p, stock: editStockValue, inStock: editStockValue > 0 } 
-        : p
-    ));
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, stock: editStockValue, inStock: editStockValue > 0 } : p))
+    );
     setEditingId(null);
 
     try {
       await fetch('/api/admin/inventory', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, stock: editStockValue })
+        body: JSON.stringify({ id, stock: editStockValue }),
       });
     } catch (error) {
       console.error(error);
       alert('Erreur lors de la mise à jour du stock');
       fetchProducts();
-    } finally {
-      setIsUpdating(false);
     }
   };
 
   // Metrics
   const totalStockUnits = products.reduce((acc, p) => acc + (p.stock || 0), 0);
-  const inStockCount = products.filter(p => (p.stock || 0) > 5).length;
-  const lowStockCount = products.filter(p => (p.stock || 0) > 0 && (p.stock || 0) <= 5).length;
-  const outOfStockCount = products.filter(p => (p.stock || 0) === 0).length;
+  const totalInventoryValue = products.reduce(
+    (acc, p) => acc + (Number(p.stock) || 0) * (Number(p.price) || 0),
+    0
+  );
+  const inStockCount = products.filter((p) => (p.stock || 0) > 5).length;
+  const lowStockCount = products.filter((p) => (p.stock || 0) > 0 && (p.stock || 0) <= 5).length;
+  const outOfStockCount = products.filter((p) => (p.stock || 0) === 0).length;
+  const healthyRatio = products.length > 0 ? Math.round((inStockCount / products.length) * 100) : 0;
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = 
-      p.name?.toLowerCase().includes(search.toLowerCase()) || 
-      p.brandLabel?.toLowerCase().includes(search.toLowerCase()) ||
-      p.slug?.toLowerCase().includes(search.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter((p) => {
+        const q = search.toLowerCase();
+        const matchesSearch =
+          p.name?.toLowerCase().includes(q) ||
+          p.brandLabel?.toLowerCase().includes(q) ||
+          p.slug?.toLowerCase().includes(q) ||
+          (p.sku && p.sku.toLowerCase().includes(q));
 
-    const matchesCategory = selectedCategory === 'Toutes' || p.subcategoryLabel === selectedCategory;
+        const matchesCategory = selectedCategory === 'Toutes' || p.subcategoryLabel === selectedCategory;
 
-    if (!matchesSearch || !matchesCategory) return false;
+        if (!matchesSearch || !matchesCategory) return false;
 
-    if (stockFilter === 'IN_STOCK') return (p.stock || 0) > 5;
-    if (stockFilter === 'LOW_STOCK') return (p.stock || 0) > 0 && (p.stock || 0) <= 5;
-    if (stockFilter === 'OUT_OF_STOCK') return (p.stock || 0) === 0;
+        if (stockFilter === 'IN_STOCK' && (p.stock || 0) <= 5) return false;
+        if (stockFilter === 'LOW_STOCK' && ((p.stock || 0) <= 0 || (p.stock || 0) > 5)) return false;
+        if (stockFilter === 'OUT_OF_STOCK' && (p.stock || 0) !== 0) return false;
 
-    if (sectionFilter === 'TESTER') {
-      if (!p.isTester || p.subcategory === 'master-copier' || p.subcategory === 'coffrets') return false;
-    } else if (sectionFilter === 'ORIGINAL') {
-      if (p.isTester || p.subcategory === 'master-copier' || p.subcategory === 'coffrets') return false;
-    } else if (sectionFilter === 'MASTER_COPY') {
-      if (p.subcategory !== 'master-copier') return false;
-    } else if (sectionFilter === 'COFFRET') {
-      if (p.subcategory !== 'coffrets') return false;
-    }
+        if (sectionFilter === 'TESTER') {
+          if (!p.isTester || p.subcategory === 'master-copier' || p.subcategory === 'coffrets') return false;
+        } else if (sectionFilter === 'ORIGINAL') {
+          if (p.isTester || p.subcategory === 'master-copier' || p.subcategory === 'coffrets') return false;
+        } else if (sectionFilter === 'MASTER_COPY') {
+          if (p.subcategory !== 'master-copier') return false;
+        } else if (sectionFilter === 'COFFRET') {
+          if (p.subcategory !== 'coffrets') return false;
+        }
 
-    return true;
-  });
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'STOCK_ASC') return (a.stock || 0) - (b.stock || 0);
+        if (sortBy === 'STOCK_DESC') return (b.stock || 0) - (a.stock || 0);
+        if (sortBy === 'PRICE_DESC') return (b.price || 0) - (a.price || 0);
+        return (a.name || '').localeCompare(b.name || '', 'fr', { sensitivity: 'base' });
+      });
+  }, [products, search, selectedCategory, stockFilter, sectionFilter, sortBy]);
+
+  const handleExportInventoryCSV = () => {
+    const headers = ['Nom', 'SKU', 'Marque', 'Rayon', 'Famille', 'Prix (MAD)', 'Stock', 'Valeur Stock (MAD)'];
+    const rows = filteredProducts.map((p) => {
+      const section =
+        p.subcategory === 'master-copier'
+          ? 'Master Copy'
+          : p.subcategory === 'coffrets'
+          ? 'Coffret'
+          : p.isTester
+          ? 'Testeur'
+          : 'Original';
+      const stock = p.stock || 0;
+      return [
+        `"${(p.name || '').replace(/"/g, '""')}"`,
+        `"${p.sku || p.slug || p.id}"`,
+        `"${p.brandLabel || 'NAY'}"`,
+        section,
+        `"${p.subcategoryLabel || 'Parfumerie'}"`,
+        p.price || 0,
+        stock,
+        stock * (Number(p.price) || 0),
+      ].join(';');
+    });
+    const csv = '\uFEFF' + [headers.join(';'), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Inventaire_NAY_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 dark:text-slate-100">
-      {/* 🌟 HERO INVENTORY HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-[#222227]">
+    <div className="max-w-[1600px] mx-auto space-y-6 pb-16 font-sans text-slate-900 dark:text-slate-100">
+      {/* 🌟 EXECUTIVE HEADER */}
+      <div className="nay-enter flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200/80 dark:border-white/[0.06]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-600 dark:text-slate-400">
-              NAY Parfums • Inventaire & Gestion des Stocks
-            </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              {totalStockUnits} flacons en direct
+          <div className="flex items-center gap-x-2 gap-y-0.5 mb-1.5 flex-wrap text-[11px] font-semibold tracking-[0.1em] uppercase text-slate-500 dark:text-slate-400">
+            <span>NAY PARFUMS · INVENTAIRE &amp; STOCKS</span>
+            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+            <span className="inline-flex items-center gap-1.5 normal-case tracking-normal font-medium text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              {totalStockUnits.toLocaleString('fr-FR')} flacons en direct
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
-            Stock Flacons & Parfums en Direct
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Stock Flacons &amp; Parfums en Direct
           </h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
-            Gérez les stocks en temps réel pour éviter les ruptures, mettez à jour les quantités en 1 clic et suivez les approvisionnements.
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-0.5">
+            Pilotez vos {products.length} références en temps réel, ajustez les quantités en 1 clic et anticipez les réapprovisionnements.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto shrink-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={fetchProducts}
+              disabled={isLoading}
+              className="inline-flex items-center justify-center gap-1.5 h-10 sm:h-9 w-10 sm:w-auto sm:px-3.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#14151f] dark:hover:bg-[#1a1b28] border border-slate-200/90 dark:border-white/[0.08] text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-all cursor-pointer active:scale-95 shrink-0"
+            >
+              <RefreshCw size={13} className={isLoading ? 'animate-spin text-[#0ea5e9]' : 'text-slate-400'} />
+              <span className="hidden sm:inline">Actualiser</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportInventoryCSV}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 h-10 sm:h-9 px-3.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#14151f] dark:hover:bg-[#1a1b28] border border-slate-200/90 dark:border-white/[0.08] text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+              title="Exporter l'état du stock en CSV"
+            >
+              <Download size={13} className="text-[#0ea5e9] shrink-0" />
+              <span>Export CSV</span>
+            </button>
+          </div>
+
           <Link
             href="/admin/products"
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            style={{ backgroundColor: 'var(--admin-accent, #0ea5e9)' }}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 sm:h-9 px-4 rounded-xl text-white text-xs font-bold shadow-xs hover:opacity-95 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
           >
-            <Package size={14} className="text-slate-300 dark:text-sky-100" />
+            <Package size={15} strokeWidth={2.3} className="shrink-0" />
             <span>Catalogue Produits</span>
           </Link>
-          <button
-            onClick={fetchProducts}
-            disabled={isLoading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#121215] dark:hover:bg-[#18181d] border border-slate-200 dark:border-[#222227] text-xs font-medium text-slate-700 dark:text-slate-200 shadow-xs transition-all cursor-pointer"
-          >
-            <RefreshCw size={13} className={isLoading ? 'animate-spin text-slate-400' : 'text-slate-500'} />
-            <span>Actualiser</span>
-          </button>
         </div>
       </div>
 
-      {/* 📊 BENTO INVENTORY STATS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Flacons</span>
-            <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#1D9BF0] border border-sky-100 flex items-center justify-center">
-              <Archive size={16} />
+      {/* 📊 4 SPATIAL KPI CARDS */}
+      <div className="nay-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        {/* Pod 1: Maison Obsidian Lead Card */}
+        <div
+          onClick={() => setStockFilter('ALL')}
+          className={`nay-hero-shine nay-card-lift rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[196px] group relative overflow-hidden bg-[#0b1322] dark:bg-[#0f172a] text-white border shadow-md transition-all cursor-pointer ${
+            stockFilter === 'ALL' ? 'border-sky-500/40 ring-2 ring-[#0ea5e9]/20' : 'border-slate-800/90 dark:border-sky-500/20'
+          }`}
+        >
+          <div className="relative z-10">
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.08] border border-white/[0.12] text-sky-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <Archive size={20} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-300 leading-tight">
+                    TOTAL FLACONS
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-medium leading-tight mt-0.5">
+                    Stock physique atelier
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/[0.08] text-sky-300 border border-white/[0.12] shrink-0">
+                {products.length} réf.
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between gap-2 mt-3 mb-1 flex-wrap">
+              <div className="text-xl sm:text-[24px] xl:text-[27px] font-bold tracking-tight text-white tabular-nums whitespace-nowrap">
+                {totalStockUnits.toLocaleString('fr-FR')}
+                <span className="text-sm font-medium text-slate-400 ml-1.5 font-sans">flacons</span>
+              </div>
+              <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.08] text-emerald-300 border border-white/[0.12] tabular-nums">
+                Valeur : {totalInventoryValue.toLocaleString('fr-FR')} MAD
+              </span>
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">{totalStockUnits}</div>
-          <div className="text-[11px] text-slate-500 mt-1 font-medium">{products.length} références au catalogue</div>
+
+          <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 mt-3 relative z-10">
+            <span>Inventaire multi-rayons</span>
+            <span className="font-bold text-white bg-white/[0.1] border border-white/[0.15] px-2.5 py-0.5 rounded-full">Temps réel</span>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs hover:border-emerald-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Stock Sain (&gt;5)</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
-              <CheckCircle2 size={16} />
+        {/* Pod 2: Stock Sain (>5) */}
+        <div
+          onClick={() => setStockFilter(stockFilter === 'IN_STOCK' ? 'ALL' : 'IN_STOCK')}
+          className={`nay-card-lift spatial-card aura-hover-purple rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[196px] group cursor-pointer transition-all ${
+            stockFilter === 'IN_STOCK' ? 'ring-2 ring-emerald-500/40 border-emerald-400/60' : ''
+          }`}
+        >
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+                  <CheckCircle2 size={20} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 leading-tight">
+                    STOCK SAIN (&gt;5)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
+                    Prêts pour expédition immédiate
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 shrink-0 tabular-nums">
+                {healthyRatio}%
+              </span>
+            </div>
+
+            <div className="text-xl sm:text-[24px] xl:text-[27px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums whitespace-nowrap mt-3 mb-2">
+              {inStockCount}
+              <span className="text-sm font-semibold text-slate-400 ml-1.5 font-sans">références</span>
+            </div>
+
+            <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+              <div
+                className="nay-progress-fill h-full rounded-full bg-emerald-500 dark:bg-emerald-400"
+                style={{ width: `${healthyRatio}%` }}
+              />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-2">{inStockCount}</div>
-          <div className="text-[11px] text-slate-500 mt-1 font-medium">Prêts pour expédition immédiate</div>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-white/5">
+            <span>Niveau optimal (&gt;5 u.)</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">Optimal</span>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs hover:border-amber-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Stock Faible (&le;5)</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center">
-              <AlertTriangle size={16} />
+        {/* Pod 3: Alertes Stock Faible */}
+        <div
+          onClick={() => setStockFilter(stockFilter === 'LOW_STOCK' ? 'ALL' : 'LOW_STOCK')}
+          className={`nay-card-lift spatial-card aura-hover-purple rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[196px] group cursor-pointer transition-all ${
+            stockFilter === 'LOW_STOCK' ? 'ring-2 ring-amber-500/40 border-amber-400/60' : ''
+          }`}
+        >
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+                  <AlertTriangle size={20} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 leading-tight">
+                    STOCK FAIBLE (&le;5)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
+                    Approvisionnement recommandé
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 shrink-0">
+                Surveiller
+              </span>
+            </div>
+
+            <div className="text-xl sm:text-[24px] xl:text-[27px] font-black tracking-tight text-amber-600 dark:text-amber-400 tabular-nums whitespace-nowrap mt-3 mb-1">
+              {lowStockCount}
+              <span className="text-sm font-semibold text-slate-400 ml-1.5 font-sans">alertes</span>
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-2">{lowStockCount}</div>
-          <div className="text-[11px] text-slate-500 mt-1 font-medium">Approvisionnement recommandé</div>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-white/5">
+            <span>Seuil critique 1–5 u.</span>
+            <span className="text-amber-600 dark:text-amber-400 font-bold">À prévoir</span>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs hover:border-rose-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Rupture de Stock</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
-              <TrendingDown size={16} />
+        {/* Pod 4: Ruptures de Stock */}
+        <div
+          onClick={() => setStockFilter(stockFilter === 'OUT_OF_STOCK' ? 'ALL' : 'OUT_OF_STOCK')}
+          className={`nay-card-lift spatial-card aura-hover-purple rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[196px] group cursor-pointer transition-all ${
+            stockFilter === 'OUT_OF_STOCK' ? 'ring-2 ring-rose-500/40 border-rose-400/60' : ''
+          }`}
+        >
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+                  <TrendingDown size={20} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 leading-tight">
+                    RUPTURE DE STOCK
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
+                    Produits épuisés sur la vitrine
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${
+                  outOfStockCount > 0
+                    ? 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20'
+                    : 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                }`}
+              >
+                {outOfStockCount > 0 ? 'Réappro' : 'Complet'}
+              </span>
+            </div>
+
+            <div
+              className={`text-xl sm:text-[24px] xl:text-[27px] font-black tracking-tight tabular-nums whitespace-nowrap mt-3 mb-1 ${
+                outOfStockCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+              }`}
+            >
+              {outOfStockCount}
+              <span className="text-sm font-semibold text-slate-400 ml-1.5 font-sans">épuisés</span>
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-2">{outOfStockCount}</div>
-          <div className="text-[11px] text-slate-500 mt-1 font-medium">Produits épuisés sur la vitrine</div>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-white/5">
+            <span>Commande fournisseur requise</span>
+            <span className={`font-bold ${outOfStockCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+              {outOfStockCount > 0 ? 'Urgent' : 'OK'}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* 🔍 FILTER & SEARCH BAR */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      {/* 🔍 SEARCH, RAYONS & STATUS FILTER TOOLBAR */}
+      <div className="nay-enter spatial-card rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#101524] p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
           {/* Search Input */}
-          <div className="relative flex-1 max-w-md">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="relative flex-1 min-w-0">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" />
             <input
               type="text"
               placeholder="Rechercher par parfum, marque, référence SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1D9BF0]/30 focus:border-[#1D9BF0] transition-all"
+              className="w-full pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-[#0c0f1a] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs sm:text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#0ea5e9] transition-all"
             />
             {search && (
-              <button 
+              <button
+                type="button"
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 cursor-pointer"
               >
-                <X size={14} />
+                <X size={13} />
               </button>
             )}
           </div>
 
-          {/* Stock Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              onClick={() => setStockFilter('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                stockFilter === 'ALL'
-                  ? 'bg-slate-900 text-white shadow-2xs'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-              }`}
-            >
-              Tous ({products.length})
-            </button>
-            <button
-              onClick={() => setStockFilter('LOW_STOCK')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                stockFilter === 'LOW_STOCK'
-                  ? 'bg-amber-500 text-white shadow-2xs'
-                  : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
-              }`}
-            >
-              Alertes Faibles ({lowStockCount})
-            </button>
-            <button
-              onClick={() => setStockFilter('OUT_OF_STOCK')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                stockFilter === 'OUT_OF_STOCK'
-                  ? 'bg-rose-500 text-white shadow-2xs'
-                  : 'bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200'
-              }`}
-            >
-              Ruptures ({outOfStockCount})
-            </button>
-            <button
-              onClick={() => setStockFilter('IN_STOCK')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                stockFilter === 'IN_STOCK'
-                  ? 'bg-emerald-600 text-white shadow-2xs'
-                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
-              }`}
-            >
-              En Stock ({inStockCount})
-            </button>
+          {/* Animated Stock Filter Pills + Sort */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0 w-full xl:w-auto">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.08] overflow-x-auto max-w-full">
+              {[
+                { id: 'ALL' as const, label: `Tous (${products.length})`, activeClass: 'bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] shadow-[0_4px_14px_rgba(14,165,233,0.35)]', dotClass: '' },
+                { id: 'LOW_STOCK' as const, label: `Faibles (${lowStockCount})`, activeClass: 'bg-amber-500 shadow-xs', dotClass: 'bg-amber-400' },
+                { id: 'OUT_OF_STOCK' as const, label: `Ruptures (${outOfStockCount})`, activeClass: 'bg-rose-600 shadow-xs', dotClass: 'bg-rose-400' },
+                { id: 'IN_STOCK' as const, label: `En Stock (${inStockCount})`, activeClass: 'bg-emerald-600 shadow-xs', dotClass: 'bg-emerald-400' },
+              ].map((pill) => {
+                const isActive = stockFilter === pill.id;
+                return (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    onClick={() => setStockFilter(pill.id)}
+                    className={`relative px-3 py-1.5 rounded-xl font-bold text-xs transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                      isActive ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="inventory-stock-pill"
+                        transition={{ type: 'spring', stiffness: 460, damping: 34 }}
+                        className={`absolute inset-0 rounded-xl ${pill.activeClass}`}
+                      />
+                    )}
+                    {pill.dotClass && (
+                      <span className={`relative z-10 w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : pill.dotClass}`} />
+                    )}
+                    <span className="relative z-10">{pill.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="relative flex items-center shrink-0">
+              <ArrowUpDown size={12} className="absolute left-2.5 text-slate-400 pointer-events-none" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as InventorySortOption)}
+                className="pl-7 pr-3 py-2 bg-slate-50 dark:bg-[#0c0f1a] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:border-[#0ea5e9] cursor-pointer"
+              >
+                <option value="NAME_ASC">Nom (A → Z)</option>
+                <option value="STOCK_ASC">Stock critique d&apos;abord</option>
+                <option value="STOCK_DESC">Stock élevé d&apos;abord</option>
+                <option value="PRICE_DESC">Prix décroissant</option>
+              </select>
+            </div>
           </div>
         </div>
 
         {/* Section Catalog Filters */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs">
-          <span className="text-slate-500 font-bold flex items-center gap-1 text-[11px] mr-1">
-            <Layers size={13} className="text-sky-500" /> Rayon :
+        <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-100 dark:border-white/[0.06] text-xs">
+          <span className="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1 text-[11px] mr-1">
+            <Layers size={13} className="text-[#0ea5e9]" /> Rayon :
           </span>
           {[
             { id: 'ALL', label: 'Tous les Rayons', icon: null },
-            { id: 'TESTER', label: 'Testeurs', icon: <FlaskConical size={12} className="text-purple-600" /> },
-            { id: 'ORIGINAL', label: 'Parfums Originaux', icon: <Crown size={12} className="text-emerald-600" /> },
-            { id: 'MASTER_COPY', label: 'Master Copy', icon: <Sparkles size={12} className="text-amber-600" /> },
-            { id: 'COFFRET', label: 'Coffrets Cadeaux', icon: <Gift size={12} className="text-indigo-600" /> },
-          ].map((sec) => (
-            <button
-              key={sec.id}
-              onClick={() => setSectionFilter(sec.id as any)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                sectionFilter === sec.id
-                  ? 'bg-slate-900 text-white shadow-2xs'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-              }`}
-            >
-              {sec.icon}
-              <span>{sec.label}</span>
-            </button>
-          ))}
+            { id: 'TESTER', label: 'Testeurs', icon: <FlaskConical size={12} className="text-purple-500" /> },
+            { id: 'ORIGINAL', label: 'Parfums Originaux', icon: <Crown size={12} className="text-emerald-500" /> },
+            { id: 'MASTER_COPY', label: 'Master Copy', icon: <Sparkles size={12} className="text-amber-500" /> },
+            { id: 'COFFRET', label: 'Coffrets Cadeaux', icon: <Gift size={12} className="text-indigo-500" /> },
+          ].map((sec) => {
+            const isActive = sectionFilter === sec.id;
+            return (
+              <button
+                type="button"
+                key={sec.id}
+                onClick={() => setSectionFilter(sec.id as InventorySectionFilter)}
+                className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                  isActive
+                    ? 'text-white'
+                    : 'bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300'
+                }`}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="inventory-section-pill"
+                    transition={{ type: 'spring', stiffness: 460, damping: 34 }}
+                    className="absolute inset-0 rounded-xl bg-slate-900 dark:bg-[#0ea5e9] shadow-xs"
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  {sec.icon}
+                  <span>{sec.label}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Category Pills */}
+        {/* Olfactive Universe Track */}
         {categories.length > 2 && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
-            <span className="text-slate-400 font-medium flex items-center gap-1 text-[11px]">
-              <Filter size={12} /> Rayon :
+          <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] text-xs overflow-x-auto custom-scrollbar pb-1">
+            <span className="text-slate-400 dark:text-slate-500 font-bold flex items-center gap-1 text-[11px] shrink-0">
+              <Filter size={12} /> Familles :
             </span>
-            {categories.map((cat) => (
+            {categories.slice(0, 12).map((cat) => (
               <button
+                type="button"
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                   selectedCategory === cat
-                    ? 'bg-sky-50 text-[#0284c7] font-bold border border-sky-200'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-sky-500/15 text-[#0284c7] dark:text-[#38bdf8] border border-sky-300/80 dark:border-sky-500/40 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                 }`}
               >
                 {cat}
               </button>
             ))}
+            {categories.length > 12 && (
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 dark:bg-[#0c0f1a] border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 shrink-0 cursor-pointer"
+              >
+                <option value="Toutes">Plus de familles ({categories.length - 12})...</option>
+                {categories.slice(12).map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         )}
       </div>
 
       {/* 📦 INVENTORY TABLE */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
+      <div className="nay-enter spatial-card bg-white dark:bg-[#101524] border border-slate-200/80 dark:border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
+          <table className="w-full text-left text-[13px]">
+            <thead className="bg-slate-50/80 dark:bg-[#0c0f1a]/80 text-slate-500 dark:text-slate-400 text-[11px] uppercase font-extrabold tracking-wider border-b border-slate-200/80 dark:border-white/10">
               <tr>
-                <th className="px-5 py-3.5">Parfum & Référence</th>
-                <th className="px-5 py-3.5">Marque & Rayon</th>
+                <th className="px-5 py-3.5">Parfum &amp; Référence</th>
+                <th className="px-5 py-3.5">Marque &amp; Rayon</th>
                 <th className="px-5 py-3.5">Prix Vitrine</th>
                 <th className="px-5 py-3.5">Niveau de Stock</th>
                 <th className="px-5 py-3.5 text-center">Ajustement Rapide</th>
                 <th className="px-5 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredProducts.map((product) => {
-                const stock = product.stock || 0;
-                const isEditing = editingId === product.id;
-                const imageSrc = Array.isArray(product.images) && product.images[0] ? product.images[0] : '/placeholder-perfume.jpg';
-
-                const sectionBadge =
-                  product.subcategory === 'master-copier'
-                    ? { label: 'Master Copy', icon: <Sparkles size={10} className="text-amber-700" />, color: 'bg-amber-50 text-amber-800 border-amber-200' }
-                    : product.subcategory === 'coffrets'
-                    ? { label: 'Coffret', icon: <Gift size={10} className="text-indigo-700" />, color: 'bg-indigo-50 text-indigo-800 border-indigo-200' }
-                    : product.isTester
-                    ? { label: 'Testeur', icon: <FlaskConical size={10} className="text-purple-700" />, color: 'bg-purple-50 text-purple-800 border-purple-200' }
-                    : { label: 'Original', icon: <Crown size={10} className="text-emerald-700" />, color: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
-
-                return (
-                  <tr key={product.id} className="hover:bg-slate-50/60 transition-colors group">
-                    {/* Product & Thumbnail */}
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden relative shrink-0 flex items-center justify-center">
-                          {imageSrc.startsWith('http') || imageSrc.startsWith('/') ? (
-                            <Image 
-                              src={imageSrc} 
-                              alt={product.name} 
-                              fill 
-                              className="object-contain p-1" 
-                              sizes="40px"
-                            />
-                          ) : (
-                            <Sparkles size={16} className="text-slate-400" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-bold text-slate-900 truncate max-w-[200px]">
-                            {product.name}
-                          </div>
-                          <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                            SKU: {product.sku || product.slug || `#${product.id}`}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Brand & Subcategory & Section Badge */}
-                    <td className="px-5 py-3.5 space-y-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-semibold text-slate-800">{product.brandLabel || 'NAY'}</span>
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${sectionBadge.color}`}>
-                          {sectionBadge.icon}
-                          <span>{sectionBadge.label}</span>
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-slate-400">{product.subcategoryLabel || 'Parfumerie'}</div>
-                    </td>
-
-                    {/* Price */}
-                    <td className="px-5 py-3.5 font-bold text-slate-900">
-                      {product.price ? `${product.price} MAD` : 'N/A'}
-                    </td>
-
-                    {/* Stock Status & Stepper */}
-                    <td className="px-5 py-3.5">
-                      {isEditing ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="0"
-                            value={editStockValue}
-                            onChange={(e) => setEditStockValue(parseInt(e.target.value) || 0)}
-                            className="w-20 px-2.5 py-1 bg-white border border-[#1D9BF0] rounded-lg text-xs font-bold text-slate-900 focus:outline-none ring-2 ring-[#1D9BF0]/20"
-                            autoFocus
-                          />
-                          <button
-                            onClick={() => handleSaveStock(product.id)}
-                            className="p-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-colors cursor-pointer"
-                            title="Enregistrer"
-                          >
-                            <Check size={14} />
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="p-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 transition-colors cursor-pointer"
-                            title="Annuler"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2.5">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
-                            stock === 0
-                              ? 'bg-rose-50 text-rose-700 border-rose-200'
-                              : stock <= 5
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                              stock === 0 ? 'bg-rose-500' : stock <= 5 ? 'bg-amber-500' : 'bg-emerald-500'
-                            }`} />
-                            {stock} {stock <= 1 ? 'flacon' : 'flacons'}
-                          </span>
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Quick Stepper Buttons (-1 / +1 / +5) */}
-                    <td className="px-5 py-3.5 text-center">
-                      <div className="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-                        <button
-                          onClick={() => handleQuickAdjust(product, -1)}
-                          disabled={stock === 0}
-                          title="-1 flacon"
-                          className="w-6 h-6 rounded-lg bg-white hover:bg-rose-50 hover:text-rose-600 text-slate-700 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
-                        >
-                          <Minus size={11} />
-                        </button>
-                        <span className="px-2 text-xs font-mono font-bold text-slate-800">
-                          {stock}
-                        </span>
-                        <button
-                          onClick={() => handleQuickAdjust(product, 1)}
-                          title="+1 flacon"
-                          className="w-6 h-6 rounded-lg bg-white hover:bg-emerald-50 hover:text-emerald-600 text-slate-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer"
-                        >
-                          <Plus size={11} />
-                        </button>
-                        <button
-                          onClick={() => handleQuickAdjust(product, 5)}
-                          title="+5 flacons"
-                          className="px-1.5 h-6 rounded-lg bg-white hover:bg-sky-50 hover:text-[#0284c7] text-slate-600 font-bold text-[10px] flex items-center justify-center transition-all shadow-2xs cursor-pointer"
-                        >
-                          +5
-                        </button>
-                      </div>
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-5 py-3.5 text-right">
-                      <div className="inline-flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleEditClick(product)}
-                          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <Edit2 size={12} />
-                          <span>Éditer</span>
-                        </button>
-                        <Link
-                          href={`/admin/products`}
-                          className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                          title="Fiche produit"
-                        >
-                          <ArrowUpRight size={14} />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-
-              {filteredProducts.length === 0 && (
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
+              {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-slate-400">
-                    <Archive size={32} className="mx-auto mb-2 text-slate-300" />
-                    <p className="font-semibold text-slate-600">Aucun produit ne correspond à votre filtre.</p>
+                  <td colSpan={6} className="px-5 py-16 text-center text-slate-400 text-xs">
+                    <div className="w-10 h-10 rounded-2xl bg-sky-500/10 text-[#0ea5e9] flex items-center justify-center mx-auto mb-3 animate-spin">
+                      <RefreshCw size={18} />
+                    </div>
+                    <p className="font-bold text-slate-700 dark:text-slate-300">Chargement de l&apos;inventaire...</p>
                   </td>
                 </tr>
+              ) : filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-16 text-center text-slate-400">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-2 text-slate-400">
+                      <Archive size={20} />
+                    </div>
+                    <p className="font-bold text-slate-700 dark:text-slate-300 text-xs">
+                      Aucun produit ne correspond à votre filtre.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((product) => {
+                  const stock = product.stock || 0;
+                  const isEditing = editingId === product.id;
+                  const imageSrc =
+                    Array.isArray(product.images) && product.images[0]
+                      ? product.images[0]
+                      : '/placeholder-perfume.jpg';
+
+                  const sectionBadge =
+                    product.subcategory === 'master-copier'
+                      ? {
+                          label: 'Master Copy',
+                          href: '/admin/master-copier',
+                          icon: <Sparkles size={10} className="text-amber-500" />,
+                          color: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
+                        }
+                      : product.subcategory === 'coffrets'
+                      ? {
+                          label: 'Coffret',
+                          href: '/admin/coffrets',
+                          icon: <Gift size={10} className="text-indigo-500" />,
+                          color: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20',
+                        }
+                      : product.isTester
+                      ? {
+                          label: 'Testeur',
+                          href: '/admin/products',
+                          icon: <FlaskConical size={10} className="text-purple-500" />,
+                          color: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20',
+                        }
+                      : {
+                          label: 'Original',
+                          href: '/admin/parfums-originaux',
+                          icon: <Crown size={10} className="text-emerald-500" />,
+                          color: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+                        };
+
+                  return (
+                    <tr
+                      key={product.id}
+                      className="hover:bg-sky-500/[0.03] dark:hover:bg-sky-500/[0.06] transition-all group"
+                    >
+                      {/* Product & Thumbnail */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3.5">
+                          <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 overflow-hidden relative shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+                            {imageSrc.startsWith('http') || imageSrc.startsWith('/') ? (
+                              <Image
+                                src={imageSrc}
+                                alt={product.name}
+                                fill
+                                className="object-contain p-1"
+                                sizes="44px"
+                              />
+                            ) : (
+                              <Sparkles size={16} className="text-slate-400" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-slate-900 dark:text-white truncate max-w-[220px] group-hover:text-[#0ea5e9] dark:group-hover:text-[#38bdf8] transition-colors">
+                              {product.name}
+                            </div>
+                            <div className="text-[11px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">
+                              SKU: {product.sku || product.slug || `#${product.id}`}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Brand & Section */}
+                      <td className="px-5 py-3.5 space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-white/10 uppercase tracking-wider">
+                            {product.brandLabel || 'NAY'}
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${sectionBadge.color}`}
+                          >
+                            {sectionBadge.icon}
+                            <span>{sectionBadge.label}</span>
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 dark:text-slate-500">
+                          {product.subcategoryLabel || 'Parfumerie'}
+                        </div>
+                      </td>
+
+                      {/* Price */}
+                      <td className="px-5 py-3.5 font-bold text-slate-900 dark:text-white font-mono tabular-nums">
+                        {product.price ? `${product.price} MAD` : 'N/A'}
+                      </td>
+
+                      {/* Stock Level & Inline Edit */}
+                      <td className="px-5 py-3.5">
+                        {isEditing ? (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              min="0"
+                              value={editStockValue}
+                              onChange={(e) => setEditStockValue(parseInt(e.target.value, 10) || 0)}
+                              className="w-20 px-2.5 py-1 bg-white dark:bg-[#0c0f1a] border border-[#0ea5e9] rounded-lg text-xs font-bold text-slate-900 dark:text-white focus:outline-none ring-2 ring-[#0ea5e9]/20 tabular-nums"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleSaveStock(product.id)}
+                              className="p-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-colors cursor-pointer"
+                              title="Enregistrer"
+                            >
+                              <Check size={13} />
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="p-1.5 rounded-lg bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                              title="Annuler"
+                            >
+                              <X size={13} />
+                            </button>
+                          </div>
+                        ) : (
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-xl text-[11px] font-extrabold border tabular-nums ${
+                              stock === 0
+                                ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
+                                : stock <= 5
+                                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                                : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                                stock === 0
+                                  ? 'bg-rose-500 animate-pulse'
+                                  : stock <= 5
+                                  ? 'bg-amber-500'
+                                  : 'bg-emerald-500'
+                              }`}
+                            />
+                            {stock} {stock <= 1 ? 'flacon' : 'flacons'}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Quick Adjust Stepper */}
+                      <td className="px-5 py-3.5 text-center">
+                        <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-white/[0.05] p-1 rounded-xl border border-slate-200/80 dark:border-white/10">
+                          <button
+                            onClick={() => handleQuickAdjust(product, -1)}
+                            disabled={stock === 0}
+                            title="-1 flacon"
+                            className="w-7 h-7 rounded-lg bg-white dark:bg-[#141a29] hover:bg-rose-50 dark:hover:bg-rose-500/15 hover:text-rose-600 dark:hover:text-rose-400 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
+                          >
+                            <Minus size={11} />
+                          </button>
+                          <span className="px-2.5 text-xs font-mono font-bold text-slate-800 dark:text-white tabular-nums">
+                            {stock}
+                          </span>
+                          <button
+                            onClick={() => handleQuickAdjust(product, 1)}
+                            title="+1 flacon"
+                            className="w-7 h-7 rounded-lg bg-white dark:bg-[#141a29] hover:bg-emerald-50 dark:hover:bg-emerald-500/15 hover:text-emerald-600 dark:hover:text-emerald-400 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-all shadow-2xs cursor-pointer"
+                          >
+                            <Plus size={11} />
+                          </button>
+                          <button
+                            onClick={() => handleQuickAdjust(product, 5)}
+                            title="+5 flacons"
+                            className="px-2 h-7 rounded-lg bg-white dark:bg-[#141a29] hover:bg-sky-50 dark:hover:bg-sky-500/15 hover:text-[#0284c7] dark:hover:text-[#38bdf8] text-slate-600 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center transition-all shadow-2xs cursor-pointer"
+                          >
+                            +5
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleEditClick(product)}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-sky-500/10 text-slate-700 dark:text-slate-200 hover:text-[#0ea5e9] dark:hover:text-[#38bdf8] border border-slate-200/80 dark:border-white/10 font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer hover:scale-105"
+                          >
+                            <Edit2 size={12} />
+                            <span>Éditer</span>
+                          </button>
+                          <Link
+                            href={sectionBadge.href}
+                            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-[#0ea5e9] dark:hover:text-[#38bdf8] hover:bg-sky-500/10 border border-slate-200/80 dark:border-white/10 transition-all hover:scale-105"
+                            title={`Ouvrir dans ${sectionBadge.label}`}
+                          >
+                            <ArrowUpRight size={14} />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

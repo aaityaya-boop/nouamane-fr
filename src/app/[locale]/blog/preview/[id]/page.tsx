@@ -21,6 +21,7 @@ import {
   Edit
 } from 'lucide-react';
 import { formatMAD } from '@/lib/products';
+import { sanitizeHtml } from '@/lib/security/sanitize';
 import {
   processArticleHtml,
   calculateReadingTime,
@@ -263,7 +264,7 @@ export default async function BlogPostPreviewPage({
                   prose-table:border prose-table:border-[#e8e8e8] prose-table:rounded-2xl prose-table:overflow-hidden
                   prose-th:bg-[#fafaf7] prose-th:p-4 prose-th:text-xs prose-th:uppercase prose-th:tracking-wider prose-th:text-[#1a1a1a]
                   prose-td:p-4 prose-td:border-t prose-td:border-[#e8e8e8] prose-td:text-sm"
-                dangerouslySetInnerHTML={{ __html: processedHtml }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(processedHtml) }}
               />
 
               {/* TAGS */}

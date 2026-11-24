@@ -3,17 +3,13 @@ import prisma from '@/lib/prisma';
 import { verifyPassword, createAdminToken, seedDefaultOwnersIfEmpty } from '@/lib/auth/adminAuth';
 import { logAdminActivity } from '@/lib/activityLogger';
 import { createAdminNotification } from '@/lib/notificationService';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILED_ATTEMPTS = 8;
-const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const DUMMY_BCRYPT_HASH = '$2b$10$CwTycUXWue0Thq9StjUM0uJ8lR8W3W0z8J3x1z6yB9Q1Y1nK6kQ5e';
 
 const REJECTED_FALLBACK_PASSWORDS = new Set(['nouamane2024', 'NayParfum2026!']);
-
-function getRateLimitKey(request: Request, identifier: string): string {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  return `${forwarded}:${identifier}`;
-}
 
 export async function POST(request: Request) {
   try {
@@ -29,10 +25,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const rateKey = getRateLimitKey(request, identifier);
-    const nowMs = Date.now();
-    const attemptEntry = loginAttempts.get(rateKey);
-    if (attemptEntry && attemptEntry.resetAt > nowMs && attemptEntry.count >= MAX_FAILED_ATTEMPTS) {
+    const clientIp = getClientIp(request);
+    const ipLimit = checkRateLimit(`admin_login_ip:${clientIp}`, 25, LOGIN_WINDOW_MS);
+    const acctLimit = checkRateLimit(`admin_login_acct:${clientIp}:${identifier}`, MAX_FAILED_ATTEMPTS, LOGIN_WINDOW_MS);
+    if (!ipLimit.allowed || !acctLimit.allowed) {
       return NextResponse.json(
         { error: 'Trop de tentatives de connexion. Veuillez réessayer dans quelques minutes.' },
         { status: 429 }
@@ -41,11 +37,6 @@ export async function POST(request: Request) {
 
     // Explicitly reject retired hardcoded fallback passwords
     if (REJECTED_FALLBACK_PASSWORDS.has(password)) {
-      const prev = loginAttempts.get(rateKey);
-      loginAttempts.set(rateKey, {
-        count: prev && prev.resetAt > nowMs ? prev.count + 1 : 1,
-        resetAt: nowMs + LOGIN_WINDOW_MS,
-      });
       return NextResponse.json(
         { error: 'Identifiant ou mot de passe incorrect.' },
         { status: 401 }
@@ -66,28 +57,27 @@ export async function POST(request: Request) {
       where: {
         email: { equals: identifier, mode: 'insensitive' },
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatar: true,
+        status: true,
+        passwordHash: true,
+      },
     });
 
     if (!user) {
-      const prev = loginAttempts.get(rateKey);
-      loginAttempts.set(rateKey, {
-        count: prev && prev.resetAt > nowMs ? prev.count + 1 : 1,
-        resetAt: nowMs + LOGIN_WINDOW_MS,
-      });
+      // Constant-time mitigation against timing-based email enumeration
+      await verifyPassword(password, DUMMY_BCRYPT_HASH).catch(() => false);
       return NextResponse.json(
         { error: 'Identifiant ou mot de passe incorrect.' },
         { status: 401 }
       );
     }
 
-    if (user.status !== 'ACTIVE') {
-      return NextResponse.json(
-        { error: 'Ce compte administrateur est désactivé.' },
-        { status: 403 }
-      );
-    }
-
-    // 2. Strictly verify password against bcrypt hash (no hardcoded/legacy fallbacks)
+    // 2. Strictly verify password against bcrypt hash BEFORE status checks to prevent account enumeration
     let isMatch = false;
     try {
       if (user.passwordHash) {
@@ -97,19 +87,12 @@ export async function POST(request: Request) {
       isMatch = false;
     }
 
-    if (!isMatch) {
-      const prev = loginAttempts.get(rateKey);
-      loginAttempts.set(rateKey, {
-        count: prev && prev.resetAt > nowMs ? prev.count + 1 : 1,
-        resetAt: nowMs + LOGIN_WINDOW_MS,
-      });
+    if (!isMatch || user.status !== 'ACTIVE') {
       return NextResponse.json(
-        { error: 'Mot de passe incorrect pour ce compte.' },
+        { error: 'Identifiant ou mot de passe incorrect.' },
         { status: 401 }
       );
     }
-
-    loginAttempts.delete(rateKey);
 
     // 3. Update timestamps
     const now = new Date();

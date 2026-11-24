@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAnyPermission, requirePermission } from '@/lib/auth/rbac/serverGuard';
+import { evaluateProductSeo } from '@/lib/seo/realAudit';
 
 export async function GET(req: Request) {
   try {
@@ -9,24 +10,25 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q') || '';
 
-    // Fetch all 199 products with their SEO records
     const products = await prisma.product.findMany({
-      where: q ? {
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { brandLabel: { contains: q, mode: 'insensitive' } },
-          { slug: { contains: q, mode: 'insensitive' } }
-        ]
-      } : undefined,
+      where: q
+        ? {
+            OR: [
+              { name: { contains: q, mode: 'insensitive' } },
+              { brandLabel: { contains: q, mode: 'insensitive' } },
+              { slug: { contains: q, mode: 'insensitive' } },
+            ],
+          }
+        : undefined,
       include: {
-        seo: true
+        seo: true,
       },
       orderBy: { id: 'asc' },
-      take: 200
+      take: 250,
     });
 
     const data = products.map((p) => {
-      const seo = p.seo;
+      const audit = evaluateProductSeo(p);
       return {
         id: p.id,
         name: p.name,
@@ -34,20 +36,21 @@ export async function GET(req: Request) {
         slug: p.slug,
         url: `/products/${p.slug}`,
         price: p.price,
-        seoTitle: seo?.seoTitle || `${p.name} - ${p.brandLabel || 'NAY'} | Prix Maroc & Testeur Original - NAY Parfums`,
-        metaDescription: seo?.metaDescription || `Achetez ${p.name} de ${p.brandLabel || 'NAY'} au meilleur prix au Maroc. Flacon testeur original haute tenue. Livraison express 24/48h & paiement à la livraison.`,
-        focusKeyword: seo?.focusKeyword || `${p.name.toLowerCase()} prix maroc`,
-        seoScore: seo?.seoScore || 92,
-        canonicalUrl: seo?.canonicalUrl || `https://nayparfum.ma/products/${p.slug}`,
-        hasSchema: seo?.schemaEnabled ?? true,
-        lastOptimizedAt: seo?.lastOptimizedAt || p.updatedAt,
+        seoTitle: audit.effectiveTitle,
+        metaDescription: audit.effectiveDescription,
+        focusKeyword: audit.effectiveFocusKeyword,
+        seoScore: audit.score,
+        issues: audit.issues,
+        canonicalUrl: p.seo?.canonicalUrl || `https://nayparfum.ma/products/${p.slug}`,
+        hasSchema: p.seo?.schemaEnabled ?? true,
+        lastOptimizedAt: p.seo?.lastOptimizedAt || p.updatedAt,
       };
     });
 
     return NextResponse.json({
       success: true,
       count: data.length,
-      data
+      data,
     });
   } catch (error) {
     console.error('Failed to fetch SEO pages:', error);
@@ -60,11 +63,29 @@ export async function POST(req: Request) {
     const auth = await requirePermission(req, 'marketing.manage_seo');
     if (!auth.authorized) return auth.response!;
     const body = await req.json();
-    const { productId, seoTitle, metaDescription, focusKeyword, seoScore } = body;
+    const { productId, seoTitle, metaDescription, focusKeyword } = body;
 
     if (!productId) {
       return NextResponse.json({ success: false, error: 'Product ID required' }, { status: 400 });
     }
+
+    const product = await prisma.product.findUnique({
+      where: { id: Number(productId) },
+    });
+    if (!product) {
+      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
+    }
+
+    const audit = evaluateProductSeo({
+      ...product,
+      seo: {
+        seoTitle,
+        metaDescription,
+        focusKeyword,
+        canonicalUrl: `https://nayparfum.ma/products/${product.slug}`,
+        schemaEnabled: true,
+      },
+    });
 
     const updated = await prisma.productSeo.upsert({
       where: { productId: Number(productId) },
@@ -72,22 +93,24 @@ export async function POST(req: Request) {
         seoTitle: seoTitle || undefined,
         metaDescription: metaDescription || undefined,
         focusKeyword: focusKeyword || undefined,
-        seoScore: seoScore || 98,
+        seoScore: audit.score,
         lastOptimizedAt: new Date(),
       },
       create: {
         productId: Number(productId),
-        seoTitle: seoTitle || 'Titre SEO Optimisé',
-        metaDescription: metaDescription || 'Description SEO Optimisée pour le Maroc.',
-        focusKeyword: focusKeyword || 'parfum maroc',
-        seoScore: seoScore || 98,
+        seoTitle: seoTitle || audit.effectiveTitle,
+        metaDescription: metaDescription || audit.effectiveDescription,
+        focusKeyword: focusKeyword || audit.effectiveFocusKeyword,
+        seoScore: audit.score,
         lastOptimizedAt: new Date(),
-      }
+      },
     });
 
     return NextResponse.json({
       success: true,
-      data: updated
+      data: updated,
+      score: audit.score,
+      issues: audit.issues,
     });
   } catch (error) {
     console.error('Failed to update product SEO:', error);

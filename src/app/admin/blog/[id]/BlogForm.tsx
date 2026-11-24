@@ -514,10 +514,10 @@ export default function BlogForm({
           <button
             type="button"
             onClick={() => setIsAiModalOpen(true)}
-            className="px-3.5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+            className="px-4 py-2 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:opacity-95 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-500/20 flex items-center gap-2 transition-all cursor-pointer"
           >
-            <Sparkles size={15} className="animate-pulse text-amber-300" />
-            <span>Générer avec l'IA</span>
+            <Sparkles size={14} />
+            <span>Générer avec l&apos;IA</span>
           </button>
 
           {/* Live Preview Button */}
@@ -1198,12 +1198,12 @@ export default function BlogForm({
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
-                  <Sparkles size={20} className="text-amber-300" />
+                <div className="w-10 h-10 rounded-xl bg-slate-900 text-sky-300 flex items-center justify-center border border-slate-800">
+                  <Sparkles size={18} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Générateur d'Article IA (Gemini Maroc)</h3>
-                  <p className="text-xs text-slate-500">Créez un article hautement optimisé pour Google.ma en 1 clic</p>
+                  <h3 className="text-lg font-bold text-slate-900">Assistant Rédactionnel SEO</h3>
+                  <p className="text-xs text-slate-500">Structurez un article complet optimisé pour Google.ma</p>
                 </div>
               </div>
               <button
@@ -1308,7 +1308,7 @@ export default function BlogForm({
                 type="button"
                 disabled={isGenerating}
                 onClick={handleGenerateWithAi}
-                className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all disabled:opacity-50"
+                className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isGenerating ? (
                   <>

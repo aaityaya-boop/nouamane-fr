@@ -110,140 +110,192 @@ export default async function CustomersDashboardPage({
   const paginatedCustomers = filtered.slice(skip, skip + take);
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto pb-16">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-neutral-200">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-16 font-sans text-slate-900 dark:text-slate-100">
+      {/* ── 1. REFINED EXECUTIVE HEADER ───────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-white/[0.06]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-semibold tracking-wider bg-neutral-100 text-neutral-800 border border-neutral-200">
-              Fichier Central Clients & CRM
-            </span>
-            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <div className="flex items-center gap-x-2 gap-y-0.5 mb-1.5 flex-wrap text-[11px] font-semibold tracking-[0.1em] uppercase text-slate-500 dark:text-slate-400">
+            <span>NAY PARFUMS · FICHIER CENTRAL CRM</span>
+            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+            <span className="inline-flex items-center gap-1.5 normal-case tracking-normal font-medium text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
               {clientsWithOrdersCount} acheteurs identifiés
             </span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900 flex items-center gap-2">
-            <Users size={22} className="text-neutral-900" />
-            <span>Tous les Clients & Contacts ({totalCustomers})</span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Tous les Clients &amp; Contacts ({totalCustomers})
           </h1>
-          <p className="text-xs text-neutral-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-0.5">
             Regroupe automatiquement tous vos clients ayant commandé par téléphone/email (invités) et les comptes inscrits.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
           <Link
             href="/admin/marketing/contacts"
-            className="px-3.5 py-2 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors shadow-2xs"
+            className="h-10 sm:h-9 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#14151f] dark:hover:bg-[#1a1b28] border border-slate-200/90 dark:border-white/[0.08] text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
           >
-            <Phone size={14} className="text-neutral-500" />
-            <span>Répertoire Téléphones ({withPhoneCount})</span>
+            <Phone size={13.5} className="text-[#0ea5e9] shrink-0" />
+            <span>Téléphones ({withPhoneCount})</span>
           </Link>
 
           <Link
             href="/admin/customers/vip"
-            className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+            className="h-10 sm:h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white/[0.08] dark:hover:bg-white/[0.14] border border-slate-800 dark:border-white/10 text-white text-xs font-semibold shadow-2xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
           >
-            <Crown size={14} className="text-amber-600" />
+            <Crown size={13.5} className="text-amber-400 shrink-0" />
             <span>Top VIP ({vipCustomersCount})</span>
           </Link>
         </div>
       </div>
 
-      {/* Global KPIs Ribbon */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* KPI 1: Base Clients Totale */}
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-neutral-500">Base Clients Totale</span>
-            <div className="p-2 rounded-lg bg-neutral-100 text-neutral-800">
-              <Users size={15} />
+      {/* ── 2. GLOBAL KPIS RIBBON (TABLEAU DE BORD STANDARD) ──────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        {/* KPI 1: Base Clients Totale - Maison Obsidian Lead Card */}
+        <div className="nay-hero-shine nay-card-lift rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[188px] group relative overflow-hidden bg-[#0b1322] dark:bg-[#0f172a] text-white border border-slate-800/90 dark:border-sky-500/20">
+          <div className="relative z-10">
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-white/[0.08] border border-white/[0.12] text-sky-300 flex items-center justify-center shrink-0">
+                  <Users size={18} strokeWidth={2} />
+                </div>
+                <div>
+                  <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-300 leading-tight">
+                    BASE CLIENTS TOTALE
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-medium leading-tight mt-0.5">
+                    Contacts &amp; Acheteurs CRM
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-md bg-white/[0.08] text-slate-200 border border-white/[0.1] shrink-0">
+                {clientsWithOrdersCount} acheteurs
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between gap-1.5 mt-4 mb-1">
+              <div className="text-2xl sm:text-[26px] font-extrabold tracking-tight text-white tabular-nums whitespace-nowrap">
+                {totalCustomers}
+                <span className="text-sm font-medium text-slate-400 ml-1.5 font-sans">profils</span>
+              </div>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-neutral-900 tracking-tight">{totalCustomers}</span>
-            <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              {clientsWithOrdersCount} acheteurs
-            </span>
-          </div>
-          <div className="mt-2.5 flex items-center justify-between text-xs text-neutral-500 pt-2.5 border-t border-neutral-100">
-            <span>Commandes directes (invités) :</span>
-            <b className="text-neutral-900 font-semibold">{guestOrdersCount}</b>
+
+          <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-slate-400 mt-3 relative z-10">
+            <span>Commandes directes : <strong className="text-slate-200 font-semibold">{guestOrdersCount}</strong></span>
+            <span className="font-semibold text-emerald-300">Actifs</span>
           </div>
         </div>
 
-        {/* KPI 2: Clients Fidèles / Récurrents */}
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-neutral-500">Clients Fidélisés (&gt;1 commande)</span>
-            <div className="p-2 rounded-lg bg-sky-50 text-sky-700">
-              <UserCheck size={15} />
+        {/* KPI 2: Clients Fidélisés */}
+        <div className="spatial-card aura-hover-purple rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[196px] group">
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-[#0ea5e9] shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+                  <UserCheck size={20} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 leading-tight">
+                    CLIENTS FIDÉLISÉS
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
+                    Plus d'une commande passée
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20 shrink-0">
+                {clientsWithOrdersCount > 0 ? `${((returningCustomersCount / clientsWithOrdersCount) * 100).toFixed(0)}% réachat` : '0%'}
+              </span>
+            </div>
+
+            <div className="text-xl sm:text-[24px] xl:text-[27px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums whitespace-nowrap mt-3 mb-1">
+              {returningCustomersCount}
+              <span className="text-sm font-semibold text-slate-400 ml-1.5 font-sans">fidèles</span>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-sky-700 tracking-tight">{returningCustomersCount}</span>
-            <span className="text-[11px] font-medium text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-              {clientsWithOrdersCount > 0
-                ? `${((returningCustomersCount / clientsWithOrdersCount) * 100).toFixed(0)}% réachat`
-                : '0%'}
-            </span>
-          </div>
-          <div className="mt-2.5 flex items-center justify-between text-xs text-neutral-500 pt-2.5 border-t border-neutral-100">
-            <span>Nouveaux clients :</span>
-            <b className="text-neutral-900 font-semibold">{newCustomersCount}</b>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-white/5">
+            <span>Nouveaux clients : <strong className="text-slate-900 dark:text-white font-bold">{newCustomersCount}</strong></span>
           </div>
         </div>
 
-        {/* KPI 3: Chiffre d'Affaires Cumulé */}
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-neutral-500">Chiffre d'Affaires Clients</span>
-            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-700">
-              <TrendingUp size={15} />
+        {/* KPI 3: Chiffre d'Affaires Clients */}
+        <div className="spatial-card aura-hover-purple rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[196px] group">
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+                  <TrendingUp size={20} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 leading-tight">
+                    CHIFFRE D'AFFAIRES CUMULÉ
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
+                    Valeur générée par les clients
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                Cumulé
+              </span>
+            </div>
+
+            <div className="text-xl sm:text-[24px] xl:text-[27px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums whitespace-nowrap mt-3 mb-1">
+              {formatMAD(totalRevenue)}
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-neutral-900 tracking-tight">{formatMAD(totalRevenue)}</span>
-          </div>
-          <div className="mt-2.5 flex items-center justify-between text-xs text-neutral-500 pt-2.5 border-t border-neutral-100">
-            <span>Total commandes passées :</span>
-            <b className="text-neutral-900 font-semibold">{totalOrdersCount} colis</b>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-white/5">
+            <span>Total commandes : <strong className="text-slate-900 dark:text-white font-bold font-mono">{totalOrdersCount} colis</strong></span>
           </div>
         </div>
 
         {/* KPI 4: Panier Moyen & LTV */}
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-neutral-500">Valeur Moyenne (LTV / AOV)</span>
-            <div className="p-2 rounded-lg bg-amber-50 text-amber-700">
-              <ShoppingCart size={15} />
+        <div className="spatial-card aura-hover-purple rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[196px] group">
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+                  <ShoppingCart size={20} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 leading-tight">
+                    VALEUR MOYENNE (LTV / AOV)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
+                    Revenu moyen par client
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 shrink-0">
+                LTV Moy
+              </span>
+            </div>
+
+            <div className="text-xl sm:text-[24px] xl:text-[27px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums whitespace-nowrap mt-3 mb-1">
+              {formatMAD(cltv)}
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-neutral-900 tracking-tight">{formatMAD(cltv)}</span>
-            <span className="text-[11px] font-medium text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
-              LTV Moy
-            </span>
-          </div>
-          <div className="mt-2.5 flex items-center justify-between text-xs text-neutral-500 pt-2.5 border-t border-neutral-100">
-            <span>Panier Moyen (AOV) :</span>
-            <b className="text-neutral-900 font-semibold">{formatMAD(aov)}</b>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-white/5">
+            <span>Panier Moyen (AOV) : <strong className="text-slate-900 dark:text-white font-bold font-mono">{formatMAD(aov)}</strong></span>
           </div>
         </div>
       </div>
 
-      {/* Toolbar: Search + Segmentation Tabs */}
-      <div className="bg-white border border-neutral-200 rounded-xl p-3.5 shadow-2xs space-y-3">
+      {/* ── 3. TOOLBAR: SEARCH + SEGMENTATION TABS ─────────────────── */}
+      <div className="spatial-card rounded-2xl p-3 sm:p-4 border border-slate-200/80 dark:border-white/10 space-y-3">
         {/* Category Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
           {[
             { id: 'all', label: 'Tous les Clients', count: totalCustomers },
             { id: 'orders', label: 'Ayant Commandé', count: clientsWithOrdersCount },
             { id: 'returning', label: 'Fidèles (>1 achat)', count: returningCustomersCount },
             { id: 'new', label: 'Nouveaux (1 achat)', count: newCustomersCount },
             { id: 'guest', label: 'Commandes Directes (Sans Compte)', count: guestOrdersCount },
-            { id: 'vip', label: '⭐ Top VIP', count: vipCustomersCount },
+            { id: 'vip', label: 'Top VIP', count: vipCustomersCount },
             { id: 'no_orders', label: 'Inscrits Sans Achat', count: registeredOnlyCount },
           ].map((tab) => {
             const isSelected = filter === tab.id;
@@ -251,16 +303,16 @@ export default async function CustomersDashboardPage({
               <Link
                 key={tab.id}
                 href={`?filter=${tab.id}${query ? `&q=${query}` : ''}`}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 border ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   isSelected
-                    ? 'bg-neutral-900 text-white border-neutral-900 shadow-2xs font-semibold'
-                    : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700 border-neutral-200'
+                    ? 'bg-slate-900 dark:bg-[#0ea5e9] text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                 }`}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                    isSelected ? 'bg-neutral-800 text-white' : 'bg-white text-neutral-600 border border-neutral-200'
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   {tab.count}
@@ -271,20 +323,20 @@ export default async function CustomersDashboardPage({
         </div>
 
         {/* Search input form */}
-        <form method="GET" className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-neutral-100">
+        <form method="GET" className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
           <input type="hidden" name="filter" value={filter} />
           <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={14} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={14} />
             <input
               type="text"
               name="q"
               placeholder="Rechercher par nom, téléphone, email, ville, n° commande..."
               defaultValue={query}
-              className="w-full bg-neutral-50 border border-neutral-200 rounded-lg pl-8 pr-4 py-2 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white transition-all"
+              className="w-full bg-slate-50 dark:bg-[#0c0f1a] border border-slate-200/80 dark:border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#0ea5e9] dark:focus:border-[#0ea5e9] transition-all"
             />
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto text-xs text-neutral-500">
+          <div className="flex items-center gap-2 self-end sm:self-auto text-xs text-slate-500 dark:text-slate-400">
             <span>
               Affichage de <b>{filtered.length}</b> client{filtered.length > 1 ? 's' : ''}
             </span>
@@ -292,29 +344,29 @@ export default async function CustomersDashboardPage({
         </form>
       </div>
 
-      {/* Main Customers Table */}
-      <div className="bg-white border border-neutral-200 rounded-xl shadow-2xs overflow-hidden">
+      {/* ── 4. MAIN CUSTOMERS TABLE (TABLEAU DE BORD STANDARD) ─────── */}
+      <div className="spatial-card rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-neutral-50 border-b border-neutral-200 text-neutral-600 text-[11px] uppercase tracking-wider font-semibold">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-slate-50/90 dark:bg-[#0c101c]/90 border-b border-slate-200/80 dark:border-white/[0.08] text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider font-extrabold backdrop-blur-md">
               <tr>
-                <th className="py-3 px-4">Client & Origine</th>
-                <th className="py-3 px-4">Coordonnées / WhatsApp</th>
-                <th className="py-3 px-3">Ville & Livraison</th>
-                <th className="py-3 px-3 text-center">Commandes</th>
-                <th className="py-3 px-3 text-right">Total Dépensé (LTV)</th>
-                <th className="py-3 px-3">Dernier Achat</th>
-                <th className="py-3 px-3 text-center">Rang / Statut</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-3">Client &amp; Origine</th>
+                <th className="py-3 px-2.5">Coordonnées</th>
+                <th className="py-3 px-2.5">Ville</th>
+                <th className="py-3 px-2 text-center">Cmd</th>
+                <th className="py-3 px-2.5 text-right whitespace-nowrap">Total (LTV)</th>
+                <th className="py-3 px-2.5 whitespace-nowrap">Dernier Achat</th>
+                <th className="py-3 px-2 text-center whitespace-nowrap">Statut</th>
+                <th className="py-3 px-3 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
               {paginatedCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-14 text-center text-neutral-400">
-                    <Users size={28} className="mx-auto text-neutral-300 mb-2" />
-                    <p className="font-semibold text-neutral-800 text-xs">Aucun client trouvé</p>
-                    <p className="text-[11px] text-neutral-500 mt-0.5">
+                  <td colSpan={8} className="py-14 text-center text-slate-400">
+                    <Users size={28} className="mx-auto text-slate-300 dark:text-slate-600 mb-2" />
+                    <p className="font-semibold text-slate-800 dark:text-slate-200 text-xs">Aucun client trouvé</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       Essayez de modifier votre recherche ou sélectionnez le filtre "Tous".
                     </p>
                   </td>
@@ -344,36 +396,36 @@ export default async function CustomersDashboardPage({
                   const isSilver = customer.tier === 'SILVER';
 
                   return (
-                    <tr key={customer.id} className="hover:bg-neutral-50/70 transition-colors">
+                    <tr key={customer.id} className="hover:bg-slate-50/80 dark:hover:bg-white/[0.03] transition-colors">
                       {/* Client Name & Source */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                            {customer.name.charAt(0).toUpperCase()}
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0ea5e9]/20 to-[#0284c7]/30 border border-[#0ea5e9]/30 text-[#0ea5e9] dark:text-[#38bdf8] flex items-center justify-center font-bold text-[11px] shrink-0 shadow-xs admin-monogram-ring">
+                            {customer.name.slice(0, 2).toUpperCase()}
                           </div>
-                          <div className="min-w-0">
+                          <div className="min-w-0 max-w-[165px]">
                             <Link
                               href={`/admin/customers/${encodeURIComponent(customer.id)}`}
-                              className="font-semibold text-neutral-900 hover:underline hover:text-neutral-600 block truncate"
+                              className="font-bold text-slate-900 dark:text-white hover:underline hover:text-[#0ea5e9] block truncate"
                             >
                               {customer.name}
                             </Link>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <span
-                                className={`text-[9.5px] font-medium px-1.5 py-0.2 rounded border ${
+                                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border whitespace-nowrap ${
                                   isBoth
-                                    ? 'bg-purple-50 text-purple-700 border-purple-200 font-semibold'
+                                    ? 'bg-slate-900/[0.06] dark:bg-white/[0.08] text-slate-800 dark:text-slate-200 border-slate-300/80 dark:border-white/15'
                                     : isGuestOrder
-                                    ? 'bg-sky-50 text-sky-700 border-sky-200'
-                                    : 'bg-neutral-100 text-neutral-600 border-neutral-200'
+                                    ? 'bg-sky-500/[0.08] text-[#0284c7] dark:text-[#38bdf8] border-sky-500/20'
+                                    : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 border-slate-200/80 dark:border-white/10'
                                 }`}
                               >
                                 {isBoth ? (
-                                  <span className="inline-flex items-center gap-1"><Crown size={10} className="text-amber-600" /> Compte + Acheteur</span>
+                                  <span className="inline-flex items-center gap-1"><Crown size={10} className="text-amber-500" /> Compte + Acheteur</span>
                                 ) : isGuestOrder ? (
-                                  <span className="inline-flex items-center gap-1"><ShoppingCart size={10} className="text-sky-600" /> Commande Directe</span>
+                                  <span className="inline-flex items-center gap-1"><ShoppingCart size={10} className="text-[#0ea5e9]" /> Commande Directe</span>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1"><User size={10} className="text-neutral-500" /> Compte Créé</span>
+                                  <span className="inline-flex items-center gap-1"><User size={10} className="text-slate-400" /> Compte Créé</span>
                                 )}
                               </span>
                             </div>
@@ -382,11 +434,11 @@ export default async function CustomersDashboardPage({
                       </td>
 
                       {/* Contact & WhatsApp */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-2.5">
                         <div className="space-y-1">
                           {customer.phone ? (
                             <div className="flex items-center gap-1.5">
-                              <span className="font-mono font-semibold text-neutral-900 text-xs">
+                              <span className="font-mono font-bold text-slate-900 dark:text-white text-xs whitespace-nowrap">
                                 {customer.phone}
                               </span>
                               {whatsappUrl && (
@@ -394,7 +446,7 @@ export default async function CustomersDashboardPage({
                                   href={whatsappUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                                  className="p-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
                                   title="Discuter directement sur WhatsApp"
                                 >
                                   <MessageSquare size={12} />
@@ -402,11 +454,11 @@ export default async function CustomersDashboardPage({
                               )}
                             </div>
                           ) : (
-                            <span className="text-neutral-400 italic text-[11px]">Sans numéro</span>
+                            <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">Sans numéro</span>
                           )}
 
                           {customer.email && (
-                            <div className="text-[11px] text-neutral-500 truncate max-w-xs">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[165px] font-medium">
                               {customer.email}
                             </div>
                           )}
@@ -414,30 +466,30 @@ export default async function CustomersDashboardPage({
                       </td>
 
                       {/* City & Address */}
-                      <td className="py-3.5 px-3">
+                      <td className="py-3.5 px-2.5">
                         {customer.city ? (
-                          <div className="flex items-center gap-1 text-neutral-800 font-medium">
-                            <MapPin size={11} className="text-neutral-400 shrink-0" />
+                          <div className="flex items-center gap-1 text-slate-800 dark:text-slate-200 font-semibold whitespace-nowrap">
+                            <MapPin size={11} className="text-slate-400 shrink-0" />
                             <span>{customer.city}</span>
                           </div>
                         ) : (
-                          <span className="text-neutral-400 text-[11px]">—</span>
+                          <span className="text-slate-400 dark:text-slate-500 text-[11px]">—</span>
                         )}
                         {customer.address && (
-                          <span className="text-[10px] text-neutral-400 truncate max-w-[140px] block mt-0.5">
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate max-w-[115px] block mt-0.5">
                             {customer.address}
                           </span>
                         )}
                       </td>
 
                       {/* Orders count */}
-                      <td className="py-3.5 px-3 text-center">
+                      <td className="py-3.5 px-2 text-center whitespace-nowrap">
                         <div className="inline-flex flex-col items-center">
-                          <span className="font-bold text-neutral-900 text-xs">
+                          <span className="font-black text-slate-900 dark:text-white text-xs font-mono">
                             {customer.ordersCount}
                           </span>
                           {customer.deliveredOrdersCount > 0 && (
-                            <span className="text-[9.5px] font-medium text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200 mt-0.5">
+                            <span className="text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20 mt-0.5">
                               {customer.deliveredOrdersCount} livré{customer.deliveredOrdersCount > 1 ? 's' : ''}
                             </span>
                           )}
@@ -445,17 +497,17 @@ export default async function CustomersDashboardPage({
                       </td>
 
                       {/* Total Spent */}
-                      <td className="py-3.5 px-3 text-right">
-                        <span className="font-bold text-neutral-900 text-xs">
+                      <td className="py-3.5 px-2.5 text-right whitespace-nowrap">
+                        <span className="font-black text-slate-900 dark:text-white text-xs font-mono">
                           {formatMAD(customer.totalSpent)}
                         </span>
                       </td>
 
                       {/* Last Order Date */}
-                      <td className="py-3.5 px-3">
+                      <td className="py-3.5 px-3 whitespace-nowrap">
                         {customer.lastOrderDate ? (
                           <div>
-                            <span className="text-neutral-800 font-medium block">
+                            <span className="text-slate-800 dark:text-slate-200 font-semibold block">
                               {new Date(customer.lastOrderDate).toLocaleDateString('fr-FR', {
                                 day: 'numeric',
                                 month: 'short',
@@ -465,68 +517,68 @@ export default async function CustomersDashboardPage({
                             {customer.recentOrderNumber && (
                               <Link
                                 href={`/admin/orders?search=${customer.recentOrderNumber}`}
-                                className="text-[10px] font-mono text-neutral-400 hover:underline hover:text-neutral-700"
+                                className="text-[10px] font-mono text-slate-500 dark:text-slate-400 hover:underline hover:text-[#0ea5e9]"
                               >
                                 {customer.recentOrderNumber}
                               </Link>
                             )}
                           </div>
                         ) : (
-                          <span className="text-neutral-400 text-[11px]">Jamais commandé</span>
+                          <span className="text-slate-400 dark:text-slate-500 text-[11px]">Jamais commandé</span>
                         )}
                       </td>
 
                       {/* Status / VIP Tier */}
-                      <td className="py-3.5 px-3 text-center">
+                      <td className="py-3.5 px-2.5 text-center whitespace-nowrap">
                         {isDiamond ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-neutral-900 text-white border border-neutral-800 shadow-2xs">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-900 dark:bg-white/[0.12] text-white border border-slate-800 dark:border-white/15 shadow-2xs">
                             <Diamond size={10} className="text-amber-400" />
                             VIP Diamant
                           </span>
                         ) : isGold ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200">
-                            <Crown size={10} className="text-amber-600" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-500/25">
+                            <Crown size={10} className="text-amber-600 dark:text-amber-400" />
                             VIP Or
                           </span>
                         ) : isSilver ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">
-                            <Award size={10} className="text-neutral-600" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-white/[0.08] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/15">
+                            <Award size={10} className="text-slate-600 dark:text-slate-300" />
                             VIP Argent
                           </span>
                         ) : customer.ordersCount > 1 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/25">
                             Fidèle
                           </span>
                         ) : customer.ordersCount === 1 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-500/25">
                             Nouveau
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-neutral-100 text-neutral-500 border border-neutral-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10">
                             Sans Achat
                           </span>
                         )}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-3 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           {whatsappUrl && (
                             <a
                               href={whatsappUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-md text-[11px] font-semibold transition-colors inline-flex items-center gap-1"
+                              className="h-7 px-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/25 rounded-lg text-[11px] font-semibold transition-colors inline-flex items-center gap-1"
                               title="WhatsApp 1-Click"
                             >
                               <MessageSquare size={11} />
-                              <span className="hidden lg:inline">WhatsApp</span>
+                              <span className="hidden xl:inline">WA</span>
                             </a>
                           )}
 
                           <Link
                             href={`/admin/customers/${encodeURIComponent(customer.id)}`}
-                            className="px-2.5 py-1 bg-neutral-900 hover:bg-black text-white rounded-md text-[11px] font-medium transition-colors inline-flex items-center gap-1 shadow-2xs"
+                            className="h-7 px-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white/[0.1] dark:hover:bg-white/[0.18] border border-slate-800 dark:border-white/15 text-white rounded-lg text-[11px] font-semibold transition-colors inline-flex items-center gap-1 shadow-2xs"
                           >
                             <span>Fiche</span>
                             <ArrowRight size={11} />

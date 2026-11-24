@@ -2,14 +2,21 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { sendNaydayWelcomeEmail, sendAdminNewsletterAlert } from '@/lib/email/emailService';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
+    const clientIp = getClientIp(req);
+    const rate = checkRateLimit(`newsletter_sub:${clientIp}`, 8, 15 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json({ error: 'Trop de tentatives. Veuillez réessayer plus tard.' }, { status: 429 });
+    }
+
     const { email } = await req.json();
 
-    if (!email || !email.includes('@')) {
+    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       return NextResponse.json({ error: 'Email invalide' }, { status: 400 });
     }
 

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { assertSafeCrawlUrl } from "@/lib/security/ssrf";
 
 export interface CrawlResult {
   url: string;
@@ -40,10 +41,12 @@ export async function crawlUrl(url: string, baseUrl: string): Promise<CrawlResul
   };
 
   try {
-    const response = await fetch(url, {
+    const safeUrl = await assertSafeCrawlUrl(url);
+    const response = await fetch(safeUrl.toString(), {
       headers: { "User-Agent": "NAY-SEO-Bot/1.0" },
-      // Don't follow redirects automatically so we can catch 301s
+      // Don't follow redirects automatically so we can catch 301s and avoid redirect SSRF
       redirect: "manual",
+      signal: AbortSignal.timeout(8000),
     });
 
     result.statusCode = response.status;

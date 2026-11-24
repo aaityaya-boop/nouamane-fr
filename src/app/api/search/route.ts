@@ -1,34 +1,60 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const q = searchParams.get('q');
+  const clientIp = getClientIp(request);
+  const rate = checkRateLimit(`public_search:${clientIp}`, 60, 60 * 1000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: 'Trop de recherches. Veuillez patienter.' }, { status: 429 });
+  }
 
-  if (!q) {
+  const { searchParams } = new URL(request.url);
+  const rawQ = searchParams.get('q');
+
+  if (!rawQ || !rawQ.trim()) {
     return NextResponse.json({ products: [] });
   }
 
+  const q = rawQ.trim().slice(0, 100);
+
   try {
-    // SQLite doesn't support case-insensitive contains in Prisma easily,
-    // so for a small catalog, we can fetch all or do a raw query.
-    // For now, since the catalog is small, we'll fetch all and filter in memory.
     const allProducts = await prisma.product.findMany({
       where: {
         subcategory: { notIn: ['master-copier', 'coffrets'] },
         published: true
-      }
+      },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        brand: true,
+        brandLabel: true,
+        gender: true,
+        subcategory: true,
+        subcategoryLabel: true,
+        price: true,
+        originalPrice: true,
+        images: true,
+        sizes: true,
+        tags: true,
+        inStock: true,
+        stock: true,
+        rating: true,
+        reviewCount: true,
+      },
     });
-    const lowerQ = (q || '').toLowerCase();
-    
-    const products = allProducts.filter(p => 
-      !lowerQ || 
-      p.name.toLowerCase().includes(lowerQ) ||
-      p.brandLabel.toLowerCase().includes(lowerQ) ||
-      p.tags.toLowerCase().includes(lowerQ)
-    );
+    const lowerQ = q.toLowerCase();
+
+    const products = allProducts
+      .filter(p =>
+        p.name.toLowerCase().includes(lowerQ) ||
+        p.brandLabel.toLowerCase().includes(lowerQ) ||
+        p.tags.toLowerCase().includes(lowerQ)
+      )
+      .slice(0, 40);
 
     return NextResponse.json({ products });
   } catch (error) {

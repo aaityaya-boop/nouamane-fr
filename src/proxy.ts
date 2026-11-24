@@ -1,14 +1,49 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { getJwtSecretBytes } from '@/lib/security/jwt';
 
 const locales = ['fr', 'en', 'ar'];
 const defaultLocale = 'fr';
 
-function getAdminJwtSecret(): Uint8Array {
-  return new TextEncoder().encode(
-    process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-  );
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+function isSameOriginApiRequest(request: NextRequest): boolean {
+  const hostHeader =
+    request.headers.get('x-forwarded-host')?.split(',')[0].trim() ||
+    request.headers.get('host') ||
+    request.nextUrl.host;
+
+  const secFetchSite = request.headers.get('sec-fetch-site');
+  if (secFetchSite && secFetchSite.toLowerCase() === 'cross-site') {
+    return false;
+  }
+
+  const origin = request.headers.get('origin');
+  if (origin) {
+    try {
+      const originHost = new URL(origin).host;
+      if (originHost !== hostHeader) {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+  }
+
+  const referer = request.headers.get('referer');
+  if (!origin && referer) {
+    try {
+      const refHost = new URL(referer).host;
+      if (refHost !== hostHeader) {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 const VALID_ADMIN_ROLES = new Set<string>([
@@ -63,6 +98,15 @@ function isValidAdminJwtPayload(payload: unknown): boolean {
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Reject unsafe diagnostic HTTP methods
+  const upperMethod = request.method.toUpperCase();
+  if (upperMethod === 'TRACE' || upperMethod === 'TRACK') {
+    return new NextResponse(JSON.stringify({ error: 'Method Not Allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   // --- 0. WAF (Web Application Firewall) ---
   const userAgent = request.headers.get('user-agent') || '';
   const badBots = ['curl', 'wget', 'python-requests', 'scrapy', 'postmanruntime', 'go-http-client', 'java'];
@@ -73,8 +117,13 @@ export default async function proxy(request: NextRequest) {
     );
   }
 
-  const fullUrl = request.url.toLowerCase();
-  const sqlKeywords = ['select%20', 'union%20', 'insert%20', 'delete%20', 'update%20', 'drop%20', '1=1', '%27', 'script%3e'];
+  const searchRaw = (request.nextUrl.search || '').toLowerCase();
+  let searchDecoded = searchRaw;
+  try {
+    searchDecoded = decodeURIComponent(searchRaw).toLowerCase();
+  } catch {}
+  const fullUrl = `${request.url.toLowerCase()} ${searchRaw} ${searchDecoded}`;
+  const sqlKeywords = ['select%20', 'select ', 'union%20', 'union ', 'insert%20', 'delete%20', 'update%20', 'drop%20', '1=1', '%27', 'script%3e', '<script'];
   if (sqlKeywords.some(keyword => fullUrl.includes(keyword))) {
     return new NextResponse(
       JSON.stringify({ success: false, message: 'Access denied: Malicious Payload' }),
@@ -82,9 +131,36 @@ export default async function proxy(request: NextRequest) {
     );
   }
 
-  if (pathname.includes('.env') || pathname.includes('.git')) {
+  const lowerPath = pathname.toLowerCase();
+  const blockedProbePaths = [
+    '.env',
+    '.git',
+    '.htaccess',
+    '.htpasswd',
+    '.ds_store',
+    'wp-admin',
+    'wp-login.php',
+    'xmlrpc.php',
+    'phpinfo',
+    '../',
+    '..\\',
+    '%2e%2e',
+  ];
+  if (blockedProbePaths.some((probe) => lowerPath.includes(probe))) {
     return new NextResponse(
       JSON.stringify({ success: false, message: 'Access denied' }),
+      { status: 403, headers: { 'content-type': 'application/json' } }
+    );
+  }
+
+  // --- 0.5. CSRF SAME-ORIGIN PROTECTION FOR MUTATING API CALLS ---
+  if (
+    pathname.startsWith('/api') &&
+    MUTATING_METHODS.has(request.method.toUpperCase()) &&
+    !isSameOriginApiRequest(request)
+  ) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Requête cross-origin refusée (CSRF Protection).' }),
       { status: 403, headers: { 'content-type': 'application/json' } }
     );
   }
@@ -100,7 +176,7 @@ export default async function proxy(request: NextRequest) {
     const token = request.cookies.get('admin_token')?.value || request.cookies.get('admin_session')?.value;
     if (token) {
       try {
-        const { payload } = await jwtVerify(token, getAdminJwtSecret());
+        const { payload } = await jwtVerify(token, getJwtSecretBytes('ADMIN'));
         if (isValidAdminJwtPayload(payload)) {
           return NextResponse.redirect(new URL('/admin', request.url));
         }
@@ -118,10 +194,10 @@ export default async function proxy(request: NextRequest) {
     let isValid = false;
     if (token) {
       try {
-        const { payload } = await jwtVerify(token, getAdminJwtSecret());
+        const { payload } = await jwtVerify(token, getJwtSecretBytes('ADMIN'));
         isValid = isValidAdminJwtPayload(payload);
-      } catch (error) {
-        console.error('Invalid token in middleware:', error);
+      } catch {
+        isValid = false;
       }
     }
 
@@ -145,9 +221,25 @@ export default async function proxy(request: NextRequest) {
     pathname.includes('.')
   ) {
     const res = NextResponse.next();
-    if (pathname.startsWith('/api/orders')) {
+    res.headers.set('X-Content-Type-Options', 'nosniff');
+    res.headers.set('X-Frame-Options', 'DENY');
+    res.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
+    res.headers.set('Cross-Origin-Resource-Policy', 'same-site');
+    if (!res.headers.has('X-Request-ID')) {
+      res.headers.set('X-Request-ID', globalThis.crypto.randomUUID());
+    }
+    if (
+      pathname.startsWith('/api/orders') ||
+      pathname.startsWith('/api/admin') ||
+      pathname.startsWith('/admin') ||
+      pathname.startsWith('/api/account') ||
+      pathname.startsWith('/api/ambassadeur')
+    ) {
       res.headers.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
       res.headers.set('Pragma', 'no-cache');
+      res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    }
+    if (pathname.startsWith('/api/orders')) {
       res.headers.set('Referrer-Policy', 'no-referrer');
     }
     return res;

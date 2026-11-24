@@ -10,7 +10,7 @@
  * - Future-ready for Web Push notifications
  */
 
-const CACHE_NAME = 'nay-admin-v1';
+const CACHE_NAME = 'nay-admin-v2027-v3';
 
 // Static safe assets to pre-cache on install
 const PRECACHE_ASSETS = [
@@ -26,6 +26,7 @@ const PRECACHE_ASSETS = [
 
 // Install: Cache essential static offline assets
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
@@ -35,7 +36,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate: Clean up any outdated caches and claim clients
+// Activate: Clean up any outdated caches and claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -55,6 +56,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
+
+  // In Localhost / Development, always Network-First to avoid stale CSS/JS
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    return;
+  }
 
   // 1. Only handle same-origin requests
   if (url.origin !== self.location.origin) {

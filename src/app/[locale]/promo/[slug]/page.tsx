@@ -31,7 +31,7 @@ export default async function PromoPage({ params }: { params: Promise<{ slug: st
     reviews: [],
     faqs: [],
     story: '',
-    urgencyText: "⚡ Offre Spéciale Limitée au Stock Disponible · Livraison 24/48H Partout au Maroc",
+    urgencyText: "Offre Spéciale Limitée au Stock Disponible · Livraison 24/48H Partout au Maroc",
     whatsappNumber: '+212663380011',
     theme: 'luxury-gold',
     viewersCount: 16

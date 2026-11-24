@@ -1,7 +1,7 @@
 import React from 'react';
-import Link from 'next/link';
 import prisma from '@/lib/prisma';
-import { Calendar, Play, CheckCircle2 } from 'lucide-react';
+import { Calendar, CheckCircle2 } from 'lucide-react';
+import GenerateBriefButton from './GenerateBriefButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,9 +51,10 @@ export default async function ContentStrategyPage() {
           <span>Priority Score: <strong className="text-gray-900">{opp.priority}</strong></span>
           <span>Impressions: <strong className="text-gray-900">{opp.impressions?.toLocaleString() || "-"}</strong></span>
         </div>
-        <button className="flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-          <Play size={14} /> Generate AI Brief
-        </button>
+        <GenerateBriefButton
+          opportunityId={opp.id}
+          label={opp.keyword || opp.title || "Content Optimization"}
+        />
       </div>
     </div>
   );

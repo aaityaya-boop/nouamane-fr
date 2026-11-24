@@ -14,7 +14,7 @@ import {
   Eye, ShieldCheck, Heart, Search, HelpCircle, Flame, ExternalLink,
   Radio, Target, Compass, Droplets, Zap, Share2, MessageCircle,
   UserCheck, ArrowRight, BarChart3, ShoppingCart, MousePointerClick,
-  Tablet, Video, AtSign, Gauge, Lightbulb
+  Tablet, Video, AtSign, Gauge, Lightbulb, Coins
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -206,67 +206,74 @@ export default function AnalyticsDashboardClient() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-24 font-sans text-neutral-900 dark:text-neutral-100">
+    <div className="space-y-6 max-w-7xl mx-auto pb-24 font-sans text-slate-900 dark:text-slate-100 relative">
+      {/* Subtle atmospheric ambient glow */}
+      <div className="hidden dark:block absolute top-10 right-10 w-96 h-96 rounded-full bg-sky-500/5 blur-3xl pointer-events-none" />
+      <div className="hidden dark:block absolute top-80 left-5 w-80 h-80 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none" />
+
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: RESEND MINIMALIST & PROFESSIONAL                           */}
+      {/* 1. TOP HEADER: LUXURY ANALYTICS STUDIO                                    */}
       {/* ========================================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#eaeaea] dark:border-[#222227]">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-white">
-              Audience &amp; Trafic
-            </h1>
-            <span className="text-neutral-300 dark:text-neutral-700">/</span>
-            <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-              Maison NAY Parfums
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {data?.kpi?.activeVisitorsCount ?? 1} en direct
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80 dark:border-white/[0.08]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-sky-500/12 text-[#0ea5e9] border border-sky-500/20 flex items-center justify-center shadow-xs shrink-0">
+            <BarChart3 size={22} strokeWidth={2.2} />
           </div>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Pilotage des flux de visiteurs en temps réel, diagnostic d&apos;acquisition et entonnoir pour <strong className="font-medium text-neutral-700 dark:text-neutral-200">nayparfum.ma</strong>
-          </p>
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-x-2.5 gap-y-0.5 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Audience &amp; Performance Studio
+              </h1>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 whitespace-nowrap font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                {data?.kpi?.activeVisitorsCount ?? 1} en direct
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Observatoire télémétrique en direct, diagnostic d&apos;acquisition et entonnoir de conversion pour <strong className="font-bold text-slate-800 dark:text-slate-200">nayparfum.ma</strong>
+            </p>
+          </div>
         </div>
 
         {/* Global Action Cluster */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => fetchAnalytics(false, true)}
-            disabled={isRefreshing}
-            className="h-8 px-3 inline-flex items-center gap-1.5 bg-white dark:bg-[#121215] hover:bg-neutral-50 dark:hover:bg-[#18181d] border border-[#eaeaea] dark:border-[#222227] text-neutral-700 dark:text-neutral-200 text-xs font-medium rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
-            title="Rafraîchir les statistiques en temps réel"
-          >
-            <RefreshCw size={12} className={isRefreshing ? 'animate-spin' : ''} />
-            <span>Actualiser</span>
-          </button>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto shrink-0">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => fetchAnalytics(false, true)}
+              disabled={isRefreshing}
+              className="h-10 sm:h-9 px-3.5 inline-flex items-center justify-center gap-1.5 bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-[#1a233a] border border-slate-200/90 dark:border-white/[0.1] text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
+              title="Rafraîchir les statistiques en temps réel"
+            >
+              <RefreshCw size={13} className={isRefreshing ? 'animate-spin' : ''} />
+              <span>Actualiser</span>
+            </button>
 
-          <button
-            onClick={handleExportVisitorsCSV}
-            disabled={!data?.trafficAnalytics?.visitorSessions?.length}
-            className="h-8 px-3 inline-flex items-center gap-1.5 bg-white dark:bg-[#121215] hover:bg-neutral-50 dark:hover:bg-[#18181d] border border-[#eaeaea] dark:border-[#222227] text-neutral-700 dark:text-neutral-200 text-xs font-medium rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
-          >
-            <Users size={12} />
-            <span>Export Visiteurs</span>
-          </button>
+            <button
+              onClick={handleExportVisitorsCSV}
+              disabled={!data?.trafficAnalytics?.visitorSessions?.length}
+              className="h-10 sm:h-9 px-3.5 inline-flex items-center justify-center gap-1.5 bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-[#1a233a] border border-slate-200/90 dark:border-white/[0.1] text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
+            >
+              <Users size={13} />
+              <span>Export Visiteurs</span>
+            </button>
+          </div>
 
           <button
             onClick={handleExportCSV}
             disabled={!data}
-            className="h-8 px-3.5 inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-medium rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto h-10 sm:h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-black text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
           >
-            <Download size={12} />
-            <span>Rapport Global</span>
+            <Download size={13} />
+            <span>Rapport Global (CSV)</span>
           </button>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. DATE FILTER BAR                                                        */}
+      {/* 2. DATE FILTER BAR (POLARIS SEGMENTED CONTROL)                            */}
       {/* ========================================================================= */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
-        <div className="flex items-center bg-neutral-100 dark:bg-[#1c1c21] p-0.5 rounded-md text-xs overflow-x-auto max-w-full">
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 pt-1">
+        <div className="flex items-center gap-1 bg-slate-100/90 dark:bg-white/[0.04] p-1 rounded-xl border border-slate-200/80 dark:border-white/[0.08] backdrop-blur-md overflow-x-auto max-w-full" style={{ scrollbarWidth: 'none' }}>
           {[
             { id: 'today', label: "Aujourd'hui" },
             { id: 'yesterday', label: 'Hier' },
@@ -285,10 +292,10 @@ export default function AnalyticsDashboardClient() {
                   setPeriod(p.id as any);
                   setShowDatePicker(false);
                 }}
-                className={`px-3 py-1.5 rounded transition-all cursor-pointer text-xs font-medium whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer text-xs font-bold whitespace-nowrap ${
                   isSelected
-                    ? 'bg-white dark:bg-[#121215] text-neutral-900 dark:text-white shadow-2xs font-semibold'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                    ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-xs ring-1 ring-slate-200/90 dark:ring-white/10'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.05]'
                 }`}
               >
                 {p.label}
@@ -297,42 +304,45 @@ export default function AnalyticsDashboardClient() {
           })}
           <button
             onClick={() => setShowDatePicker(!showDatePicker)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-all cursor-pointer text-xs font-medium whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer text-xs font-bold whitespace-nowrap ${
               period === 'custom'
-                ? 'bg-white dark:bg-[#121215] text-neutral-900 dark:text-white shadow-2xs font-semibold'
-                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-xs ring-1 ring-slate-200/90 dark:ring-white/10'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.05]'
             }`}
           >
-            <Calendar size={12} />
+            <Calendar size={13} />
             <span>Personnalisé</span>
           </button>
         </div>
 
-        <div className="text-[11px] font-mono text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span>Moteur de télémesure : <strong>NAY Live Sensor</strong></span>
+        <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.06] shadow-2xs shrink-0 self-start xl:self-auto">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span>Moteur de télémesure : <strong className="font-bold text-slate-800 dark:text-slate-200">NAY Real-Time Sensor</strong></span>
         </div>
       </div>
 
       {/* Custom Date Picker Dropdown */}
       {showDatePicker && (
-        <div className="p-4 bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs flex flex-wrap items-center gap-4 animate-in fade-in duration-150">
+        <div className="p-4 bg-white dark:bg-[#111827] rounded-xl border border-slate-200/90 dark:border-white/[0.08] shadow-lg flex flex-wrap items-center gap-4 animate-in fade-in duration-200">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-mono text-neutral-500 dark:text-neutral-400">Début :</label>
+            <label className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">Début :</label>
             <input
               type="date"
               value={customStartDate}
               onChange={(e) => setCustomStartDate(e.target.value)}
-              className="px-2.5 py-1 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs font-mono text-neutral-900 dark:text-white focus:outline-none"
+              className="px-3 py-1.5 rounded-lg border border-slate-200/90 dark:border-white/[0.08] bg-slate-50 dark:bg-[#182136] text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0ea5e9]"
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs font-mono text-neutral-500 dark:text-neutral-400">Fin :</label>
+            <label className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">Fin :</label>
             <input
               type="date"
               value={customEndDate}
               onChange={(e) => setCustomEndDate(e.target.value)}
-              className="px-2.5 py-1 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#18181d] text-xs font-mono text-neutral-900 dark:text-white focus:outline-none"
+              className="px-3 py-1.5 rounded-lg border border-slate-200/90 dark:border-white/[0.08] bg-slate-50 dark:bg-[#182136] text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0ea5e9]"
             />
           </div>
           <button
@@ -340,7 +350,7 @@ export default function AnalyticsDashboardClient() {
               if (customStartDate && customEndDate) setPeriod('custom');
             }}
             disabled={!customStartDate || !customEndDate}
-            className="h-7 px-3 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-black dark:hover:bg-neutral-200 disabled:opacity-40 rounded text-xs font-medium transition-colors cursor-pointer"
+            className="h-8 px-4 bg-slate-900 hover:bg-black text-white dark:bg-white dark:text-slate-900 disabled:opacity-40 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
           >
             Appliquer
           </button>
@@ -348,131 +358,242 @@ export default function AnalyticsDashboardClient() {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. 6 EXECUTIVE TRAFFIC & FINANCIAL KPIS (MINIMALIST RESEND CARDS)         */}
+      {/* 3. 6 SHOPIFY ANALYTICS KPI CARDS (CLEAN METRICS & GAUGES)                 */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
         {/* KPI 1: Chiffre d'Affaires Brut */}
-        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
-          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Chiffre d&apos;Affaires</div>
-          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
-            {data ? formatMAD(data.kpi.grossRevenue) : '—'}
+        <div className="rounded-xl p-4 sm:p-4.5 bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-slate-300 dark:hover:border-white/[0.16] transition-all flex flex-col justify-between min-h-[148px]">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-mono font-bold tracking-tight uppercase text-slate-500 dark:text-slate-400 whitespace-nowrap truncate">Chiffre d&apos;Affaires</span>
+              <div className="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-500/15 border border-sky-100 dark:border-sky-500/20 text-[#0ea5e9] dark:text-[#38bdf8] flex items-center justify-center shrink-0">
+                <Coins size={14} strokeWidth={2.2} />
+              </div>
+            </div>
+            <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white font-mono tabular-nums leading-tight">
+              {data ? formatMAD(data.kpi.grossRevenue) : '—'}
+            </div>
+            {/* Shopify Micro-Gauge */}
+            <div className="w-full bg-slate-100 dark:bg-white/[0.06] h-[2.5px] rounded-full overflow-hidden mt-2.5">
+              <div
+                className="h-full bg-sky-500 rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, Math.round(((data?.kpi?.deliveredRevenue || 0) / (data?.kpi?.grossRevenue || 1)) * 100))}%`
+                }}
+              />
+            </div>
           </div>
-          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            Encaissé : <strong className="font-medium text-emerald-600 dark:text-emerald-400 font-mono">{data ? formatMAD(data.kpi.deliveredRevenue) : '—'}</strong>
+          <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+            <span>Encaissé</span>
+            <strong className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">{data ? formatMAD(data.kpi.deliveredRevenue) : '—'}</strong>
           </div>
         </div>
 
         {/* KPI 2: Commandes & Panier Moyen */}
-        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
-          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Commandes</div>
-          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
-            {data?.kpi?.totalOrders?.toLocaleString() ?? '—'}
+        <div className="rounded-xl p-4 sm:p-4.5 bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-slate-300 dark:hover:border-white/[0.16] transition-all flex flex-col justify-between min-h-[148px]">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-mono font-bold tracking-tight uppercase text-slate-500 dark:text-slate-400 whitespace-nowrap truncate">Commandes</span>
+              <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-100 dark:border-indigo-500/20 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                <ShoppingBag size={14} strokeWidth={2.2} />
+              </div>
+            </div>
+            <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white font-mono tabular-nums leading-tight">
+              {data?.kpi?.totalOrders?.toLocaleString() ?? '—'}
+            </div>
+            {/* Shopify Micro-Gauge */}
+            <div className="w-full bg-slate-100 dark:bg-white/[0.06] h-[2.5px] rounded-full overflow-hidden mt-2.5">
+              <div
+                className="h-full bg-indigo-500 rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, Math.round(((data?.kpi?.totalOrders || 0) / 30) * 100))}%`
+                }}
+              />
+            </div>
           </div>
-          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            Panier moyen : <strong className="font-medium text-neutral-700 dark:text-neutral-300 font-mono">{data ? formatMAD(data.kpi.aov) : '—'}</strong>
+          <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+            <span>Panier moy.</span>
+            <strong className="font-bold text-slate-800 dark:text-slate-200 font-mono">{data ? formatMAD(data.kpi.aov) : '—'}</strong>
           </div>
         </div>
 
         {/* KPI 3: Visiteurs Uniques */}
-        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
-          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Visiteurs Uniques</div>
-          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
-            {data?.kpi?.visitorsCount?.toLocaleString() ?? '—'}
+        <div className="rounded-xl p-4 sm:p-4.5 bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-slate-300 dark:hover:border-white/[0.16] transition-all flex flex-col justify-between min-h-[148px]">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-mono font-bold tracking-tight uppercase text-slate-500 dark:text-slate-400 whitespace-nowrap truncate">Visiteurs Uniques</span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-100 dark:border-emerald-500/20 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <Users size={14} strokeWidth={2.2} />
+              </div>
+            </div>
+            <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white font-mono tabular-nums leading-tight">
+              {data?.kpi?.visitorsCount?.toLocaleString() ?? '—'}
+            </div>
+            {/* Shopify Micro-Gauge */}
+            <div className="w-full bg-slate-100 dark:bg-white/[0.06] h-[2.5px] rounded-full overflow-hidden mt-2.5">
+              <div
+                className="h-full bg-emerald-500 rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, Math.round(((data?.kpi?.visitorsCount || 0) / 2000) * 100))}%`
+                }}
+              />
+            </div>
           </div>
-          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            Pages vues : <strong className="font-medium text-neutral-700 dark:text-neutral-300 font-mono">{data?.kpi?.pageViewsCount?.toLocaleString() ?? '—'}</strong>
+          <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+            <span>Pages vues</span>
+            <strong className="font-bold text-slate-800 dark:text-slate-200 font-mono">{data?.kpi?.pageViewsCount?.toLocaleString() ?? '—'}</strong>
           </div>
         </div>
 
         {/* KPI 4: Taux de Conversion */}
-        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
-          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Taux Conversion</div>
-          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
-            {data?.kpi?.conversionRate ?? 0}%
+        <div className="rounded-xl p-4 sm:p-4.5 bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-slate-300 dark:hover:border-white/[0.16] transition-all flex flex-col justify-between min-h-[148px]">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-mono font-bold tracking-tight uppercase text-slate-500 dark:text-slate-400 whitespace-nowrap truncate">Taux Conversion</span>
+              <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-500/15 border border-purple-100 dark:border-purple-500/20 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <Target size={14} strokeWidth={2.2} />
+              </div>
+            </div>
+            <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white font-mono tabular-nums leading-tight">
+              {data?.kpi?.conversionRate ?? 0}%
+            </div>
+            {/* Shopify Micro-Gauge */}
+            <div className="w-full bg-slate-100 dark:bg-white/[0.06] h-[2.5px] rounded-full overflow-hidden mt-2.5">
+              <div
+                className="h-full bg-purple-500 rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, Math.round(((data?.kpi?.conversionRate || 0) / 3) * 100))}%`
+                }}
+              />
+            </div>
           </div>
-          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            Livraison : <strong className="font-medium text-emerald-600 dark:text-emerald-400 font-mono">{data?.kpi?.deliveryRate ?? 0}%</strong>
+          <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+            <span>Livraison</span>
+            <strong className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">{data?.kpi?.deliveryRate ?? 0}%</strong>
           </div>
         </div>
 
         {/* KPI 5: Paniers en Cours */}
-        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
-          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Paniers Actifs</div>
-          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
-            {formatMAD(data?.trafficAnalytics?.visitorSessions?.reduce((s, v) => s + (v.cartValue || 0), 0) || 0)}
+        <div className="rounded-xl p-4 sm:p-4.5 bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-slate-300 dark:hover:border-white/[0.16] transition-all flex flex-col justify-between min-h-[148px]">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-mono font-bold tracking-tight uppercase text-slate-500 dark:text-slate-400 whitespace-nowrap truncate">Paniers Actifs</span>
+              <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/15 border border-amber-100 dark:border-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <ShoppingCart size={14} strokeWidth={2.2} />
+              </div>
+            </div>
+            <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white font-mono tabular-nums leading-tight">
+              {formatMAD(data?.trafficAnalytics?.visitorSessions?.reduce((s, v) => s + (v.cartValue || 0), 0) || 0)}
+            </div>
+            {/* Shopify Micro-Gauge */}
+            <div className="w-full bg-slate-100 dark:bg-white/[0.06] h-[2.5px] rounded-full overflow-hidden mt-2.5">
+              <div
+                className="h-full bg-amber-500 rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, Math.round(((data?.trafficAnalytics?.visitorSessions?.filter(s => s.hasCart || s.cartValue > 0).length || 0) / (data?.trafficAnalytics?.visitorSessions?.length || 1)) * 100))}%`
+                }}
+              />
+            </div>
           </div>
-          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            À relancer : <strong className="font-medium text-amber-600 dark:text-amber-400 font-mono">{data?.trafficAnalytics?.visitorSessions?.filter(s => s.hasCart || s.cartValue > 0).length || 0} paniers</strong>
+          <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+            <span>À relancer</span>
+            <strong className="font-bold text-amber-600 dark:text-amber-400 font-mono">{data?.trafficAnalytics?.visitorSessions?.filter(s => s.hasCart || s.cartValue > 0).length || 0} paniers</strong>
           </div>
         </div>
 
         {/* KPI 6: Taux de Rebond */}
-        <div className="bg-white dark:bg-[#121215] p-4 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs">
-          <div className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Taux Rebond</div>
-          <div className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white font-mono mt-1">
-            {data?.kpi?.bounceRate ?? 0}%
+        <div className="rounded-xl p-4 sm:p-4.5 bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-slate-300 dark:hover:border-white/[0.16] transition-all flex flex-col justify-between min-h-[148px]">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-mono font-bold tracking-tight uppercase text-slate-500 dark:text-slate-400 whitespace-nowrap truncate">Taux Rebond</span>
+              <div className="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-500/15 border border-rose-100 dark:border-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <Activity size={14} strokeWidth={2.2} />
+              </div>
+            </div>
+            <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white font-mono tabular-nums leading-tight">
+              {data?.kpi?.bounceRate ?? 0}%
+            </div>
+            {/* Shopify Micro-Gauge */}
+            <div className="w-full bg-slate-100 dark:bg-white/[0.06] h-[2.5px] rounded-full overflow-hidden mt-2.5">
+              <div
+                className="h-full bg-rose-500 rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, data?.kpi?.bounceRate || 0)}%`
+                }}
+              />
+            </div>
           </div>
-          <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            Durée moy. : <strong className="font-medium text-neutral-700 dark:text-neutral-300 font-mono">{data?.kpi?.avgDuration ?? '—'}</strong>
+          <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.05] text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+            <span>Durée moy.</span>
+            <strong className="font-bold text-slate-800 dark:text-slate-200 font-mono">{data?.kpi?.avgDuration ?? '—'}</strong>
           </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. 5 EXECUTIVE DASHBOARD TABS (RESEND UNDERLINE STYLE)                     */}
+      {/* 4. 5 EXECUTIVE DASHBOARD TABS (SHOPIFY POLARIS SEGMENTED CONTROLS)        */}
       {/* ========================================================================= */}
-      <div className="flex items-center gap-6 border-b border-[#eaeaea] dark:border-[#222227] overflow-x-auto text-sm">
+      <div className="flex items-center gap-1 p-1 bg-slate-100/90 dark:bg-white/[0.04] rounded-xl border border-slate-200/80 dark:border-white/[0.08] backdrop-blur-xl overflow-x-auto text-xs" style={{ scrollbarWidth: 'none' }}>
         {[
           {
             id: 'visitors',
             label: 'Visiteurs & Registre Live',
+            icon: Users,
             count: data?.trafficAnalytics?.visitorSessions?.length,
           },
           {
             id: 'funnel',
             label: 'Entonnoir de Conversion',
+            icon: Target,
             badge: data?.kpi ? `${data.kpi.conversionRate}%` : undefined,
           },
           {
             id: 'perfumes',
             label: 'Performance Parfums & Stocks',
+            icon: Package,
             count: data?.perfumeAnalytics?.bestSellers?.length,
           },
           {
             id: 'geography',
             label: 'Villes & Canaux de Trafic',
+            icon: MapPin,
             badge: 'Maroc MA',
           },
           {
             id: 'marketing_ai',
             label: 'Marketing, ROAS & Ads',
+            icon: Sparkles,
             badge: 'ROAS',
           },
         ].map((tab) => {
           const isActive =
             activeTab === tab.id ||
             (tab.id === 'geography' && (activeTab === 'sources' || activeTab === 'devices' || activeTab === 'pages' || activeTab === 'livestream'));
+          const IconComponent = tab.icon;
 
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
-              className={`relative pb-3 text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              className={`relative px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer whitespace-nowrap active:scale-95 shrink-0 ${
                 isActive
-                  ? 'text-black dark:text-white border-b-2 border-black dark:border-white font-semibold -mb-px'
-                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
+                  ? 'bg-white dark:bg-[#1e293b] text-slate-900 dark:text-white shadow-xs ring-1 ring-slate-200/90 dark:ring-white/10'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/[0.04]'
               }`}
             >
+              <IconComponent size={13} className={isActive ? 'text-[#0ea5e9] dark:text-[#38bdf8]' : 'text-slate-400'} />
               <span>{tab.label}</span>
               {typeof tab.count === 'number' && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
-                  isActive ? 'bg-neutral-900 text-white dark:bg-white dark:text-black' : 'bg-neutral-100 text-neutral-600 dark:bg-[#1c1c21] dark:text-neutral-300'
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+                  isActive ? 'bg-[#0ea5e9]/10 text-[#0ea5e9] dark:text-[#38bdf8]' : 'bg-slate-200/70 dark:bg-white/[0.08] text-slate-600 dark:text-slate-400'
                 }`}>
                   {tab.count}
                 </span>
               )}
               {tab.badge && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-100 text-neutral-700 dark:bg-[#1c1c21] dark:text-neutral-300 font-mono font-medium border border-[#eaeaea] dark:border-[#222227]">
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+                  isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-slate-200/70 dark:bg-white/[0.08] text-slate-600 dark:text-slate-400'
+                }`}>
                   {tab.badge}
                 </span>
               )}
@@ -481,7 +602,8 @@ export default function AnalyticsDashboardClient() {
         })}
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════ */}
+
+{/* ══════════════════════════════════════════════════════════════════════ */}
       {/* TAB 1: VISITEURS ENTRANTS & SESSIONS EN DIRECT                        */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'visitors' && (
@@ -531,7 +653,7 @@ export default function AnalyticsDashboardClient() {
       {(activeTab === 'geography' || activeTab === 'sources' || activeTab === 'devices' || activeTab === 'pages' || activeTab === 'livestream') && (
         <div className="space-y-6">
           {/* Sub Navigation Bar */}
-          <div className="flex items-center gap-1 overflow-x-auto p-1 bg-neutral-100 dark:bg-[#1c1c21] rounded-md border border-[#eaeaea] dark:border-[#26262b] w-fit max-w-full" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex items-center gap-1 overflow-x-auto p-1 bg-slate-100/90 dark:bg-white/[0.04] p-1 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] w-fit max-w-full" style={{ scrollbarWidth: 'none' }}>
             {[
               { id: 'cities', label: 'Villes du Maroc', icon: <MapPin size={12} className="text-neutral-400" /> },
               { id: 'sources', label: 'Sources d\'Acquisition', icon: <Share2 size={12} className="text-neutral-400" /> },
@@ -555,7 +677,7 @@ export default function AnalyticsDashboardClient() {
                   }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? 'bg-white dark:bg-[#121215] text-neutral-900 dark:text-white shadow-2xs font-semibold'
+                      ? 'bg-white dark:bg-[#182136] text-[#0ea5e9] dark:text-[#38bdf8] shadow-xs ring-1 ring-slate-200/80 dark:ring-white/10 font-bold'
                       : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                   }`}
                 >
@@ -572,7 +694,7 @@ export default function AnalyticsDashboardClient() {
           {/* Visual Distribution of Sources */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Donut Chart */}
-            <div className="bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+            <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
                 <div>
                   <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
@@ -621,7 +743,7 @@ export default function AnalyticsDashboardClient() {
             </div>
 
             {/* Source Breakdown Bars */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+            <div className="lg:col-span-2 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
                 <div>
                   <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
@@ -663,7 +785,7 @@ export default function AnalyticsDashboardClient() {
           </div>
 
           {/* Full Enterprise Sources Table */}
-          <div className="bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs overflow-hidden">
+          <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
             <div className="p-4 border-b border-[#eaeaea] dark:border-[#222227] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
@@ -762,7 +884,7 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {((geoSubTab === 'cities' && activeTab === 'geography') || (activeTab === 'geography' && geoSubTab === 'cities')) && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs p-4.5 space-y-4">
+          <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4.5 space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
@@ -825,7 +947,7 @@ export default function AnalyticsDashboardClient() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Device Types */}
-            <div className="bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+            <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-4">
               <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
                 <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
                   Appareils des Visiteurs
@@ -861,7 +983,7 @@ export default function AnalyticsDashboardClient() {
             </div>
 
             {/* Operating Systems & Browsers */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
+            <div className="lg:col-span-2 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-4">
               <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
                 <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
                   Profil Technique & Navigation
@@ -902,7 +1024,7 @@ export default function AnalyticsDashboardClient() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {((geoSubTab === 'pages' && activeTab === 'geography') || activeTab === 'pages') && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs overflow-hidden">
+          <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
             <div className="p-4 border-b border-[#eaeaea] dark:border-[#222227] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
@@ -987,7 +1109,7 @@ export default function AnalyticsDashboardClient() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Live Actions Stream (2 cols) */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-3">
+            <div className="lg:col-span-2 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-3">
               <div className="flex items-center justify-between pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
                 <div>
                   <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
@@ -1040,7 +1162,7 @@ export default function AnalyticsDashboardClient() {
             </div>
 
             {/* Peak Traffic Hours (1 col) */}
-            <div className="bg-white dark:bg-[#121215] p-4.5 rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-3">
+            <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-3">
               <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
                 <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
                   Heures d&apos;Affluence

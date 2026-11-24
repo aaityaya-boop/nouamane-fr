@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth/adminAuth';
-import { getUserEffectivePermissions } from '@/lib/auth/rbac/accessControl';
+import { hashPassword, isValidAdminRole } from '@/lib/auth/adminAuth';
+import { getUserEffectivePermissions, hasPermission } from '@/lib/auth/rbac/accessControl';
 import { requirePermission } from '@/lib/auth/rbac/serverGuard';
 import { getRoleDefinition } from '@/lib/auth/rbac/roles';
 import { logAdminActivity } from '@/lib/activityLogger';
+import { sanitizePublicUrl } from '@/lib/security/sanitize';
 
 // GET /api/admin/team - List team members
 export async function GET(req: Request) {
@@ -159,16 +160,25 @@ export async function POST(req: Request) {
     }
 
     // Password strength check
-    if (password.length < 6) {
+    if (typeof password !== 'string' || password.length < 8) {
       return NextResponse.json(
-        { error: 'Le mot de passe doit contenir au moins 6 caractères' },
+        { error: 'Le mot de passe doit contenir au moins 8 caractères' },
         { status: 400 }
       );
     }
 
-    // Check email uniqueness
-    const existing = await prisma.adminUser.findUnique({
-      where: { email: emailNormalized },
+    const normalizedRole = typeof role === 'string' ? role.trim().toUpperCase() : '';
+    if (!isValidAdminRole(normalizedRole)) {
+      return NextResponse.json(
+        { error: 'Rôle administrateur invalide ou non autorisé' },
+        { status: 400 }
+      );
+    }
+
+    // Check email uniqueness (case-insensitive)
+    const existing = await prisma.adminUser.findFirst({
+      where: { email: { equals: emailNormalized, mode: 'insensitive' } },
+      select: { id: true },
     });
 
     if (existing) {
@@ -178,35 +188,44 @@ export async function POST(req: Request) {
       );
     }
 
-    // Privilege elevation check: Only Owners can create an OWNER account
+    // Privilege elevation check: Only Owners can create an OWNER/CO_OWNER/SUPER_ADMIN account
     const isOwner = currentAdmin?.role === 'OWNER' || currentAdmin?.role === 'CO_OWNER';
-    if ((role === 'OWNER' || role === 'CO_OWNER') && !isOwner) {
+    if ((normalizedRole === 'OWNER' || normalizedRole === 'CO_OWNER' || normalizedRole === 'SUPER_ADMIN') && !isOwner) {
       return NextResponse.json(
         { error: 'Seuls les Propriétaires actuels peuvent créer un autre compte Propriétaire' },
         { status: 403 }
       );
     }
 
-    const passwordHash = await hashPassword(password);
-    const parsedSalary = typeof salary === 'number' ? salary : parseFloat(salary) || 0;
-
-    // Format customPermissions if provided
+    // Prevent customPermissions privilege escalation when creating users
     let customPermsString: string | null = null;
-    if (customPermissions && typeof customPermissions === 'object') {
-      customPermsString = JSON.stringify(customPermissions);
+    if (customPermissions !== undefined && customPermissions !== null) {
+      if (!isOwner && !hasPermission(currentAdmin, 'team.manage_permissions')) {
+        return NextResponse.json(
+          { error: 'Permissions insuffisantes pour attribuer des permissions personnalisées.' },
+          { status: 403 }
+        );
+      }
+      if (typeof customPermissions === 'object') {
+        customPermsString = JSON.stringify(customPermissions);
+      }
     }
+
+    const passwordHash = await hashPassword(password);
+    const parsedSalary = typeof salary === 'number' && Number.isFinite(salary) ? salary : parseFloat(salary) || 0;
+    const safeAvatar = avatar ? sanitizePublicUrl(avatar, 500) : null;
 
     const newMember = await prisma.adminUser.create({
       data: {
-        name: name.trim(),
+        name: name.trim().slice(0, 120),
         email: emailNormalized,
         passwordHash,
-        role: role.toUpperCase(),
-        jobTitle: jobTitle ? jobTitle.trim() : null,
-        phone: phone ? phone.trim() : null,
-        salary: parsedSalary,
+        role: normalizedRole,
+        jobTitle: jobTitle ? String(jobTitle).trim().slice(0, 100) : null,
+        phone: phone ? String(phone).trim().slice(0, 30) : null,
+        salary: Math.max(0, parsedSalary),
         salaryType: salaryType || 'MONTHLY',
-        avatar: avatar || null,
+        avatar: safeAvatar,
         status: 'ACTIVE',
         customPermissions: customPermsString,
       },

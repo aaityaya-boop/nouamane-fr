@@ -1,34 +1,39 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { SignJWT } from 'jose';
+import { signCustomerToken } from '@/lib/security/jwt';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export const dynamic = 'force-dynamic';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-);
 
 export async function POST(request: Request) {
   try {
     const { email, code, newPassword } = await request.json();
 
-    if (!email || !code || !newPassword) {
+    if (!email || !code || !newPassword || typeof email !== 'string') {
       return NextResponse.json(
         { error: 'Email, code de vérification et nouveau mot de passe requis.' },
         { status: 400 }
       );
     }
 
-    if (typeof newPassword !== 'string' || newPassword.length < 6) {
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
       return NextResponse.json(
-        { error: 'Le nouveau mot de passe doit contenir au moins 6 caractères.' },
+        { error: 'Le nouveau mot de passe doit contenir au moins 8 caractères.' },
         { status: 400 }
       );
     }
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanCode = code.toString().trim();
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`reset_otp:${clientIp}:${cleanEmail}`, 8, 15 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Trop de tentatives. Veuillez réessayer dans quelques minutes.' },
+        { status: 429 }
+      );
+    }
 
     const customer = await prisma.customer.findFirst({
       where: {
@@ -41,7 +46,7 @@ export async function POST(request: Request) {
 
     if (!customer || !customer.resetCode || customer.resetCode !== cleanCode) {
       return NextResponse.json(
-        { error: 'Code de vérification incorrect. Veuillez vérifier le code reçu par e-mail.' },
+        { error: 'Code de vérification incorrect ou expiré.' },
         { status: 400 }
       );
     }
@@ -68,16 +73,12 @@ export async function POST(request: Request) {
     });
 
     // Generate JWT auth token to automatically log the customer in
-    const token = await new SignJWT({
-      tokenType: 'CUSTOMER_SESSION',
+    const token = await signCustomerToken({
       id: updatedCustomer.id,
       email: updatedCustomer.email,
       name: updatedCustomer.name,
       role: 'customer',
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('30d')
-      .sign(JWT_SECRET);
+    });
 
     let wishlist = [];
     try {

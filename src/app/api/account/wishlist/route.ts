@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { jwtVerify } from 'jose';
+import { verifyCustomerToken } from '@/lib/security/jwt';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,18 +14,8 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const JWT_SECRET = new TextEncoder().encode(
-      process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-    );
-    
-    let payload;
-    try {
-      const verified = await jwtVerify(token, JWT_SECRET);
-      payload = verified.payload;
-      if (!payload.id || payload.purpose === 'ORDER_TRACKING' || payload.tokenType === 'ADMIN_SESSION') {
-        return NextResponse.json({ error: 'Session invalide' }, { status: 401 });
-      }
-    } catch (e) {
+    const payload = await verifyCustomerToken(token);
+    if (!payload) {
       return NextResponse.json({ error: 'Session invalide' }, { status: 401 });
     }
 

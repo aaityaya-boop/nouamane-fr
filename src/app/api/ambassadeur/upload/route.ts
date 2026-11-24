@@ -4,6 +4,8 @@ import path from 'path';
 import { put } from '@vercel/blob';
 import { getCurrentAmbassador } from '@/lib/affiliate-auth';
 import { getBlobReadWriteToken } from '@/lib/blob';
+import { validateUploadBuffer } from '@/lib/security/sanitize';
+import { checkRateLimit } from '@/lib/security/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -16,6 +18,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
+    const rate = checkRateLimit(`amb_upload:${ambassador.id}`, 25, 60 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json({ error: 'Limite de téléversement atteinte. Réessayez plus tard.' }, { status: 429 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
@@ -26,15 +33,23 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const fileBuffer = Buffer.from(bytes);
 
-    if (fileBuffer.length === 0) {
-      return NextResponse.json({ error: 'Fichier vide' }, { status: 400 });
+    const originalName = file.name || 'document.jpg';
+    const rawMime = file.type || 'application/octet-stream';
+
+    const validation = validateUploadBuffer({
+      buffer: fileBuffer,
+      originalName,
+      mimeType: rawMime,
+      allowDocs: true,
+      allowMedia: false,
+      maxBytes: 10 * 1024 * 1024, // 10 MB max
+    });
+
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: validation.status });
     }
 
-    const originalName = file.name || 'document.jpg';
-    const mimeType = file.type || 'application/octet-stream';
-    const extMatch = originalName.match(/\.([a-zA-Z0-9]+)$/);
-    const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
-
+    const { ext, mimeType } = validation;
     const cleanName = originalName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30);
     const savedName = `ambassador_${ambassador.id}_${Date.now()}_${cleanName}.${ext}`;
     const token = getBlobReadWriteToken();

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck } from 'lucide-react';
 
 export default function CookieConsent() {
   const pathname = usePathname();
@@ -68,10 +69,10 @@ export default function CookieConsent() {
   const isEnglish = locale === 'en';
 
   const titleText = isArabic 
-    ? "احترام خصوصيتكم 🍪" 
+    ? "احترام خصوصيتكم" 
     : isEnglish 
-    ? "Privacy & Cookie Policy 🍪" 
-    : "Respect de votre vie privée 🍪";
+    ? "Privacy & Cookie Policy" 
+    : "Respect de votre vie privée";
 
   const descText = isArabic 
     ? "نستخدم ملفات تعريف الارتباط لحفظ سلة التسوق الخاصة بكم، وتذكر تفضيلاتكم، وتحسين تجربة تسوقكم في متجرنا." 
@@ -97,8 +98,11 @@ export default function CookieConsent() {
         >
           <div className="max-w-4xl mx-auto bg-[#111111]/95 backdrop-blur-md text-white p-6 rounded-2xl shadow-2xl pointer-events-auto border border-white/20 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-sm leading-relaxed text-gray-200 text-center md:text-left rtl:md:text-right">
-              <span className="font-bold text-white text-base block mb-1">{titleText}</span>
-              {descText}
+              <span className="font-bold text-white text-base inline-flex items-center gap-2 mb-1">
+                <ShieldCheck size={16} className="text-[#0ea5e9] shrink-0" />
+                <span>{titleText}</span>
+              </span>
+              <span className="block">{descText}</span>
             </div>
             
             <div className="flex items-center gap-3 w-full md:w-auto">

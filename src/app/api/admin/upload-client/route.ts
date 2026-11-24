@@ -30,9 +30,29 @@ export async function POST(request: Request): Promise<NextResponse> {
       request,
       token,
       onBeforeGenerateToken: async (pathname) => {
+        const lower = pathname.toLowerCase();
+        if (lower.includes('..') || /\.(svg|html|htm|js|mjs|php|exe|sh|ps1)$/i.test(lower)) {
+          throw new Error('Type de fichier ou chemin non autorisé.');
+        }
         return {
+          allowedContentTypes: [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/gif',
+            'image/avif',
+            'application/pdf',
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+            'audio/mpeg',
+            'audio/wav',
+            'audio/webm',
+            'audio/ogg',
+            'audio/mp4',
+          ],
           maximumSizeInBytes: 157286400, // 150MB
-          validUntil: Date.now() + 24 * 60 * 60 * 1000, // 24 hours (prevents token expired error caused by clock drift)
+          validUntil: Date.now() + 2 * 60 * 60 * 1000, // 2 hours
           tokenPayload: JSON.stringify({ userId: admin.id, email: admin.email }),
         };
       },

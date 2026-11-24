@@ -2,10 +2,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nay-fragrances-ambassador-super-secret-key-2026'
-);
+import { getJwtSecretBytes } from '@/lib/security/jwt';
 
 const COOKIE_NAME = 'ambassador_session';
 
@@ -18,16 +15,23 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export async function createAmbassadorToken(payload: { id: string; email: string; code: string; name: string }) {
-  return await new SignJWT(payload)
+  return await new SignJWT({
+    ...payload,
+    tokenType: 'AMBASSADOR_SESSION',
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('30d')
-    .sign(JWT_SECRET);
+    .sign(getJwtSecretBytes('AMBASSADOR'));
 }
 
 export async function verifyAmbassadorToken(token: string) {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecretBytes('AMBASSADOR'));
+    if (!payload || typeof payload !== 'object') return null;
+    if (payload.tokenType && payload.tokenType !== 'AMBASSADOR_SESSION') return null;
+    if (payload.purpose === 'ORDER_TRACKING' || payload.purpose === 'invoice_access') return null;
+    if (typeof payload.id !== 'string' || !payload.id.trim()) return null;
     return payload as { id: string; email: string; code: string; name: string };
   } catch {
     return null;
@@ -63,6 +67,10 @@ export async function getCurrentAmbassador() {
         },
       },
     });
+
+    if (!affiliate || affiliate.status !== 'ACTIVE') {
+      return null;
+    }
 
     return affiliate;
   } catch (err) {

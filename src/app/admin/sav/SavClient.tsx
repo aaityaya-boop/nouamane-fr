@@ -235,6 +235,23 @@ export default function SavClient({ currentAdmin }: SavClientProps) {
     }
   }, [urlClaimId, fetchClaimDetail]);
 
+  const selectOrderForNewClaim = useCallback((order: any) => {
+    setSelectedNewOrder(order);
+    setSearchedOrders([]);
+    setNewOrderSearch('');
+
+    const parsedItems = safeJsonParse<any[]>(order.items, []);
+    const itemsMap: Record<string, { selected: boolean; quantity: number }> = {};
+    parsedItems.forEach((item, idx) => {
+      const key = `${item.id || item.sku || idx}`;
+      itemsMap[key] = {
+        selected: true,
+        quantity: item.quantity || 1,
+      };
+    });
+    setSelectedOrderItems(itemsMap);
+  }, []);
+
   // Handle URL new claim with prefilled order
   useEffect(() => {
     if (urlNewClaim) {
@@ -250,7 +267,7 @@ export default function SavClient({ currentAdmin }: SavClientProps) {
           });
       }
     }
-  }, [urlNewClaim, urlOrderId]);
+  }, [urlNewClaim, urlOrderId, selectOrderForNewClaim]);
 
   // Search orders for new claim
   const searchOrders = async (query: string) => {
@@ -271,23 +288,6 @@ export default function SavClient({ currentAdmin }: SavClientProps) {
     } finally {
       setIsSearchingOrders(false);
     }
-  };
-
-  const selectOrderForNewClaim = (order: any) => {
-    setSelectedNewOrder(order);
-    setSearchedOrders([]);
-    setNewOrderSearch('');
-
-    const parsedItems = safeJsonParse<any[]>(order.items, []);
-    const itemsMap: Record<string, { selected: boolean; quantity: number }> = {};
-    parsedItems.forEach((item, idx) => {
-      const key = `${item.id || item.sku || idx}`;
-      itemsMap[key] = {
-        selected: true,
-        quantity: item.quantity || 1,
-      };
-    });
-    setSelectedOrderItems(itemsMap);
   };
 
   // Create claim submit

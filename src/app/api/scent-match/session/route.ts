@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const rate = checkRateLimit(`sm_session:${clientIp}`, 45, 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 });
+    }
+
     const body = await req.json();
     const {
       sessionId,
@@ -15,31 +22,37 @@ export async function POST(req: NextRequest) {
       participantName
     } = body;
 
-    if (!sessionId) {
-      return NextResponse.json({ error: 'sessionId is required' }, { status: 400 });
+    if (!sessionId || typeof sessionId !== 'string' || !/^[a-zA-Z0-9_-]{6,100}$/.test(sessionId.trim())) {
+      return NextResponse.json({ error: 'Invalid sessionId' }, { status: 400 });
     }
+
+    const safeMin = Math.max(0, Math.min(50000, Number(minPrice) || 250));
+    const safeMax = Math.max(safeMin, Math.min(50000, Number(maxPrice) || 650));
+    const safeName = typeof participantName === 'string' && participantName.trim()
+      ? participantName.trim().slice(0, 60)
+      : undefined;
 
     // Upsert session
     const session = await prisma.scentMatchSession.upsert({
-      where: { sessionId },
+      where: { sessionId: sessionId.trim() },
       update: {
-        locale,
-        deviceType,
-        genderFilter,
-        minPrice: Number(minPrice),
-        maxPrice: Number(maxPrice),
-        familyFilter,
-        ...(participantName ? { participantName } : {})
+        locale: typeof locale === 'string' ? locale.slice(0, 10) : 'fr',
+        deviceType: typeof deviceType === 'string' ? deviceType.slice(0, 20) : 'desktop',
+        genderFilter: typeof genderFilter === 'string' ? genderFilter.slice(0, 30) : 'all',
+        minPrice: safeMin,
+        maxPrice: safeMax,
+        familyFilter: typeof familyFilter === 'string' ? familyFilter.slice(0, 40) : 'all',
+        ...(safeName ? { participantName: safeName } : {})
       },
       create: {
-        sessionId,
-        locale,
-        deviceType,
-        genderFilter,
-        minPrice: Number(minPrice),
-        maxPrice: Number(maxPrice),
-        familyFilter,
-        participantName: participantName || null,
+        sessionId: sessionId.trim(),
+        locale: typeof locale === 'string' ? locale.slice(0, 10) : 'fr',
+        deviceType: typeof deviceType === 'string' ? deviceType.slice(0, 20) : 'desktop',
+        genderFilter: typeof genderFilter === 'string' ? genderFilter.slice(0, 30) : 'all',
+        minPrice: safeMin,
+        maxPrice: safeMax,
+        familyFilter: typeof familyFilter === 'string' ? familyFilter.slice(0, 40) : 'all',
+        participantName: safeName || null,
         status: 'ACTIVE'
       },
       include: {

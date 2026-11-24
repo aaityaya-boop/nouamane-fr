@@ -53,8 +53,8 @@ export default function Header() {
     allWomen: isAr ? 'جميع عطور النساء' : isEn ? "All Women's Fragrances" : 'Tous les Parfums Femme',
     allMen: isAr ? 'جميع عطور الرجال' : isEn ? "All Men's Fragrances" : 'Tous les Parfums Homme',
     
-    testersWomen: isAr ? '✨ تيستور نسائي (جودة عالية)' : isEn ? "✨ Women's Testers (Superior Quality)" : '✨ Testeurs Femme (Qualité Supérieure)',
-    testersMen: isAr ? '✨ تيستور رجالي (جودة عالية)' : isEn ? "✨ Men's Testers (Superior Quality)" : '✨ Testeurs Homme (Qualité Supérieure)',
+    testersWomen: isAr ? 'تيستور نسائي (جودة عالية)' : isEn ? "Women's Testers (Superior Quality)" : 'Testeurs Femme (Qualité Supérieure)',
+    testersMen: isAr ? 'تيستور رجالي (جودة عالية)' : isEn ? "Men's Testers (Superior Quality)" : 'Testeurs Homme (Qualité Supérieure)',
     allTesters: isAr ? 'جميع عطور التيستور الفاخرة' : isEn ? 'All Luxury Testers' : 'Tous les Testeurs de Luxe',
     seeAllTesters: isAr ? 'عرض دليل التيستور بالكامل' : isEn ? 'View All Testers Catalog' : 'Voir tout le catalogue testeurs',
     

@@ -17,6 +17,7 @@ import {
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useCart } from '@/context/CartContext';
+import { MaisonDiamondIcon } from '@/components/icons/MaisonIcons';
 
 export default function SharedResultPage({
   params
@@ -166,9 +167,10 @@ export default function SharedResultPage({
               {favoriteNotes.map((note: string, i: number) => (
                 <span
                   key={i}
-                  className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/15 backdrop-blur-md"
+                  className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/15 backdrop-blur-md inline-flex items-center gap-1.5"
                 >
-                  ✨ {note}
+                  <MaisonDiamondIcon size={10} className="text-sky-300 shrink-0" />
+                  <span>{note}</span>
                 </span>
               ))}
             </div>

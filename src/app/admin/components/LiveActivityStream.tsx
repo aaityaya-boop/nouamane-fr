@@ -40,23 +40,23 @@ export default function LiveActivityStream({
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+    <div className="bg-white dark:bg-[#0c1322] rounded-2xl border border-slate-200/90 dark:border-white/[0.08] overflow-hidden shadow-2xs">
+      <div className="px-5 py-3.5 border-b border-slate-100 dark:border-white/[0.07] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">Flux Visites en Direct</h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">Flux Visites en Direct</h2>
         </div>
-        <span className="text-[10px] font-mono text-slate-400">Temps réel</span>
+        <span className="text-[10.5px] font-mono text-slate-400">Temps réel</span>
       </div>
 
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-slate-100 dark:divide-white/[0.05]">
         {views.length === 0 ? (
           <p className="px-5 py-6 text-slate-400 text-center text-xs">En attente de nouvelles visites...</p>
         ) : (
-          views.map((view) => (
-            <div key={view.id} className="p-3.5 hover:bg-slate-50/70 flex items-center justify-between text-xs transition-colors">
+          views.slice(0, 5).map((view) => (
+            <div key={view.id} className="px-5 py-3 hover:bg-slate-50/70 dark:hover:bg-white/[0.04] flex items-center justify-between text-xs transition-colors">
               <div className="min-w-0 pr-2">
-                <p className="font-semibold text-slate-900 truncate">
+                <p className="font-semibold text-slate-900 dark:text-white truncate">
                   {view.pathname === '/' ? 'Accueil Boutique' : view.pathname}
                 </p>
                 <p className="text-[10px] text-slate-400 mt-0.5 truncate">

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { sendPasswordResetCodeEmail } from '@/lib/email/emailService';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +18,15 @@ export async function POST(request: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const clientIp = getClientIp(request);
+    const ipLimit = checkRateLimit(`forgot_ip:${clientIp}`, 10, 15 * 60 * 1000);
+    const emailLimit = checkRateLimit(`forgot_email:${cleanEmail}`, 5, 15 * 60 * 1000);
+    if (!ipLimit.allowed || !emailLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Trop de demandes de réinitialisation. Veuillez réessayer dans quelques minutes.' },
+        { status: 429 }
+      );
+    }
 
     // Look up customer (case-insensitive)
     const customer = await prisma.customer.findFirst({
@@ -28,14 +39,15 @@ export async function POST(request: Request) {
     });
 
     if (!customer) {
-      return NextResponse.json(
-        { error: "Aucun compte client n'a été trouvé avec cette adresse e-mail. Veuillez vérifier ou créer un compte." },
-        { status: 404 }
-      );
+      // Prevent account enumeration: return identical generic response
+      return NextResponse.json({
+        success: true,
+        message: 'Si un compte est associé à cette adresse e-mail, un code de vérification à 6 chiffres vient d’être envoyé.',
+      });
     }
 
-    // Generate secure 6-digit numeric verification code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate cryptographically secure 6-digit numeric verification code
+    const verificationCode = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     // Save code and expiry to customer record
@@ -56,13 +68,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Un code de vérification à 6 chiffres a été envoyé à ${customer.email}.`,
+      message: 'Si un compte est associé à cette adresse e-mail, un code de vérification à 6 chiffres vient d’être envoyé.',
       channel: emailResult.channel,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in /api/auth/forgot-password:', error);
     return NextResponse.json(
-      { error: error?.message || "Une erreur est survenue lors de l'envoi du code. Veuillez réessayer." },
+      { error: "Une erreur est survenue lors de l'envoi du code. Veuillez réessayer." },
       { status: 500 }
     );
   }

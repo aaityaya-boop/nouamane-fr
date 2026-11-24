@@ -80,8 +80,8 @@ export default function MarketingIntelligenceSection({
   return (
     <div className="space-y-6">
       {/* ── 1. STRATEGIC AI MARKETING ADVISOR ───────────────────────────────── */}
-      <div className="bg-white dark:bg-[#121215] rounded-lg p-5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+      <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
           <div>
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
               Diagnostic & Recommandations Marketing
@@ -101,7 +101,7 @@ export default function MarketingIntelligenceSection({
           {insights.map((insight) => (
             <div
               key={insight.id}
-              className="p-4 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] space-y-3"
+              className="p-4 rounded-md border border-slate-100 dark:border-white/[0.06] bg-slate-50/70 dark:bg-[#0c101c] space-y-3"
             >
               <div className="flex items-start justify-between gap-3">
                 <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-white dark:bg-[#121215] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800">
@@ -128,7 +128,7 @@ export default function MarketingIntelligenceSection({
                 {insight.description}
               </p>
 
-              <div className="p-2.5 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#121215] space-y-1">
+              <div className="p-2.5 rounded border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-[#121215] space-y-1">
                 <div className="text-[10px] font-mono font-medium text-neutral-900 dark:text-neutral-200 flex items-center gap-1">
                   <CheckCircle2 size={11} className="text-emerald-500" />
                   <span>Action recommandée :</span>
@@ -143,8 +143,8 @@ export default function MarketingIntelligenceSection({
       </div>
 
       {/* ── 2. ROAS & AD SPEND PROFIT SIMULATOR ───────────────────────────────── */}
-      <div className="bg-white dark:bg-[#121215] rounded-lg p-5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+      <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
           <div>
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
               Simulateur de Rentabilité Ads & ROAS
@@ -160,7 +160,7 @@ export default function MarketingIntelligenceSection({
         </div>
 
         {/* Real Ad Performance Metrics Strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 bg-[#fafafa] dark:bg-[#151518] rounded-md border border-[#eaeaea] dark:border-[#222227] divide-y sm:divide-y-0 sm:divide-x divide-[#eaeaea] dark:divide-[#222227] p-3 font-mono">
+        <div className="grid grid-cols-1 sm:grid-cols-3 bg-slate-50/70 dark:bg-[#0c101c] rounded-md border border-slate-100 dark:border-white/[0.06] divide-y sm:divide-y-0 sm:divide-x divide-[#eaeaea] dark:divide-[#222227] p-3 font-mono">
           <div className="p-2">
             <div className="text-[10px] uppercase text-neutral-400">
               Dépenses Ads Réelles
@@ -200,7 +200,7 @@ export default function MarketingIntelligenceSection({
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-1">
           {/* Controls Column (1 col) */}
-          <div className="space-y-4 p-4 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] font-mono">
+          <div className="space-y-4 p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] font-mono">
             {/* Slider 1: Budget Pub */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
@@ -280,7 +280,7 @@ export default function MarketingIntelligenceSection({
           {/* Results Display (2 cols) */}
           <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
             {/* Metric 1: Clics / Visites */}
-            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-1 font-mono">
               <span className="text-[10px] uppercase text-neutral-400">Trafic Estimé</span>
               <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {estimatedClicks.toLocaleString()} clics
@@ -289,7 +289,7 @@ export default function MarketingIntelligenceSection({
             </div>
 
             {/* Metric 2: Commandes */}
-            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-1 font-mono">
               <span className="text-[10px] uppercase text-neutral-400">Commandes Estimées</span>
               <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {estimatedOrders} achats
@@ -298,7 +298,7 @@ export default function MarketingIntelligenceSection({
             </div>
 
             {/* Metric 3: CA Prévu */}
-            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-1 font-mono">
               <span className="text-[10px] uppercase text-neutral-400">CA Brut Estimé</span>
               <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {formatMAD(estimatedRevenue)}
@@ -307,7 +307,7 @@ export default function MarketingIntelligenceSection({
             </div>
 
             {/* Metric 4: ROAS */}
-            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-1 font-mono">
               <span className="text-[10px] uppercase text-neutral-400">Multiplicateur (ROAS)</span>
               <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {estimatedRoas}x
@@ -318,7 +318,7 @@ export default function MarketingIntelligenceSection({
             </div>
 
             {/* Metric 5: Bénéfice Net */}
-            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-1 font-mono">
               <span className="text-[10px] uppercase text-neutral-400">Bénéfice Net Estimé</span>
               <div className={`text-lg font-semibold ${estimatedNetProfit >= 0 ? 'text-neutral-900 dark:text-white' : 'text-rose-500'}`}>
                 {formatMAD(estimatedNetProfit)}
@@ -327,7 +327,7 @@ export default function MarketingIntelligenceSection({
             </div>
 
             {/* Metric 6: Coût par Commande */}
-            <div className="p-3.5 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] space-y-1 font-mono">
+            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-[#101524] border border-slate-200/80 dark:border-white/[0.08] space-y-1 font-mono">
               <span className="text-[10px] uppercase text-neutral-400">Coût / Commande (CAC)</span>
               <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                 {estimatedOrders > 0 ? formatMAD(Math.round(adBudget / estimatedOrders)) : '—'}
@@ -339,8 +339,8 @@ export default function MarketingIntelligenceSection({
       </div>
 
       {/* ── 3. HIGH-CONVERTING CAMPAIGN ANGLES & HOOKS ───────────────────────── */}
-      <div className="bg-white dark:bg-[#121215] rounded-lg p-5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
-        <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+      <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 sm:p-6 space-y-4">
+        <div className="pb-3 border-b border-slate-100 dark:border-white/[0.06]">
           <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
             Angles Publicitaires Recommandés pour NAY
           </h3>
@@ -353,7 +353,7 @@ export default function MarketingIntelligenceSection({
           {campaignAngles.map((angle, idx) => (
             <div
               key={idx}
-              className="p-4 rounded-md border border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] space-y-2.5"
+              className="p-4 rounded-md border border-slate-100 dark:border-white/[0.06] bg-slate-50/70 dark:bg-[#0c101c] space-y-2.5"
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-xs text-neutral-900 dark:text-white">
@@ -370,7 +370,7 @@ export default function MarketingIntelligenceSection({
                 <div><span className="text-neutral-400 font-mono text-[10px] uppercase">Parfums :</span> {angle.perfumes}</div>
               </div>
 
-              <div className="p-2.5 rounded border border-[#eaeaea] dark:border-[#222227] bg-white dark:bg-[#121215] text-[11px] text-neutral-700 dark:text-neutral-300 italic">
+              <div className="p-2.5 rounded border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-[#121215] text-[11px] text-neutral-700 dark:text-neutral-300 italic">
                 {angle.hook}
               </div>
             </div>

@@ -3,7 +3,10 @@ import prisma from '@/lib/prisma';
 export async function syncMoroccoSeoEngine() {
   console.log('--- Starting Morocco SEO Growth Engine Sync ---');
 
-  // 1. Ensure SeoSettings is configured
+  const existingGsc = await prisma.googleSearchConsoleConnection.findFirst();
+  const isRealGscConnected = Boolean(existingGsc && existingGsc.accessTokenEncrypted);
+
+  // 1. Ensure SeoSettings is configured honestly
   const settings = await prisma.seoSettings.upsert({
     where: { id: 'default' },
     update: {
@@ -13,8 +16,8 @@ export async function syncMoroccoSeoEngine() {
       defaultDescription: 'Découvrez la collection exclusive NAY Parfums au Maroc. Testeurs originaux, coffrets de luxe et parfums authentiques avec livraison express et paiement à la livraison.',
       robotsEnabled: true,
       sitemapUrl: 'https://nayparfum.ma/sitemap.xml',
-      googleSearchConsoleConnected: true,
-      googlePropertyUrl: 'sc-domain:nayparfum.ma',
+      googleSearchConsoleConnected: isRealGscConnected,
+      googlePropertyUrl: existingGsc?.propertyUrl || 'sc-domain:nayparfum.ma',
     },
     create: {
       id: 'default',
@@ -24,8 +27,8 @@ export async function syncMoroccoSeoEngine() {
       defaultDescription: 'Découvrez la collection exclusive NAY Parfums au Maroc. Testeurs originaux, coffrets de luxe et parfums authentiques avec livraison express et paiement à la livraison.',
       robotsEnabled: true,
       sitemapUrl: 'https://nayparfum.ma/sitemap.xml',
-      googleSearchConsoleConnected: true,
-      googlePropertyUrl: 'sc-domain:nayparfum.ma',
+      googleSearchConsoleConnected: isRealGscConnected,
+      googlePropertyUrl: existingGsc?.propertyUrl || 'sc-domain:nayparfum.ma',
     }
   });
 

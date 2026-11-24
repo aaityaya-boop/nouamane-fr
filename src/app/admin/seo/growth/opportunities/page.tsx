@@ -1,6 +1,7 @@
 import React from 'react';
 import prisma from '@/lib/prisma';
-import { Target, ArrowRight, ExternalLink } from 'lucide-react';
+import { Target, ExternalLink } from 'lucide-react';
+import OpportunityDetailsButton from './OpportunityDetailsButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,9 +64,7 @@ export default async function TopOpportunitiesPage() {
                       </div>
                     </td>
                     <td className="p-4 text-sm">
-                      <button className="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center gap-1">
-                        View Details <ArrowRight size={14} />
-                      </button>
+                      <OpportunityDetailsButton opp={opp} />
                     </td>
                   </tr>
                 ))

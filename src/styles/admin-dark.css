@@ -1,86 +1,477 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&display=swap');
+
 /* ==========================================================================
-   MAISON NAY PARFUMS — EXECUTIVE ADMIN THEME
-   Light Mode: Simple Soft Sky Blue Gradient from the top
-   Dark Mode: Simple Deep Dark Blue Gradient from the top
-   Crisp High-Contrast Typography & Clean Professional Surfaces
+   MAISON NAY PARFUMS — LUXURY EXECUTIVE ADMIN THEME
+   Brand Palette: Signature Sky Blue (#0ea5e9), Deep Midnight Obsidian & Pure Pearl
+   Dark Mode: Deep Obsidian Glass Surfaces with Radiant Cerulean Blue Accents
+   Light Mode: Luminous Pearl Alabaster, Crisp Pure White & Signature Sky Blue
+   Typography: Official Shopify Polaris Type Stack (Inter Variable + Native OS Fallbacks)
    ========================================================================== */
 
-/* ── 0. Executive Inter Typography ────────────────────────────────────────── */
-html,
-body,
-.admin-shell-bg,
-button,
-input,
-select,
-textarea,
-table,
-.font-sans {
-  font-family: var(--font-admin, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ── 0. Shopify Polaris Typography (ADMIN PANEL EXCLUSIVE) ───────────────── */
+:root {
+  --font-shopify-polaris: 'Inter', -apple-system, BlinkMacSystemFont, 'San Francisco', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
 }
 
-/* Precision tabular figures for numbers, metrics, currency, and timestamps */
+/* Enforce Shopify Polaris Font Stack across all Admin Panel Elements */
+html.admin-html,
+body.admin-body,
+.admin-shell-bg,
+.admin-body,
+html.admin-html *,
+body.admin-body *,
+.admin-shell-bg *,
+.admin-body *,
+html.admin-html *::before,
+body.admin-body *::before,
+.admin-shell-bg *::before,
+.admin-body *::before,
+html.admin-html *::after,
+body.admin-body *::after,
+.admin-shell-bg *::after,
+.admin-body *::after {
+  font-family: var(--font-admin, var(--font-shopify-polaris)) !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Headings & Display Titles (Crisp Shopify Polaris tracking) */
+html.admin-html h1,
+html.admin-html h2,
+html.admin-html h3,
+html.admin-html h4,
+html.admin-html h5,
+html.admin-html h6,
+.admin-shell-bg h1,
+.admin-shell-bg h2,
+.admin-shell-bg h3,
+.admin-shell-bg h4,
+.admin-shell-bg h5,
+.admin-shell-bg h6,
+.admin-body h1,
+.admin-body h2,
+.admin-body h3,
+.admin-body h4,
+.admin-body h5,
+.admin-body h6 {
+  font-family: var(--font-admin, var(--font-shopify-polaris)) !important;
+  letter-spacing: -0.025em !important;
+}
+
+/* Precision Tabular Figures (Matching Shopify Dashboard Metrics: $250,000, rates, dates) */
 .tabular-nums,
 [data-metric],
 .admin-metric-value,
-.font-mono {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum" 1;
+.font-mono,
+.admin-shell-bg .tabular-nums,
+.admin-shell-bg [data-metric],
+.admin-body .tabular-nums {
+  font-variant-numeric: tabular-nums lining-nums !important;
+  font-feature-settings: "tnum" 1, "cv02" 1, "cv03" 1, "cv04" 1 !important;
+  letter-spacing: -0.025em !important;
 }
 
-h1, h2, h3, h4 {
-  letter-spacing: -0.02em;
+/* SVG Chart Typography (Recharts Axis & Tooltips matching Shopify Dashboard) */
+.admin-body .recharts-text,
+.admin-body .recharts-cartesian-axis-tick text,
+.admin-body .recharts-default-tooltip,
+.admin-body .recharts-legend-item-text,
+.admin-shell-bg .recharts-text,
+.admin-shell-bg .recharts-cartesian-axis-tick text,
+.admin-shell-bg .recharts-default-tooltip,
+.admin-shell-bg .recharts-legend-item-text {
+  font-family: var(--font-admin, var(--font-shopify-polaris)) !important;
 }
 
-/* ==========================================================================
-   UNIVERSAL TABLEAU DE BORD DESIGN SYSTEM (Light & Dark Executive Theme)
-   Harmonizes all pages in the admin console to match the Tableau de Bord
-   ========================================================================== */
-
-/* ── Universal Container & Card Geometry ─────────────────────────────────── */
-.admin-shell-bg .rounded-lg,
-.admin-shell-bg .rounded-xl,
-.admin-shell-bg .rounded-2xl {
-  border-radius: 1rem !important; /* 16px rounded-2xl */
+/* ── 1. Base Theme Colors & Variables ─────────────────────────────────────── */
+:root {
+  --admin-accent: #0ea5e9;
+  --admin-accent-hover: #0284c7;
 }
 
-/* Crisp White Executive Cards in Light Mode */
-html:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/90):not(.bg-white\/95) {
-  background-color: #ffffff !important;
-  border-color: rgba(226, 232, 240, 0.85) !important; /* border-slate-200/80 */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+/* Light Mode Shell: Grounded Architectural Slate Stone (Balanced Contrast, Clean Negative Space) */
+html:not(.dark) .admin-shell-bg {
+  background-color: #e2e7f0 !important;
+  background-image: none !important;
+  color: #0f172a !important;
 }
 
-/* Subtle Inset Sub-Containers in Light Mode */
+html:not(.dark) .admin-shell-bg .text-slate-400 {
+  color: #64748b !important;
+}
+html:not(.dark) .admin-shell-bg .text-slate-500 {
+  color: #475569 !important;
+}
+
+html:not(.dark) .admin-shell-bg h1:not(.text-white),
+html:not(.dark) .admin-shell-bg h1.text-white,
+html:not(.dark) .admin-body h1.text-white {
+  color: #0b1120 !important;
+}
+
+/* Dark Mode Shell: 2026/2027 Deep Obsidian Midnight & Subtle Sapphire Skylight */
+html.dark .admin-shell-bg {
+  background-color: #060913 !important;
+  background-image: radial-gradient(
+    ellipse 85% 42% at 50% -8%,
+    rgba(14, 165, 233, 0.1) 0%,
+    rgba(2, 132, 199, 0.03) 48%,
+    transparent 76%
+  ) !important;
+  background-attachment: fixed !important;
+  color: #f8fafc !important;
+}
+
+/* ── 2. Universal Professional Card Surfaces ────────────────────────────── */
+/* Universal Light Mode Cards: Grounded Crisp Surfaces on Stone Mist Canvas */
+html:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/90):not(.bg-white\/95),
+html:not(.dark) .spatial-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.115) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 8px 20px -12px rgba(15, 23, 42, 0.08) !important;
+  color: #0b1120 !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease !important;
+}
+
+html:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/90):not(.bg-white\/95):hover,
+html:not(.dark) .spatial-card:hover {
+  border-color: var(--admin-accent-ring, rgba(15, 23, 42, 0.22)) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07), 0 12px 28px -12px rgba(15, 23, 42, 0.11) !important;
+}
+
+/* Light Mode Recessed Wells, Inset Panels & Segmented Tracks */
 html:not(.dark) .admin-shell-bg .bg-slate-50,
 html:not(.dark) .admin-shell-bg .bg-neutral-50,
 html:not(.dark) .admin-shell-bg .bg-gray-50,
 html:not(.dark) .admin-shell-bg .bg-\[\#fafafa\],
 html:not(.dark) .admin-shell-bg .bg-\[\#f8fafc\] {
-  background-color: rgba(248, 250, 252, 0.75) !important;
-  border-color: rgba(226, 232, 240, 0.8) !important;
+  background-color: #eef2f7 !important;
+  border: 1px solid rgba(15, 23, 42, 0.085) !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.025) !important;
 }
 
-/* ── Universal Table Styling (Matching Tableau de Bord) ───────────────────── */
+html:not(.dark) .admin-shell-bg .bg-slate-100:not(header *):not(aside *),
+html:not(.dark) .admin-shell-bg .bg-neutral-100:not(header *):not(aside *),
+html:not(.dark) .admin-shell-bg .bg-gray-100:not(header *):not(aside *) {
+  background-color: #e4eaf2 !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* Light Mode Tables, Hairlines & Silk Inputs */
+html:not(.dark) .admin-shell-bg thead,
+html:not(.dark) .admin-shell-bg thead tr {
+  background: #edf1f6 !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.11) !important;
+}
+
+html:not(.dark) .admin-shell-bg tbody tr:hover {
+  background-color: #f4f7fb !important;
+}
+
+html:not(.dark) .admin-shell-bg .border-slate-200,
+html:not(.dark) .admin-shell-bg .border-neutral-200 {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html:not(.dark) .admin-shell-bg .border-slate-100,
+html:not(.dark) .admin-shell-bg .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html:not(.dark) .admin-shell-bg input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+html:not(.dark) .admin-shell-bg select,
+html:not(.dark) .admin-shell-bg textarea {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(148, 163, 184, 0.34) !important;
+  color: #0b1120 !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.025) !important;
+}
+
+html:not(.dark) .admin-shell-bg input:focus,
+html:not(.dark) .admin-shell-bg select:focus,
+html:not(.dark) .admin-shell-bg textarea:focus {
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16) !important;
+}
+
+/* Universal Dark Mode Cards: Unified 2026/2027 Deep Obsidian Sapphire Slate */
+html.dark .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/5),
+html.dark .admin-shell-bg .bg-\[\#111827\],
+html.dark .admin-shell-bg .bg-\[\#14151f\],
+html.dark .admin-shell-bg .bg-\[\#101524\],
+html.dark .admin-shell-bg .bg-\[\#0d121f\],
+html.dark .admin-shell-bg .bg-\[\#0e1322\],
+html.dark .admin-shell-bg .bg-\[\#111728\],
+html.dark .admin-shell-bg .bg-\[\#111726\],
+html.dark .admin-shell-bg .bg-\[\#17171a\],
+html.dark .admin-shell-bg .bg-\[\#1C2025\],
+html.dark .admin-shell-bg .bg-\[\#1c1c20\],
+html.dark .admin-shell-bg .bg-\[\#222227\] {
+  background: linear-gradient(180deg, rgba(16, 24, 43, 0.92) 0%, rgba(11, 17, 32, 0.96) 100%) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.13) !important;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  color: #f8fafc !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+html.dark .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/5):hover,
+html.dark .admin-shell-bg .bg-\[\#111827\]:hover,
+html.dark .admin-shell-bg .bg-\[\#14151f\]:hover,
+html.dark .admin-shell-bg .bg-\[\#101524\]:hover,
+html.dark .admin-shell-bg .bg-\[\#0d121f\]:hover,
+html.dark .admin-shell-bg .bg-\[\#0e1322\]:hover,
+html.dark .admin-shell-bg .bg-\[\#111728\]:hover,
+html.dark .admin-shell-bg .bg-\[\#111726\]:hover,
+html.dark .admin-shell-bg .bg-\[\#17171a\]:hover,
+html.dark .admin-shell-bg .bg-\[\#1C2025\]:hover,
+html.dark .admin-shell-bg .bg-\[\#1c1c20\]:hover,
+html.dark .admin-shell-bg .bg-\[\#222227\]:hover {
+  border-color: rgba(56, 189, 248, 0.26) !important;
+  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(56, 189, 248, 0.08) !important;
+}
+
+/* Dark Mode Inset Sub-Containers */
+html.dark .admin-shell-bg .bg-slate-50,
+html.dark .admin-shell-bg .bg-slate-50\/40,
+html.dark .admin-shell-bg .bg-slate-50\/50,
+html.dark .admin-shell-bg .bg-slate-50\/60,
+html.dark .admin-shell-bg .bg-slate-50\/70,
+html.dark .admin-shell-bg .bg-slate-50\/80,
+html.dark .admin-shell-bg .bg-slate-50\/90,
+html.dark .admin-shell-bg .bg-neutral-50,
+html.dark .admin-shell-bg .bg-gray-50,
+html.dark .admin-shell-bg .bg-zinc-50,
+html.dark .admin-shell-bg .bg-\[\#fafafa\],
+html.dark .admin-shell-bg .bg-\[\#fcfcfc\],
+html.dark .admin-shell-bg .bg-\[\#f8fafc\],
+html.dark .admin-shell-bg .bg-\[\#202024\] {
+  background-color: #090e1b !important;
+  border-color: rgba(148, 163, 184, 0.12) !important;
+}
+
+html.dark .hover\:bg-\[\#fafafa\]:hover,
+html.dark .hover\:bg-\[\#fcfcfc\]:hover {
+  background-color: #131c31 !important;
+}
+
+/* Dark Mode Segmented Bars & Tab Containers */
+html.dark .admin-shell-bg .bg-slate-100,
+html.dark .admin-shell-bg .bg-neutral-100,
+html.dark .admin-shell-bg .bg-gray-100,
+html.dark .admin-shell-bg .bg-zinc-100 {
+  background-color: #0e1629 !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── 3. Apple iOS 27 Animated Ultra Liquid Glass Taskbars & Docks ─────────── */
+
+/* Keyframe Animations for Animated Liquid Glass (60 FPS GPU-accelerated) */
+@keyframes ios27-ambient-liquid-breathe {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes ios27-caustic-glide-horizontal {
+  0% {
+    transform: translate3d(-35%, -8%, 0) scaleX(0.85);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(8%, 10%, 0) scaleX(1.15);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(38%, -5%, 0) scaleX(0.9);
+    opacity: 0.60;
+  }
+}
+
+@keyframes ios27-caustic-glide-vertical {
+  0% {
+    transform: translate3d(-8%, -35%, 0) scaleY(0.85);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(10%, 8%, 0) scaleY(1.15);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(-5%, 38%, 0) scaleY(0.9);
+    opacity: 0.60;
+  }
+}
+
+@keyframes ios27-meniscus-sweep {
+  0% {
+    background-position: 250% 0;
+    opacity: 0.3;
+  }
+  30%, 70% {
+    opacity: 0.95;
+  }
+  100% {
+    background-position: -150% 0;
+    opacity: 0.3;
+  }
+}
+
+/* ── Luxury Executive Floating Dock Sidebar (Light Mode: Swiss Porcelain Shell) ── */
+@media (min-width: 1024px) {
+  html:not(.dark) .admin-sidebar {
+    background: rgba(248, 250, 252, 0.96) !important;
+    backdrop-filter: blur(22px) saturate(160%) !important;
+    border: 1px solid rgba(15, 23, 42, 0.13) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 28px -12px rgba(15, 23, 42, 0.12) !important;
+    animation: none !important;
+    color: #0f172a !important;
+  }
+
+  html.dark .admin-sidebar {
+    background: rgba(10, 15, 29, 0.88) !important;
+    backdrop-filter: blur(24px) saturate(165%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(165%) !important;
+    border: 1px solid rgba(148, 163, 184, 0.14) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 18px 42px -8px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+    animation: none !important;
+    color: #f8fafc !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  html:not(.dark) .admin-sidebar {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border-right: 1px solid rgba(226, 232, 240, 0.9) !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.08) !important;
+    color: #0f172a !important;
+  }
+
+  html.dark .admin-sidebar {
+    background: rgba(9, 14, 27, 0.96) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border-right: 1px solid rgba(148, 163, 184, 0.14) !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 0 28px rgba(0, 0, 0, 0.65) !important;
+    color: #f8fafc !important;
+  }
+}
+
+html:not(.dark) .admin-mobile-taskbar {
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.05) !important;
+  color: #0f172a !important;
+}
+
+html.dark .admin-mobile-taskbar {
+  background: rgba(9, 14, 27, 0.94) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-top: 1px solid rgba(148, 163, 184, 0.14) !important;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.65) !important;
+  color: #f8fafc !important;
+}
+
+/* ── Precision Ultra-Clean Scrollbar ─────────────────────────────────── */
+.shopify-nav-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+html.dark .shopify-nav-scrollbar {
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+.shopify-nav-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.shopify-nav-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.shopify-nav-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 9999px;
+}
+html.dark .shopify-nav-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── 2027 Spatial Floating Command Taskbar ── */
+.admin-workstation-header,
+html:not(.dark) .admin-shell-bg header.nay-taskbar-2027 {
+  border-radius: 18px !important;
+  background: rgba(248, 250, 252, 0.92) !important;
+  backdrop-filter: blur(22px) saturate(180%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.13) !important;
+  box-shadow: 0 8px 24px -10px rgba(15, 23, 42, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+html.dark .admin-workstation-header,
+html.dark .admin-shell-bg header,
+html.dark .admin-shell-bg header.nay-taskbar-2027 {
+  border-radius: 18px !important;
+  background: rgba(10, 15, 29, 0.84) !important;
+  backdrop-filter: blur(24px) saturate(170%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(170%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+  box-shadow: 0 12px 34px -8px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Disabled Caustics (Clean, professional human design) */
+.ios27-liquid-caustic-header,
+.ios27-liquid-caustic-sidebar,
+.ios27-liquid-caustic-mobile,
+.ios27-liquid-specular-meniscus {
+  display: none !important;
+}
+
+/* Mobile top headers */
+html.dark .lg\:hidden.bg-white,
+html.dark .lg\:hidden.bg-white\/90,
+html.dark .lg\:hidden.bg-white\/95 {
+  background-color: rgba(14, 15, 22, 0.96) !important;
+  backdrop-filter: blur(20px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+  color: #ffffff !important;
+}
+
+/* ── 4. Precision Tables (Matching "Recent Activities" in Reference) ──────── */
 .admin-shell-bg table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
+/* Light Mode Tables */
 html:not(.dark) .admin-shell-bg table thead tr {
-  background-color: rgba(248, 250, 252, 0.85) !important;
+  background-color: rgba(246, 248, 251, 0.95) !important;
   border-bottom: 1px solid rgba(226, 232, 240, 0.85) !important;
 }
 
 html:not(.dark) .admin-shell-bg table thead th {
-  font-size: 10.5px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  color: #64748b !important; /* text-slate-500 */
-  padding: 0.75rem 1rem !important;
+  letter-spacing: 0.06em !important;
+  color: #64748b !important;
+  padding: 0.875rem 1.25rem !important;
 }
 
 html:not(.dark) .admin-shell-bg table tbody tr {
@@ -89,413 +480,168 @@ html:not(.dark) .admin-shell-bg table tbody tr {
 }
 
 html:not(.dark) .admin-shell-bg table tbody tr:hover {
-  background-color: rgba(248, 250, 252, 0.75) !important;
-}
-
-html:not(.dark) .admin-shell-bg table tbody tr:last-child {
-  border-bottom: none !important;
+  background-color: rgba(248, 250, 252, 0.9) !important;
 }
 
 html:not(.dark) .admin-shell-bg table tbody td {
-  padding: 0.75rem 1rem !important;
+  padding: 0.875rem 1.25rem !important;
   font-size: 0.8125rem !important;
   color: #1e293b;
 }
 
-/* ── Action Buttons & Controls (Matching Tableau de Bord) ─────────────────── */
-.admin-shell-bg button.bg-neutral-900,
-.admin-shell-bg button.bg-black,
-.admin-shell-bg a.bg-neutral-900,
-.admin-shell-bg a.bg-black {
-  background-color: #0f172a !important; /* Slate-900 */
-  border-radius: 0.75rem !important; /* rounded-xl */
+/* Dark Mode Tables */
+html.dark .admin-shell-bg table thead tr,
+html.dark thead.bg-slate-50,
+html.dark th {
+  background-color: #090e1c !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+  color: #94a3b8 !important;
+}
+
+html.dark .admin-shell-bg table thead th {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  padding: 0.875rem 1.25rem !important;
+}
+
+html.dark .admin-shell-bg table tbody tr {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08) !important;
+  transition: background-color 0.15s ease;
+}
+
+html.dark .admin-shell-bg table tbody tr:hover,
+html.dark tr.hover\:bg-slate-50\/70:hover,
+html.dark tr.hover\:bg-slate-50:hover {
+  background-color: rgba(14, 165, 233, 0.06) !important;
+}
+
+html.dark .admin-shell-bg table tbody td {
+  padding: 0.875rem 1.25rem !important;
+  font-size: 0.8125rem !important;
+  color: #e2e8f0;
+}
+
+/* ── 5. Buttons, Actions & Interactive Pills ──────────────────────────────── */
+/* Clean Luxury Human-Designed Action Buttons (Monochrome, subtle borders, no glowing gradients) */
+.btn-primary-orange,
+.admin-shell-bg .btn-orange,
+.admin-shell-bg .btn-sky {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border: 1px solid #27272a !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
   font-weight: 600 !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.5rem !important;
   transition: all 0.15s ease;
 }
 
-.admin-shell-bg button.bg-neutral-900:hover,
-.admin-shell-bg button.bg-black:hover,
-.admin-shell-bg a.bg-neutral-900:hover,
-.admin-shell-bg a.bg-black:hover {
-  background-color: #1e293b !important;
+.btn-primary-orange:hover,
+.admin-shell-bg .btn-orange:hover,
+.admin-shell-bg .btn-sky:hover {
+  background: #27272a !important;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08) !important;
+  transform: none;
 }
 
-/* Clean White Action Buttons */
+/* Dark Mode Button Overrides: NAY Sapphire Obsidian Primary CTAs */
+html.dark .admin-shell-bg button.bg-neutral-900,
+html.dark .admin-shell-bg button.bg-black,
+html.dark .admin-shell-bg a.bg-neutral-900,
+html.dark .admin-shell-bg a.bg-black,
+html.dark .admin-shell-bg .bg-\[\#0f172a\] {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 4px 16px -4px rgba(14, 165, 233, 0.45) !important;
+  border-radius: 0.75rem !important;
+}
+
+html.dark .admin-shell-bg button.bg-neutral-900:hover,
+html.dark .admin-shell-bg button.bg-black:hover,
+html.dark .admin-shell-bg a.bg-neutral-900:hover,
+html.dark .admin-shell-bg a.bg-black:hover,
+html.dark .admin-shell-bg .bg-\[\#0f172a\]:hover {
+  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%) !important;
+  box-shadow: 0 6px 20px -4px rgba(56, 189, 248, 0.55) !important;
+}
+
+/* Light Mode Secondary Action Buttons */
 html:not(.dark) .admin-shell-bg button.bg-white,
 html:not(.dark) .admin-shell-bg a.bg-white:not([class*="rounded-full"]) {
-  border-radius: 0.75rem !important; /* rounded-xl */
-  border-color: rgba(226, 232, 240, 0.9) !important;
+  border-radius: 0.75rem !important;
+  border-color: rgba(226, 232, 240, 0.95) !important;
   color: #334155 !important;
   font-weight: 500 !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
 }
 
-/* Form Controls & Search Bars */
+/* Dark Mode Secondary Action Buttons */
+html.dark .admin-shell-bg button.border-slate-200:hover,
+html.dark .admin-shell-bg button.border-neutral-300:hover,
+html.dark .admin-shell-bg button.border-neutral-200:hover,
+html.dark .admin-shell-bg a.border-slate-200:hover {
+  background-color: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.32) !important;
+  color: #ffffff !important;
+}
+
+/* ── 6. Form Controls: Search Inputs & Dropdowns ──────────────────────────── */
 .admin-shell-bg input[type="text"],
 .admin-shell-bg input[type="search"],
+.admin-shell-bg input[type="email"],
+.admin-shell-bg input[type="number"],
 .admin-shell-bg select {
-  border-radius: 0.75rem !important; /* rounded-xl */
-  border-color: rgba(226, 232, 240, 0.9) !important;
-  background-color: rgba(248, 250, 252, 0.75) !important;
+  border-radius: 0.75rem !important;
   font-size: 0.8125rem !important;
   transition: all 0.15s ease;
 }
 
-.admin-shell-bg input[type="text"]:focus,
-.admin-shell-bg input[type="search"]:focus,
-.admin-shell-bg select:focus {
+/* Light Mode Inputs */
+html:not(.dark) .admin-shell-bg input[type="text"],
+html:not(.dark) .admin-shell-bg input[type="search"],
+html:not(.dark) .admin-shell-bg select {
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .admin-shell-bg input[type="text"]:focus,
+html:not(.dark) .admin-shell-bg input[type="search"]:focus,
+html:not(.dark) .admin-shell-bg select:focus {
   border-color: #0ea5e9 !important;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
-  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12) !important;
 }
 
-/* ── 0. Light Mode Admin Shell: Creative Sky Blue Gradient from Up ────────── */
-.admin-shell-bg {
-  background-color: #f8fafc;
-  background-image: linear-gradient(180deg, #bae6fd 0%, #dbeafe 120px, #eff6ff 260px, #f8fafc 460px);
-  background-repeat: no-repeat;
+/* Dark Mode Inputs: Obsidian Midnight Insets */
+html.dark .admin-shell-bg input[type="text"],
+html.dark .admin-shell-bg input[type="search"],
+html.dark .admin-shell-bg input[type="email"],
+html.dark .admin-shell-bg input[type="password"],
+html.dark .admin-shell-bg input[type="number"],
+html.dark .admin-shell-bg select,
+html.dark .admin-shell-bg textarea {
+  background-color: #090e1c !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
 }
 
-/* ── 1. Root & Base Theme Variables ───────────────────────────────────────── */
-html.dark,
-html.dark body,
-html.dark [data-theme="dark"] {
-  --admin-bg-root: #09090b;
-  --admin-bg-sidebar: #09090b;
-  --admin-bg-header: #0c0c0e;
-  --admin-bg-card: #121215;
-  --admin-bg-card-hover: #18181d;
-  --admin-bg-subtle: #0d0d10;
-  --admin-bg-elevated: #18181c;
-  --admin-border-main: #222227;
-  --admin-border-subtle: #1a1a1f;
-  --admin-border-focus: #52525b;
-  --admin-text-title: #ffffff;
-  --admin-text-main: #e4e4e7;
-  --admin-text-secondary: #a1a1aa;
-  --admin-text-muted: #71717a;
-  color-scheme: dark;
+html.dark .admin-shell-bg input:focus,
+html.dark .admin-shell-bg select:focus,
+html.dark .admin-shell-bg textarea:focus {
+  background-color: #0c1426 !important;
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18) !important;
+  outline: none !important;
 }
 
-html.dark body {
-  background-color: #09090b !important;
-  color: #e4e4e7 !important;
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
 }
 
-/* ── 2. Dark Mode Admin Shell: Simple Dark Blue Gradient from Up ──────────── */
-html.dark .admin-shell-bg {
-  background-color: #070a12 !important;
-  background-image: linear-gradient(180deg, #0d284f 0%, #091c38 140px, #071326 280px, #070a12 480px) !important;
-  background-repeat: no-repeat !important;
-}
-
-/* ── Light Mode: iOS Liquid Glass White (Clean Frosted Translucent, Zero Black) ── */
-html:not(.dark) aside,
-html:not(.dark) .admin-sidebar,
-html:not(.dark) aside.bg-white {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border-color: rgba(226, 232, 240, 0.8) !important;
-  box-shadow: 2px 0 24px -4px rgba(0, 0, 0, 0.02) !important;
-  color: #334155 !important;
-}
-
-html:not(.dark) header,
-html:not(.dark) .admin-header,
-html:not(.dark) header.bg-white {
-  background-color: rgba(255, 255, 255, 0.82) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border-color: rgba(255, 255, 255, 0.8) !important;
-  box-shadow: 0 4px 20px -2px rgba(14, 165, 233, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) .lg\:hidden.bg-white,
-html:not(.dark) .lg\:hidden.bg-white\/90,
-html:not(.dark) .lg\:hidden.bg-white\/95 {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border-color: rgba(226, 232, 240, 0.8) !important;
-  color: #0f172a !important;
-}
-
-/* ── Claire Mode: Ultra High-Contrast Readable Typography ─────────────────── */
-html:not(.dark) .text-white {
-  color: #ffffff !important;
-}
-
-html:not(.dark) h1:not([class*="text-"]),
-html:not(.dark) h2:not([class*="text-"]),
-html:not(.dark) h3:not([class*="text-"]),
-html:not(.dark) h4:not([class*="text-"]) {
-  color: #0f172a;
-}
-
-html:not(.dark) .text-slate-900,
-html:not(.dark) .text-slate-950 {
-  color: #0f172a;
-}
-
-html:not(.dark) .text-slate-700,
-html:not(.dark) .text-slate-600 {
-  color: #334155;
-}
-
-html:not(.dark) .text-slate-500 {
-  color: #64748b;
-}
-
-html:not(.dark) .text-slate-400 {
-  color: #64748b;
-}
-
-/* ── Dark Mode: Distinct Premium iOS Liquid Glass / Dark Midnight Obsidian Style ── */
-html.dark aside,
-html.dark .admin-sidebar {
-  background-color: rgba(10, 15, 29, 0.94) !important;
-  backdrop-filter: blur(24px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
-  border-right-color: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.6) !important;
-  color: #cbd5e1 !important;
-}
-
-html.dark header,
-html.dark .admin-header {
-  background-color: rgba(12, 19, 36, 0.84) !important;
-  backdrop-filter: blur(24px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
-  border: 1px solid rgba(56, 189, 248, 0.2) !important;
-  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.6), 0 0 18px rgba(14, 165, 233, 0.08) !important;
-  color: #ffffff !important;
-}
-
-html.dark .lg\:hidden.bg-white,
-html.dark .lg\:hidden.bg-white\/90,
-html.dark .lg\:hidden.bg-white\/95 {
-  background-color: rgba(10, 15, 29, 0.94) !important;
-  backdrop-filter: blur(20px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-  color: #ffffff !important;
-}
-
-/* Sub-containers inside dark mode */
-html.dark .bg-\[\#f8fafc\] {
-  background-color: #0d0d10 !important;
-  background-image: none !important;
-}
-
-/* ── 3. Gradient Overrides (Matte Charcoal & Zinc Stops) ──────────────────── */
-html.dark .from-slate-50,
-html.dark .from-neutral-50,
-html.dark .from-gray-50,
-html.dark .from-zinc-50,
-html.dark .from-white,
-html.dark .from-sky-50\/30,
-html.dark .from-sky-50\/60 {
-  --tw-gradient-from: #151519 !important;
-  --tw-gradient-to: rgba(21, 21, 25, 0) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-
-html.dark .to-white,
-html.dark .to-slate-50,
-html.dark .to-neutral-50,
-html.dark .to-gray-50,
-html.dark .to-zinc-50 {
-  --tw-gradient-to: #101013 !important;
-}
-
-html.dark .via-slate-50,
-html.dark .via-neutral-50,
-html.dark .via-white {
-  --tw-gradient-stops: var(--tw-gradient-from), #121216, var(--tw-gradient-to) !important;
-}
-
-/* Light pastel color gradients */
-html.dark .from-emerald-50,
-html.dark .from-emerald-50\/90,
-html.dark .from-green-50 {
-  --tw-gradient-from: rgba(16, 185, 129, 0.12) !important;
-  --tw-gradient-to: rgba(16, 185, 129, 0) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-
-html.dark .to-teal-50,
-html.dark .to-emerald-50 {
-  --tw-gradient-to: rgba(20, 184, 166, 0.08) !important;
-}
-
-html.dark .from-sky-50,
-html.dark .from-sky-50\/40,
-html.dark .from-sky-100 {
-  --tw-gradient-from: rgba(56, 189, 248, 0.12) !important;
-  --tw-gradient-to: rgba(56, 189, 248, 0) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-
-html.dark .to-sky-50,
-html.dark .to-sky-50\/50,
-html.dark .to-sky-50\/40,
-html.dark .to-indigo-100 {
-  --tw-gradient-to: rgba(99, 102, 241, 0.08) !important;
-}
-
-html.dark .from-slate-200,
-html.dark .from-gray-200 {
-  --tw-gradient-from: #222228 !important;
-  --tw-gradient-to: rgba(34, 34, 40, 0) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-
-html.dark .to-slate-300,
-html.dark .to-gray-300 {
-  --tw-gradient-to: #2c2c34 !important;
-}
-
-/* ── 4. Cards, Bento Surfaces & Containers (Matte Zinc / Titanium) ────────── */
-html.dark .bg-white:not(.bg-white\/10):not(.bg-white\/20):not(.bg-white\/5) {
-  background-color: #121215 !important;
-  border-color: #222227 !important;
-  color: #e4e4e7;
-}
-
-/* Subtle Inset Sub-Containers */
-html.dark .bg-slate-50,
-html.dark .bg-slate-50\/40,
-html.dark .bg-slate-50\/50,
-html.dark .bg-slate-50\/60,
-html.dark .bg-slate-50\/70,
-html.dark .bg-slate-50\/80,
-html.dark .bg-slate-50\/90,
-html.dark .bg-neutral-50,
-html.dark .bg-neutral-50\/40,
-html.dark .bg-neutral-50\/50,
-html.dark .bg-neutral-50\/60,
-html.dark .bg-neutral-50\/70,
-html.dark .bg-neutral-50\/80,
-html.dark .bg-neutral-50\/90,
-html.dark .bg-gray-50,
-html.dark .bg-gray-50\/50,
-html.dark .bg-gray-50\/70,
-html.dark .bg-zinc-50,
-html.dark .bg-zinc-50\/50,
-html.dark .bg-zinc-50\/70,
-html.dark .bg-stone-50,
-html.dark .bg-\[\#fafafa\],
-html.dark .bg-\[\#fcfcfc\],
-html.dark .bg-\[\#f8fafc\] {
-  background-color: #0c0c0e !important;
-  border-color: #1c1c21 !important;
-}
-
-html.dark .hover\:bg-\[\#fafafa\]:hover,
-html.dark .hover\:bg-\[\#fcfcfc\]:hover {
-  background-color: #18181d !important;
-}
-
-/* Segmented bars, Tab pills bars, Info blocks */
-html.dark .bg-slate-100,
-html.dark .bg-slate-100\/40,
-html.dark .bg-slate-100\/50,
-html.dark .bg-slate-100\/60,
-html.dark .bg-slate-100\/70,
-html.dark .bg-slate-100\/80,
-html.dark .bg-slate-100\/90,
-html.dark .bg-neutral-100,
-html.dark .bg-neutral-100\/40,
-html.dark .bg-neutral-100\/50,
-html.dark .bg-neutral-100\/60,
-html.dark .bg-neutral-100\/70,
-html.dark .bg-neutral-100\/80,
-html.dark .bg-neutral-100\/90,
-html.dark .bg-gray-100,
-html.dark .bg-gray-100\/70,
-html.dark .bg-gray-100\/80,
-html.dark .bg-zinc-100,
-html.dark .bg-zinc-100\/70,
-html.dark .bg-zinc-100\/80,
-html.dark .bg-stone-100 {
-  background-color: #101013 !important;
-  border-color: #1e1e23 !important;
-  color: #e4e4e7 !important;
-}
-
-html.dark .bg-slate-200,
-html.dark .bg-slate-200\/50,
-html.dark .bg-slate-200\/60,
-html.dark .bg-slate-200\/70,
-html.dark .bg-slate-200\/80,
-html.dark .bg-neutral-200,
-html.dark .bg-neutral-200\/50,
-html.dark .bg-neutral-200\/60,
-html.dark .bg-neutral-200\/70,
-html.dark .bg-neutral-200\/80,
-html.dark .bg-gray-200,
-html.dark .bg-zinc-200 {
-  background-color: #1c1c22 !important;
-  border-color: #27272f !important;
-}
-
-/* ── 5. All Borders & Hairline Dividers ───────────────────────────────────── */
-html.dark .border-slate-100,
-html.dark .border-slate-100\/60,
-html.dark .border-slate-100\/80,
-html.dark .border-slate-200,
-html.dark .border-slate-200\/50,
-html.dark .border-slate-200\/60,
-html.dark .border-slate-200\/70,
-html.dark .border-slate-200\/80,
-html.dark .border-slate-200\/90,
-html.dark .border-slate-300,
-html.dark .border-neutral-100,
-html.dark .border-neutral-100\/60,
-html.dark .border-neutral-100\/80,
-html.dark .border-neutral-200,
-html.dark .border-neutral-200\/50,
-html.dark .border-neutral-200\/60,
-html.dark .border-neutral-200\/70,
-html.dark .border-neutral-200\/80,
-html.dark .border-neutral-200\/90,
-html.dark .border-neutral-300,
-html.dark .border-gray-100,
-html.dark .border-gray-200,
-html.dark .border-gray-200\/60,
-html.dark .border-gray-200\/80,
-html.dark .border-gray-300,
-html.dark .border-zinc-100,
-html.dark .border-zinc-200,
-html.dark .border-zinc-300,
-html.dark .border-sky-200,
-html.dark .border-\[\#e2e8f0\],
-html.dark .border-\[\#eaeaea\],
-html.dark .border-\[\#f0f0f0\],
-html.dark .divide-\[\#eaeaea\] > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-\[\#f0f0f0\] > :not([hidden]) ~ :not([hidden]) {
-  border-color: #222227 !important;
-}
-
-html.dark .border-black,
-html.dark .border-neutral-900 {
-  border-color: #ffffff !important;
-}
-
-html.dark .bg-black {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
-
-html.dark .hover\:bg-neutral-800:hover {
-  background-color: #e4e4e7 !important;
-  color: #000000 !important;
-}
-
-/* ── 6. ALL DARK FONTS -> PURE CRISP TITANIUM / WHITE TYPOGRAPHY ─────────── */
+/* ── 7. High-Contrast Typography ──────────────────────────────────────────── */
 html.dark h1,
 html.dark h2,
 html.dark h3,
@@ -508,505 +654,3113 @@ html.dark .text-slate-800,
 html.dark .text-neutral-950,
 html.dark .text-neutral-900,
 html.dark .text-neutral-800,
-html.dark .text-gray-950,
-html.dark .text-gray-900,
-html.dark .text-gray-800,
-html.dark .text-zinc-950,
-html.dark .text-zinc-900,
-html.dark .text-zinc-800,
-html.dark .text-stone-900,
-html.dark .text-stone-800,
 html.dark .text-black,
 html.dark .text-\[\#1A1A1A\],
-html.dark .text-\[\#0f172a\],
-html.dark .text-\#1a1a1a {
+html.dark .text-\[\#0f172a\] {
   color: #ffffff !important;
 }
 
 html.dark .text-slate-700,
 html.dark .text-slate-600,
 html.dark .text-neutral-700,
-html.dark .text-neutral-600,
-html.dark .text-gray-700,
-html.dark .text-gray-600,
-html.dark .text-zinc-700,
-html.dark .text-zinc-600,
-html.dark .text-stone-700,
-html.dark .text-stone-600 {
-  color: #d4d4d8 !important;
+html.dark .text-neutral-600 {
+  color: #cbd5e1 !important;
 }
 
 html.dark .text-slate-500,
 html.dark .text-slate-400,
 html.dark .text-neutral-500,
-html.dark .text-neutral-400,
-html.dark .text-gray-500,
-html.dark .text-gray-400,
-html.dark .text-zinc-500,
-html.dark .text-zinc-400,
-html.dark .text-stone-500,
-html.dark .text-stone-400 {
-  color: #a1a1aa !important;
+html.dark .text-neutral-400 {
+  color: #94a3b8 !important;
 }
 
-/* Hover Texts */
-html.dark .hover\:text-slate-900:hover,
-html.dark .hover\:text-slate-800:hover,
-html.dark .hover\:text-neutral-900:hover,
-html.dark .hover\:text-neutral-800:hover,
-html.dark .hover\:text-gray-900:hover,
-html.dark .hover\:text-gray-800:hover,
-html.dark .hover\:text-black:hover {
-  color: #ffffff !important;
-}
-
-/* ── 6.5. High-Legibility Typography Scaling (Bigger & Ultra-Readable) ────── */
-body, 
-.admin-shell-bg {
-  font-size: 15px;
-  letter-spacing: -0.01em;
-}
-
-/* Micro-fonts elevated to clear, comfortable sizes */
-.text-\[10px\] {
-  font-size: 11.5px !important;
-  line-height: 1.35 !important;
-}
-
-.text-\[11px\] {
-  font-size: 12.5px !important;
-  line-height: 1.4 !important;
-}
-
-.text-xs {
-  font-size: 13.5px !important;
-  line-height: 1.45 !important;
-}
-
-.text-\[13px\] {
-  font-size: 14.5px !important;
-  line-height: 1.45 !important;
-}
-
-.text-sm {
-  font-size: 15.5px !important;
-  line-height: 1.5 !important;
-}
-
-.text-base {
-  font-size: 17px !important;
-  line-height: 1.5 !important;
-}
-
-.text-lg {
-  font-size: 19px !important;
-  line-height: 1.4 !important;
-}
-
-.text-xl {
-  font-size: 22px !important;
-  line-height: 1.3 !important;
-}
-
-.text-2xl {
-  font-size: 27px !important;
-  line-height: 1.25 !important;
-}
-
-.text-\[28px\] {
-  font-size: 32px !important;
-  line-height: 1.2 !important;
-}
-
-/* Form Controls & Inputs font sizing */
-input, 
-select, 
-textarea,
-button {
-  font-size: 13.5px !important;
-}
-
-/* Table Cells & Headers readability */
-table th {
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.05em !important;
-}
-
-table td {
-  font-size: 13.5px !important;
-}
-
-table td input {
-  font-size: 13.5px !important;
-}
-
-/* Navigation items */
-aside a, 
-.admin-sidebar a {
-  font-size: 13.5px !important;
-}
-
-/* ── 7. Navigation Links & Sidebar Items ─────────────────────────────────── */
-html.dark .hover\:bg-slate-100\/70:hover,
-html.dark .hover\:bg-slate-100\/80:hover,
-html.dark .hover\:bg-slate-100:hover,
-html.dark .hover\:bg-slate-50:hover,
-html.dark .hover\:bg-slate-200:hover,
-html.dark .hover\:bg-neutral-100:hover,
-html.dark .hover\:bg-neutral-50:hover,
-html.dark .hover\:bg-gray-100:hover {
-  background-color: #18181d !important;
-  color: #ffffff !important;
-}
-
-/* Active Nav Item (Apple Pro Matte Charcoal Pill) */
-html.dark .bg-sky-50 {
-  background-color: #22222a !important;
-  border-color: #33333d !important;
-  color: #ffffff !important;
-}
-
-/* ── 8. Form Controls: Inputs, Selects, Textareas & Pickers ───────────────── */
-html.dark input[type="text"],
-html.dark input[type="search"],
-html.dark input[type="email"],
-html.dark input[type="password"],
-html.dark input[type="number"],
-html.dark input[type="tel"],
-html.dark input[type="date"],
-html.dark select,
-html.dark textarea {
-  background-color: #0c0c0e !important;
-  color: #ffffff !important;
-  border: 1px solid #27272f !important;
-}
-
-html.dark input:focus,
-html.dark select:focus,
-html.dark textarea:focus {
-  background-color: #121216 !important;
-  border-color: #52525b !important;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08) !important;
-  outline: none !important;
-}
-
-html.dark input::placeholder,
-html.dark textarea::placeholder,
-html.dark .placeholder\:text-neutral-400::placeholder,
-html.dark .placeholder\:text-gray-400::placeholder,
-html.dark .placeholder\:text-slate-400::placeholder {
-  color: #71717a !important;
-}
-
-html.dark select option {
-  background-color: #121215 !important;
-  color: #ffffff !important;
-}
-
-/* Inline editable table inputs */
-html.dark td input[type="text"],
-html.dark td input[type="number"] {
-  background-color: transparent !important;
-  color: #ffffff !important;
-  border-color: transparent !important;
-}
-
-html.dark td input[type="text"]:focus,
-html.dark td input[type="number"]:focus {
-  background-color: #141418 !important;
-  border-color: #52525b !important;
-}
-
-/* Date picker calendar icon inversion in dark mode */
-html.dark input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.9);
-  cursor: pointer;
-}
-
-/* ── 9. Tables, Table Rows, Dividers & Headers ────────────────────────────── */
-html.dark table thead,
-html.dark thead.bg-slate-50,
-html.dark thead.bg-neutral-50,
-html.dark thead.bg-gray-50,
-html.dark th {
-  background-color: #0c0c0e !important;
-  border-color: #1f1f25 !important;
-  color: #a1a1aa !important;
-}
-
-html.dark table tbody tr {
-  border-color: #1a1a20 !important;
-  background-color: transparent;
-}
-
-html.dark table tbody tr:hover,
-html.dark tr.hover\:bg-slate-50\/70:hover,
-html.dark tr.hover\:bg-slate-50:hover,
-html.dark tr.hover\:bg-neutral-50\/70:hover,
-html.dark tr.hover\:bg-neutral-50:hover,
-html.dark tr.hover\:bg-gray-50\/70:hover {
-  background-color: #16161b !important;
+/* ── 8. Borders & Dividers in Dark Mode ───────────────────────────────────── */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/60,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-300,
+html.dark .border-neutral-100,
+html.dark .border-neutral-200,
+html.dark .border-gray-100,
+html.dark .border-gray-200 {
+  border-color: rgba(148, 163, 184, 0.12) !important;
 }
 
 html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-neutral-100 > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-neutral-200 > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #1a1a20 !important;
+html.dark .divide-neutral-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(148, 163, 184, 0.1) !important;
 }
 
-/* ── 10. Modals, Drawers, Flyouts & Popups ────────────────────────────────── */
-html.dark .fixed .bg-white,
-html.dark .fixed .bg-slate-50,
-html.dark .fixed .bg-neutral-50,
-html.dark .absolute.bg-white,
-html.dark .absolute .bg-white {
-  background-color: #141418 !important;
-  border-color: #282830 !important;
-  color: #e4e4e7 !important;
+/* ── 9. Status Badges & Category Chips (Apple Liquid Glass Pills) ────────── */
+/* Light Mode Badges (Vibrant Jewel-Toned Crystal Pills) */
+html:not(.dark) .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #047857 !important;
+  font-weight: 700 !important;
 }
 
-html.dark .fixed.bg-slate-950\/75,
-html.dark .fixed.bg-slate-950\/80,
-html.dark .fixed.bg-slate-950\/85 {
-  background-color: rgba(0, 0, 0, 0.82) !important;
-  backdrop-filter: blur(16px) !important;
+html:not(.dark) .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  color: #b45309 !important;
+  font-weight: 700 !important;
 }
 
-html.dark .shadow-2xl,
-html.dark .shadow-xl {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+html:not(.dark) .bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+  border: 1px solid rgba(244, 63, 94, 0.3) !important;
+  color: #be123c !important;
+  font-weight: 700 !important;
 }
 
-/* Rich Text Editor in Dark Mode */
-html.dark .ql-toolbar {
-  background-color: #0c0c0e !important;
-  border-color: #222227 !important;
+html:not(.dark) .bg-sky-50 {
+  background-color: rgba(14, 165, 233, 0.12) !important;
+  border: 1px solid rgba(14, 165, 233, 0.3) !important;
+  color: #0284c7 !important;
+  font-weight: 700 !important;
 }
 
-html.dark .ql-toolbar button .ql-stroke {
-  stroke: #a1a1aa !important;
+html:not(.dark) .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.12) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  color: #4338ca !important;
+  font-weight: 700 !important;
 }
 
-html.dark .ql-toolbar button .ql-fill {
-  fill: #a1a1aa !important;
-}
-
-html.dark .ql-container {
-  background-color: #0c0c0e !important;
-  border-color: #222227 !important;
-  color: #ffffff !important;
-}
-
-/* ── 11. Status Badges & Category Chips (Minimalist Titanium) ─────────────── */
-html.dark .bg-emerald-50 {
+/* Dark Mode Badges (Obsidian Glass Luminescent Pills) */
+/* Completed / Active / Delivered -> Emerald */
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-950\/40 {
   background-color: rgba(16, 185, 129, 0.12) !important;
   border-color: rgba(16, 185, 129, 0.25) !important;
   color: #34d399 !important;
 }
 
-html.dark .bg-amber-50 {
+/* Warning / Pending / Unconfirmed -> Amber / Coral */
+html.dark .bg-amber-50,
+html.dark .bg-amber-950\/40 {
   background-color: rgba(245, 158, 11, 0.12) !important;
   border-color: rgba(245, 158, 11, 0.25) !important;
   color: #fbbf24 !important;
 }
 
-html.dark .bg-rose-50 {
+/* In Danger / Cancelled / Refused -> Rose */
+html.dark .bg-rose-50,
+html.dark .bg-rose-950\/40 {
   background-color: rgba(244, 63, 94, 0.12) !important;
   border-color: rgba(244, 63, 94, 0.25) !important;
   color: #fb7185 !important;
 }
 
+/* In Transit / Shipping / Info -> Sky Blue Brand Accent */
 html.dark .bg-indigo-50,
-html.dark .bg-indigo-50\/40,
-html.dark .bg-indigo-50\/50,
-html.dark .bg-indigo-50\/70 {
-  background-color: rgba(99, 102, 241, 0.12) !important;
-  border-color: rgba(99, 102, 241, 0.25) !important;
-  color: #a5b4fc !important;
-}
-
-html.dark .bg-purple-50 {
-  background-color: rgba(168, 85, 247, 0.12) !important;
-  border-color: rgba(168, 85, 247, 0.25) !important;
-  color: #c084fc !important;
-}
-
-html.dark .bg-teal-50 {
-  background-color: rgba(20, 184, 166, 0.12) !important;
-  border-color: rgba(20, 184, 166, 0.25) !important;
-  color: #2dd4bf !important;
-}
-
-/* Neutral & Slate Badges in Dark Mode */
-html.dark .bg-neutral-100.text-neutral-700,
-html.dark .bg-slate-100.text-slate-700,
-html.dark .bg-neutral-200.text-neutral-700,
-html.dark .bg-slate-200.text-slate-700 {
-  background-color: #18181c !important;
-  border-color: #27272f !important;
-  color: #d4d4d8 !important;
-}
-
-/* Text Colors for Badges */
-html.dark .text-emerald-700,
-html.dark .text-emerald-800,
-html.dark .text-emerald-600 {
-  color: #34d399 !important;
-}
-
-html.dark .text-amber-700,
-html.dark .text-amber-800,
-html.dark .text-amber-900,
-html.dark .text-amber-600 {
-  color: #fbbf24 !important;
-}
-
-html.dark .text-rose-700,
-html.dark .text-rose-800,
-html.dark .text-rose-600 {
-  color: #fb7185 !important;
-}
-
-html.dark .text-indigo-700,
-html.dark .text-indigo-800,
-html.dark .text-indigo-900,
-html.dark .text-indigo-950,
-html.dark .text-indigo-600 {
-  color: #a5b4fc !important;
-}
-
-html.dark .text-sky-700,
-html.dark .text-sky-800,
-html.dark .text-sky-600 {
+html.dark .bg-sky-50 {
+  background-color: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(14, 165, 233, 0.25) !important;
   color: #38bdf8 !important;
 }
 
-/* ── 12. Segmented Tab Pills & Product Showcase (Vitrine / Minimalist) ─────── */
-html.dark .border-neutral-900,
-html.dark .border-2.border-neutral-900,
-html.dark .border-slate-900,
-html.dark .border-black {
-  border-color: #ffffff !important;
+/* ── 10. Modals, Drawers & Flyouts (Apple iOS 27 Liquid Glass Sheets) ────── */
+/* Use specific class to prevent recursive backdrop-filter ghosting on all fixed children */
+.modal-glass-container {
+  background-color: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0f172a !important;
 }
 
-html.dark .ring-neutral-900\/10 {
-  --tw-ring-color: rgba(255, 255, 255, 0.2) !important;
+html.dark .modal-glass-container,
+[data-theme="dark"] .modal-glass-container {
+  background-color: #0b1222 !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: #f8fafc !important;
+  border-color: rgba(56, 189, 248, 0.22) !important;
 }
 
-html.dark .text-neutral-300 {
-  color: #71717a !important;
+html.dark .fixed.order-details-modal,
+html.dark .order-details-sheet {
+  background-color: #0c101c !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-/* Active tab pill indicator */
-html.dark .bg-neutral-100\/80 > button > [layoutId],
-html.dark .bg-neutral-100\/80 > [layoutId],
-html.dark .bg-slate-100\/90 > button > [layoutId],
-html.dark .bg-slate-100\/90 > [layoutId] {
-  background-color: #222228 !important;
-  border-color: #33333c !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+html:not(.dark) .fixed.order-details-modal,
+html:not(.dark) .order-details-sheet {
+  background-color: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-/* ── 13. Buttons & Interactive Controls ──────────────────────────────────── */
-html.dark .bg-slate-900:not(.bg-gradient-to-br),
-html.dark .bg-neutral-900,
-html.dark .bg-black,
-html.dark .bg-\[\#0f172a\] {
-  background-color: #1e1e24 !important;
-  color: #ffffff !important;
-  border: 1px solid #33333d !important;
-}
-
-html.dark .bg-slate-900:not(.bg-gradient-to-br):hover,
-html.dark .bg-neutral-900:hover,
-html.dark .bg-black:hover,
-html.dark .bg-\[\#0f172a\]:hover {
-  background-color: #282830 !important;
-  border-color: #444450 !important;
-}
-
-/* Secondary outline button hover */
-html.dark button.border-slate-200:hover,
-html.dark button.border-neutral-300:hover,
-html.dark button.border-neutral-200:hover {
-  background-color: #18181d !important;
-  border-color: #33333d !important;
-  color: #ffffff !important;
-}
-
-/* ── 14. Recharts, Analytics & Tooltips in Dark Mode ──────────────────────── */
+/* ── 11. Recharts & Analytics in Dark Mode ────────────────────────────────── */
 html.dark .recharts-cartesian-grid line {
-  stroke: #1c1c22 !important;
+  stroke: rgba(255, 255, 255, 0.05) !important;
 }
 
 html.dark .recharts-default-tooltip {
-  background-color: #141418 !important;
-  border: 1px solid #282830 !important;
+  background-color: rgba(14, 18, 32, 0.92) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #ffffff !important;
-  border-radius: 12px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8) !important;
-}
-
-html.dark .recharts-tooltip-item {
-  color: #e4e4e7 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
 }
 
 html.dark .recharts-text text,
 html.dark .recharts-cartesian-axis-tick text {
-  fill: #a1a1aa !important;
+  fill: #94a3b8 !important;
 }
 
-/* ── 15. Ultra-Smooth Matte Scrollbars ────────────────────────────────────── */
-html.dark ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* ── 12. Apple iOS 27 Liquid Glass Scrollbars ─────────────────────────────── */
+.admin-shell-bg ::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
 }
 
-html.dark ::-webkit-scrollbar-track {
-  background: #09090b;
+html:not(.dark) .admin-shell-bg ::-webkit-scrollbar-track,
+html:not(.dark) ::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-html.dark ::-webkit-scrollbar-thumb {
-  background: #222228;
+html:not(.dark) .admin-shell-bg ::-webkit-scrollbar-thumb,
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 9999px;
+  transition: all 0.2s ease;
 }
 
+html:not(.dark) .admin-shell-bg ::-webkit-scrollbar-thumb:hover,
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #0ea5e9;
+  box-shadow: 0 0 6px rgba(14, 165, 233, 0.4);
+}
+
+html.dark .admin-shell-bg ::-webkit-scrollbar-track,
+html.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html.dark .admin-shell-bg ::-webkit-scrollbar-thumb,
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+html.dark .admin-shell-bg ::-webkit-scrollbar-thumb:hover,
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #33333d;
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
 }
 
-/* ── 16. Smooth Transitions ──────────────────────────────────────────────── */
+/* ── iOS 27 Liquid Glass Scrollbar for Sidebar ────────────────────────────── */
+.ios-glass-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+.ios-glass-scrollbar::-webkit-scrollbar {
+  width: 3.5px;
+}
+
+.ios-glass-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 0;
+}
+
+.ios-glass-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.ios-glass-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0ea5e9;
+  box-shadow: 0 0 8px rgba(14, 165, 233, 0.5);
+}
+
+html.dark .ios-glass-scrollbar {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+html.dark .ios-glass-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+html.dark .ios-glass-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+/* ── 13. Smooth Transitions ──────────────────────────────────────────────── */
 html,
 body,
 aside,
 header,
-main,
-.bg-white,
-.bg-slate-50,
-.bg-neutral-50,
-.border-slate-200,
-.border-neutral-200 {
-  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+main {
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── 17. Mobile Viewport & Touch Ergonomics ──────────────────────────────── */
-@media (max-width: 768px) {
-  /* Prevent iOS Safari from automatically zooming into inputs when focused */
-  input, 
-  select, 
-  textarea {
+/* ── 14. 2026/2027 Spatial Neo-Glass & Futuristic Micro-Effects ──────────── */
+/* Ultra-smooth cubic bezier easing for micro-interactions */
+.smooth-spring {
+  transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.smooth-spring-bounce:hover {
+  transform: translateY(-2.5px);
+  transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Clean Solid Cards */
+.spatial-card {
+  position: relative;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+html:not(.dark) .spatial-card {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .spatial-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07) !important;
+}
+
+html.dark .spatial-card {
+  background: linear-gradient(180deg, rgba(16, 24, 43, 0.92) 0%, rgba(11, 17, 32, 0.96) 100%) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.13) !important;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  color: #f8fafc !important;
+}
+
+html.dark .spatial-card:hover {
+  border-color: rgba(56, 189, 248, 0.26) !important;
+  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(56, 189, 248, 0.08) !important;
+}
+
+/* Specular Rim Light */
+.specular-rim {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
+}
+
+html:not(.dark) .specular-rim-light {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Shimmer Sheen Reflection Effect */
+.sheen-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen-overlay::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 80%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.75s ease;
+  pointer-events: none;
+}
+
+.sheen-overlay:hover::after {
+  transform: translateX(100%);
+}
+
+/* Neo-Pill Tactile Control */
+.neo-pill {
+  border-radius: 9999px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.neo-pill:hover {
+  transform: scale(1.03);
+}
+
+.neo-pill:active {
+  transform: scale(0.97);
+}
+
+/* Pulsing Live Halo */
+@keyframes live-radar {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-radar {
+  animation: live-radar 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Atmospheric Ambient Aurora Cones */
+.ambient-glow-sky {
+  background: radial-gradient(circle at center, rgba(14, 165, 233, 0.15) 0%, transparent 70%);
+}
+
+.ambient-glow-emerald {
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+}
+
+.ambient-glow-amber {
+  background: radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+}
+
+
+/* ── 15. Global Page Entrance & Smooth Transitions ────────────────────────── */
+@keyframes adminSectionIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-shell-bg main > div.flex-1 {
+  animation: adminSectionIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Universal 2027 Executive Transition on Interactive Elements */
+.admin-shell-bg button,
+.admin-shell-bg a,
+.admin-shell-bg input,
+.admin-shell-bg select,
+.admin-shell-bg .spatial-card,
+.admin-shell-bg tr {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Unify white containers and white secondary buttons in dark mode across all sub-pages */
+html.dark .admin-shell-bg div[class*="bg-white"]:not(aside):not(header):not([class*="bg-white/"]):not(.toast) {
+  background: linear-gradient(180deg, rgba(16, 24, 43, 0.92) 0%, rgba(11, 17, 32, 0.96) 100%) !important;
+  border-color: rgba(148, 163, 184, 0.13) !important;
+  color: #f8fafc !important;
+}
+
+html.dark .admin-shell-bg button[class*="bg-white"]:not(.bg-gradient-to-r):not(.bg-gradient-to-br):not([class*="bg-white/"]):not([style*="background"]),
+html.dark .admin-shell-bg a[class*="bg-white"]:not(.bg-gradient-to-r):not(.bg-gradient-to-br):not([class*="bg-white/"]):not([style*="background"]) {
+  background-color: #0e1629 !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .admin-shell-bg button[class*="bg-white"]:not(.bg-gradient-to-r):not(.bg-gradient-to-br):not([class*="bg-white/"]):not([style*="background"]):hover,
+html.dark .admin-shell-bg a[class*="bg-white"]:not(.bg-gradient-to-r):not(.bg-gradient-to-br):not([class*="bg-white/"]):not([style*="background"]):hover {
+  background-color: rgba(14, 165, 233, 0.14) !important;
+  border-color: rgba(56, 189, 248, 0.32) !important;
+  color: #ffffff !important;
+}
+
+/* Fix Finance Break-Even box in dark mode */
+html.dark .admin-shell-bg .bg-white.border.border-emerald-100,
+html.dark .admin-shell-bg .bg-white.p-3.rounded-xl,
+html.dark .admin-shell-bg [class*="bg-white"][class*="border-emerald"] {
+  background: rgba(6, 78, 59, 0.25) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #ffffff !important;
+}
+
+html.dark .admin-shell-bg .text-neutral-400,
+html.dark .admin-shell-bg .text-neutral-500 {
+  color: #94a3b8 !important;
+}
+
+/* Monogram Avatar 2027 Luxury Ring */
+.admin-monogram-ring {
+  box-shadow: 0 0 0 1.5px rgba(14, 165, 233, 0.35), 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-monogram-ring:hover {
+  transform: scale(1.08);
+}
+
+/* Universal Table Row Hover 2027 Effect */
+html:not(.dark) .admin-shell-bg table tbody tr:hover {
+  background-color: rgba(14, 165, 233, 0.03) !important;
+}
+
+html.dark .admin-shell-bg table tbody tr:hover {
+  background-color: rgba(56, 189, 248, 0.04) !important;
+}
+
+/* ── 16. VERCEL & SHOPIFY EXECUTIVE CARD ELEVATION & HOVER ─────────────── */
+.aura-hero-card {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aura-hero-card:hover {
+  transform: translateY(-2px);
+}
+
+.aura-victory-pod,
+.aura-solar-pod {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aura-victory-pod:hover,
+.aura-solar-pod:hover {
+  transform: translateY(-2px);
+}
+
+/* Legendary Golden Aura Badge */
+.legendary-badge {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Interactive Card Elevation Hover (Vercel / Shopify precision) */
+html.dark .aura-hover-cyan:hover,
+html.dark .aura-hover-purple:hover,
+html.dark .aura-hover-emerald:hover {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 24px -4px rgba(0, 0, 0, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+/* Light mode card hovers */
+html:not(.dark) .aura-hover-cyan:hover,
+html:not(.dark) .aura-hover-purple:hover,
+html:not(.dark) .aura-hover-emerald:hover {
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(203, 213, 225, 1) !important;
+}
+
+/* ==========================================================================
+   17. LIVING ANIMATED AURORA BACKGROUND (Apple iOS 27 & Memento Studios)
+   Hardware-Accelerated 60 FPS Fluid Mesh Drift with Specular Glass Refraction
+   ========================================================================== */
+
+@keyframes liquidOrb1 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate3d(110px, 60px, 0) scale(1.18) rotate(45deg);
+  }
+  66% {
+    transform: translate3d(-60px, 120px, 0) scale(0.92) rotate(90deg);
+  }
+  100% {
+    transform: translate3d(80px, -40px, 0) scale(1.12) rotate(135deg);
+  }
+}
+
+@keyframes liquidOrb2 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.05) rotate(0deg);
+  }
+  35% {
+    transform: translate3d(-120px, 90px, 0) scale(0.90) rotate(-60deg);
+  }
+  70% {
+    transform: translate3d(70px, -85px, 0) scale(1.25) rotate(40deg);
+  }
+  100% {
+    transform: translate3d(-95px, 50px, 0) scale(1.02) rotate(-80deg);
+  }
+}
+
+@keyframes liquidOrb3 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  50% {
+    transform: translate3d(-110px, -95px, 0) scale(1.30);
+  }
+  100% {
+    transform: translate3d(95px, 75px, 0) scale(0.90);
+  }
+}
+
+@keyframes liquidOrb4 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  40% {
+    transform: translate3d(120px, -110px, 0) scale(1.22) rotate(60deg);
+  }
+  80% {
+    transform: translate3d(-85px, 70px, 0) scale(0.88) rotate(-45deg);
+  }
+  100% {
+    transform: translate3d(60px, -60px, 0) scale(1.08) rotate(30deg);
+  }
+}
+
+@keyframes liquidOrb5 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.70;
+  }
+  50% {
+    transform: translate3d(70px, -55px, 0) scale(1.35);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-70px, 45px, 0) scale(0.85);
+    opacity: 0.75;
+  }
+}
+
+@keyframes liquidPulseMesh {
+  0%, 100% {
+    opacity: 0.82;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.liquid-orb-float-1 {
+  animation: liquidOrb1 24s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.liquid-orb-float-2 {
+  animation: liquidOrb2 30s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.liquid-orb-float-3 {
+  animation: liquidOrb3 20s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.liquid-orb-float-4 {
+  animation: liquidOrb4 26s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.liquid-orb-float-5 {
+  animation: liquidOrb5 18s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.liquid-aurora-mesh {
+  animation: liquidPulseMesh 14s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+/* ==========================================================================
+   18. APPLE NUMERIC TEXT ODOMETER (SwiftUI .numericText() Apple Design)
+   Hardware-accelerated vertical rolling digit reels with Apple spring curve
+   ========================================================================== */
+
+.apple-numeric-roll {
+  display: inline-flex;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+  will-change: transform;
+}
+
+/* ==========================================================================
+   19. BIG BANK & E-COMMERCE EXECUTIVE SCROLL TRANSITION SYSTEM
+   Stripe / Mercury / Apple Card / Shopify Plus Kinetic Scrolling
+   ========================================================================== */
+
+/* ── Smooth Native Scrolling ── */
+html.admin-html,
+body.admin-body {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+  scroll-behavior: smooth !important;
+}
+
+/* ==========================================================================
+   TABLEAU DE BORD HARMONIZATION ENGINE (ALL ADMIN SUBPAGES)
+   Standardized luxury styling matching the Executive Dashboard (/admin)
+   ========================================================================== */
+
+/* ── Universal Standardized Card Architecture ── */
+.admin-sapphire-card {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 0.75rem !important;
+  background: linear-gradient(180deg, rgba(16, 24, 43, 0.92) 0%, rgba(11, 17, 32, 0.96) 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.55) !important;
+  border: 1px solid rgba(148, 163, 184, 0.14) !important;
+  transition: border-color 0.2s ease !important;
+}
+
+.admin-sapphire-card:hover {
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+
+/* ── Universal Standardized Segmented Nav Tabs & Filter Pills (Clean Luxury Human Design) ── */
+.admin-tab-pill-active,
+.admin-segmented-tabs button.is-active,
+.admin-shell-bg .tab-active {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border-color: #27272a !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  font-weight: 600 !important;
+}
+
+html.dark .admin-tab-pill-active,
+html.dark .admin-segmented-tabs button.is-active,
+html.dark .admin-shell-bg .tab-active {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+  color: #ffffff !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 4px 14px -4px rgba(14, 165, 233, 0.45) !important;
+}
+
+/* Luxury active state for tab buttons across subpages */
+html.dark .admin-shell-bg button.bg-white.text-slate-950,
+html.dark .admin-shell-bg button.bg-white.text-neutral-900,
+html.dark .admin-shell-bg button.bg-white.text-slate-900,
+html.dark .admin-shell-bg a.bg-white.text-neutral-900 {
+  background: rgba(14, 165, 233, 0.16) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.32) !important;
+  box-shadow: 0 2px 8px -2px rgba(14, 165, 233, 0.2) !important;
+}
+
+html:not(.dark) .admin-shell-bg button.bg-slate-900.text-white,
+html:not(.dark) .admin-shell-bg button.bg-neutral-900.text-white,
+html:not(.dark) .admin-shell-bg a.bg-neutral-900.text-white {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border: 1px solid #27272a !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ── Universal Data Table Standardization ── */
+.admin-shell-bg table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-shell-bg thead th {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+}
+
+html.dark .admin-shell-bg thead {
+  background: #090e1c !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+  color: #94a3b8 !important;
+}
+
+html:not(.dark) .admin-shell-bg thead {
+  background: rgba(248, 250, 252, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+  color: #64748b !important;
+}
+
+.admin-shell-bg tbody tr {
+  transition: background-color 0.18s ease, transform 0.18s ease !important;
+}
+
+html.dark .admin-shell-bg tbody tr:hover {
+  background-color: rgba(14, 165, 233, 0.06) !important;
+}
+
+html:not(.dark) .admin-shell-bg tbody tr:hover {
+  background-color: rgba(241, 245, 249, 0.75) !important;
+}
+
+/* ── Global Neutral Overrides for Dark Mode Subpages ── */
+html.dark .admin-shell-bg .bg-neutral-900:not(.admin-sapphire-card):not(.bg-gradient-to-r) {
+  background-color: #0b1222 !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+html.dark .admin-shell-bg .bg-neutral-50,
+html.dark .admin-shell-bg .bg-neutral-100 {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .admin-shell-bg .text-neutral-900,
+html.dark .admin-shell-bg .text-neutral-800,
+html.dark .admin-shell-bg .text-slate-900,
+html.dark .admin-shell-bg .text-slate-950 {
+  color: #f8fafc !important;
+}
+
+html.dark .admin-shell-bg .text-neutral-700,
+html.dark .admin-shell-bg .text-neutral-600,
+html.dark .admin-shell-bg .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+html.dark .admin-shell-bg .text-neutral-500,
+html.dark .admin-shell-bg .text-neutral-400,
+html.dark .admin-shell-bg .text-slate-400,
+html.dark .admin-shell-bg .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.dark .admin-shell-bg .border-neutral-200,
+html.dark .admin-shell-bg .border-neutral-100,
+html.dark .admin-shell-bg .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .admin-shell-bg .divide-neutral-100,
+html.dark .admin-shell-bg .divide-neutral-200,
+html.dark .admin-shell-bg .divide-slate-100 {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* High-Precision Kinetic Custom Scrollbar for Workspace */
+@media (min-width: 768px) {
+  html.admin-html::-webkit-scrollbar,
+  body.admin-body::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  html.admin-html::-webkit-scrollbar-track,
+  body.admin-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html.admin-html::-webkit-scrollbar-thumb,
+  body.admin-body::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  html.admin-html::-webkit-scrollbar-thumb:hover,
+  body.admin-body::-webkit-scrollbar-thumb:hover {
+    background: #0ea5e9;
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+  }
+
+  html.dark.admin-html::-webkit-scrollbar-thumb,
+  html.dark body.admin-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  html.dark.admin-html::-webkit-scrollbar-thumb:hover,
+  html.dark body.admin-body::-webkit-scrollbar-thumb:hover {
+    background: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+  }
+}
+
+/* ── Dedicated Order COD Ticket & WhatsApp Studio Components ── */
+.nay-cod-ticket {
+  background: linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.8) 100%) !important;
+  border: 1px solid rgba(14, 165, 233, 0.35) !important;
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.10), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+}
+.nay-cod-ticket .nay-cod-number {
+  color: #0284C7 !important;
+}
+html.dark .nay-cod-ticket {
+  background: linear-gradient(135deg, #071322 0%, #0c2038 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .nay-cod-ticket .nay-cod-number {
+  color: #34D399 !important;
+}
+
+.nay-wa-studio-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+}
+html.dark .nay-wa-studio-card {
+  background: rgba(7, 24, 20, 0.88) !important;
+  border: 1px solid rgba(52, 211, 153, 0.35) !important;
+  box-shadow: 0 8px 36px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+.nay-wa-bubble {
+  background: #EAF8F0 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  box-shadow: inset 0 1px 3px rgba(16, 185, 129, 0.08) !important;
+}
+html.dark .nay-wa-bubble {
+  background: #041B12 !important;
+  border: 1px solid rgba(52, 211, 153, 0.3) !important;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+.nay-wa-btn {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.45) !important;
+  transition: all 0.18s ease;
+}
+.nay-wa-btn:hover {
+  background: linear-gradient(135deg, #34D399 0%, #10B981 100%) !important;
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   EXECUTIVE MOTION & MICRO-INTERACTION ENGINE (LINEAR / APPLE / STRIPE DNA)
+   ========================================================================== */
+@keyframes nay-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.992);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes nay-progress-grow {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes nay-bar-glint {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+/* Staggered Bento Entrance for Card & Pipeline Grids */
+.nay-stagger > * {
+  opacity: 0;
+  animation: nay-fade-up 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+.nay-stagger > *:nth-child(1) { animation-delay: 20ms; }
+.nay-stagger > *:nth-child(2) { animation-delay: 65ms; }
+.nay-stagger > *:nth-child(3) { animation-delay: 110ms; }
+.nay-stagger > *:nth-child(4) { animation-delay: 155ms; }
+.nay-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.nay-stagger > *:nth-child(6) { animation-delay: 245ms; }
+
+/* Single Element Smooth Reveal */
+.nay-enter {
+  animation: nay-fade-up 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Tactile Card Micro-Lift & Depth Bloom */
+.nay-card-lift {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.22s ease !important;
+}
+.nay-card-lift:hover {
+  transform: translateY(-2.5px) !important;
+}
+html:not(.dark) .nay-card-lift:hover {
+  box-shadow: 0 12px 28px -8px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(14, 165, 233, 0.06) !important;
+}
+html.dark .nay-card-lift:hover {
+  box-shadow: 0 14px 32px -8px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(56, 189, 248, 0.14) !important;
+}
+.nay-card-lift:active {
+  transform: translateY(-0.5px) scale(0.995) !important;
+}
+
+/* Signature Architectural Maison Obsidian Lead Card (All Admin Pages) */
+.nay-hero-shine {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.22s ease !important;
+}
+div.nay-hero-shine {
+  background: linear-gradient(155deg, #0b1322 0%, #101b30 58%, #0c1728 100%) !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  box-shadow: 0 12px 28px -12px rgba(9, 14, 28, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+html.dark div.nay-hero-shine {
+  background: linear-gradient(155deg, #0d1629 0%, #121f38 62%, #0e192d 100%) !important;
+  border-color: rgba(56, 189, 248, 0.22) !important;
+  box-shadow: 0 14px 32px -12px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+}
+div.nay-hero-shine .text-sky-100,
+div.nay-hero-shine .text-blue-100 {
+  color: #94a3b8 !important;
+}
+div.nay-hero-shine .border-white\/20,
+div.nay-hero-shine .border-white\/30 {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+.nay-hero-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 32%);
+  pointer-events: none;
+  z-index: 1;
+}
+div.nay-hero-shine > .pointer-events-none[class*="from-white/30"] {
+  opacity: 0.14 !important;
+}
+.nay-hero-shine:hover {
+  transform: translateY(-2px) !important;
+}
+div.nay-hero-shine:hover {
+  border-color: rgba(56, 189, 248, 0.36) !important;
+  box-shadow: 0 16px 34px -12px rgba(9, 14, 28, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Animated Progress Bars with Leading Glint */
+.nay-progress-fill {
+  transform-origin: left center;
+  animation: nay-progress-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  position: relative;
+  overflow: hidden;
+}
+.nay-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: nay-bar-glint 1.3s 0.35s cubic-bezier(0.22, 1, 0.36, 1) 1 both;
+  pointer-events: none;
+}
+
+/* Interactive Table Row Left Sky Accent & Smooth Tint */
+.admin-shell-bg tbody tr {
+  transition: background-color 0.16s ease, box-shadow 0.16s ease !important;
+}
+.admin-shell-bg tbody tr:hover {
+  box-shadow: inset 3px 0 0 #0ea5e9 !important;
+}
+
+/* Crisp Tactile Press Feedback for Admin Controls */
+.admin-shell-bg button:not(:disabled):active,
+.admin-shell-bg a[class*="rounded-"]:active {
+  transform: scale(0.975);
+}
+
+/* ── 2027 UNIVERSAL MOTION GRAPH & TELEMETRY CHOREOGRAPHY (ALL ADMIN PAGES) ─ */
+@keyframes nay-recharts-sweep {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0.35;
+  }
+  100% {
+    clip-path: inset(0 0% 0 0);
+    opacity: 1;
+  }
+}
+
+@keyframes nay-recharts-bar-pop {
+  0% {
+    transform: scaleY(0.06);
+    opacity: 0.3;
+  }
+  70% {
+    transform: scaleY(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes nay-bar-rise {
+  0% {
+    transform: scaleY(0.05);
+    opacity: 0.25;
+  }
+  75% {
+    transform: scaleY(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes nay-live-eq-bar {
+  0%, 100% {
+    transform: scaleY(0.32);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes nay-motion-scan {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.32;
+  }
+  80% {
+    opacity: 0.22;
+  }
+  100% {
+    transform: translateX(260%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes nay-beacon-ripple {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.75;
+  }
+  70% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Global Recharts Curve & Bar Motion Animations across Analytics, Ads, Finance, Marketing, SEO */
+.admin-shell-bg .recharts-area,
+.admin-shell-bg .recharts-line {
+  animation: nay-recharts-sweep 0.95s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+  will-change: clip-path, opacity;
+}
+
+.admin-shell-bg .recharts-bar-rectangle path {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: nay-recharts-bar-pop 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.admin-shell-bg .recharts-pie-sector path {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), filter 0.22s ease;
+}
+
+.admin-shell-bg .recharts-pie-sector:hover path {
+  transform: scale(1.04);
+  filter: drop-shadow(0 6px 14px rgba(14, 165, 233, 0.28));
+}
+
+.admin-shell-bg .recharts-active-dot circle {
+  filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.7));
+}
+
+/* Staggered Sparkline & Hero Bar Rise */
+.nay-bar-rise {
+  transform-origin: bottom center;
+  animation: nay-bar-rise 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--bar-index, 0) * 70ms);
+  will-change: transform, opacity;
+}
+
+/* Ambient Motion Scanline for Executive Hero Stages */
+.nay-motion-scan {
+  position: relative;
+  overflow: hidden;
+}
+.nay-motion-scan::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 34%;
+  background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.10) 50%, transparent 100%);
+  animation: nay-motion-scan 7.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Live 3-Bar Audio Telemetry Equalizer */
+.nay-live-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 11px;
+}
+.nay-live-eq > span {
+  display: block;
+  width: 2px;
+  height: 100%;
+  border-radius: 9999px;
+  background: currentColor;
+  transform-origin: bottom center;
+  animation: nay-live-eq-bar 1.05s ease-in-out infinite;
+}
+.nay-live-eq > span:nth-child(1) {
+  animation-delay: 0ms;
+}
+.nay-live-eq > span:nth-child(2) {
+  animation-delay: 260ms;
+}
+.nay-live-eq > span:nth-child(3) {
+  animation-delay: 520ms;
+}
+
+/* Pulsing Telemetry Beacon Ring */
+.nay-beacon {
+  position: relative;
+}
+.nay-beacon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: nay-beacon-ripple 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
+}
+
+/* Subtle Staggered Entrance for Data Table Rows across All Pages */
+.admin-shell-bg tbody tr:nth-child(1) { animation: nay-fade-up 0.28s 20ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.admin-shell-bg tbody tr:nth-child(2) { animation: nay-fade-up 0.28s 55ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.admin-shell-bg tbody tr:nth-child(3) { animation: nay-fade-up 0.28s 90ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.admin-shell-bg tbody tr:nth-child(4) { animation: nay-fade-up 0.28s 125ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.admin-shell-bg tbody tr:nth-child(5) { animation: nay-fade-up 0.28s 160ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.admin-shell-bg tbody tr:nth-child(6) { animation: nay-fade-up 0.28s 195ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.admin-shell-bg tbody tr:nth-child(7) { animation: nay-fade-up 0.28s 230ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.admin-shell-bg tbody tr:nth-child(8) { animation: nay-fade-up 0.28s 265ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Respect OS Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+  .nay-stagger > *,
+  .nay-enter,
+  .nay-progress-fill,
+  .nay-progress-fill::after,
+  .nay-bar-rise,
+  .nay-live-eq > span,
+  .nay-beacon::after,
+  .admin-shell-bg .recharts-area,
+  .admin-shell-bg .recharts-line,
+  .admin-shell-bg .recharts-bar-rectangle path,
+  .admin-shell-bg tbody tr {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+  .nay-card-lift:hover,
+  .nay-hero-shine:hover,
+  .admin-shell-bg button:active,
+  .admin-shell-bg a[class*="rounded-"]:active {
+    transform: none !important;
+  }
+  .nay-hero-shine::after,
+  .nay-motion-scan::before {
+    display: none !important;
+  }
+}
+
+
+/* ── STUDIO DESIGN SYSTEM CUSTOMIZATION OVERRIDES (GLOBAL SETTINGS) ─────────── */
+
+/* 1. Style Presets: Background Atmospheres & Surface Tints */
+/* Grounded Light Theme Canvases: Clean Empty Negative Space Without White Glare */
+html[data-admin-style="ivory"]:not(.dark) .admin-shell-bg {
+  background-color: #eae4d8 !important;
+  background-image: none !important;
+  color: #1c1917 !important;
+}
+html[data-admin-style="ivory"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-style="ivory"]:not(.dark) .spatial-card {
+  background: #fdfbf7 !important;
+  border-color: rgba(120, 113, 108, 0.24) !important;
+}
+html.dark[data-admin-style="ivory"] .admin-shell-bg {
+  background-color: #12100e !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(217, 119, 6, 0.09) 0%, transparent 72%) !important;
+}
+
+html[data-admin-style="graphite"]:not(.dark) .admin-shell-bg {
+  background-color: #dfe3e8 !important;
+  background-image: none !important;
+  color: #111827 !important;
+}
+html[data-admin-style="graphite"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-style="graphite"]:not(.dark) .spatial-card {
+  background: #ffffff !important;
+  border-color: rgba(17, 24, 39, 0.14) !important;
+}
+html.dark[data-admin-style="graphite"] .admin-shell-bg {
+  background-color: #0b0c0e !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="graphite"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-style="graphite"] .spatial-card {
+  background: #13151a !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+html[data-admin-style="emerald"]:not(.dark) .admin-shell-bg {
+  background-color: #dce7e1 !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="emerald"] .admin-shell-bg {
+  background-color: #07120e !important;
+  background-image: radial-gradient(ellipse 85% 42% at 50% -8%, rgba(16, 185, 129, 0.11) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="cobalt"]:not(.dark) .admin-shell-bg {
+  background-color: #dde4f0 !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="cobalt"] .admin-shell-bg {
+  background-color: #060a18 !important;
+  background-image: radial-gradient(ellipse 85% 42% at 50% -8%, rgba(37, 99, 235, 0.13) 0%, transparent 74%) !important;
+}
+
+/* 2. Dynamic Custom Accent Propagation */
+.admin-shell-bg tbody tr:hover {
+  box-shadow: inset 3px 0 0 var(--admin-accent, #0ea5e9) !important;
+}
+html:not(.dark) .admin-shell-bg input:focus,
+html:not(.dark) .admin-shell-bg select:focus,
+html:not(.dark) .admin-shell-bg textarea:focus {
+  border-color: var(--admin-accent, #0ea5e9) !important;
+  box-shadow: 0 0 0 3px var(--admin-accent-soft, rgba(14, 165, 233, 0.16)) !important;
+}
+/* Sidebar Active State: Solid Accent on Collapsed Square Rail Only; Crisp Subtle Pill on Expanded Rail */
+.admin-shell-bg aside a:not(.justify-between)[aria-current="page"],
+.admin-shell-bg aside .bg-\[\#0ea5e9\] {
+  background-color: var(--admin-accent, #0ea5e9) !important;
+  color: #ffffff !important;
+}
+.admin-shell-bg aside a:not(.justify-between)[aria-current="page"] svg {
+  color: #ffffff !important;
+}
+html:not(.dark) .admin-shell-bg aside a.justify-between[aria-current="page"] {
+  background-color: var(--admin-accent-soft, rgba(14, 165, 233, 0.12)) !important;
+  border: 1px solid var(--admin-accent-ring, rgba(14, 165, 233, 0.24)) !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+html.dark .admin-shell-bg aside a.justify-between[aria-current="page"] {
+  background-color: var(--admin-accent-soft, rgba(14, 165, 233, 0.18)) !important;
+  border: 1px solid var(--admin-accent-ring, rgba(56, 189, 248, 0.3)) !important;
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+
+/* 3. Font Family Overrides */
+html[data-admin-font="serif"] .admin-shell-bg h1,
+html[data-admin-font="serif"] .admin-shell-bg h2,
+html[data-admin-font="serif"] .admin-shell-bg h3 {
+  font-family: var(--font-admin-serif), Georgia, serif !important;
+  letter-spacing: -0.01em !important;
+}
+html[data-admin-font="mono"] .admin-shell-bg,
+html[data-admin-font="mono"] .admin-shell-bg * {
+  font-family: var(--font-admin-mono), ui-monospace, SFMono-Regular, monospace !important;
+}
+html[data-admin-font="system"] .admin-shell-bg {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* 4. Card Surface Architecture */
+html[data-admin-card="flat"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="flat"]:not(.dark) .spatial-card {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+}
+html.dark[data-admin-card="flat"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="flat"] .spatial-card {
+  background: #0d1322 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+html[data-admin-card="elevated"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="elevated"]:not(.dark) .spatial-card {
+  box-shadow: 0 20px 44px -14px rgba(15, 23, 42, 0.15), 0 4px 12px -4px rgba(15, 23, 42, 0.06) !important;
+}
+html.dark[data-admin-card="elevated"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="elevated"] .spatial-card {
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.78), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 5. Global Geometry & Corner Radius */
+html[data-admin-radius="sharp"] .admin-shell-bg .rounded-2xl,
+html[data-admin-radius="sharp"] .admin-shell-bg .rounded-3xl,
+html[data-admin-radius="sharp"] .admin-shell-bg .rounded-\[24px\] {
+  border-radius: 6px !important;
+}
+html[data-admin-radius="sharp"] .admin-shell-bg .rounded-xl {
+  border-radius: 4px !important;
+}
+html[data-admin-radius="pill"] .admin-shell-bg .rounded-2xl,
+html[data-admin-radius="pill"] .admin-shell-bg .rounded-xl {
+  border-radius: 22px !important;
+}
+
+/* 6. Spacing Density */
+html[data-admin-density="compact"] .admin-shell-bg .p-5,
+html[data-admin-density="compact"] .admin-shell-bg .p-6,
+html[data-admin-density="compact"] .admin-shell-bg .sm\:p-6 {
+  padding: 0.9rem !important;
+}
+html[data-admin-density="compact"] .admin-shell-bg td {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+html[data-admin-density="spacious"] .admin-shell-bg .p-5,
+html[data-admin-density="spacious"] .admin-shell-bg .sm\:p-6 {
+  padding: 1.75rem !important;
+}
+
+/* 7. User Motion Disable Setting */
+html[data-admin-motion="off"] .nay-stagger > *,
+html[data-admin-motion="off"] .nay-enter,
+html[data-admin-motion="off"] .nay-progress-fill,
+html[data-admin-motion="off"] .nay-progress-fill::after,
+html[data-admin-motion="off"] .nay-bar-rise,
+html[data-admin-motion="off"] .nay-live-eq > span,
+html[data-admin-motion="off"] .admin-shell-bg .recharts-area,
+html[data-admin-motion="off"] .admin-shell-bg .recharts-line {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  clip-path: none !important;
+}
+
+/* ── ADDITIONAL THEMES, SIDEBAR CHROME, LAYOUT WIDTH & CONTRAST CONTROLS ──── */
+
+/* Noir & Or Maison */
+html[data-admin-style="obsidian_gold"]:not(.dark) .admin-shell-bg {
+  background-color: #ebe6dc !important;
+  background-image: none !important;
+  color: #1c1917 !important;
+}
+html.dark[data-admin-style="obsidian_gold"] .admin-shell-bg {
+  background-color: #0c0b09 !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(202, 138, 4, 0.12) 0%, transparent 74%) !important;
+}
+html.dark[data-admin-style="obsidian_gold"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-style="obsidian_gold"] .spatial-card {
+  background: linear-gradient(180deg, rgba(24, 21, 16, 0.94) 0%, rgba(15, 13, 10, 0.96) 100%) !important;
+  border-color: rgba(202, 138, 4, 0.18) !important;
+}
+
+/* Quartz & Pivoine */
+html[data-admin-style="rose_quartz"]:not(.dark) .admin-shell-bg {
+  background-color: #ece2e7 !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="rose_quartz"] .admin-shell-bg {
+  background-color: #140b12 !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(219, 39, 119, 0.12) 0%, transparent 74%) !important;
+}
+
+/* Acier Nordique */
+html[data-admin-style="midnight_steel"]:not(.dark) .admin-shell-bg {
+  background-color: #dfe5ee !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="midnight_steel"] .admin-shell-bg {
+  background-color: #070b14 !important;
+  background-image: radial-gradient(ellipse 85% 42% at 50% -8%, rgba(59, 130, 246, 0.12) 0%, transparent 74%) !important;
+}
+
+/* Sidebar Tone Overrides (Obsidian Always / Translucent Glass) */
+html[data-admin-sidebar="obsidian"]:not(.dark) .admin-shell-bg aside {
+  background: #0b1322 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+}
+html[data-admin-sidebar="obsidian"]:not(.dark) .admin-shell-bg aside .text-slate-900,
+html[data-admin-sidebar="obsidian"]:not(.dark) .admin-shell-bg aside .text-slate-700,
+html[data-admin-sidebar="obsidian"]:not(.dark) .admin-shell-bg aside .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+html[data-admin-sidebar="obsidian"]:not(.dark) .admin-shell-bg aside .bg-white,
+html[data-admin-sidebar="obsidian"]:not(.dark) .admin-shell-bg aside .bg-sky-50\/70 {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html[data-admin-sidebar="translucent"] .admin-shell-bg aside {
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+}
+
+/* Content Width Modes */
+html[data-admin-width="standard"] .admin-shell-bg main .q-page > div {
+  max-width: 1360px !important;
+}
+html[data-admin-width="full"] .admin-shell-bg main .q-page > div {
+  max-width: none !important;
+}
+
+/* High Contrast Comfort Accessibility Mode */
+html[data-admin-contrast="high"]:not(.dark) .admin-shell-bg .border,
+html[data-admin-contrast="high"]:not(.dark) .admin-shell-bg .spatial-card {
+  border-color: rgba(15, 23, 42, 0.24) !important;
+}
+html[data-admin-contrast="high"]:not(.dark) .admin-shell-bg .text-slate-400,
+html[data-admin-contrast="high"]:not(.dark) .admin-shell-bg .text-slate-500 {
+  color: #334155 !important;
+}
+html.dark[data-admin-contrast="high"] .admin-shell-bg .border,
+html.dark[data-admin-contrast="high"] .admin-shell-bg .spatial-card {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+html.dark[data-admin-contrast="high"] .admin-shell-bg .text-slate-400,
+html.dark[data-admin-contrast="high"] .admin-shell-bg .text-slate-500 {
+  color: #cbd5e1 !important;
+}
+
+/* ── STUDIO PRO: 10 THEMES, 8 FONTS, HEADBAR/SIDEBAR STYLES & UI/UX CONTROLS ── */
+
+/* Grès & Terracotta */
+html[data-admin-style="sandstone"]:not(.dark) .admin-shell-bg {
+  background-color: #f5efe6 !important;
+  background-image: radial-gradient(ellipse 75% 45% at 15% -5%, rgba(194, 65, 12, 0.09) 0%, transparent 62%) !important;
+  color: #1c1917 !important;
+}
+html.dark[data-admin-style="sandstone"] .admin-shell-bg {
+  background-color: #14100d !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(194, 65, 12, 0.12) 0%, transparent 74%) !important;
+}
+
+/* Brume Iris & Nuit */
+html[data-admin-style="lavender_mist"]:not(.dark) .admin-shell-bg {
+  background-color: #f2f2fa !important;
+  background-image: radial-gradient(ellipse 75% 45% at 15% -5%, rgba(79, 70, 229, 0.1) 0%, transparent 62%) !important;
+}
+html.dark[data-admin-style="lavender_mist"] .admin-shell-bg {
+  background-color: #090915 !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(99, 102, 241, 0.12) 0%, transparent 74%) !important;
+}
+
+/* 8 Luxury & Engineering Font Stacks */
+html[data-admin-font="jakarta"] .admin-shell-bg,
+html[data-admin-font="jakarta"] .admin-shell-bg *:not(code):not(kbd) {
+  font-family: var(--font-admin-jakarta), var(--font-admin), sans-serif !important;
+}
+html[data-admin-font="manrope"] .admin-shell-bg,
+html[data-admin-font="manrope"] .admin-shell-bg *:not(code):not(kbd) {
+  font-family: var(--font-admin-manrope), var(--font-admin), sans-serif !important;
+}
+html[data-admin-font="dm_sans"] .admin-shell-bg,
+html[data-admin-font="dm_sans"] .admin-shell-bg *:not(code):not(kbd) {
+  font-family: var(--font-admin-dm), var(--font-admin), sans-serif !important;
+}
+html[data-admin-font="cormorant"] .admin-shell-bg h1,
+html[data-admin-font="cormorant"] .admin-shell-bg h2,
+html[data-admin-font="cormorant"] .admin-shell-bg h3 {
+  font-family: var(--font-admin-cormorant), Georgia, serif !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* Headbar Architecture Customization */
+html[data-admin-headbar="docked"] .admin-shell-bg header.nay-taskbar-2027 {
+  top: 0 !important;
+  border-radius: 0 !important;
+  border-top-width: 0 !important;
+  border-left-width: 0 !important;
+  border-right-width: 0 !important;
+  margin-bottom: 1.25rem !important;
+}
+html:not(.dark)[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027,
+html.dark[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: linear-gradient(180deg, rgba(11, 19, 34, 0.97) 0%, rgba(15, 23, 42, 0.96) 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  box-shadow: 0 12px 32px -10px rgba(9, 14, 28, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+html[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-700,
+html[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-800,
+html[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+html[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-400,
+html[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-500,
+html[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-600 {
+  color: #94a3b8 !important;
+}
+html[data-admin-headbar="obsidian"] .admin-shell-bg header.nay-taskbar-2027 [class*="bg-[#f1f4f9]"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+html:not(.dark)[data-admin-headbar="minimal"] .admin-shell-bg header.nay-taskbar-2027,
+html.dark[data-admin-headbar="minimal"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.24) !important;
+  border-radius: 0 !important;
+}
+
+/* Sidebar Focus Mode & Tinted Chrome */
+@media (min-width: 1024px) {
+  html[data-admin-sidebar-hidden="true"] .admin-shell-bg aside {
+    display: none !important;
+  }
+}
+html[data-admin-sidebar="tinted"] .admin-shell-bg aside {
+  background-image: linear-gradient(180deg, var(--admin-accent-soft, rgba(14, 165, 233, 0.09)) 0%, transparent 70%) !important;
+}
+
+/* Architectural Background Textures */
+html:not(.dark)[data-admin-bg="solid"] .admin-shell-bg,
+html.dark[data-admin-bg="solid"] .admin-shell-bg {
+  background-image: none !important;
+}
+html:not(.dark)[data-admin-bg="grid"] .admin-shell-bg {
+  background-image:
+    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+}
+html.dark[data-admin-bg="grid"] .admin-shell-bg {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+}
+html:not(.dark)[data-admin-bg="dots"] .admin-shell-bg {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.12) 1px, transparent 1px) !important;
+  background-size: 20px 20px !important;
+}
+html.dark[data-admin-bg="dots"] .admin-shell-bg {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px) !important;
+  background-size: 20px 20px !important;
+}
+
+/* Additional Card Style: Crisp Swiss Bordered */
+html[data-admin-card="bordered"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="bordered"]:not(.dark) .spatial-card {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 1.5px solid rgba(15, 23, 42, 0.22) !important;
+}
+html.dark[data-admin-card="bordered"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="bordered"] .spatial-card {
+  background: #0b1120 !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+/* Button / Pill Geometry */
+html[data-admin-pill="square"] .admin-shell-bg button[class*="rounded-"],
+html[data-admin-pill="square"] .admin-shell-bg a[class*="rounded-"] {
+  border-radius: 5px !important;
+}
+html[data-admin-pill="capsule"] .admin-shell-bg button[class*="rounded-xl"]:not(.text-left):not(.flex-col):not([class*="p-4"]):not([class*="p-5"]):not([class*="p-6"]),
+html[data-admin-pill="capsule"] .admin-shell-bg a[class*="rounded-xl"]:not(.text-left):not(.flex-col):not([class*="p-4"]):not([class*="p-5"]):not([class*="p-6"]) {
+  border-radius: 9999px !important;
+}
+
+/* Table Presentation Modes */
+html[data-admin-table="striped"]:not(.dark) .admin-shell-bg tbody tr:nth-child(even) {
+  background-color: rgba(15, 23, 42, 0.022) !important;
+}
+html.dark[data-admin-table="striped"] .admin-shell-bg tbody tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.025) !important;
+}
+html[data-admin-table="cards"] .admin-shell-bg table {
+  border-collapse: separate !important;
+  border-spacing: 0 6px !important;
+}
+
+/* ── APPLE iOS 27 LIQUID GLASS & CUPERTINO SPATIAL REFRACTION SYSTEM ────────── */
+
+/* iOS 27 Liquid Glass Atmosphere (Light: Grounded Titanium Stone; Dark: Deep Obsidian Spatial) */
+html[data-admin-style="liquid_glass"]:not(.dark) .admin-shell-bg {
+  background-color: #dfe5ee !important;
+  background-image: none !important;
+  color: #0f172a !important;
+}
+html.dark[data-admin-style="liquid_glass"] .admin-shell-bg {
+  background-color: #040916 !important;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 16% 0%, rgba(0, 122, 255, 0.18) 0%, transparent 62%),
+    radial-gradient(ellipse 62% 45% at 85% 8%, rgba(56, 189, 248, 0.12) 0%, transparent 60%) !important;
+}
+
+/* Cupertino Spatial Mist */
+html[data-admin-style="vision_aero"]:not(.dark) .admin-shell-bg {
+  background-color: #dfe4ec !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="vision_aero"] .admin-shell-bg {
+  background-color: #090d14 !important;
+  background-image: radial-gradient(ellipse 80% 44% at 50% -6%, rgba(148, 163, 184, 0.09) 0%, transparent 72%) !important;
+}
+
+/* Genuine iOS 27 Specular Liquid Glass Surfaces (When cardStyle = liquid) */
+html[data-admin-card="liquid"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="liquid"]:not(.dark) .spatial-card {
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(248, 250, 252, var(--admin-glass-alpha, 0.84)) 100%
+  ) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 26px)) saturate(185%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.05),
+    0 12px 28px -12px rgba(15, 23, 42, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+html.dark[data-admin-card="liquid"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="liquid"] .spatial-card {
+  background: linear-gradient(155deg, rgba(22, 34, 62, 0.62) 0%, rgba(11, 18, 36, 0.54) 100%) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 24px)) saturate(185%) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 24px)) saturate(185%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow:
+    0 18px 42px -12px rgba(0, 0, 0, 0.68),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+html[data-admin-card="liquid"]:not(.dark) .admin-shell-bg header.nay-taskbar-2027 {
+  background: rgba(248, 250, 252, 0.88) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 26px)) saturate(190%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.13) !important;
+  box-shadow: 0 10px 28px -12px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Optional Specular Rim Removal */
+html[data-admin-specular="off"] .admin-shell-bg .bg-white:not(aside):not(header),
+html[data-admin-specular="off"] .spatial-card,
+html[data-admin-specular="off"] .nay-taskbar-2027 {
+  box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* ── PRO MAX STUDIO: TRUE LIQUID GLASS HEADBAR/SIDEBAR, 16 THEMES, SHAPES & UI ── */
+
+/* 4 Additional Luxury & Engineering Color Themes (Grounded Light Mode Canvases) */
+html[data-admin-style="oceanic_neon"]:not(.dark) .admin-shell-bg {
+  background-color: #dae8ef !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="oceanic_neon"] .admin-shell-bg {
+  background-color: #030d14 !important;
+  background-image: radial-gradient(ellipse 75% 45% at 50% -6%, rgba(6, 182, 212, 0.16) 0%, transparent 72%) !important;
+}
+
+html[data-admin-style="champagne_silk"]:not(.dark) .admin-shell-bg {
+  background-color: #eae3d7 !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="champagne_silk"] .admin-shell-bg {
+  background-color: #16120f !important;
+  background-image: radial-gradient(ellipse 75% 45% at 50% -6%, rgba(180, 83, 9, 0.10) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="arctic_sunset"]:not(.dark) .admin-shell-bg {
+  background-color: #eee1df !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="arctic_sunset"] .admin-shell-bg {
+  background-color: #150a0c !important;
+  background-image: radial-gradient(ellipse 75% 45% at 50% -6%, rgba(225, 29, 72, 0.14) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="carbon_matrix"]:not(.dark) .admin-shell-bg {
+  background-color: #dce6e0 !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="carbon_matrix"] .admin-shell-bg {
+  background-color: #040a07 !important;
+  background-image: radial-gradient(ellipse 75% 45% at 50% -6%, rgba(16, 185, 129, 0.14) 0%, transparent 74%) !important;
+}
+
+/* Grounded Clean Titanium Canvas in Light Liquid Glass Mode */
+html[data-admin-style="liquid_glass"]:not(.dark) .admin-shell-bg {
+  background-color: #dfe5ee !important;
+  background-image: none !important;
+}
+html.dark[data-admin-style="liquid_glass"] .admin-shell-bg {
+  background-color: #030816 !important;
+  background-image:
+    radial-gradient(circle at 8% 15%, rgba(0, 122, 255, 0.30) 0%, transparent 38%),
+    radial-gradient(circle at 88% 12%, rgba(99, 102, 241, 0.22) 0%, transparent 40%),
+    radial-gradient(circle at 48% 88%, rgba(14, 165, 233, 0.20) 0%, transparent 44%) !important;
+}
+
+/* ── TRUE LIQUID GLASS & FROSTED BLUR ON HEADBAR (HIGHEST SPECIFICITY) ── */
+html:not(.dark)[data-admin-headbar="liquid_glass"] .admin-shell-bg header.nay-taskbar-2027,
+html:not(.dark)[data-admin-style="liquid_glass"]:not([data-admin-headbar="obsidian"]):not([data-admin-headbar="docked"]):not([data-admin-headbar="minimal"]):not([data-admin-headbar="accent_band"]) .admin-shell-bg header.nay-taskbar-2027 {
+  background: linear-gradient(
+    180deg,
+    rgba(249, 251, 253, 0.92) 0%,
+    rgba(244, 247, 251, 0.84) 100%
+  ) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 28px)) saturate(190%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.13) !important;
+  box-shadow:
+    0 8px 26px -10px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+}
+html.dark[data-admin-headbar="liquid_glass"] .admin-shell-bg header.nay-taskbar-2027,
+html.dark[data-admin-style="liquid_glass"]:not([data-admin-headbar="obsidian"]):not([data-admin-headbar="docked"]):not([data-admin-headbar="minimal"]):not([data-admin-headbar="accent_band"]) .admin-shell-bg header.nay-taskbar-2027 {
+  background: linear-gradient(
+    135deg,
+    rgba(18, 32, 62, var(--admin-glass-alpha, 0.46)) 0%,
+    rgba(10, 19, 40, var(--admin-glass-alpha-low, 0.30)) 100%
+  ) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 28px)) saturate(210%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow:
+    0 16px 40px -10px rgba(0, 0, 0, 0.72),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.26),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Additional Headbar Variants: Accent Band, Capsule Split, Compact Slim */
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: linear-gradient(135deg, var(--admin-accent, #0ea5e9) 0%, var(--admin-accent-hover, #0284c7) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 32px -10px var(--admin-accent-ring, rgba(14, 165, 233, 0.35)), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-400,
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-500,
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-600,
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-700,
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-800,
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-900 {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 [class*="bg-[#f1f4f9]"],
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 .bg-white,
+html[data-admin-headbar="accent_band"] .admin-shell-bg header.nay-taskbar-2027 .bg-slate-900 {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  color: #ffffff !important;
+}
+html[data-admin-headbar="compact_slim"] .admin-shell-bg header.nay-taskbar-2027 {
+  height: 44px !important;
+  margin-bottom: 0.85rem !important;
+  border-radius: 14px !important;
+}
+html[data-admin-headbar="capsule_split"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+html:not(.dark)[data-admin-headbar="capsule_split"] .admin-shell-bg header.nay-taskbar-2027 > div:first-of-type,
+html:not(.dark)[data-admin-headbar="capsule_split"] .admin-shell-bg header.nay-taskbar-2027 > div:last-of-type {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  padding: 5px 10px !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 8px 24px -8px rgba(15, 23, 42, 0.12) !important;
+}
+html.dark[data-admin-headbar="capsule_split"] .admin-shell-bg header.nay-taskbar-2027 > div:first-of-type,
+html.dark[data-admin-headbar="capsule_split"] .admin-shell-bg header.nay-taskbar-2027 > div:last-of-type {
+  background: rgba(12, 20, 38, 0.86) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  padding: 5px 10px !important;
+  border-radius: 9999px !important;
+}
+
+/* ── TRUE LIQUID GLASS, TRANSLUCENT & CUSTOM DESIGNS ON SIDEBAR ──────────── */
+@media (min-width: 1024px) {
+  html:not(.dark)[data-admin-sidebar="liquid_glass"] .admin-shell-bg aside.admin-sidebar,
+  html:not(.dark)[data-admin-sidebar="translucent"] .admin-shell-bg aside.admin-sidebar,
+  html:not(.dark)[data-admin-style="liquid_glass"][data-admin-sidebar="auto"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(
+      170deg,
+      rgba(249, 251, 253, 0.94) 0%,
+      rgba(244, 247, 251, 0.86) 100%
+    ) !important;
+    backdrop-filter: blur(var(--admin-glass-blur, 28px)) saturate(190%) !important;
+    border: 1px solid rgba(15, 23, 42, 0.13) !important;
+    box-shadow:
+      0 12px 30px -12px rgba(15, 23, 42, 0.12),
+      inset 1px 1px 0 rgba(255, 255, 255, 0.95) !important;
+  }
+
+  html.dark[data-admin-sidebar="liquid_glass"] .admin-shell-bg aside.admin-sidebar,
+  html.dark[data-admin-sidebar="translucent"] .admin-shell-bg aside.admin-sidebar,
+  html.dark[data-admin-style="liquid_glass"][data-admin-sidebar="auto"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(
+      165deg,
+      rgba(16, 28, 54, var(--admin-glass-alpha, 0.46)) 0%,
+      rgba(8, 15, 32, var(--admin-glass-alpha-low, 0.30)) 100%
+    ) !important;
+    backdrop-filter: blur(var(--admin-glass-blur, 28px)) saturate(210%) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+    box-shadow:
+      0 20px 48px -12px rgba(0, 0, 0, 0.75),
+      inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.22) !important;
+  }
+
+  /* Midnight Blue Royal Sidebar */
+  html[data-admin-sidebar="midnight_blue"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(180deg, #09142b 0%, #0d1d3d 100%) !important;
+    border-color: rgba(56, 189, 248, 0.22) !important;
+    color: #e2e8f0 !important;
+  }
+  html[data-admin-sidebar="midnight_blue"] .admin-shell-bg aside.admin-sidebar .text-slate-900,
+  html[data-admin-sidebar="midnight_blue"] .admin-shell-bg aside.admin-sidebar .text-slate-700,
+  html[data-admin-sidebar="midnight_blue"] .admin-shell-bg aside.admin-sidebar .text-slate-600 {
+    color: #cbd5e1 !important;
+  }
+  html[data-admin-sidebar="midnight_blue"] .admin-shell-bg aside.admin-sidebar .bg-white {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Brand Solid Accent Sidebar */
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar {
+    background: var(--admin-accent, #0ea5e9) !important;
+    border-color: rgba(255, 255, 255, 0.28) !important;
+    color: #ffffff !important;
+  }
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar .text-slate-400,
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar .text-slate-500,
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar .text-slate-600,
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar .text-slate-700,
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar .text-slate-900 {
+    color: rgba(255, 255, 255, 0.92) !important;
+  }
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar .bg-white,
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar .bg-sky-50\/70,
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar a[aria-current="page"] > span:first-of-type {
+    background: rgba(255, 255, 255, 0.24) !important;
+    background-image: none !important;
+    border-color: rgba(255, 255, 255, 0.36) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14) !important;
+  }
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar a[aria-current="page"] > span:nth-of-type(2) {
+    background: #ffffff !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.75) !important;
+  }
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar a svg {
+    color: #ffffff !important;
+  }
+  /* Harmonize non-accent_solid active collapsed pill with user's chosen accentColor */
+  html:not([data-admin-sidebar="accent_solid"]) .admin-shell-bg aside.admin-sidebar a[aria-current="page"] > span[class*="from-[#0ea5e9]"] {
+    background: linear-gradient(135deg, var(--admin-accent, #0ea5e9) 0%, var(--admin-accent-hover, #0284c7) 100%) !important;
+    box-shadow: 0 6px 16px -3px var(--admin-accent-ring, rgba(14, 165, 233, 0.48)) !important;
+  }
+  html:not([data-admin-sidebar="accent_solid"]) .admin-shell-bg aside.admin-sidebar a[aria-current="page"] > span[class*="bg-[#0ea5e9]"] {
+    background: var(--admin-accent-soft, rgba(14, 165, 233, 0.14)) !important;
+    border-color: var(--admin-accent-ring, rgba(14, 165, 233, 0.35)) !important;
+  }
+
+  /* Minimal Borderless Sidebar */
+  html[data-admin-sidebar="minimal_border"] .admin-shell-bg aside.admin-sidebar {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+    border-right: 1px solid rgba(148, 163, 184, 0.22) !important;
+    border-radius: 0 !important;
+  }
+
+  /* Sidebar Geometry Shapes: Docked Full Height / Pill Rail */
+  html[data-admin-sidebar-shape="docked"] .admin-shell-bg aside.admin-sidebar {
+    top: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+  html[data-admin-sidebar-shape="docked"]:not([data-admin-sidebar-pos="right"]) .admin-shell-bg aside.admin-sidebar {
+    left: 0 !important;
+  }
+  html[data-admin-sidebar-shape="docked"][data-admin-sidebar-pos="right"] .admin-shell-bg aside.admin-sidebar {
+    right: 0 !important;
+  }
+  html[data-admin-sidebar-shape="pill_nav"] .admin-shell-bg aside.admin-sidebar {
+    border-radius: 9999px !important;
+  }
+}
+
+/* Disable Hover Lift Toggle & Chart Palette Variables */
+html[data-admin-hover-lift="off"] .nay-card-lift:hover,
+html[data-admin-hover-lift="off"] .nay-hero-shine:hover {
+  transform: none !important;
+}
+html[data-admin-chart="monochrome"] .admin-shell-bg .nay-progress-fill {
+  background: #1e293b !important;
+}
+html.dark[data-admin-chart="monochrome"] .admin-shell-bg .nay-progress-fill {
+  background: #e2e8f0 !important;
+}
+html[data-admin-chart="luxury_gold"] .admin-shell-bg .nay-progress-fill {
+  background: linear-gradient(90deg, #b45309 0%, #f59e0b 100%) !important;
+}
+html[data-admin-chart="emerald_pro"] .admin-shell-bg .nay-progress-fill {
+  background: linear-gradient(90deg, #059669 0%, #34d399 100%) !important;
+}
+
+/* ── FREE BUILDER ("MODIFY EVERYTHING") GLOBAL TOKENS ────────────────────── */
+
+/* Custom Free Colors (higher specificity than theme presets) */
+html[data-admin-style][data-admin-custom-bg="on"]:not(.dark) .admin-shell-bg,
+html.dark[data-admin-style][data-admin-custom-bg="on"] .admin-shell-bg {
+  background-color: var(--admin-custom-bg) !important;
+  background-image: none !important;
+}
+html[data-admin-style][data-admin-custom-card="on"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-style][data-admin-custom-card="on"]:not(.dark) .spatial-card,
+html.dark[data-admin-style][data-admin-custom-card="on"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-style][data-admin-custom-card="on"] .spatial-card {
+  background: var(--admin-custom-card) !important;
+  background-image: none !important;
+}
+html[data-admin-style][data-admin-custom-text="on"] .admin-shell-bg,
+html[data-admin-style][data-admin-custom-text="on"] .admin-shell-bg .text-slate-900,
+html[data-admin-style][data-admin-custom-text="on"] .admin-shell-bg .text-slate-800 {
+  color: var(--admin-custom-text) !important;
+}
+
+/* Custom Exact Radius in Pixels */
+html[data-admin-custom-radius="on"] .admin-shell-bg .rounded-2xl,
+html[data-admin-custom-radius="on"] .admin-shell-bg .rounded-xl,
+html[data-admin-custom-radius="on"] .admin-shell-bg .spatial-card {
+  border-radius: var(--admin-custom-radius, 12px) !important;
+}
+
+/* Border Strength Overrides */
+html[data-admin-border-strength="none"] .admin-shell-bg .spatial-card,
+html[data-admin-border-strength="none"] .admin-shell-bg .border {
+  border-color: transparent !important;
+}
+html[data-admin-border-strength="subtle"] .admin-shell-bg .spatial-card {
+  border-width: 1px !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+}
+html[data-admin-border-strength="bold"]:not(.dark) .admin-shell-bg .spatial-card,
+html[data-admin-border-strength="bold"]:not(.dark) .admin-shell-bg .rounded-2xl.border {
+  border-width: 1.5px !important;
+  border-color: rgba(15, 23, 42, 0.22) !important;
+}
+html.dark[data-admin-border-strength="bold"] .admin-shell-bg .spatial-card,
+html.dark[data-admin-border-strength="bold"] .admin-shell-bg .rounded-2xl.border {
+  border-width: 1.5px !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+/* Global Shadow Depth Overrides */
+html[data-admin-shadow="flat"] .admin-shell-bg .spatial-card,
+html[data-admin-shadow="flat"] .admin-shell-bg header.nay-taskbar-2027,
+html[data-admin-shadow="flat"] .admin-shell-bg aside.admin-sidebar {
+  box-shadow: none !important;
+}
+html[data-admin-shadow="elevated"] .admin-shell-bg .spatial-card,
+html[data-admin-shadow="elevated"] .admin-shell-bg header.nay-taskbar-2027 {
+  box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.16), 0 4px 12px -4px rgba(15, 23, 42, 0.06) !important;
+}
+html[data-admin-shadow="dramatic"] .admin-shell-bg .spatial-card,
+html[data-admin-shadow="dramatic"] .admin-shell-bg header.nay-taskbar-2027,
+html[data-admin-shadow="dramatic"] .admin-shell-bg aside.admin-sidebar {
+  box-shadow: 0 28px 64px -16px rgba(15, 23, 42, 0.26), 0 8px 20px -6px rgba(15, 23, 42, 0.10) !important;
+}
+
+/* Heading Style & Tabular Numbers */
+html[data-admin-tabular="off"] .admin-shell-bg .tabular-nums {
+  font-variant-numeric: normal !important;
+}
+html[data-admin-heading-style="uppercase"] .admin-shell-bg main h1,
+html[data-admin-heading-style="uppercase"] .admin-shell-bg main h2 {
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+html[data-admin-heading-style="editorial"] .admin-shell-bg main h1,
+html[data-admin-heading-style="editorial"] .admin-shell-bg main h2 {
+  font-family: var(--font-admin-serif), Georgia, serif !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* ── PRINCIPAL DESIGN SYSTEM: UNIFIED BRAND ACCENT & SEMANTIC HARMONY ─────── */
+/* Route legacy hardcoded sky/cyan brand utilities across all 80+ admin pages
+   to the employee's active --admin-accent token so colors never clash. */
+.admin-shell-bg [class*="text-[#0284c7]"],
+.admin-shell-bg [class*="text-[#0ea5e9]"],
+.admin-shell-bg .text-sky-600,
+.admin-shell-bg .text-sky-500,
+html.dark .admin-shell-bg [class*="dark:text-[#38bdf8]"],
+html.dark .admin-shell-bg .dark\:text-sky-400 {
+  color: var(--admin-accent, #0ea5e9) !important;
+}
+.admin-shell-bg [class*="hover:text-[#0284c7]"]:hover,
+.admin-shell-bg [class*="hover:text-[#0ea5e9]"]:hover,
+.admin-shell-bg .hover\:text-sky-600:hover {
+  color: var(--admin-accent, #0ea5e9) !important;
+}
+.admin-shell-bg [class*="bg-[#0ea5e9]"]:not([class*="/"]),
+.admin-shell-bg [class*="bg-[#0284c7]"]:not([class*="/"]),
+.admin-shell-bg .bg-sky-600:not([class*="/"]),
+.admin-shell-bg .bg-sky-500:not([class*="/"]),
+.admin-shell-bg .bg-blue-600:not([class*="/"]),
+.admin-shell-bg [class*="from-[#0ea5e9]"]:not(svg *),
+.admin-shell-bg [class*="from-sky-500"]:not(svg *) {
+  background-color: var(--admin-accent, #0ea5e9) !important;
+  background-image: none !important;
+}
+.admin-shell-bg [class*="hover:bg-[#0284c7]"]:hover,
+.admin-shell-bg .hover\:bg-sky-600:hover,
+.admin-shell-bg .hover\:bg-sky-700:hover {
+  background-color: var(--admin-accent-hover, #0284c7) !important;
+}
+.admin-shell-bg .bg-sky-50,
+.admin-shell-bg .bg-sky-50\/60,
+.admin-shell-bg .bg-sky-50\/70,
+.admin-shell-bg [class*="bg-sky-500\/10"],
+.admin-shell-bg [class*="bg-sky-500\/\[0.08\]"],
+.admin-shell-bg [class*="bg-[#0ea5e9]\/\[0.11\]"] {
+  background-color: var(--admin-accent-tint, rgba(14, 165, 233, 0.08)) !important;
+}
+.admin-shell-bg .hover\:bg-sky-50:hover,
+.admin-shell-bg .hover\:bg-sky-50\/70:hover,
+.admin-shell-bg .hover\:bg-sky-100\/70:hover {
+  background-color: var(--admin-accent-soft, rgba(14, 165, 233, 0.12)) !important;
+}
+.admin-shell-bg [class*="border-[#0ea5e9]"],
+.admin-shell-bg [class*="border-sky-200"],
+.admin-shell-bg [class*="border-sky-500\/2"] {
+  border-color: var(--admin-accent-ring, rgba(14, 165, 233, 0.24)) !important;
+}
+.admin-shell-bg input:focus,
+.admin-shell-bg select:focus,
+.admin-shell-bg textarea:focus {
+  border-color: var(--admin-accent, #0ea5e9) !important;
+  box-shadow: 0 0 0 3px var(--admin-accent-tint, rgba(14, 165, 233, 0.12)) !important;
+}
+
+/* ── LUXURY MINIMALIST WEBSITE POLISH & PHONE BROWSER COMPATIBILITY ──────── */
+/* Light Mode Gallery Balance: Warm Neutral Alabaster-Stone canvas so white cards sit cleanly */
+html:not(.dark)[data-admin-style="atelier"] .admin-shell-bg,
+html:not(.dark)[data-admin-style="vision_aero"] .admin-shell-bg,
+html:not(.dark):not([data-admin-style]) .admin-shell-bg {
+  background-color: #e6e8ec !important;
+  background-image: none !important;
+}
+
+/* Restrained Editorial Typography & Surface Hairlines */
+.admin-shell-bg main h1 {
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.admin-shell-bg .overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.admin-shell-bg .overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile & Phone Browser (< 1024px) Native Responsiveness */
+@media (max-width: 1023px) {
+  .admin-shell-bg header.nay-taskbar-2027 {
+    border-radius: 0 !important;
+  }
+}
+
+/* Mobile & Phone Browser (< 1024px) Native Responsiveness */
+@media (max-width: 1023px) {
+  .admin-shell-bg,
+  .admin-shell-bg main,
+  .admin-shell-bg .q-page {
+    max-width: 100vw !important;
+  }
+
+  .admin-shell-bg {
+    min-height: 100dvh !important;
+  }
+
+  .admin-shell-bg * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Phone-native horizontal snap carousel helper */
+  .nay-mobile-snap-row {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nay-mobile-snap-row::-webkit-scrollbar {
+    display: none;
+  }
+  .nay-mobile-snap-card {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+
+  /* Refined compact KPI padding on phone viewports */
+  .admin-shell-bg main .min-h-\[180px\],
+  .admin-shell-bg main .min-h-\[188px\],
+  .admin-shell-bg main .min-h-\[196px\] {
+    min-height: 148px !important;
+  }
+}
+
+@media (max-width: 639px) {
+  /* Prevent iOS Safari zoom on form focus without distorting desktop layouts */
+  .admin-shell-bg main input:not([type="checkbox"]):not([type="radio"]),
+  .admin-shell-bg main select,
+  .admin-shell-bg main textarea {
     font-size: 16px !important;
   }
 
-  /* Smooth momentum touch scrolling for tables and horizontal lists */
-  .custom-scrollbar,
-  .overflow-x-auto,
-  table {
-    -webkit-overflow-scrolling: touch;
+  .admin-shell-bg main h1 {
+    font-size: 1.45rem !important;
+    line-height: 1.2 !important;
   }
+
+  /* Ensure mobile top bar stays slim & edge-to-edge on 375px-430px phones */
+  .admin-shell-bg header.nay-taskbar-2027 {
+    height: 54px !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* ==========================================================================
+   STUDIO PRO MAX: 24 THEMES, 14 HEADBARS, 14 SIDEBARS, 5 SHAPES & 12 TASKBARS
+   ========================================================================== */
+
+/* ── 8 Additional High-Craft Studio Theme Worlds (Total = 24 Presets) ───── */
+html[data-admin-style="velvet_burgundy"]:not(.dark) .admin-shell-bg {
+  background-color: #f4eaed !important;
+  background-image: radial-gradient(ellipse 75% 45% at 15% -5%, rgba(159, 18, 57, 0.09) 0%, transparent 64%) !important;
+  color: #240b12 !important;
+}
+html[data-admin-style="velvet_burgundy"]:not(.dark) .admin-shell-bg .spatial-card {
+  background: #fffafb !important;
+  border-color: rgba(159, 18, 57, 0.14) !important;
+}
+html.dark[data-admin-style="velvet_burgundy"] .admin-shell-bg {
+  background-color: #16080d !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(190, 18, 60, 0.16) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="cypress_olive"]:not(.dark) .admin-shell-bg {
+  background-color: #eaede6 !important;
+  background-image: radial-gradient(ellipse 75% 45% at 85% 0%, rgba(77, 124, 15, 0.08) 0%, transparent 62%) !important;
+  color: #1a2412 !important;
+}
+html.dark[data-admin-style="cypress_olive"] .admin-shell-bg {
+  background-color: #0b120c !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(101, 163, 13, 0.12) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="azure_riviera"]:not(.dark) .admin-shell-bg {
+  background-color: #e4eef7 !important;
+  background-image: radial-gradient(ellipse 75% 45% at 18% -5%, rgba(2, 132, 199, 0.11) 0%, transparent 62%) !important;
+  color: #0c1b2a !important;
+}
+html.dark[data-admin-style="azure_riviera"] .admin-shell-bg {
+  background-color: #061124 !important;
+  background-image: radial-gradient(ellipse 80% 45% at 50% -6%, rgba(14, 165, 233, 0.17) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="saffron_amber"]:not(.dark) .admin-shell-bg {
+  background-color: #f5ecdc !important;
+  background-image: radial-gradient(ellipse 75% 45% at 80% 0%, rgba(217, 119, 6, 0.10) 0%, transparent 62%) !important;
+  color: #261808 !important;
+}
+html.dark[data-admin-style="saffron_amber"] .admin-shell-bg {
+  background-color: #150f08 !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(245, 158, 11, 0.13) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="plum_noir"]:not(.dark) .admin-shell-bg {
+  background-color: #efeaf6 !important;
+  background-image: radial-gradient(ellipse 75% 45% at 20% -5%, rgba(124, 58, 237, 0.10) 0%, transparent 62%) !important;
+  color: #1b0f2e !important;
+}
+html.dark[data-admin-style="plum_noir"] .admin-shell-bg {
+  background-color: #110a1c !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(139, 92, 246, 0.16) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="monaco_cream"]:not(.dark) .admin-shell-bg {
+  background-color: #f1ece2 !important;
+  background-image: none !important;
+  color: #1c1612 !important;
+}
+html[data-admin-style="monaco_cream"]:not(.dark) .admin-shell-bg .spatial-card {
+  background: #fdfaf3 !important;
+  border-color: rgba(120, 53, 15, 0.14) !important;
+}
+html.dark[data-admin-style="monaco_cream"] .admin-shell-bg {
+  background-color: #120e0b !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(180, 83, 9, 0.11) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="nordic_frost"]:not(.dark) .admin-shell-bg {
+  background-color: #e5edf2 !important;
+  background-image: radial-gradient(ellipse 75% 45% at 25% -5%, rgba(15, 118, 110, 0.09) 0%, transparent 62%) !important;
+  color: #0b1b1e !important;
+}
+html.dark[data-admin-style="nordic_frost"] .admin-shell-bg {
+  background-color: #071016 !important;
+  background-image: radial-gradient(ellipse 80% 42% at 50% -6%, rgba(20, 184, 166, 0.14) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="cyber_violet"]:not(.dark) .admin-shell-bg {
+  background-color: #eceaf7 !important;
+  background-image:
+    radial-gradient(ellipse 65% 42% at 15% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 40% at 85% 10%, rgba(168, 85, 247, 0.10) 0%, transparent 60%) !important;
+}
+html.dark[data-admin-style="cyber_violet"] .admin-shell-bg {
+  background-color: #080716 !important;
+  background-image:
+    radial-gradient(ellipse 65% 42% at 18% 0%, rgba(99, 102, 241, 0.20) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 40% at 84% 12%, rgba(192, 132, 252, 0.14) 0%, transparent 60%) !important;
+}
+
+/* ── 6 Additional Headbar Styles (Total = 14 Headbar Designs) ───────────── */
+html:not(.dark)[data-admin-headbar="translucent_frosted"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: rgba(255, 255, 255, 0.56) !important;
+  backdrop-filter: blur(28px) saturate(210%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.78) !important;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.10) !important;
+}
+html.dark[data-admin-headbar="translucent_frosted"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: rgba(24, 30, 48, 0.52) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: linear-gradient(125deg, var(--admin-accent, #0ea5e9) 0%, #4f46e5 56%, #0f172a 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 36px -10px var(--admin-accent-ring, rgba(79, 70, 229, 0.35)), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-400,
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-500,
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-600,
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-700,
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-800,
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 .text-slate-900 {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 [class*="bg-[#f1f4f9]"],
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 .bg-white,
+html[data-admin-headbar="gradient_aurora"] .admin-shell-bg header.nay-taskbar-2027 .bg-slate-900 {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.26) !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark)[data-admin-headbar="double_decker"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(15, 23, 42, 0.10) !important;
+  border-bottom: 3px solid var(--admin-accent, #0ea5e9) !important;
+  box-shadow: 0 8px 22px -8px rgba(15, 23, 42, 0.12) !important;
+}
+html.dark[data-admin-headbar="double_decker"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: rgba(14, 19, 32, 0.95) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-bottom: 3px solid var(--admin-accent, #0ea5e9) !important;
+}
+
+html:not(.dark)[data-admin-headbar="monochrome_ink"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: #faf8f3 !important;
+  backdrop-filter: none !important;
+  border: 1px solid rgba(28, 25, 23, 0.18) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 12px -4px rgba(28, 25, 23, 0.08) !important;
+}
+html.dark[data-admin-headbar="monochrome_ink"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: #0b0c0e !important;
+  backdrop-filter: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 10px !important;
+}
+
+@media (min-width: 1024px) {
+  html[data-admin-headbar="glass_pill_center"] .admin-shell-bg header.nay-taskbar-2027 {
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    border-radius: 9999px !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    box-shadow: 0 18px 42px -12px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+  }
+}
+
+html:not(.dark)[data-admin-headbar="bordered_architect"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  border: 2px solid #0f172a !important;
+  border-radius: 6px !important;
+  box-shadow: 4px 4px 0 rgba(15, 23, 42, 0.10) !important;
+}
+html.dark[data-admin-headbar="bordered_architect"] .admin-shell-bg header.nay-taskbar-2027 {
+  background: #090d16 !important;
+  backdrop-filter: none !important;
+  border: 2px solid rgba(255, 255, 255, 0.34) !important;
+  border-radius: 6px !important;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ── 6 Additional Sidebar Tones & 2 Additional Shapes (Total = 14 Tones x 5 Shapes) ── */
+@media (min-width: 1024px) {
+  html[data-admin-sidebar="espresso_lux"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(180deg, #1c1410 0%, #2a1d17 100%) !important;
+    border-color: rgba(217, 179, 130, 0.24) !important;
+    color: #f5ebe0 !important;
+  }
+  html[data-admin-sidebar="forest_velvet"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(180deg, #071913 0%, #0d2b20 100%) !important;
+    border-color: rgba(52, 211, 153, 0.22) !important;
+    color: #ecfdf5 !important;
+  }
+  html[data-admin-sidebar="burgundy_atelier"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(180deg, #1d0911 0%, #2e0f1c 100%) !important;
+    border-color: rgba(244, 63, 94, 0.24) !important;
+    color: #fdf2f8 !important;
+  }
+  html[data-admin-sidebar="graphite_rail"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(180deg, #181a1f 0%, #101216 100%) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #e5e7eb !important;
+  }
+  html[data-admin-sidebar="espresso_lux"] .admin-shell-bg aside.admin-sidebar .text-slate-900,
+  html[data-admin-sidebar="espresso_lux"] .admin-shell-bg aside.admin-sidebar .text-slate-700,
+  html[data-admin-sidebar="espresso_lux"] .admin-shell-bg aside.admin-sidebar .text-slate-600,
+  html[data-admin-sidebar="forest_velvet"] .admin-shell-bg aside.admin-sidebar .text-slate-900,
+  html[data-admin-sidebar="forest_velvet"] .admin-shell-bg aside.admin-sidebar .text-slate-700,
+  html[data-admin-sidebar="forest_velvet"] .admin-shell-bg aside.admin-sidebar .text-slate-600,
+  html[data-admin-sidebar="burgundy_atelier"] .admin-shell-bg aside.admin-sidebar .text-slate-900,
+  html[data-admin-sidebar="burgundy_atelier"] .admin-shell-bg aside.admin-sidebar .text-slate-700,
+  html[data-admin-sidebar="burgundy_atelier"] .admin-shell-bg aside.admin-sidebar .text-slate-600,
+  html[data-admin-sidebar="graphite_rail"] .admin-shell-bg aside.admin-sidebar .text-slate-900,
+  html[data-admin-sidebar="graphite_rail"] .admin-shell-bg aside.admin-sidebar .text-slate-700,
+  html[data-admin-sidebar="graphite_rail"] .admin-shell-bg aside.admin-sidebar .text-slate-600 {
+    color: rgba(248, 250, 252, 0.90) !important;
+  }
+  html[data-admin-sidebar="espresso_lux"] .admin-shell-bg aside.admin-sidebar .bg-white,
+  html[data-admin-sidebar="forest_velvet"] .admin-shell-bg aside.admin-sidebar .bg-white,
+  html[data-admin-sidebar="burgundy_atelier"] .admin-shell-bg aside.admin-sidebar .bg-white,
+  html[data-admin-sidebar="graphite_rail"] .admin-shell-bg aside.admin-sidebar .bg-white {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  html:not(.dark)[data-admin-sidebar="frosted_iris"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(180deg, rgba(238, 242, 255, 0.88) 0%, rgba(245, 243, 255, 0.80) 100%) !important;
+    border-color: rgba(99, 102, 241, 0.20) !important;
+  }
+  html.dark[data-admin-sidebar="frosted_iris"] .admin-shell-bg aside.admin-sidebar {
+    background: linear-gradient(180deg, rgba(23, 20, 48, 0.84) 0%, rgba(14, 12, 32, 0.80) 100%) !important;
+    border-color: rgba(139, 92, 246, 0.24) !important;
+  }
+
+  html:not(.dark)[data-admin-sidebar="linen_paper"] .admin-shell-bg aside.admin-sidebar {
+    background: #f7f3ea !important;
+    backdrop-filter: none !important;
+    border-color: rgba(120, 113, 108, 0.22) !important;
+  }
+  html.dark[data-admin-sidebar="linen_paper"] .admin-shell-bg aside.admin-sidebar {
+    background: #1b1916 !important;
+    backdrop-filter: none !important;
+    border-color: rgba(214, 211, 209, 0.14) !important;
+  }
+
+  /* 2 New Sidebar Shapes */
+  html[data-admin-sidebar-shape="inset_frame"] .admin-shell-bg aside.admin-sidebar {
+    border-radius: 16px !important;
+    top: 1rem !important;
+    bottom: 1rem !important;
+    height: calc(100vh - 2rem) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 16px 36px -14px rgba(15, 23, 42, 0.18) !important;
+  }
+  html[data-admin-sidebar-shape="icon_dock"] .admin-shell-bg aside.admin-sidebar {
+    border-radius: 26px !important;
+    top: 1.5rem !important;
+    bottom: 1.5rem !important;
+    height: calc(100vh - 3rem) !important;
+  }
+  html[data-admin-sidebar-shape="icon_dock"]:not([data-admin-sidebar-pos="right"]) .admin-shell-bg aside.admin-sidebar {
+    left: 1rem !important;
+  }
+  html[data-admin-sidebar-shape="icon_dock"][data-admin-sidebar-pos="right"] .admin-shell-bg aside.admin-sidebar {
+    right: 1rem !important;
+  }
+}
+
+/* ── 12 TASKBAR & BOTTOM DOCK ARCHITECTURES (MOBILE + DESKTOP) ──────────── */
+html[data-admin-taskbar="none"] .admin-shell-bg nav.nay-bottom-taskbar {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  html:not([data-admin-taskbar-desktop="on"]) .admin-shell-bg nav.nay-bottom-taskbar {
+    display: none !important;
+  }
+  html[data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar {
+    display: flex !important;
+  }
+}
+
+html[data-admin-taskbar-labels="off"] .admin-shell-bg nav.nay-bottom-taskbar .nay-taskbar-label {
+  display: none !important;
+}
+html[data-admin-taskbar-compact="on"] .admin-shell-bg nav.nay-bottom-taskbar a,
+html[data-admin-taskbar-compact="on"] .admin-shell-bg nav.nay-bottom-taskbar button {
+  min-height: 38px !important;
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+
+/* 1. Floating macOS Dock (Default) */
+html[data-admin-taskbar="floating_dock"]:not(.dark) .admin-shell-bg nav.nay-bottom-taskbar {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  bottom: 0.85rem !important;
+  width: fit-content !important;
+  max-width: calc(100vw - 1.5rem) !important;
+  border-radius: 24px !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 20px 44px -12px rgba(15, 23, 42, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+  padding: 0.4rem 0.75rem !important;
+}
+html.dark[data-admin-taskbar="floating_dock"] .admin-shell-bg nav.nay-bottom-taskbar {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  bottom: 0.85rem !important;
+  width: fit-content !important;
+  max-width: calc(100vw - 1.5rem) !important;
+  border-radius: 24px !important;
+  background: rgba(12, 18, 34, 0.82) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 22px 48px -12px rgba(0, 0, 0, 0.78), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+  padding: 0.4rem 0.75rem !important;
+}
+
+/* 2. Windows 11 Full-Width Docked Taskbar */
+html[data-admin-taskbar="windows_bar"] .admin-shell-bg nav.nay-bottom-taskbar {
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  border-radius: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+}
+
+/* 3. Dynamic Island Pill (Deep Obsidian Center Capsule) */
+html[data-admin-taskbar="dynamic_island"] .admin-shell-bg nav.nay-bottom-taskbar {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  bottom: 0.95rem !important;
+  width: fit-content !important;
+  max-width: calc(100vw - 1.5rem) !important;
+  border-radius: 9999px !important;
+  background: #0b1120 !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 20px 44px -10px rgba(0, 0, 0, 0.55) !important;
+  padding: 0.35rem 0.85rem !important;
+}
+html[data-admin-taskbar="dynamic_island"] .admin-shell-bg nav.nay-bottom-taskbar a,
+html[data-admin-taskbar="dynamic_island"] .admin-shell-bg nav.nay-bottom-taskbar button {
+  color: #cbd5e1 !important;
+}
+
+/* 4. Glass Shelf iOS (Specular Rounded Edge Shelf) */
+html:not(.dark)[data-admin-taskbar="glass_shelf"] .admin-shell-bg nav.nay-bottom-taskbar {
+  left: 1rem !important;
+  right: 1rem !important;
+  bottom: 0.75rem !important;
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.90) 0%, rgba(241, 245, 249, 0.78) 100%) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 28px)) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.18), inset 0 1.5px 0 rgba(255, 255, 255, 1) !important;
+}
+html.dark[data-admin-taskbar="glass_shelf"] .admin-shell-bg nav.nay-bottom-taskbar {
+  left: 1rem !important;
+  right: 1rem !important;
+  bottom: 0.75rem !important;
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, rgba(22, 34, 62, 0.72) 0%, rgba(10, 17, 34, 0.62) 100%) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 28px)) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+/* 5. Capsule Split Islands */
+html[data-admin-taskbar="capsule_split"] .admin-shell-bg nav.nay-bottom-taskbar {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  bottom: 0.75rem !important;
+  pointer-events: none !important;
+}
+html:not(.dark)[data-admin-taskbar="capsule_split"] .admin-shell-bg nav.nay-bottom-taskbar .nay-taskbar-inner {
+  pointer-events: auto !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(22px) !important;
+  border: 1px solid rgba(15, 23, 42, 0.10) !important;
+  border-radius: 9999px !important;
+  padding: 0.35rem 0.65rem !important;
+  gap: 0.35rem !important;
+  box-shadow: 0 14px 30px -10px rgba(15, 23, 42, 0.16) !important;
+}
+html.dark[data-admin-taskbar="capsule_split"] .admin-shell-bg nav.nay-bottom-taskbar .nay-taskbar-inner {
+  pointer-events: auto !important;
+  background: rgba(12, 18, 34, 0.90) !important;
+  backdrop-filter: blur(22px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 9999px !important;
+  padding: 0.35rem 0.65rem !important;
+  gap: 0.35rem !important;
+}
+
+/* 6. Obsidian Bar */
+html[data-admin-taskbar="obsidian_bar"] .admin-shell-bg nav.nay-bottom-taskbar {
+  background: linear-gradient(180deg, rgba(11, 19, 34, 0.97) 0%, rgba(15, 23, 42, 0.98) 100%) !important;
+  border-top: 1px solid rgba(148, 163, 184, 0.24) !important;
+  color: #f8fafc !important;
+}
+html[data-admin-taskbar="obsidian_bar"] .admin-shell-bg nav.nay-bottom-taskbar a,
+html[data-admin-taskbar="obsidian_bar"] .admin-shell-bg nav.nay-bottom-taskbar button {
+  color: #cbd5e1 !important;
+}
+
+/* 7. Accent Band Taskbar */
+html[data-admin-taskbar="accent_bar"] .admin-shell-bg nav.nay-bottom-taskbar {
+  background: linear-gradient(135deg, var(--admin-accent, #0ea5e9) 0%, var(--admin-accent-hover, #0284c7) 100%) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+  box-shadow: 0 -10px 30px -8px var(--admin-accent-ring, rgba(14, 165, 233, 0.35)) !important;
+}
+html[data-admin-taskbar="accent_bar"] .admin-shell-bg nav.nay-bottom-taskbar a,
+html[data-admin-taskbar="accent_bar"] .admin-shell-bg nav.nay-bottom-taskbar button {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* 8. Minimal Hairline Taskbar */
+html[data-admin-taskbar="minimal_line"] .admin-shell-bg nav.nay-bottom-taskbar {
+  backdrop-filter: blur(10px) !important;
+  box-shadow: none !important;
+  border-top: 1px solid rgba(148, 163, 184, 0.26) !important;
+}
+
+/* 9. Classic Ribbon Tab Bar */
+html[data-admin-taskbar="ribbon_tab"] .admin-shell-bg nav.nay-bottom-taskbar {
+  border-top: 2px solid var(--admin-accent, #0ea5e9) !important;
+  border-radius: 0 !important;
+}
+
+/* 10. Neon Pulse Glow Dock */
+html[data-admin-taskbar="neon_pulse"] .admin-shell-bg nav.nay-bottom-taskbar {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  bottom: 0.85rem !important;
+  width: fit-content !important;
+  max-width: calc(100vw - 1.5rem) !important;
+  border-radius: 20px !important;
+  background: rgba(9, 13, 24, 0.94) !important;
+  border: 1.5px solid var(--admin-accent, #0ea5e9) !important;
+  box-shadow: 0 0 28px -4px var(--admin-accent-ring, rgba(14, 165, 233, 0.50)), 0 18px 36px -10px rgba(0, 0, 0, 0.65) !important;
+  color: #f8fafc !important;
+  padding: 0.35rem 0.75rem !important;
+}
+html[data-admin-taskbar="neon_pulse"] .admin-shell-bg nav.nay-bottom-taskbar a,
+html[data-admin-taskbar="neon_pulse"] .admin-shell-bg nav.nay-bottom-taskbar button {
+  color: #e2e8f0 !important;
+}
+
+/* 11. Compact Touch Pills */
+html[data-admin-taskbar="compact_pills"] .admin-shell-bg nav.nay-bottom-taskbar .nay-taskbar-item {
+  border-radius: 9999px !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+@media (max-width: 1023px) {
+  html[data-admin-taskbar="floating_dock"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="dynamic_island"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="neon_pulse"] .admin-shell-bg nav.nay-bottom-taskbar {
+    width: calc(100vw - 1.25rem) !important;
+    max-width: 460px !important;
+  }
+}
+
+/* ── Desktop Taskbar Sidebar Clearance, Placement & Cohesive Spine Tones ── */
+@media (min-width: 1024px) {
+  /* Full-width / docked taskbars clear the active sidebar cleanly */
+  html[data-admin-taskbar="windows_bar"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="obsidian_bar"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="accent_bar"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="minimal_line"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="ribbon_tab"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="compact_pills"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar {
+    left: var(--nay-sb-left, 0px) !important;
+    right: var(--nay-sb-right, 0px) !important;
+  }
+
+  html[data-admin-taskbar="glass_shelf"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar {
+    left: calc(var(--nay-sb-left, 0px) + 1rem) !important;
+    right: calc(var(--nay-sb-right, 0px) + 1rem) !important;
+  }
+
+  /* Centered docks & capsules center relative to main content pane */
+  html[data-admin-taskbar="floating_dock"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="dynamic_island"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar,
+  html[data-admin-taskbar="neon_pulse"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar {
+    left: calc(50% + (var(--nay-sb-left, 0px) - var(--nay-sb-right, 0px)) / 2) !important;
+  }
+
+  html[data-admin-taskbar="capsule_split"][data-admin-taskbar-desktop="on"] .admin-shell-bg nav.nay-bottom-taskbar {
+    left: var(--nay-sb-left, 0px) !important;
+    right: var(--nay-sb-right, 0px) !important;
+  }
+
+  /* Taskbar vertical placement override: bottom (flush) vs bottom_raised (lifted card) */
+  html[data-admin-taskbar-desktop="on"][data-admin-taskbar-pos="bottom"] .admin-shell-bg nav.nay-bottom-taskbar {
+    bottom: 0 !important;
+  }
+  html[data-admin-taskbar-desktop="on"][data-admin-taskbar-pos="bottom_raised"] .admin-shell-bg nav.nay-bottom-taskbar {
+    bottom: 0.9rem !important;
+  }
+  html[data-admin-taskbar-desktop="on"][data-admin-taskbar-pos="bottom_raised"]:not([data-admin-taskbar="capsule_split"]):not([data-admin-taskbar="floating_dock"]):not([data-admin-taskbar="dynamic_island"]):not([data-admin-taskbar="neon_pulse"]) .admin-shell-bg nav.nay-bottom-taskbar {
+    left: calc(var(--nay-sb-left, 0px) + 1.25rem) !important;
+    right: calc(var(--nay-sb-right, 0px) + 1.25rem) !important;
+    border-radius: 18px !important;
+    border-left-width: 1px !important;
+    border-right-width: 1px !important;
+    border-bottom-width: 1px !important;
+  }
+
+  /* Blend expanded dual-rail spine coherently across custom sidebar materials */
+  html[data-admin-sidebar="espresso_lux"] .admin-shell-bg aside.admin-sidebar .nay-sidebar-spine,
+  html[data-admin-sidebar="forest_velvet"] .admin-shell-bg aside.admin-sidebar .nay-sidebar-spine,
+  html[data-admin-sidebar="burgundy_atelier"] .admin-shell-bg aside.admin-sidebar .nay-sidebar-spine,
+  html[data-admin-sidebar="graphite_rail"] .admin-shell-bg aside.admin-sidebar .nay-sidebar-spine {
+    background: rgba(0, 0, 0, 0.28) !important;
+    border-right-color: rgba(255, 255, 255, 0.12) !important;
+  }
+  html[data-admin-sidebar="accent_solid"] .admin-shell-bg aside.admin-sidebar .nay-sidebar-spine {
+    background: rgba(0, 0, 0, 0.18) !important;
+    border-right-color: rgba(255, 255, 255, 0.18) !important;
+  }
+  html:not(.dark)[data-admin-sidebar="linen_paper"] .admin-shell-bg aside.admin-sidebar .nay-sidebar-spine {
+    background: #1c1917 !important;
+  }
+  html:not(.dark)[data-admin-sidebar="frosted_iris"] .admin-shell-bg aside.admin-sidebar .nay-sidebar-spine {
+    background: #1e1b4b !important;
+  }
+}
+
+/* ==========================================================================
+   REAL OPTICAL GLASS (SVG REFRACTION + FRESNEL + PRISM), 6 NEW THEMES & 6 EFFECTS
+   ========================================================================== */
+
+/* Optical Depth Light Orbs Layer */
+.nay-optical-ambient .nay-ambient-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(88px);
+  pointer-events: none;
+  opacity: 0.14;
+  transition: opacity 0.35s ease, transform 0.6s ease;
+}
+html.dark .nay-optical-ambient .nay-ambient-orb {
+  opacity: 0.20;
+}
+.nay-optical-ambient .nay-orb-1 {
+  width: 520px;
+  height: 520px;
+  top: -120px;
+  left: 14%;
+}
+.nay-optical-ambient .nay-orb-2 {
+  width: 460px;
+  height: 460px;
+  top: 24%;
+  right: 6%;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+}
+.nay-optical-ambient .nay-orb-3 {
+  width: 540px;
+  height: 440px;
+  bottom: -140px;
+  left: 38%;
+  background: linear-gradient(135deg, #0ea5e9, #34d399);
+}
+
+/* ── 6 New Theme Worlds (Total = 30 Studio Presets) ── */
+html[data-admin-style="crystal_refraction"]:not(.dark) .admin-shell-bg {
+  background-color: #dbe7f5 !important;
+  background-image:
+    radial-gradient(ellipse 70% 52% at 15% 8%, rgba(0, 122, 255, 0.14) 0%, transparent 62%),
+    radial-gradient(ellipse 65% 48% at 88% 12%, rgba(56, 189, 248, 0.15) 0%, transparent 60%) !important;
+  color: #0f172a !important;
+}
+html.dark[data-admin-style="crystal_refraction"] .admin-shell-bg {
+  background-color: #030916 !important;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 18% 4%, rgba(0, 122, 255, 0.22) 0%, transparent 62%),
+    radial-gradient(ellipse 65% 48% at 86% 18%, rgba(56, 189, 248, 0.16) 0%, transparent 60%) !important;
+}
+
+html[data-admin-style="prism_aurora"]:not(.dark) .admin-shell-bg {
+  background-color: #e3ecfa !important;
+  background-image:
+    radial-gradient(ellipse 68% 46% at 14% 4%, rgba(99, 102, 241, 0.14) 0%, transparent 62%),
+    radial-gradient(ellipse 62% 45% at 88% 16%, rgba(236, 72, 153, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 50% 96%, rgba(14, 165, 233, 0.12) 0%, transparent 62%) !important;
+}
+html.dark[data-admin-style="prism_aurora"] .admin-shell-bg {
+  background-color: #060918 !important;
+  background-image:
+    radial-gradient(ellipse 70% 48% at 15% 4%, rgba(99, 102, 241, 0.22) 0%, transparent 62%),
+    radial-gradient(ellipse 65% 45% at 85% 15%, rgba(217, 70, 239, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 65% 45% at 48% 95%, rgba(14, 165, 233, 0.16) 0%, transparent 62%) !important;
+}
+
+html[data-admin-style="obsidian_mercury"]:not(.dark) .admin-shell-bg {
+  background-color: #dfe4ec !important;
+  background-image: linear-gradient(155deg, rgba(255, 255, 255, 0.35) 0%, rgba(148, 163, 184, 0.18) 100%) !important;
+  color: #0f172a !important;
+}
+html.dark[data-admin-style="obsidian_mercury"] .admin-shell-bg {
+  background-color: #07090e !important;
+  background-image: radial-gradient(ellipse 80% 45% at 50% -6%, rgba(148, 163, 184, 0.15) 0%, transparent 72%) !important;
+}
+
+html[data-admin-style="smoked_quartz"]:not(.dark) .admin-shell-bg {
+  background-color: #e9e1dc !important;
+  background-image: radial-gradient(ellipse 75% 48% at 22% 4%, rgba(146, 64, 14, 0.10) 0%, transparent 62%) !important;
+  color: #1c1917 !important;
+}
+html.dark[data-admin-style="smoked_quartz"] .admin-shell-bg {
+  background-color: #120e0d !important;
+  background-image: radial-gradient(ellipse 78% 46% at 50% -6%, rgba(180, 83, 9, 0.15) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="amber_cognac"]:not(.dark) .admin-shell-bg {
+  background-color: #f1e3d3 !important;
+  background-image: radial-gradient(ellipse 75% 48% at 78% 4%, rgba(217, 119, 6, 0.14) 0%, transparent 62%) !important;
+  color: #291807 !important;
+}
+html.dark[data-admin-style="amber_cognac"] .admin-shell-bg {
+  background-color: #160e07 !important;
+  background-image: radial-gradient(ellipse 78% 46% at 50% -6%, rgba(217, 119, 6, 0.18) 0%, transparent 74%) !important;
+}
+
+html[data-admin-style="sapphire_mirror"]:not(.dark) .admin-shell-bg {
+  background-color: #d9e6f8 !important;
+  background-image: radial-gradient(ellipse 76% 48% at 18% 0%, rgba(29, 78, 216, 0.15) 0%, transparent 62%) !important;
+  color: #0b1936 !important;
+}
+html.dark[data-admin-style="sapphire_mirror"] .admin-shell-bg {
+  background-color: #03091a !important;
+  background-image: radial-gradient(ellipse 80% 48% at 50% -6%, rgba(37, 99, 235, 0.24) 0%, transparent 74%) !important;
+}
+
+/* ── 5 NEW OPTICAL REAL GLASS & ARCHITECTURAL CONTAINER STYLES (Total = 10) ── */
+
+/* 1. REAL OPTICAL GLASS (SVG Refraction + Curved Gloss + Fresnel Multi-Rim) */
+html[data-admin-card="real_glass"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="real_glass"]:not(.dark) .spatial-card {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.22) 38%, rgba(255, 255, 255, 0.44) 100%) !important;
+  backdrop-filter: url(#nay-optical-glass) blur(var(--admin-glass-blur, 18px)) saturate(205%) contrast(104%) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 18px)) saturate(205%) contrast(104%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.82) !important;
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.96),
+    inset 1.5px 0 1px rgba(255, 255, 255, 0.68),
+    inset 0 -2px 3px rgba(15, 23, 42, 0.08),
+    0 18px 40px -14px rgba(15, 23, 42, 0.16),
+    0 3px 10px -2px rgba(15, 23, 42, 0.06) !important;
+}
+html.dark[data-admin-card="real_glass"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="real_glass"] .spatial-card {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(16, 26, 52, 0.34) 44%, rgba(255, 255, 255, 0.07) 100%) !important;
+  backdrop-filter: url(#nay-optical-glass) blur(var(--admin-glass-blur, 18px)) saturate(210%) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 18px)) saturate(210%) brightness(1.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.26) !important;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.36),
+    inset 1px 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.48),
+    0 24px 48px -14px rgba(0, 0, 0, 0.72) !important;
+}
+html[data-admin-card="real_glass"]:not(.dark) .admin-shell-bg header.nay-taskbar-2027,
+html[data-admin-card="real_glass"]:not(.dark) .admin-shell-bg aside.admin-sidebar {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.70) 0%, rgba(255, 255, 255, 0.32) 100%) !important;
+  backdrop-filter: url(#nay-optical-glass) blur(var(--admin-glass-blur, 20px)) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 20px)) saturate(210%) !important;
+  border-color: rgba(255, 255, 255, 0.85) !important;
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.96),
+    0 18px 36px -14px rgba(15, 23, 42, 0.16) !important;
+}
+html.dark[data-admin-card="real_glass"] .admin-shell-bg header.nay-taskbar-2027,
+html.dark[data-admin-card="real_glass"] .admin-shell-bg aside.admin-sidebar {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(11, 19, 38, 0.44) 100%) !important;
+  backdrop-filter: url(#nay-optical-glass) blur(var(--admin-glass-blur, 20px)) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 20px)) saturate(210%) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+/* 2. FROSTED CRYSTAL (Acid-Etched Architectural Satin Glass) */
+html[data-admin-card="frosted_crystal"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="frosted_crystal"]:not(.dark) .spatial-card {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.92), transparent 55%),
+    rgba(248, 251, 255, 0.64) !important;
+  backdrop-filter: blur(34px) saturate(165%) brightness(1.03) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(165%) brightness(1.03) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.92) !important;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(148, 163, 184, 0.22),
+    0 14px 32px -12px rgba(15, 23, 42, 0.12) !important;
+}
+html.dark[data-admin-card="frosted_crystal"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="frosted_crystal"] .spatial-card {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(255, 255, 255, 0.11), transparent 58%),
+    rgba(16, 23, 42, 0.56) !important;
+  backdrop-filter: blur(34px) saturate(175%) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(175%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.24),
+    0 20px 44px -14px rgba(0, 0, 0, 0.72) !important;
+}
+
+/* 3. PRISM EDGE (Iridescent Chromatic Dispersion Glass Rim + Crystal Filter) */
+html[data-admin-card="prism_edge"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="prism_edge"]:not(.dark) .spatial-card {
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.72) 0%, rgba(232, 244, 255, 0.42) 50%, rgba(248, 240, 255, 0.58) 100%) !important;
+  backdrop-filter: url(#nay-prism-crystal) blur(var(--admin-glass-blur, 20px)) saturate(215%) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 20px)) saturate(215%) !important;
+  border: 1px solid rgba(99, 102, 241, 0.26) !important;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.96),
+    inset 1.5px 0 0 rgba(56, 189, 248, 0.42),
+    inset -1.5px 0 0 rgba(236, 72, 153, 0.24),
+    inset 0 -1.5px 0 rgba(168, 85, 247, 0.26),
+    0 18px 38px -12px rgba(79, 70, 229, 0.16) !important;
+}
+html.dark[data-admin-card="prism_edge"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="prism_edge"] .spatial-card {
+  background:
+    linear-gradient(125deg, rgba(16, 26, 56, 0.56) 0%, rgba(24, 16, 52, 0.48) 100%) !important;
+  backdrop-filter: url(#nay-prism-crystal) blur(var(--admin-glass-blur, 20px)) saturate(215%) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 20px)) saturate(215%) !important;
+  border: 1px solid rgba(167, 139, 250, 0.34) !important;
+  box-shadow:
+    inset 0 1.5px 0 rgba(56, 189, 248, 0.38),
+    inset 1px 0 0 rgba(129, 140, 248, 0.28),
+    inset 0 -1.5px 0 rgba(244, 114, 182, 0.26),
+    0 22px 46px -14px rgba(0, 0, 0, 0.78) !important;
+}
+
+/* 4. TINTED SMOKE GLASS (Architectural Mineral Smoked Glass) */
+html[data-admin-card="tinted_smoke"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="tinted_smoke"]:not(.dark) .spatial-card {
+  background:
+    linear-gradient(160deg, rgba(226, 232, 240, 0.74) 0%, rgba(203, 213, 225, 0.58) 100%) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 24px)) saturate(150%) contrast(106%) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 24px)) saturate(150%) contrast(106%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.16) !important;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.68),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.10),
+    0 14px 32px -12px rgba(15, 23, 42, 0.18) !important;
+}
+html.dark[data-admin-card="tinted_smoke"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="tinted_smoke"] .spatial-card {
+  background:
+    linear-gradient(160deg, rgba(15, 19, 28, 0.74) 0%, rgba(8, 10, 16, 0.68) 100%) !important;
+  backdrop-filter: blur(var(--admin-glass-blur, 24px)) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(var(--admin-glass-blur, 24px)) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.60),
+    0 22px 44px -14px rgba(0, 0, 0, 0.82) !important;
+}
+
+/* 5. NEUMORPHIC SOFT SCULPTED RELIEF */
+html[data-admin-card="neumorphic_soft"]:not(.dark) .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html[data-admin-card="neumorphic_soft"]:not(.dark) .spatial-card {
+  background: #edf1f7 !important;
+  backdrop-filter: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.70) !important;
+  box-shadow:
+    9px 9px 20px rgba(15, 23, 42, 0.08),
+    -7px -7px 18px rgba(255, 255, 255, 0.92) !important;
+}
+html.dark[data-admin-card="neumorphic_soft"] .admin-shell-bg .bg-white:not(aside):not(header):not(.bg-white\/10):not(.bg-white\/20),
+html.dark[data-admin-card="neumorphic_soft"] .spatial-card {
+  background: #101726 !important;
+  backdrop-filter: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow:
+    10px 10px 24px rgba(0, 0, 0, 0.58),
+    -6px -6px 16px rgba(255, 255, 255, 0.03) !important;
+}
+
+/* ── 6 NEW ATMOSPHERIC BACKGROUND EFFECTS (Total = 10 Effects) ── */
+html:not(.dark)[data-admin-bg="crystal_caustics"] .admin-shell-bg {
+  background-image:
+    radial-gradient(ellipse 46% 32% at 22% 18%, rgba(56, 189, 248, 0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 28% at 74% 34%, rgba(255, 255, 255, 0.85) 0%, transparent 60%),
+    radial-gradient(ellipse 52% 36% at 54% 82%, rgba(14, 165, 233, 0.16) 0%, transparent 66%) !important;
+}
+html.dark[data-admin-bg="crystal_caustics"] .admin-shell-bg {
+  background-image:
+    radial-gradient(ellipse 46% 32% at 22% 18%, rgba(56, 189, 248, 0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 28% at 74% 34%, rgba(99, 102, 241, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 52% 36% at 54% 82%, rgba(16, 185, 129, 0.14) 0%, transparent 66%) !important;
+}
+
+html:not(.dark)[data-admin-bg="bokeh_orbs"] .admin-shell-bg {
+  background-image:
+    radial-gradient(circle 280px at 16% 24%, rgba(14, 165, 233, 0.18) 0%, transparent 72%),
+    radial-gradient(circle 240px at 84% 20%, rgba(139, 92, 246, 0.14) 0%, transparent 72%),
+    radial-gradient(circle 300px at 66% 78%, rgba(16, 185, 129, 0.12) 0%, transparent 72%) !important;
+}
+html.dark[data-admin-bg="bokeh_orbs"] .admin-shell-bg {
+  background-image:
+    radial-gradient(circle 280px at 16% 24%, rgba(56, 189, 248, 0.20) 0%, transparent 72%),
+    radial-gradient(circle 260px at 84% 22%, rgba(168, 85, 247, 0.18) 0%, transparent 72%),
+    radial-gradient(circle 300px at 64% 80%, rgba(16, 185, 129, 0.14) 0%, transparent 72%) !important;
+}
+
+html:not(.dark)[data-admin-bg="silk_waves"] .admin-shell-bg {
+  background-image:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.65) 0%, transparent 38%, rgba(14, 165, 233, 0.09) 62%, transparent 100%) !important;
+}
+html.dark[data-admin-bg="silk_waves"] .admin-shell-bg {
+  background-image:
+    linear-gradient(125deg, rgba(56, 189, 248, 0.10) 0%, transparent 42%, rgba(99, 102, 241, 0.12) 72%, transparent 100%) !important;
+}
+
+html:not(.dark)[data-admin-bg="prismatic_rays"] .admin-shell-bg {
+  background-image:
+    conic-gradient(from 140deg at 28% 12%, rgba(56, 189, 248, 0.14), rgba(168, 85, 247, 0.10), rgba(244, 114, 182, 0.08), rgba(255, 255, 255, 0.25), rgba(56, 189, 248, 0.14)) !important;
+}
+html.dark[data-admin-bg="prismatic_rays"] .admin-shell-bg {
+  background-image:
+    conic-gradient(from 140deg at 28% 12%, rgba(56, 189, 248, 0.16), rgba(139, 92, 246, 0.14), rgba(236, 72, 153, 0.09), transparent, rgba(56, 189, 248, 0.16)) !important;
+}
+
+html:not(.dark)[data-admin-bg="nebula_mesh"] .admin-shell-bg {
+  background-image:
+    radial-gradient(at 10% 15%, rgba(59, 130, 246, 0.16) 0, transparent 52%),
+    radial-gradient(at 88% 12%, rgba(168, 85, 247, 0.14) 0, transparent 48%),
+    radial-gradient(at 24% 88%, rgba(20, 184, 166, 0.12) 0, transparent 50%) !important;
+}
+html.dark[data-admin-bg="nebula_mesh"] .admin-shell-bg {
+  background-image:
+    radial-gradient(at 10% 15%, rgba(37, 99, 235, 0.24) 0, transparent 52%),
+    radial-gradient(at 88% 12%, rgba(139, 92, 246, 0.20) 0, transparent 48%),
+    radial-gradient(at 24% 88%, rgba(16, 185, 129, 0.15) 0, transparent 50%) !important;
+}
+
+html:not(.dark)[data-admin-bg="editorial_grain"] .admin-shell-bg {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(15, 23, 42, 0.015) 0, rgba(15, 23, 42, 0.015) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(-45deg, rgba(15, 23, 42, 0.012) 0, rgba(15, 23, 42, 0.012) 1px, transparent 1px, transparent 6px) !important;
+}
+html.dark[data-admin-bg="editorial_grain"] .admin-shell-bg {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.018) 0, rgba(255, 255, 255, 0.018) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.014) 0, rgba(255, 255, 255, 0.014) 1px, transparent 1px, transparent 6px) !important;
 }

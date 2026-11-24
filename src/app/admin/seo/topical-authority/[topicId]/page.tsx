@@ -96,9 +96,12 @@ export default async function TopicDetailPage({
                            Intent: {g.searchIntent} | Impressions: {g.impressions.toLocaleString()}
                          </div>
                        </div>
-                       <button className="text-xs font-semibold bg-white border border-orange-200 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-100">
+                       <Link
+                         href="/admin/blog/new"
+                         className="text-xs font-semibold bg-white border border-orange-200 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-100 transition-colors shrink-0"
+                       >
                          Create Content
-                       </button>
+                       </Link>
                      </div>
                    ))}
                    {gaps.length > 10 && (
@@ -129,9 +132,12 @@ export default async function TopicDetailPage({
                            Position: {c.currentPosition} | Clicks: {c.clicks}
                          </div>
                        </div>
-                       <button className="text-xs font-semibold bg-white border border-blue-200 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-100">
+                       <Link
+                         href="/admin/seo/ai-assistant"
+                         className="text-xs font-semibold bg-white border border-blue-200 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-100 transition-colors shrink-0"
+                       >
                          Optimize
-                       </button>
+                       </Link>
                      </div>
                    ))}
                  </div>

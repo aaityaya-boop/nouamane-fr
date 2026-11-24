@@ -69,3 +69,27 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: error.message || 'Failed to delete post' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { errorResponse } = await requirePermission(request, 'marketing.manage_seo');
+    if (errorResponse) return errorResponse;
+
+    const { id } = await params;
+    const data = await request.json();
+
+    const updateData: Record<string, unknown> = {};
+    if (data.status === 'published' || data.status === 'draft') {
+      updateData.status = data.status;
+    }
+
+    const updated = await prisma.blogPost.update({
+      where: { id },
+      data: updateData,
+    });
+    return NextResponse.json(updated);
+  } catch (error: any) {
+    console.error('Failed to patch post:', error);
+    return NextResponse.json({ error: error.message || 'Failed to update post' }, { status: 500 });
+  }
+}

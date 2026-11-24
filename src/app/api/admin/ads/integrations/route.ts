@@ -69,6 +69,16 @@ export async function POST(req: Request) {
       });
     }
 
+    // Auto-determine exchange rate from detected currency if not specified
+    const resolvedCurrency = testResult.currency || currency || 'MAD';
+    const resolvedRate = exchangeRateToMAD
+      ? parseFloat(exchangeRateToMAD)
+      : resolvedCurrency === 'MAD'
+      ? 1.0
+      : resolvedCurrency === 'EUR'
+      ? 10.8
+      : 10.0;
+
     const status = testResult.success ? 'CONNECTED' : accessToken ? 'ERROR' : 'DISCONNECTED';
 
     const integration = await prisma.adAccountIntegration.upsert({
@@ -82,20 +92,20 @@ export async function POST(req: Request) {
         platform,
         accountId,
         accountName: testResult.accountName || accountName || `${platform} Account`,
-        accessToken: accessToken || null,
+        accessToken: accessToken?.trim() || null,
         pixelId: pixelId || null,
-        currency: testResult.currency || currency || 'MAD',
-        exchangeRateToMAD: exchangeRateToMAD ? parseFloat(exchangeRateToMAD) : 10.0,
+        currency: resolvedCurrency,
+        exchangeRateToMAD: resolvedRate,
         status,
         lastSyncStatus: testResult.success ? 'SUCCESS' : 'FAILED',
         errorMessage: testResult.error || null,
       },
       update: {
         accountName: testResult.accountName || accountName || undefined,
-        accessToken: accessToken !== undefined ? accessToken : undefined,
+        accessToken: accessToken && accessToken.trim() ? accessToken.trim() : undefined,
         pixelId: pixelId !== undefined ? pixelId : undefined,
-        currency: testResult.currency || currency || undefined,
-        exchangeRateToMAD: exchangeRateToMAD ? parseFloat(exchangeRateToMAD) : undefined,
+        currency: resolvedCurrency,
+        exchangeRateToMAD: resolvedRate,
         status,
         errorMessage: testResult.error || null,
       },
@@ -103,11 +113,35 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      integration,
+      integration: {
+        ...integration,
+        accessToken: integration.accessToken
+          ? `${integration.accessToken.slice(0, 6)}...${integration.accessToken.slice(-4)}`
+          : null,
+      },
       testResult,
     });
   } catch (error: any) {
     console.error('Error saving ad integration:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { errorResponse } = await requirePermission(req, 'marketing.manage_campaigns');
+    if (errorResponse) return errorResponse;
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Identifiant requis' }, { status: 400 });
+    }
+
+    await prisma.adAccountIntegration.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Error deleting ad integration:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

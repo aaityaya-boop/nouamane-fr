@@ -15,7 +15,8 @@ import {
   Banknote, 
   Headphones,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Lock
 } from 'lucide-react';
 
 export default function Footer() {
@@ -423,10 +424,13 @@ export default function Footer() {
               </form>
 
               {/* Privacy Reassurance Note */}
-              <p className="text-[10px] text-[#9CA3AF] mt-3 leading-snug">
-                {isAr 
-                  ? '🔒 نحن نحترم خصوصيتك بالكامل. يمكنك إلغاء الاشتراك في أي وقت.' 
-                  : '🔒 Confidentialité respectée. Désinscription en 1 clic à tout moment.'}
+              <p className="text-[10px] text-[#9CA3AF] mt-3 leading-snug flex items-center gap-1.5">
+                <Lock size={11} className="text-[#9CA3AF] shrink-0" />
+                <span>
+                  {isAr 
+                    ? 'نحن نحترم خصوصيتك بالكامل. يمكنك إلغاء الاشتراك في أي وقت.' 
+                    : 'Confidentialité respectée. Désinscription en 1 clic à tout moment.'}
+                </span>
               </p>
             </div>
           </div>

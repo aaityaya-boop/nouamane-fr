@@ -1,23 +1,43 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { SignJWT } from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-);
+import { signCustomerToken } from '@/lib/security/jwt';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export async function POST(request: Request) {
   try {
     const { name, email, password } = await request.json();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
       return NextResponse.json({ error: 'Tous les champs sont requis' }, { status: 400 });
     }
 
-    // Check if user exists
-    const existingCustomer = await prisma.customer.findUnique({
-      where: { email }
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`cust_register:${clientIp}`, 10, 60 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Trop de créations de compte depuis cette connexion. Veuillez réessayer plus tard.' },
+        { status: 429 }
+      );
+    }
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return NextResponse.json({ error: 'Nom ou adresse email invalide' }, { status: 400 });
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: 'Le mot de passe doit contenir au moins 8 caractères.' },
+        { status: 400 }
+      );
+    }
+
+    // Check if user exists (case-insensitive)
+    const existingCustomer = await prisma.customer.findFirst({
+      where: { email: { equals: cleanEmail, mode: 'insensitive' } },
+      select: { id: true },
     });
 
     if (existingCustomer) {
@@ -31,23 +51,19 @@ export async function POST(request: Request) {
     // Create user
     const customer = await prisma.customer.create({
       data: {
-        name,
-        email,
+        name: cleanName,
+        email: cleanEmail,
         password: hashedPassword,
       }
     });
 
     // Generate JWT
-    const token = await new SignJWT({ 
-      tokenType: 'CUSTOMER_SESSION',
-      id: customer.id, 
-      email: customer.email, 
+    const token = await signCustomerToken({
+      id: customer.id,
+      email: customer.email,
       name: customer.name,
-      role: 'customer' 
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('30d')
-      .sign(JWT_SECRET);
+      role: 'customer',
+    });
 
     const response = NextResponse.json({ 
       success: true, 

@@ -1,0 +1,581 @@
+/* ==========================================================================
+   NAY PARFUMS — ADMIN 2027 "LIQUID GLASS" OPERATING SYSTEM
+   Creative Direction: Apple Liquid Glass + Shopify Usability + Linear Precision
+   Brand Core: Signature Electric Sky Blue (#0EA5E9), Deep Navy (#06111F),
+               Elevated Surface (#0B1B2C), Crystal Ice Canvas (#F3FAFE).
+   ========================================================================== */
+
+@layer liquid-glass-2027 {
+
+  /* ── 1. TOKENS ───────────────────────────────────────────────────────────── */
+  html.admin-html,
+  body.admin-body,
+  .admin-shell-bg {
+    /* Brand Foundation */
+    --nay-blue-primary: #0EA5E9;
+    --nay-blue-deep: #0284C7;
+    --nay-blue-luminous: #38BDF8;
+    --nay-blue-ice: #BAE6FD;
+    --nay-blue-glow: rgba(14, 165, 233, 0.35);
+    --nay-blue-glow-subtle: rgba(14, 165, 233, 0.15);
+    --nay-white: #FFFFFF;
+
+    /* Semantics */
+    --nay-emerald: #10B981;
+    --nay-emerald-glow: rgba(16, 185, 129, 0.25);
+    --nay-amber: #F59E0B;
+    --nay-amber-glow: rgba(245, 158, 11, 0.25);
+    --nay-rose: #EF4444;
+    --nay-rose-glow: rgba(239, 68, 68, 0.25);
+
+    /* Motion Curves */
+    --nay-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --nay-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --nay-duration-micro: 140ms;
+    --nay-duration-panel: 220ms;
+    --nay-duration-modal: 280ms;
+  }
+
+  /* ── Light Mode: Crystal Blue Glass ────────────────────────────────────── */
+  html.admin-html:not(.dark),
+  body.admin-body:not(.dark),
+  .admin-shell-bg:not(.dark) {
+    --nay-canvas: #F3FAFE;
+    --nay-canvas-mesh: radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
+                       radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.07) 0px, transparent 50%),
+                       radial-gradient(at 50% 50%, rgba(186, 230, 253, 0.25) 0px, transparent 65%),
+                       #F3FAFE;
+
+    --nay-surface: rgba(255, 255, 255, 0.88);
+    --nay-surface-elevated: rgba(255, 255, 255, 0.96);
+    --nay-surface-subtle: rgba(240, 249, 255, 0.75);
+    --nay-surface-hover: rgba(240, 249, 255, 0.95);
+
+    --nay-border: rgba(14, 165, 233, 0.16);
+    --nay-border-subtle: rgba(14, 165, 233, 0.08);
+    --nay-border-highlight: rgba(14, 165, 233, 0.40);
+
+    --nay-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+    
+    --nay-text-primary: #0A192F;
+    --nay-text-secondary: #334155;
+    --nay-text-muted: #64748B;
+    --nay-text-faint: #94A3B8;
+
+    --nay-shadow-glass: 0 4px 20px -2px rgba(14, 165, 233, 0.08), 0 2px 6px -1px rgba(10, 25, 47, 0.04);
+    --nay-shadow-floating: 0 16px 36px -6px rgba(14, 165, 233, 0.16), 0 4px 12px -2px rgba(10, 25, 47, 0.06);
+    --nay-shadow-glow: 0 0 25px rgba(14, 165, 233, 0.22);
+    --nay-overlay: rgba(10, 25, 47, 0.35);
+
+    color-scheme: light;
+  }
+
+  /* ── Dark Mode: Premium Electric Glass ─────────────────────────────────── */
+  html.admin-html.dark,
+  body.admin-body.dark,
+  .admin-shell-bg.dark,
+  html.dark .admin-shell-bg,
+  html.dark body.admin-body {
+    --nay-canvas: #06111F;
+    --nay-canvas-mesh: radial-gradient(circle at 10% 10%, rgba(14, 165, 233, 0.14) 0%, transparent 45%),
+                       radial-gradient(circle at 90% 85%, rgba(2, 132, 199, 0.12) 0%, transparent 45%),
+                       radial-gradient(circle at 50% 50%, rgba(11, 27, 44, 0.8) 0%, transparent 80%),
+                       #06111F;
+
+    --nay-surface: rgba(11, 27, 44, 0.76);
+    --nay-surface-elevated: rgba(15, 34, 56, 0.88);
+    --nay-surface-subtle: rgba(11, 27, 44, 0.50);
+    --nay-surface-hover: rgba(18, 42, 70, 0.85);
+
+    --nay-border: rgba(56, 189, 248, 0.18);
+    --nay-border-subtle: rgba(56, 189, 248, 0.09);
+    --nay-border-highlight: rgba(56, 189, 248, 0.45);
+
+    --nay-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(56, 189, 248, 0.10);
+
+    --nay-text-primary: #FFFFFF;
+    --nay-text-secondary: #CBD5E1;
+    --nay-text-muted: #94A3B8;
+    --nay-text-faint: #64748B;
+
+    --nay-shadow-glass: 0 8px 32px -4px rgba(0, 0, 0, 0.55), 0 2px 8px -1px rgba(0, 0, 0, 0.35);
+    --nay-shadow-floating: 0 20px 48px -8px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(56, 189, 248, 0.2);
+    --nay-shadow-glow: 0 0 35px rgba(14, 165, 233, 0.35);
+    --nay-overlay: rgba(4, 10, 20, 0.72);
+
+    color-scheme: dark;
+  }
+
+  /* ── 2. GLOBAL CANVAS & LAYOUT SHELL ────────────────────────────────────── */
+  html.admin-html body.admin-body,
+  html.admin-html .admin-shell-bg {
+    background: var(--nay-canvas-mesh) !important;
+    background-attachment: fixed !important;
+    color: var(--nay-text-primary) !important;
+    min-height: 100vh;
+  }
+
+  /* Ambient Aurora Subtle Pulse on Canvas */
+  .admin-shell-bg::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 380px;
+    background: radial-gradient(50% 100% at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── 3. LIQUID GLASS MATERIALS ─────────────────────────────────────────── */
+  
+  /* 3.1 glass-subtle: secondary chips, inputs, nested pods */
+  .glass-subtle,
+  .admin-shell-bg .glass-subtle {
+    background: var(--nay-surface-subtle) !important;
+    backdrop-filter: blur(10px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
+    border: 1px solid var(--nay-border-subtle) !important;
+    box-shadow: var(--nay-specular) !important;
+    border-radius: 10px;
+    transition: all var(--nay-duration-micro) var(--nay-ease);
+  }
+
+  /* 3.2 glass-panel: core cards, KPI pods, chart containers */
+  .glass-panel,
+  .admin-shell-bg .glass-panel,
+  .admin-shell-bg :is(main, .q-scope) :is(.spatial-card, .admin-sapphire-card, [class*="bg-white"]):not(.rounded-full):not([class*="bg-white/"]):not([class*="bg-transparent"]) {
+    background: var(--nay-surface) !important;
+    backdrop-filter: blur(16px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(190%) !important;
+    border: 1px solid var(--nay-border) !important;
+    box-shadow: var(--nay-shadow-glass), var(--nay-specular) !important;
+    border-radius: 14px;
+    transition: transform var(--nay-duration-panel) var(--nay-ease), 
+                box-shadow var(--nay-duration-panel) var(--nay-ease),
+                border-color var(--nay-duration-panel) var(--nay-ease);
+  }
+
+  .glass-panel:hover,
+  .admin-shell-bg .glass-panel:hover,
+  .admin-shell-bg :is(main, .q-scope) :is(.spatial-card, .admin-sapphire-card):hover {
+    border-color: var(--nay-border-highlight) !important;
+    box-shadow: var(--nay-shadow-glass), var(--nay-shadow-glow), var(--nay-specular) !important;
+  }
+
+  /* 3.3 glass-floating: dropdown menus, flyouts, autocompletes, command palette */
+  .glass-floating,
+  .admin-shell-bg .glass-floating,
+  .admin-shell-bg .absolute.z-50:is([class*="shadow-"]):is(.bg-white, [class*="dark:bg-"]) {
+    background: var(--nay-surface-elevated) !important;
+    backdrop-filter: blur(24px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+    border: 1px solid var(--nay-border-highlight) !important;
+    box-shadow: var(--nay-shadow-floating), var(--nay-shadow-glow), var(--nay-specular) !important;
+    border-radius: 14px;
+  }
+
+  /* 3.4 glass-modal: dialogs, detail drawers, inspection sheets */
+  .glass-modal,
+  .admin-shell-bg .glass-modal,
+  .modal-glass-container,
+  .admin-shell-bg .modal-glass-container {
+    background: var(--nay-surface-elevated) !important;
+    backdrop-filter: blur(28px) saturate(210%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(210%) !important;
+    border: 1px solid var(--nay-border-highlight) !important;
+    box-shadow: var(--nay-shadow-floating), 0 0 60px rgba(14, 165, 233, 0.25), var(--nay-specular) !important;
+    border-radius: 18px;
+  }
+
+  /* Modal backdrop dimming with subtle electric tint */
+  .fixed.inset-0:is([class*="bg-black/"], [class*="bg-slate-900/"], [class*="bg-slate-950/"]) {
+    background-color: var(--nay-overlay) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    animation: nay-fade-in var(--nay-duration-panel) var(--nay-ease) both;
+  }
+
+  /* 3.5 glass-navigation: fixed / sticky headers, sidebar shells */
+  .glass-navigation,
+  .admin-shell-bg .glass-navigation,
+  .admin-workstation-header,
+  .admin-shell-bg aside {
+    background: var(--nay-surface) !important;
+    backdrop-filter: blur(20px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+    border-color: var(--nay-border) !important;
+    box-shadow: var(--nay-shadow-glass), var(--nay-specular) !important;
+  }
+
+  /* ── 4. GLOW & ELECTRIC LIGHTING UTILITIES ─────────────────────────────── */
+
+  /* Electric focus ring */
+  :is(input, select, textarea, button):focus-visible,
+  .admin-shell-bg :is(input, select, textarea, button):focus-visible {
+    outline: none !important;
+    border-color: var(--nay-blue-primary) !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.35), 0 0 18px rgba(14, 165, 233, 0.25) !important;
+  }
+
+  /* Electric Glow Hover Utility */
+  .electric-glow {
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.30) !important;
+  }
+  .electric-glow-hover {
+    transition: all var(--nay-duration-micro) var(--nay-ease);
+  }
+  .electric-glow-hover:hover {
+    box-shadow: 0 0 26px rgba(14, 165, 233, 0.40) !important;
+    border-color: var(--nay-blue-primary) !important;
+    transform: translateY(-1px);
+  }
+
+  /* Electric Border Accent */
+  .electric-border {
+    border-color: var(--nay-blue-primary) !important;
+    box-shadow: inset 0 0 12px rgba(14, 165, 233, 0.15), 0 0 12px rgba(14, 165, 233, 0.20) !important;
+  }
+
+  /* Electric Pill Badge */
+  .electric-badge {
+    background: rgba(14, 165, 233, 0.12) !important;
+    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+    color: var(--nay-blue-primary) !important;
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.15) !important;
+  }
+  html.dark .electric-badge {
+    color: var(--nay-blue-luminous) !important;
+    background: rgba(14, 165, 233, 0.18) !important;
+    border-color: rgba(56, 189, 248, 0.45) !important;
+    box-shadow: 0 0 16px rgba(14, 165, 233, 0.30) !important;
+  }
+
+  /* ── 5. ADVANCED MOTION & ANIMATION ─────────────────────────────────────── */
+  @keyframes nay-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes nay-fade-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes nay-scale-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes nay-glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 14px rgba(14, 165, 233, 0.3);
+      opacity: 0.9;
+    }
+    50% {
+      box-shadow: 0 0 28px rgba(14, 165, 233, 0.55);
+      opacity: 1;
+    }
+  }
+
+  @keyframes nay-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Page transition wrapper */
+  .q-page,
+  .nay-page-transition {
+    animation: nay-fade-up var(--nay-duration-panel) var(--nay-ease) both;
+  }
+
+  /* Dropdown & Modal animations */
+  .admin-shell-bg .absolute.z-50 {
+    animation: nay-scale-pop var(--nay-duration-micro) var(--nay-ease) both;
+    transform-origin: top right;
+  }
+
+  .admin-shell-bg .modal-glass-container {
+    animation: nay-scale-pop var(--nay-duration-modal) var(--nay-ease-bounce) both;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ── 6. COMPONENT REFINEMENTS ACROSS ALL ADMIN PAGES ─────────────────────── */
+
+  /* 6.1 Buttons: Primary Electric Glow, Secondary Frosted Glass */
+  .admin-shell-bg button:not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-transparent"]) {
+    transition: all var(--nay-duration-micro) var(--nay-ease);
+  }
+
+  /* Primary action buttons: Electric NAY Blue */
+  .admin-shell-bg .btn-primary,
+  .admin-shell-bg :is(button, a):is(.bg-sky-500, .bg-sky-600, .bg-blue-600, .bg-slate-900, [class*="bg-[#0ea5e9]"]):is(.text-white, [class*="text-white"]) {
+    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    color: #FFFFFF !important;
+  }
+  .admin-shell-bg :is(button, a):is(.bg-sky-500, .bg-sky-600, .bg-blue-600, .bg-slate-900, [class*="bg-[#0ea5e9]"]):hover {
+    background: linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%) !important;
+    box-shadow: 0 6px 22px rgba(14, 165, 233, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-1px);
+  }
+  .admin-shell-bg :is(button, a):is(.bg-sky-500, .bg-sky-600, .bg-blue-600, .bg-slate-900, [class*="bg-[#0ea5e9]"]):active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4) !important;
+  }
+
+  /* 6.2 Data Tables: Translucent Layered Rows & Electric Accents */
+  .admin-shell-bg table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .admin-shell-bg thead tr {
+    background: var(--nay-surface-subtle) !important;
+  }
+  .admin-shell-bg th {
+    color: var(--nay-text-muted) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    border-bottom: 1px solid var(--nay-border) !important;
+    padding: 10px 14px !important;
+  }
+  .admin-shell-bg tbody tr {
+    transition: background-color var(--nay-duration-micro) var(--nay-ease),
+                box-shadow var(--nay-duration-micro) var(--nay-ease);
+    border-bottom: 1px solid var(--nay-border-subtle);
+  }
+  .admin-shell-bg tbody tr:hover {
+    background-color: var(--nay-surface-hover) !important;
+    box-shadow: inset 2px 0 0 var(--nay-blue-primary) !important;
+  }
+  .admin-shell-bg td {
+    padding: 12px 14px !important;
+    color: var(--nay-text-secondary);
+    border-bottom: 1px solid var(--nay-border-subtle) !important;
+  }
+
+  /* 6.3 Form Inputs & Selects: Frosted Glass Wells */
+  .admin-shell-bg :is(input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="password"], select, textarea) {
+    background: var(--nay-surface-subtle) !important;
+    border: 1px solid var(--nay-border) !important;
+    color: var(--nay-text-primary) !important;
+    border-radius: 9px;
+    transition: all var(--nay-duration-micro) var(--nay-ease);
+  }
+  .admin-shell-bg :is(input, select, textarea):hover {
+    border-color: var(--nay-border-highlight) !important;
+  }
+
+  /* 6.4 Sidebar Navigation Active Pill */
+  .q-nav-item,
+  .admin-shell-bg .q-nav-item {
+    position: relative;
+    border-radius: 9px;
+    transition: all var(--nay-duration-micro) var(--nay-ease);
+  }
+  .q-nav-item:hover,
+  .admin-shell-bg .q-nav-item:hover {
+    background: var(--nay-surface-hover) !important;
+    color: var(--nay-blue-primary) !important;
+  }
+  .q-nav-item.active,
+  .q-nav-item.is-active,
+  .admin-shell-bg .q-nav-item.active,
+  .admin-shell-bg .q-nav-item.is-active,
+  .admin-shell-bg a[data-active="true"] {
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0.05) 100%) !important;
+    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+    color: var(--nay-blue-primary) !important;
+    box-shadow: 0 0 16px rgba(14, 165, 233, 0.20), inset 0 0 8px rgba(14, 165, 233, 0.10) !important;
+  }
+  html.dark .q-nav-item.active,
+  html.dark .q-nav-item.is-active,
+  html.dark .admin-shell-bg .q-nav-item.active,
+  html.dark .admin-shell-bg .q-nav-item.is-active {
+    color: var(--nay-blue-luminous) !important;
+    border-color: rgba(56, 189, 248, 0.45) !important;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.30), inset 0 0 10px rgba(14, 165, 233, 0.15) !important;
+  }
+  .q-nav-indicator,
+  .admin-shell-bg .q-nav-indicator {
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0.4);
+    width: 3px;
+    height: 18px;
+    border-radius: 4px;
+    background: var(--nay-blue-primary);
+    box-shadow: 0 0 10px var(--nay-blue-primary), 0 0 20px rgba(14, 165, 233, 0.6);
+    opacity: 0;
+    transition: all var(--nay-duration-micro) var(--nay-ease);
+  }
+  .q-nav-item.is-active .q-nav-indicator,
+  .q-nav-item.active .q-nav-indicator,
+  .admin-shell-bg .q-nav-item.is-active .q-nav-indicator {
+    opacity: 1;
+    transform: translateY(-50%) scaleY(1);
+  }
+
+  /* 6.5 Executive Dashboard Hero Cards */
+  .admin-shell-bg .aura-hero-card,
+  .admin-shell-bg .hero-kpi-card {
+    background: var(--nay-surface) !important;
+    backdrop-filter: blur(18px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(190%) !important;
+    border: 1px solid var(--nay-border) !important;
+    box-shadow: var(--nay-shadow-glass), var(--nay-specular) !important;
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .admin-shell-bg .aura-hero-card::before,
+  .admin-shell-bg .hero-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--nay-blue-primary) 50%, transparent 100%);
+    opacity: 0.6;
+    transition: opacity var(--nay-duration-panel) var(--nay-ease);
+  }
+  .admin-shell-bg .aura-hero-card:hover::before,
+  .admin-shell-bg .hero-kpi-card:hover::before {
+    opacity: 1;
+    box-shadow: 0 0 12px var(--nay-blue-primary);
+  }
+
+  /* 6.6 Semantic Badges */
+  .admin-shell-bg .badge-success,
+  .admin-shell-bg :is([class*="bg-emerald-500/"], [class*="bg-emerald-50"]):not(.rounded-full) {
+    background: rgba(16, 185, 129, 0.12) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    color: #059669 !important;
+  }
+  html.dark .admin-shell-bg .badge-success,
+  html.dark .admin-shell-bg :is([class*="bg-emerald-500/"], [class*="bg-emerald-950/"]):not(.rounded-full) {
+    color: #34D399 !important;
+    border-color: rgba(52, 211, 153, 0.35) !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.20) !important;
+  }
+
+  .admin-shell-bg .badge-warning,
+  .admin-shell-bg :is([class*="bg-amber-500/"], [class*="bg-amber-50"]):not(.rounded-full) {
+    background: rgba(245, 158, 11, 0.12) !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+    color: #D97706 !important;
+  }
+  html.dark .admin-shell-bg .badge-warning,
+  html.dark .admin-shell-bg :is([class*="bg-amber-500/"], [class*="bg-amber-950/"]):not(.rounded-full) {
+    color: #FBBF24 !important;
+    border-color: rgba(251, 191, 36, 0.35) !important;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.20) !important;
+  }
+
+  .admin-shell-bg .badge-danger,
+  .admin-shell-bg :is([class*="bg-rose-500/"], [class*="bg-rose-50"]):not(.rounded-full) {
+    background: rgba(239, 68, 68, 0.12) !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    color: #DC2626 !important;
+  }
+  html.dark .admin-shell-bg .badge-danger,
+  html.dark .admin-shell-bg :is([class*="bg-rose-500/"], [class*="bg-rose-950/"]):not(.rounded-full) {
+    color: #F87171 !important;
+    border-color: rgba(248, 113, 113, 0.35) !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.20) !important;
+  }
+
+  /* 6.7 Chart Container Polish */
+  .admin-shell-bg .recharts-responsive-container {
+    filter: drop-shadow(0 4px 12px rgba(14, 165, 233, 0.10));
+  }
+  .admin-shell-bg .recharts-default-tooltip {
+    background: var(--nay-surface-elevated) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid var(--nay-border-highlight) !important;
+    border-radius: 10px !important;
+    box-shadow: var(--nay-shadow-floating), 0 0 16px rgba(14, 165, 233, 0.25) !important;
+    color: var(--nay-text-primary) !important;
+  }
+
+  /* 6.8 Bespoke 2027 Order Command Center & WhatsApp Studio */
+  .nay-cod-ticket {
+    background: linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.8) 100%) !important;
+    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.10), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+  }
+  .nay-cod-ticket .nay-cod-number {
+    color: #0284C7 !important;
+  }
+  html.dark .nay-cod-ticket {
+    background: linear-gradient(135deg, #071322 0%, #0c2038 100%) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+  }
+  html.dark .nay-cod-ticket .nay-cod-number {
+    color: #34D399 !important;
+  }
+
+  .nay-wa-studio-card {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+  }
+  html.dark .nay-wa-studio-card {
+    background: rgba(7, 24, 20, 0.88) !important;
+    border: 1px solid rgba(52, 211, 153, 0.35) !important;
+    box-shadow: 0 8px 36px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .nay-wa-bubble {
+    background: #EAF8F0 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    box-shadow: inset 0 1px 3px rgba(16, 185, 129, 0.08) !important;
+  }
+  html.dark .nay-wa-bubble {
+    background: #041B12 !important;
+    border: 1px solid rgba(52, 211, 153, 0.3) !important;
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .nay-wa-btn {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.45) !important;
+    transition: all var(--nay-duration-micro) var(--nay-ease);
+  }
+  .nay-wa-btn:hover {
+    background: linear-gradient(135deg, #34D399 0%, #10B981 100%) !important;
+    box-shadow: 0 6px 24px rgba(16, 185, 129, 0.6) !important;
+    transform: translateY(-1px);
+  }
+
+}

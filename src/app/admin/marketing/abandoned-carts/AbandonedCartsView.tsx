@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ShoppingCart, 
@@ -38,15 +38,22 @@ interface AbandonedCartItem {
 }
 
 export default function AbandonedCartsView({ 
-  initialCarts 
+  initialCarts,
+  renderedAt,
 }: { 
-  initialCarts: AbandonedCartItem[] 
+  initialCarts: AbandonedCartItem[];
+  renderedAt?: number;
 }) {
   const [filter, setFilter] = useState<'ALL' | 'HOT' | 'WITH_CONTACT' | 'ABANDONED' | 'ACTIVE'>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [now, setNow] = useState<number>(() => renderedAt ?? 0);
 
-  const now = new Date().getTime();
+  useEffect(() => {
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   // Statistics
   const totalCarts = initialCarts.length;
@@ -88,61 +95,59 @@ export default function AbandonedCartsView({
   return (
     <div className="space-y-6">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-2xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 nay-stagger">
+        <div className="nay-hero-shine rounded-2xl p-5 bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] text-white shadow-md shadow-sky-500/20">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Total Paniers</span>
-            <div className="p-2 rounded-lg bg-neutral-100 text-neutral-700">
-              <ShoppingCart size={16} />
-            </div>
+            <span className="text-[10px] font-bold text-sky-100 uppercase tracking-wider">CA À RÉCUPÉRER</span>
+            <TrendingDown size={15} className="text-white/90" />
           </div>
-          <div className="mt-3 text-2xl font-bold tracking-tight text-neutral-900">{totalCarts}</div>
-          <p className="text-xs text-neutral-500 mt-1">Enregistrés en base de données</p>
+          <div className="mt-2.5 text-2xl font-extrabold tracking-tight tabular-nums">{formatMAD(totalValue)}</div>
+          <p className="text-[11px] text-sky-100 mt-1">{totalCarts} paniers en attente</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-2xs">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Montant Total à Récupérer</span>
-            <div className="p-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200/60">
-              <TrendingDown size={16} />
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TOTAL PANIERS</span>
+            <div className="p-1.5 rounded-lg bg-sky-50 text-[#0ea5e9]">
+              <ShoppingCart size={15} />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold tracking-tight text-neutral-900">{formatMAD(totalValue)}</div>
-          <p className="text-xs text-neutral-500 mt-1">Chiffre d'affaires potentiel</p>
+          <div className="mt-2.5 text-2xl font-extrabold tracking-tight text-slate-900 tabular-nums">{totalCarts}</div>
+          <p className="text-[11px] text-slate-500 mt-1">{withContactCarts} avec numéro WhatsApp</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-2xs">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Paniers Chauds (&lt;24h)</span>
-            <div className="p-2 rounded-lg bg-rose-50 text-rose-700 border border-rose-200/60">
-              <Clock size={16} />
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PANIERS CHAUDS (&lt;24H)</span>
+            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600">
+              <Clock size={15} />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold tracking-tight text-neutral-900">{hotCarts}</div>
-          <p className="text-xs text-neutral-500 mt-1">Priorité maximale de conversion</p>
+          <div className="mt-2.5 text-2xl font-extrabold tracking-tight text-slate-900 tabular-nums">{hotCarts}</div>
+          <p className="text-[11px] text-slate-500 mt-1">Priorité maximale de relance</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-2xs">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Panier Moyen Abandonné</span>
-            <div className="p-2 rounded-lg bg-sky-50 text-sky-700 border border-sky-200/60">
-              <Sparkles size={16} />
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PANIER MOYEN</span>
+            <div className="p-1.5 rounded-lg bg-sky-50 text-[#0284c7]">
+              <Sparkles size={15} />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold tracking-tight text-neutral-900">{formatMAD(avgValue)}</div>
-          <p className="text-xs text-neutral-500 mt-1">Moyenne par client</p>
+          <div className="mt-2.5 text-2xl font-extrabold tracking-tight text-slate-900 tabular-nums">{formatMAD(avgValue)}</div>
+          <p className="text-[11px] text-slate-500 mt-1">Moyenne par session</p>
         </div>
       </div>
 
       {/* Filter Tabs & Counter */}
-      <div className="bg-white rounded-xl border border-neutral-200 shadow-2xs p-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none">
           <button
             onClick={() => setFilter('ALL')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               filter === 'ALL'
-                ? 'bg-neutral-900 text-white shadow-xs'
-                : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'
+                ? 'bg-[#0ea5e9] text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
             }`}
           >
             Tous ({totalCarts})

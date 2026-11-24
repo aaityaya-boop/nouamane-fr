@@ -1,45 +1,53 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { SignJWT } from 'jose';
+import { signCustomerToken } from '@/lib/security/jwt';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-);
+const DUMMY_BCRYPT_HASH = '$2b$10$CwTycUXWue0Thq9StjUM0uJ8lR8W3W0z8J3x1z6yB9Q1Y1nK6kQ5e';
 
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
 
-    if (!email || !password) {
+    if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
       return NextResponse.json({ error: 'Email et mot de passe requis' }, { status: 400 });
     }
 
-    const customer = await prisma.customer.findUnique({
-      where: { email }
+    const cleanEmail = email.trim().toLowerCase();
+    const clientIp = getClientIp(request);
+    const ipLimit = checkRateLimit(`cust_login_ip:${clientIp}`, 30, 15 * 60 * 1000);
+    const acctLimit = checkRateLimit(`cust_login_acct:${clientIp}:${cleanEmail}`, 10, 15 * 60 * 1000);
+    if (!ipLimit.allowed || !acctLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Trop de tentatives de connexion. Veuillez réessayer dans quelques minutes.' },
+        { status: 429 }
+      );
+    }
+
+    const customer = await prisma.customer.findFirst({
+      where: {
+        email: { equals: cleanEmail, mode: 'insensitive' },
+      },
     });
 
     if (!customer) {
+      await bcrypt.compare(password, DUMMY_BCRYPT_HASH).catch(() => false);
       return NextResponse.json({ error: 'Identifiants incorrects' }, { status: 401 });
     }
 
     const isMatch = await bcrypt.compare(password, customer.password);
-    
+
     if (!isMatch) {
       return NextResponse.json({ error: 'Identifiants incorrects' }, { status: 401 });
     }
 
-    // Generate JWT
-    const token = await new SignJWT({ 
-      tokenType: 'CUSTOMER_SESSION',
-      id: customer.id, 
-      email: customer.email, 
+    const token = await signCustomerToken({
+      id: customer.id,
+      email: customer.email,
       name: customer.name,
-      role: 'customer' 
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('30d')
-      .sign(JWT_SECRET);
+      role: 'customer',
+    });
 
     let wishlist = [];
     try {

@@ -3,30 +3,28 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Search, 
-  Key, 
-  Sparkles, 
-  Settings2, 
-  Map, 
-  RefreshCw, 
-  FolderTree, 
-  Calendar, 
-  Globe2, 
-  CheckCircle2, 
+import { motion } from 'framer-motion';
+import {
+  LayoutDashboard,
+  Key,
+  Sparkles,
+  Settings2,
+  RefreshCw,
+  Calendar,
+  Globe2,
+  CheckCircle2,
   ArrowUpRight,
   Package,
-  Layers
+  Bot,
 } from 'lucide-react';
 
 const SEO_NAV_TABS = [
-  { href: '/admin/seo', label: 'Vue d\'Ensemble', icon: <LayoutDashboard size={15} /> },
-  { href: '/admin/seo/pages-seo', label: 'Audit des 199 Parfums', icon: <Package size={15} /> },
-  { href: '/admin/seo/keywords', label: 'Mots-Clés Google Maroc', icon: <Key size={15} /> },
-  { href: '/admin/seo/opportunities', label: 'Opportunités de Croissance', icon: <Sparkles size={15} /> },
-  { href: '/admin/seo/calendar', label: 'Calendrier Commercial Maroc', icon: <Calendar size={15} /> },
-  { href: '/admin/seo/technical', label: 'Audit Technique & Sitemap', icon: <Settings2 size={15} /> },
+  { href: '/admin/seo', label: "Vue d'Ensemble", icon: <LayoutDashboard size={14} /> },
+  { href: '/admin/seo/pages-seo', label: 'Audit Catalogue', icon: <Package size={14} /> },
+  { href: '/admin/seo/keywords', label: 'Mots-Clés Maroc', icon: <Key size={14} /> },
+  { href: '/admin/seo/opportunities', label: 'Opportunités', icon: <Sparkles size={14} /> },
+  { href: '/admin/seo/calendar', label: 'Calendrier Maroc', icon: <Calendar size={14} /> },
+  { href: '/admin/seo/technical', label: 'Audit Technique', icon: <Settings2 size={14} /> },
 ];
 
 export default function SeoLayout({ children }: { children: React.ReactNode }) {
@@ -52,78 +50,83 @@ export default function SeoLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // If on Visibilité IA Engine (/admin/seo/ai), let the dedicated AI Command Center render independently
-  if (pathname.startsWith('/admin/seo/ai')) {
-    return <div className="w-full pb-12 font-sans text-slate-900 animate-fadeIn">{children}</div>;
+  if (pathname.startsWith('/admin/seo/ai') && !pathname.startsWith('/admin/seo/ai-assistant')) {
+    return <div className="w-full pb-12">{children}</div>;
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-6 pb-12 font-sans text-slate-900 animate-fadeIn">
-      
-      {/* ── HEADER MOROCCO SEO GROWTH ENGINE ───────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
+    <div className="max-w-[1440px] mx-auto space-y-5 pb-12">
+      {/* Executive Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <Globe2 size={13} className="text-[#1D9BF0]" />
-              Moteur SEO Maroc • Google.ma
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 flex items-center gap-1.5">
+              <Globe2 size={12} className="text-[#0ea5e9]" />
+              NAY PARFUMS • ORGANIC SEO &amp; SEARCH INTELLIGENCE
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Search Console Active
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Télémétrie Site Réelle
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Visibilité & Référencement Naturel Maroc
+          <h1 className="text-2xl sm:text-[28px] font-extrabold tracking-tight text-slate-900">
+            Référencement Naturel &amp; Audit SEO Maroc
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Optimisation des 199 fiches parfums, suivi des requêtes au Maroc et captation du trafic transactionnel.
+          <p className="text-xs sm:text-[13px] text-slate-500 mt-1">
+            Audit on-page réel de votre catalogue, sources de trafic PageView, simulateur SERP Google.ma et validation Schema.org.
           </p>
         </div>
 
-        {/* Top Controls */}
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={handleSync}
-            disabled={isSyncing}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer ${
-              syncSuccess
-                ? 'bg-emerald-600 text-white'
-                : 'bg-[#0f172a] hover:bg-slate-800 text-white'
-            }`}
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <Link
+            href="/admin/seo/ai"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs transition-all"
           >
-            {isSyncing ? (
-              <>
-                <RefreshCw size={13} className="animate-spin text-sky-300" />
-                <span>Audit & Sync en cours...</span>
-              </>
-            ) : syncSuccess ? (
-              <>
-                <CheckCircle2 size={13} />
-                <span>Synchronisé avec succès !</span>
-              </>
-            ) : (
-              <>
-                <RefreshCw size={13} className="text-slate-300" />
-                <span>Actualiser l&apos;Audit SEO</span>
-              </>
-            )}
-          </button>
+            <Bot size={14} className="text-[#0ea5e9]" />
+            <span>Visibilité IA (GEO)</span>
+          </Link>
 
           <Link
             href="/sitemap.xml"
             target="_blank"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs transition-all"
-            title="Consulter le fichier XML sitemap public"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs transition-all"
           >
             <span>Sitemap.xml</span>
             <ArrowUpRight size={13} className="text-slate-400" />
           </Link>
+
+          <button
+            type="button"
+            onClick={handleSync}
+            disabled={isSyncing}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer ${
+              syncSuccess
+                ? 'bg-emerald-600 text-white shadow-emerald-500/20'
+                : 'bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:opacity-95 text-white shadow-sky-500/20'
+            }`}
+          >
+            {isSyncing ? (
+              <>
+                <RefreshCw size={13} className="animate-spin" />
+                <span>Audit en cours...</span>
+              </>
+            ) : syncSuccess ? (
+              <>
+                <CheckCircle2 size={13} />
+                <span>Audit Synchronisé !</span>
+              </>
+            ) : (
+              <>
+                <RefreshCw size={13} />
+                <span>Actualiser Audit SEO</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* ── CLEAN 6-TAB NAVIGATION (NO HORIZONTAL OVERFLOW SCROLLBAR) ── */}
-      <div className="bg-white p-1 rounded-2xl border border-slate-200/80 shadow-2xs">
+      {/* Framer Motion Tab Dock */}
+      <div className="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-2xs">
         <nav className="flex flex-wrap items-center gap-1">
           {SEO_NAV_TABS.map((tab) => {
             const isActive = pathname === tab.href;
@@ -131,27 +134,28 @@ export default function SeoLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  isActive
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                className={`relative inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
+                  isActive ? 'text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <span className={isActive ? 'text-sky-300' : 'text-slate-400'}>
+                {isActive && (
+                  <motion.span
+                    layoutId="seo-nav-pill"
+                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] shadow-sm shadow-sky-500/20"
+                  />
+                )}
+                <span className={`relative z-10 ${isActive ? 'text-white' : 'text-slate-400'}`}>
                   {tab.icon}
                 </span>
-                <span>{tab.label}</span>
+                <span className="relative z-10">{tab.label}</span>
               </Link>
             );
           })}
         </nav>
       </div>
 
-      {/* ── CONTENT CONTAINER ────────────────────────────────────────── */}
-      <div className="space-y-6">
-        {children}
-      </div>
-
+      <div className="space-y-6">{children}</div>
     </div>
   );
 }

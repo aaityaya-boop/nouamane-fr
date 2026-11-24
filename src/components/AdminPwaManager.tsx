@@ -23,6 +23,26 @@ export default function AdminPwaManager() {
       return;
     }
 
+    // On localhost / 127.0.0.1, automatically unregister any stale service workers
+    // and purge cache to prevent development hot-reload bundle mismatch.
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const reg of registrations) {
+          reg.unregister();
+        }
+      });
+      if ('caches' in window) {
+        caches.keys().then((keys) => {
+          for (const key of keys) {
+            if (key.includes('admin') || key.includes('nay')) {
+              caches.delete(key);
+            }
+          }
+        });
+      }
+      return;
+    }
+
     let isReloading = false;
 
     // Avoid infinite reload loops on controller change

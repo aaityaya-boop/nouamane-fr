@@ -7,9 +7,34 @@ export async function GET(request: Request) {
     const { errorResponse } = await requireAnyPermission(request, ['marketing.view', 'marketing.manage_promotions']);
     if (errorResponse) return errorResponse;
 
-    const promos = await prisma.promoCode.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
+    const [promos, promoOrders] = await Promise.all([
+      prisma.promoCode.findMany({
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.order.findMany({
+        where: {
+          promoCode: { not: null },
+          status: { notIn: ['cancelled', 'refused'] }
+        },
+        select: {
+          promoCode: true,
+          total: true,
+          discount: true
+        }
+      })
+    ]);
+
+    const orderStatsByCode = new Map<string, { count: number; revenue: number; discount: number }>();
+    for (const o of promoOrders) {
+      const key = (o.promoCode || '').trim().toUpperCase();
+      if (!key) continue;
+      const cur = orderStatsByCode.get(key) || { count: 0, revenue: 0, discount: 0 };
+      orderStatsByCode.set(key, {
+        count: cur.count + 1,
+        revenue: cur.revenue + (o.total || 0),
+        discount: cur.discount + (o.discount || 0),
+      });
+    }
 
     // Parse productIds & categories for each promo if present
     const formatted = promos.map(p => {
@@ -29,11 +54,15 @@ export async function GET(request: Request) {
           parsedCategories = [];
         }
       }
+      const stat = orderStatsByCode.get(p.code.toUpperCase()) || { count: 0, revenue: 0, discount: 0 };
       return {
         ...p,
         productIds: parsedProductIds,
         categories: parsedCategories,
         minQuantity: p.minQuantity || 0,
+        realOrdersCount: stat.count,
+        realRevenueMAD: Math.round(stat.revenue),
+        realDiscountMAD: Math.round(stat.discount),
       };
     });
 

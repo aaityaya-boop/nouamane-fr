@@ -30,8 +30,8 @@ export default function PerfumesIntelligenceSection({
   return (
     <div className="space-y-6">
       {/* ── 1. TOP BEST-SELLING PERFUMES ────────────────────────────────────── */}
-      <div className="bg-white dark:bg-[#121215] rounded-lg border border-[#eaeaea] dark:border-[#222227] shadow-2xs overflow-hidden">
-        <div className="p-4 border-b border-[#eaeaea] dark:border-[#222227] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="p-4 border-b border-slate-100 dark:border-white/[0.06] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
               Palmarès des parfums les plus vendus
@@ -49,7 +49,7 @@ export default function PerfumesIntelligenceSection({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-[#eaeaea] dark:border-[#222227] bg-[#fafafa] dark:bg-[#151518] text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              <tr className="border-b border-slate-100 dark:border-white/[0.06] bg-slate-50/70 dark:bg-[#0c101c] text-[11px] font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                 <th className="py-2.5 px-3.5">Rang & Flacon</th>
                 <th className="py-2.5 px-3">Maison / Marque</th>
                 <th className="py-2.5 px-3">Cible</th>
@@ -129,8 +129,8 @@ export default function PerfumesIntelligenceSection({
       {/* ── 2. OLFACTORY FAMILIES & GENDER DISTRIBUTION ─────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Olfactory Families */}
-        <div className="bg-white dark:bg-[#121215] rounded-lg p-4.5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-4">
-          <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+        <div className="bg-white dark:bg-[#121215] rounded-lg p-4.5 border border-slate-100 dark:border-white/[0.06] shadow-2xs space-y-4">
+          <div className="pb-3 border-b border-slate-100 dark:border-white/[0.06]">
             <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
               Répartition par Famille Olfactive
             </h3>
@@ -172,8 +172,8 @@ export default function PerfumesIntelligenceSection({
         {/* Gender Breakdown & Cross-Selling */}
         <div className="space-y-4">
           {/* Gender Split */}
-          <div className="bg-white dark:bg-[#121215] rounded-lg p-4.5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-3">
-            <div className="pb-3 border-b border-[#eaeaea] dark:border-[#222227]">
+          <div className="bg-white dark:bg-[#121215] rounded-lg p-4.5 border border-slate-100 dark:border-white/[0.06] shadow-2xs space-y-3">
+            <div className="pb-3 border-b border-slate-100 dark:border-white/[0.06]">
               <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
                 Ciblage Homme vs Femme vs Unisexe
               </h3>
@@ -181,7 +181,7 @@ export default function PerfumesIntelligenceSection({
 
             <div className="grid grid-cols-3 gap-2.5">
               {genderBreakdown.map((g, idx) => (
-                <div key={idx} className="p-3 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] text-center space-y-1 font-mono">
+                <div key={idx} className="p-3 rounded-md bg-slate-50/70 dark:bg-[#0c101c] border border-slate-100 dark:border-white/[0.06] text-center space-y-1 font-mono">
                   <div className="text-[10px] text-neutral-400 uppercase">{g.name}</div>
                   <div className="text-sm font-semibold text-neutral-900 dark:text-white">
                     {formatMAD(g.revenue)}
@@ -196,8 +196,8 @@ export default function PerfumesIntelligenceSection({
 
           {/* Cross-Selling Duos */}
           {crossSellingPairs.length > 0 && (
-            <div className="bg-white dark:bg-[#121215] rounded-lg p-4.5 border border-[#eaeaea] dark:border-[#222227] shadow-2xs space-y-3">
-              <div className="pb-2 border-b border-[#eaeaea] dark:border-[#222227]">
+            <div className="bg-white dark:bg-[#121215] rounded-lg p-4.5 border border-slate-100 dark:border-white/[0.06] shadow-2xs space-y-3">
+              <div className="pb-2 border-b border-slate-100 dark:border-white/[0.06]">
                 <h3 className="text-xs font-semibold text-neutral-900 dark:text-white font-mono uppercase tracking-wider">
                   Top Duos Achetés Ensemble
                 </h3>
@@ -205,7 +205,7 @@ export default function PerfumesIntelligenceSection({
 
               <div className="space-y-1.5">
                 {crossSellingPairs.slice(0, 3).map((pair, idx) => (
-                  <div key={idx} className="p-2 rounded-md bg-[#fafafa] dark:bg-[#151518] border border-[#eaeaea] dark:border-[#222227] flex items-center justify-between text-xs">
+                  <div key={idx} className="p-2 rounded-md bg-slate-50/70 dark:bg-[#0c101c] border border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs">
                     <span className="font-sans text-xs text-neutral-900 dark:text-white truncate max-w-[280px]">
                       {pair.pairName}
                     </span>

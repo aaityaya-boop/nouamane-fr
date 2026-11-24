@@ -66,6 +66,9 @@ interface PromoCodeItem {
   minQuantity?: number | null;
   maxUses?: number | null;
   usageCount?: number;
+  realOrdersCount?: number;
+  realRevenueMAD?: number;
+  realDiscountMAD?: number;
   expiresAt?: string | null;
   description?: string | null;
   isActive: boolean;
@@ -689,58 +692,144 @@ export default function AdminPromos() {
     });
   }, [products, dealProductSearch, dealCategoryFilterTab, dealSelectionFilter, dealProductIds]);
 
+  const promoStats = useMemo(() => {
+    const activePromos = promos.filter((p) => p.isActive).length;
+    const activeDeals = deals.filter((d) => d.isActive).length;
+    const totalOrders = promos.reduce((acc, p) => acc + (p.realOrdersCount || 0), 0);
+    const totalRevenue = promos.reduce((acc, p) => acc + (p.realRevenueMAD || 0), 0);
+    const totalDiscount = promos.reduce((acc, p) => acc + (p.realDiscountMAD || 0), 0);
+    const totalUses = promos.reduce((acc, p) => acc + Math.max(p.usageCount || 0, p.realOrdersCount || 0), 0);
+    return { activePromos, activeDeals, totalOrders, totalRevenue, totalDiscount, totalUses };
+  }, [promos, deals]);
+
+  const filteredPromosList = useMemo(() => {
+    if (!listSearch.trim()) return promos;
+    const q = listSearch.toLowerCase();
+    return promos.filter(
+      (p) =>
+        p.code.toLowerCase().includes(q) ||
+        (p.description && p.description.toLowerCase().includes(q))
+    );
+  }, [promos, listSearch]);
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-neutral-200/80 rounded-2xl p-5 shadow-xs">
+    <div className="space-y-6 max-w-[1440px] mx-auto pb-16">
+      {/* Top Executive Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-sky-50 text-[#0ea5e9] border border-sky-200 flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+              NAY PARFUMS • PROMOTIONS &amp; INCENTIVES OS
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-[#0284c7] border border-sky-200">
               <Sparkles size={11} />
-              NAY Parfums • Ventes & Marketing
+              Attribution Commandes Réelle
             </span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-            Promotions & Offres Spéciales
+          <h1 className="text-2xl sm:text-[28px] font-extrabold tracking-tight text-slate-900">
+            Codes Promo &amp; Offres Spéciales
           </h1>
-          <p className="text-xs text-neutral-500 mt-0.5">
-            Configurez vos offres automatiques au panier (2+1 Gratuit, -50% sur le 2ème, Packs) et vos codes promos.
+          <p className="text-xs sm:text-[13px] text-slate-500 mt-1">
+            Pilotez vos offres automatiques au panier (2+1 Gratuit, -50% 2ème, Packs) et mesurez le CA réel généré par chaque code promo.
           </p>
         </div>
 
-        {/* Clean Creative Tabs */}
-        <div className="flex items-center bg-neutral-100/80 p-1.5 rounded-xl border border-neutral-200">
+        {/* Electric Blue Tabs */}
+        <div className="flex items-center bg-white p-1.5 rounded-2xl border border-slate-200 shadow-2xs shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('deals')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'deals'
-                ? 'bg-[#0ea5e9] text-white shadow-xs'
-                : 'text-neutral-600 hover:text-neutral-900'
+                ? 'bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Zap size={13} className={activeTab === 'deals' ? 'text-white' : 'text-[#0ea5e9]'} />
-            <span>Offres Spéciales & BOGO</span>
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${activeTab === 'deals' ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-700'}`}>
-              {deals.filter(d => d.isActive).length}
+            <span>Offres Spéciales &amp; BOGO</span>
+            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${activeTab === 'deals' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+              {promoStats.activeDeals}
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('promos')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'promos'
-                ? 'bg-[#0ea5e9] text-white shadow-xs'
-                : 'text-neutral-600 hover:text-neutral-900'
+                ? 'bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Ticket size={13} className={activeTab === 'promos' ? 'text-white' : 'text-[#0ea5e9]'} />
             <span>Codes Promo</span>
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${activeTab === 'promos' ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-700'}`}>
-              {promos.filter(p => p.isActive).length}
+            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${activeTab === 'promos' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+              {promoStats.activePromos}
             </span>
           </button>
+        </div>
+      </div>
+
+      {/* 4 Bento Real Stats KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 nay-stagger">
+        <div className="nay-hero-shine rounded-2xl p-5 bg-gradient-to-br from-[#0ea5e9] via-[#0284c7] to-[#0369a1] text-white shadow-lg shadow-sky-500/20 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-sky-100">
+              CA ATTRIBUÉ CODES PROMO
+            </span>
+            <TrendingUp size={15} className="text-white/90" />
+          </div>
+          <div className="mt-2.5 text-2xl font-extrabold tabular-nums">
+            {promoStats.totalRevenue.toLocaleString('fr-MA')} MAD
+          </div>
+          <p className="text-[11px] text-sky-100 mt-1">
+            {promoStats.totalOrders} commandes validées avec code
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+              CODES PROMO ACTIFS
+            </span>
+            <span className="p-1.5 rounded-lg bg-sky-50 text-[#0ea5e9]">
+              <Ticket size={14} />
+            </span>
+          </div>
+          <div className="mt-2.5 text-2xl font-extrabold text-slate-900 tabular-nums">
+            {promoStats.activePromos} <span className="text-xs font-semibold text-slate-400">/ {promos.length}</span>
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">{promoStats.totalUses} utilisations cumulées</p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+              OFFRES AUTO BOGO / PACKS
+            </span>
+            <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+              <Zap size={14} />
+            </span>
+          </div>
+          <div className="mt-2.5 text-2xl font-extrabold text-emerald-600 tabular-nums">
+            {promoStats.activeDeals} <span className="text-xs font-semibold text-slate-400">/ {deals.length}</span>
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">Actives automatiquement au panier</p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs nay-card-lift flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+              REMISES ACCORDÉES RÉELLES
+            </span>
+            <span className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+              <BadgePercent size={14} />
+            </span>
+          </div>
+          <div className="mt-2.5 text-2xl font-extrabold text-slate-900 tabular-nums">
+            {promoStats.totalDiscount.toLocaleString('fr-MA')} MAD
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">Déduits sur factures valides</p>
         </div>
       </div>
 
@@ -1526,19 +1615,19 @@ export default function AdminPromos() {
 
             {/* RIGHT COLUMN: Clean Live Simulator & Active Deals List (5 cols) */}
             <div className="lg:col-span-5 space-y-6">
-              {/* LIVE SIMULATOR (Clean Brand Styled) */}
-              <div className="bg-gradient-to-br from-white to-sky-50/40 border border-sky-200/80 rounded-2xl p-5 shadow-xs">
-                <div className="flex items-center justify-between mb-3.5 border-b border-sky-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-sky-100 text-[#0ea5e9] border border-sky-200 flex items-center justify-center font-bold text-xs">
-                      ⚡
+              {/* LIVE SIMULATOR */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
+                <div className="flex items-center justify-between mb-3.5 border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-slate-900 text-sky-400 flex items-center justify-center">
+                      <Zap size={14} />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                      <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                         Simulateur Panier en Direct
                       </h3>
-                      <p className="text-[10px] text-neutral-500">
-                        Testez en direct la réaction de votre offre client.
+                      <p className="text-[11px] text-slate-500">
+                        Testez en direct le calcul de votre offre client.
                       </p>
                     </div>
                   </div>
@@ -1949,7 +2038,7 @@ export default function AdminPromos() {
                           : 'bg-neutral-200/70 text-neutral-600 hover:bg-neutral-200'
                       }`}
                     >
-                      ⚡ Plus de 2 parfums (min. 3)
+                      Plus de 2 parfums (min. 3)
                     </button>
                   </div>
                   <input
@@ -2060,42 +2149,53 @@ export default function AdminPromos() {
               </div>
             </div>
 
-            {promos.length === 0 ? (
-              <div className="py-12 text-center text-xs text-neutral-400">
-                Aucun code promo créé pour le moment.
+            {filteredPromosList.length === 0 ? (
+              <div className="py-12 text-center text-xs text-slate-400">
+                Aucun code promo correspondant.
               </div>
             ) : (
               <div className="space-y-3">
-                {promos.map((promo) => (
+                {filteredPromosList.map((promo) => (
                   <div
                     key={promo.id}
                     className={`p-4 rounded-xl border transition-all ${
                       promo.isActive
-                        ? 'bg-neutral-50/60 border-neutral-200'
-                        : 'bg-neutral-100/60 border-neutral-200 opacity-60'
+                        ? 'bg-slate-50/70 border-slate-200'
+                        : 'bg-slate-100/70 border-slate-200 opacity-60'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-black text-sm bg-white px-2.5 py-1 rounded-lg border border-neutral-200 select-all text-neutral-900">
+                        <span className="font-mono font-black text-sm bg-white px-2.5 py-1 rounded-lg border border-slate-200 select-all text-slate-900">
                           {promo.code}
                         </span>
                         <button
                           type="button"
                           onClick={() => copyToClipboard(promo.code)}
-                          className="text-neutral-400 hover:text-neutral-900 p-1 cursor-pointer"
-                          title="Copier"
+                          className="text-slate-400 hover:text-[#0284c7] p-1 cursor-pointer"
+                          title="Copier le code"
                         >
                           {copiedCode === promo.code ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
                         </button>
-                        <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-sky-50 text-[#0ea5e9] border border-sky-200">
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : 'https://nayparfum.ma'}/fr/products?promo=${promo.code}`)}
+                          className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white border border-slate-200 text-slate-600 hover:text-[#0284c7] cursor-pointer"
+                          title="Copier lien partage WhatsApp"
+                        >
+                          {copiedCode?.includes(`promo=${promo.code}`) ? 'Lien copié ✓' : 'Lien Partage'}
+                        </button>
+                        <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-sky-50 text-[#0284c7] border border-sky-200">
                           {promo.type === 'percentage' ? `-${promo.value}%` : `-${promo.value} DH`}
                         </span>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {promo.realOrdersCount || 0} cmd • {(promo.realRevenueMAD || 0).toLocaleString('fr-MA')} MAD
+                        </span>
                         {promo.minQuantity && promo.minQuantity > 0 ? (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                             {promo.minQuantity > 2
-                              ? `⚡ > ${promo.minQuantity - 1} parfums (min. ${promo.minQuantity} flacons)`
-                              : `⚡ Dès ${promo.minQuantity} parfum${promo.minQuantity > 1 ? 's' : ''}`}
+                              ? `> ${promo.minQuantity - 1} parfums (min. ${promo.minQuantity} flacons)`
+                              : `Dès ${promo.minQuantity} parfum${promo.minQuantity > 1 ? 's' : ''}`}
                           </span>
                         ) : null}
                         {promo.minOrderAmount && promo.minOrderAmount > 0 ? (

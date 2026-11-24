@@ -2,6 +2,7 @@
 import { getAuthenticatedAdmin, verifyPassword, hashPassword, createAdminToken } from '@/lib/auth/adminAuth';
 import prisma from '@/lib/prisma';
 import { logAdminActivity } from '@/lib/activityLogger';
+import { sanitizePublicUrl } from '@/lib/security/sanitize';
 
 // Update Profile Details (Name, Email, Avatar)
 export async function PATCH(request: Request) {
@@ -12,20 +13,30 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const name = body.name ? String(body.name).trim() : admin.name;
-    const avatar = body.avatar !== undefined ? body.avatar : admin.avatar;
+    const name = body.name ? String(body.name).trim().slice(0, 120) : admin.name;
+    const avatar =
+      body.avatar !== undefined
+        ? body.avatar
+          ? sanitizePublicUrl(body.avatar, 500)
+          : null
+        : admin.avatar;
     const email = body.email ? String(body.email).trim().toLowerCase() : admin.email;
 
     if (!name) {
       return NextResponse.json({ error: 'Le nom est obligatoire.' }, { status: 400 });
     }
 
-    // If email is changing, check uniqueness
-    if (email !== admin.email) {
-      const existing = await prisma.adminUser.findUnique({
-        where: { email },
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: 'Format email invalide.' }, { status: 400 });
+    }
+
+    // If email is changing, check uniqueness (case-insensitive)
+    if (email !== admin.email.toLowerCase()) {
+      const existing = await prisma.adminUser.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' }, id: { not: admin.id } },
+        select: { id: true },
       });
-      if (existing && existing.id !== admin.id) {
+      if (existing) {
         return NextResponse.json({ error: 'Cet email est déjà utilisé par un autre compte.' }, { status: 400 });
       }
     }

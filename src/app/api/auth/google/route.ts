@@ -1,18 +1,21 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import prisma from '@/lib/prisma';
-
-import { SignJWT } from 'jose';
 import bcrypt from 'bcryptjs';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'nouamane_super_secret_key_2024'
-);
+import { signCustomerToken } from '@/lib/security/jwt';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimit';
 
 export async function POST(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`google_auth:${clientIp}`, 20, 15 * 60 * 1000);
+    if (!rate.allowed) {
+      return NextResponse.json({ error: 'Trop de tentatives. Veuillez réessayer plus tard.' }, { status: 429 });
+    }
+
     const { idToken } = await request.json();
 
-    if (!idToken) {
+    if (!idToken || typeof idToken !== 'string') {
       return NextResponse.json({ error: 'Token manquant' }, { status: 400 });
     }
 
@@ -36,26 +39,22 @@ export async function POST(request: Request) {
     }
 
     const decodedToken = verifyData.users[0];
-    const email = decodedToken.email;
-    const name = decodedToken.displayName;
-    const uid = decodedToken.localId;
-    
+    const email = typeof decodedToken.email === 'string' ? decodedToken.email.trim().toLowerCase() : '';
+    const name = typeof decodedToken.displayName === 'string' ? decodedToken.displayName.trim() : '';
+
     if (!email) {
       return NextResponse.json({ error: 'Email non fourni par Google' }, { status: 400 });
     }
 
-
-    // 2. Find or Create the user in our Prisma database
-    let customer = await prisma.customer.findUnique({
-      where: { email }
+    // 2. Find or Create the user in our Prisma database (case-insensitive)
+    let customer = await prisma.customer.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } }
     });
 
     if (!customer) {
-      // Create user if they don't exist
-      // Generate a random secure password since they use Google
-      const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+      const randomPassword = crypto.randomBytes(24).toString('hex');
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
-      
+
       customer = await prisma.customer.create({
         data: {
           email,
@@ -66,16 +65,12 @@ export async function POST(request: Request) {
     }
 
     // 3. Issue our standard internal JWT so the rest of the app works flawlessly
-    const token = await new SignJWT({ 
-      tokenType: 'CUSTOMER_SESSION',
-      id: customer.id, 
-      email: customer.email, 
+    const token = await signCustomerToken({
+      id: customer.id,
+      email: customer.email,
       name: customer.name,
-      role: 'customer' 
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('30d')
-      .sign(JWT_SECRET);
+      role: 'customer',
+    });
 
     let wishlist = [];
     try {

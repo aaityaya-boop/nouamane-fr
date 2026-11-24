@@ -362,7 +362,7 @@ export default function MobileVersionBHome({
               {isAdded ? (
                 <>
                   <Check size={12} strokeWidth={2.5} />
-                  <span>{isAr ? 'تمت الإضافة ✓' : 'Ajouté ✓'}</span>
+                  <span>{isAr ? 'تمت الإضافة' : 'Ajouté'}</span>
                 </>
               ) : (
                 <>

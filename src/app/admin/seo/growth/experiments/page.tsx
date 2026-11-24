@@ -1,6 +1,7 @@
 import React from 'react';
 import prisma from '@/lib/prisma';
-import { FlaskConical, Plus } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
+import NewExperimentButton from './NewExperimentButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,9 +17,7 @@ export default async function SeoExperimentsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">SEO Experiments</h1>
           <p className="text-muted-foreground mt-2">Track before/after impact of your optimizations.</p>
         </div>
-        <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
-          <Plus size={16} /> New Experiment
-        </button>
+        <NewExperimentButton />
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">

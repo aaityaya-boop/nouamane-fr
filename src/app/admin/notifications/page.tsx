@@ -271,61 +271,63 @@ export default function AdminNotificationsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => triggerTestNotification('ORDER')}
             disabled={isTesting}
-            className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+            className="col-span-2 sm:col-span-1 h-10 sm:h-9 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
             title="Envoyer une fausse commande test pour écouter le son et voir l'alerte en direct"
           >
-            <Sparkles size={13} className="text-emerald-600" />
-            <span>{isTesting ? 'Émission...' : 'Tester Commande en Direct (Son + Pop-up)'}</span>
+            <Sparkles size={13} className="text-emerald-600 shrink-0" />
+            <span>{isTesting ? 'Émission...' : 'Tester Commande en Direct'}</span>
           </button>
 
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="px-3 py-1.5 bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              className="h-10 sm:h-9 px-3 bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
             >
               <Check size={13} />
-              <span>Tout marquer comme lu</span>
+              <span>Tout lu</span>
             </button>
           )}
 
           <button
             onClick={() => fetchNotifications()}
-            className="p-2 bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 rounded-lg transition-colors cursor-pointer shadow-2xs"
+            className={`h-10 sm:h-9 px-3 bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-200 rounded-xl transition-colors cursor-pointer shadow-2xs flex items-center justify-center gap-1.5 text-xs font-medium ${unreadCount === 0 ? 'col-span-2 sm:col-span-1' : ''}`}
             title="Actualiser"
           >
             <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            <span className="sm:hidden">Actualiser</span>
           </button>
         </div>
       </div>
 
       {/* Main View Switcher: Live Feed vs Push & Devices */}
-      <div className="flex items-center gap-2 border-b border-neutral-200 pb-3">
+      <div className="grid grid-cols-2 sm:flex items-center gap-2 border-b border-neutral-200 pb-3">
         <button
           onClick={() => setMainTab('feed')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all ${
+          className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
             mainTab === 'feed'
               ? 'bg-neutral-900 text-white shadow-xs'
               : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
           }`}
         >
-          <Bell size={16} />
-          <span>Flux d&apos;alertes en direct</span>
+          <Bell size={15} className="shrink-0" />
+          <span className="truncate">Flux en direct</span>
         </button>
 
         <button
           onClick={() => setMainTab('push')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all ${
+          style={mainTab === 'push' ? { backgroundColor: 'var(--admin-accent, #0ea5e9)' } : undefined}
+          className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
             mainTab === 'push'
-              ? 'bg-[#0ea5e9] text-white shadow-md shadow-sky-500/20'
+              ? 'text-white shadow-xs'
               : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
           }`}
         >
-          <Sparkles size={16} />
-          <span>Notifications Push & Appareils PWA</span>
+          <Sparkles size={15} className="shrink-0" />
+          <span className="truncate">Push &amp; PWA</span>
         </button>
       </div>
 

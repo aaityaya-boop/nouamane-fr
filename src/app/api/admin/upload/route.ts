@@ -4,6 +4,7 @@ import path from 'path';
 import { put } from '@vercel/blob';
 import { getBlobReadWriteToken } from '@/lib/blob';
 import { requireAdmin } from '@/lib/auth/rbac/serverGuard';
+import { validateUploadBuffer } from '@/lib/security/sanitize';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
     const auth = await requireAdmin(request);
     if (!auth.authorized) return auth.response!;
     let fileBuffer: Buffer | null = null;
-    let mimeType = 'image/jpeg';
+    let rawMimeType = 'image/jpeg';
     let originalName = 'upload.jpg';
 
     const contentType = request.headers.get('content-type') || '';
@@ -28,17 +29,17 @@ export async function POST(request: Request) {
 
       const rawData = body.base64 || body.dataUrl;
       const matches = rawData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-      
+
       if (matches && matches.length === 3) {
-        mimeType = matches[1];
+        rawMimeType = matches[1];
         fileBuffer = Buffer.from(matches[2], 'base64');
       } else {
         fileBuffer = Buffer.from(rawData, 'base64');
       }
 
       if (body.filename) originalName = body.filename;
-      if (body.mimeType) mimeType = body.mimeType;
-    } 
+      if (body.mimeType) rawMimeType = body.mimeType;
+    }
     // 2. Support Multipart FormData
     else {
       const formData = await request.formData();
@@ -49,55 +50,31 @@ export async function POST(request: Request) {
       }
 
       originalName = file.name || 'image.jpg';
-      mimeType = file.type || 'image/jpeg';
+      rawMimeType = file.type || 'image/jpeg';
       const bytes = await file.arrayBuffer();
       fileBuffer = Buffer.from(bytes);
     }
 
-    if (!fileBuffer || fileBuffer.length === 0) {
-      return NextResponse.json({ error: 'Fichier vide ou corrompu' }, { status: 400 });
+    const validation = validateUploadBuffer({
+      buffer: fileBuffer || Buffer.alloc(0),
+      originalName,
+      mimeType: rawMimeType,
+      allowDocs: true,
+      allowMedia: true,
+      maxBytes: 100 * 1024 * 1024, // 100 MB cap
+    });
+
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: validation.status });
     }
 
-    // Determine extension safely
-    const extMatch = originalName.match(/\.([a-zA-Z0-9]+)$/);
-    let ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
-    if (originalName.toLowerCase().endsWith('.pdf') || mimeType.includes('pdf')) {
-      ext = 'pdf';
-      mimeType = 'application/pdf';
-    } else if (originalName.toLowerCase().endsWith('.mp4') || mimeType.includes('mp4')) {
-      ext = 'mp4';
-      mimeType = 'video/mp4';
-    } else if (originalName.toLowerCase().endsWith('.mov') || mimeType.includes('quicktime')) {
-      ext = 'mov';
-      mimeType = 'video/quicktime';
-    } else if (originalName.toLowerCase().endsWith('.webm') || mimeType.includes('webm')) {
-      ext = 'webm';
-      mimeType = mimeType.includes('audio') ? 'audio/webm' : 'video/webm';
-    } else if (originalName.toLowerCase().endsWith('.mp3') || mimeType.includes('mpeg') || mimeType.includes('mp3')) {
-      ext = 'mp3';
-      mimeType = 'audio/mpeg';
-    } else if (originalName.toLowerCase().endsWith('.wav') || mimeType.includes('wav')) {
-      ext = 'wav';
-      mimeType = 'audio/wav';
-    } else if (originalName.toLowerCase().endsWith('.m4a') || mimeType.includes('m4a') || mimeType.includes('mp4a')) {
-      ext = 'm4a';
-      mimeType = 'audio/mp4';
-    } else if (mimeType.startsWith('audio/')) {
-      ext = 'webm';
-      mimeType = 'audio/webm';
-    } else if (!ext || ext.length > 5) {
-      if (mimeType.includes('png')) ext = 'png';
-      else if (mimeType.includes('webp')) ext = 'webp';
-      else if (mimeType.includes('svg')) ext = 'svg';
-      else if (mimeType.includes('gif')) ext = 'gif';
-      else ext = 'jpg';
-    }
+    const { ext, mimeType } = validation;
 
     const cleanBaseName = originalName
       .replace(/\.[^/.]+$/, '')
       .replace(/[^a-zA-Z0-9]/g, '_')
       .slice(0, 30);
-    
+
     const savedName = `nay_${Date.now()}_${cleanBaseName}.${ext}`;
     const token = getBlobReadWriteToken();
 

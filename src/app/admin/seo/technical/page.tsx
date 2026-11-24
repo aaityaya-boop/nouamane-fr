@@ -9,7 +9,7 @@ export const metadata = {
   description: 'Contrôle en direct de l’accessibilité technique, du sitemap XML, du robots.txt et du balisage Schema JSON-LD.',
 };
 
-export default async function TechnicalSeoDashboard() {
+async function loadTechnicalDiagnostics() {
   const startTime = Date.now();
 
   const [productsCount, brandsCount, productSeos, siteConfig] = await Promise.all([
@@ -30,7 +30,7 @@ export default async function TechnicalSeoDashboard() {
     20
   )));
 
-  const initialDiagnostic = {
+  return {
     healthScore,
     totalIndexableUrls,
     productsCount,
@@ -71,6 +71,10 @@ export default async function TechnicalSeoDashboard() {
       second: '2-digit',
     }),
   };
+}
+
+export default async function TechnicalSeoDashboard() {
+  const initialDiagnostic = await loadTechnicalDiagnostics();
 
   return <TechnicalSeoClient initialDiagnostic={initialDiagnostic} />;
 }

@@ -286,31 +286,31 @@ export default function ReclamationsClient({ currentAdmin }: { currentAdmin: any
     <div className="space-y-6 font-sans text-slate-900">
       
       {/* ── 1. MODULE SUB-NAVIGATION TABS ────────────────────────── */}
-      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3">
+      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3 overflow-x-auto max-w-full">
         <Link
           href="/admin/team/suggestions"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 shadow-xs transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 shadow-xs transition-colors shrink-0 whitespace-nowrap"
         >
           <Lightbulb size={14} className="text-amber-500" />
           <span>Boîte à Idées & Suggestions</span>
         </Link>
         <Link
           href="/admin/team/reclamations"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xs"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xs shrink-0 whitespace-nowrap"
         >
           <AlertCircle size={14} className="text-rose-400" />
           <span>Réclamations & Tickets RH</span>
         </Link>
         <Link
           href="/admin/team"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 shadow-xs transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 shadow-xs transition-colors shrink-0 whitespace-nowrap"
         >
           <ShieldCheck size={14} className="text-slate-500" />
           <span>Gestion Équipe & Salaires</span>
         </Link>
         <Link
           href="/admin/team/roles"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 shadow-xs transition-colors hidden sm:inline-flex"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 shadow-xs transition-colors shrink-0 whitespace-nowrap"
         >
           <User size={14} className="text-slate-500" />
           <span>Annuaire des Rôles (26)</span>

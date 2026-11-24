@@ -2,10 +2,10 @@ import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
 import { ALL_ROLES } from './rbac/roles';
+import { getJwtSecretBytes } from '@/lib/security/jwt';
 
 function getAdminJwtSecret(): Uint8Array {
-  const secretString = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'nouamane_super_secret_key_2024';
-  return new TextEncoder().encode(secretString);
+  return getJwtSecretBytes('ADMIN');
 }
 
 export const VALID_ADMIN_ROLES = new Set<string>([
