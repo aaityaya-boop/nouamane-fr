@@ -34,6 +34,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const isAr = locale === 'ar';
+  const isEn = locale === 'en';
   const inStock = isProductInStock(product);
   const edition = getProductEditionInfo(product, locale);
   const isBestseller = product.tags.includes('bestseller');
@@ -101,9 +102,9 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
           className="product-card group flex flex-col justify-between h-full bg-white border border-[#E5E0D6] rounded-[16px] sm:rounded-[21px] overflow-hidden hover:border-[#0284c7]/45 hover:shadow-[0_14px_34px_-10px_rgba(2,132,199,0.12)] transition-all duration-300 shadow-2xs relative"
         >
           {/* ========================================================
-              1. GOLDEN RATIO FLACON SHOWCASE (Clean Spiral Focus)
+              1. GOLDEN RATIO FLACON SHOWCASE (Clean Seamless Studio)
               ======================================================== */}
-          <div className="relative w-full aspect-[1.12/1] sm:aspect-[1/1.05] bg-gradient-to-b from-[#FAF9F5]/80 to-white flex items-center justify-center p-[13px] sm:p-[21px] overflow-hidden">
+          <div className="relative w-full aspect-[1/1] sm:aspect-[1/1.04] bg-white flex items-center justify-center p-2 sm:p-3 overflow-hidden">
             
             {/* Flacon Image */}
             <Image
@@ -112,7 +113,7 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
               fill
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-[13px] sm:p-[18px] group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
+              className="object-contain p-1.5 sm:p-2 scale-105 group-hover:scale-112 transition-transform duration-300 mix-blend-multiply"
             />
 
             {/* Out of Stock Overlay */}
@@ -246,21 +247,21 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : 'bg-[#111827] hover:bg-[#0284c7] text-white'
                     }`}
-                    aria-label={isAr ? `أضف ${product.name} إلى السلة` : `Ajouter ${product.name} au panier`}
+                    aria-label={isAr ? `أضف ${product.name} إلى السلة` : isEn ? `Add ${product.name} to cart` : `Ajouter ${product.name} au panier`}
                   >
                     {isAdded ? (
                       <>
                         <Check size={13} strokeWidth={2.5} className="shrink-0" />
                         <span className={`truncate ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
-                          {isAr ? 'تمت الإضافة' : 'Ajouté'}
+                          {isAr ? 'تمت الإضافة' : isEn ? 'Added' : 'Ajouté'}
                         </span>
                       </>
                     ) : (
                       <>
                         <ShoppingBag size={13} strokeWidth={2.2} className="text-white/90 shrink-0" />
                         <span className={`truncate ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
-                          <span className="sm:hidden">{isAr ? 'أضف' : 'Ajouter'}</span>
-                          <span className="hidden sm:inline">{isAr ? 'أضف للسلة' : 'Ajouter au panier'}</span>
+                          <span className="sm:hidden">{isAr ? 'أضف' : isEn ? 'Add' : 'Ajouter'}</span>
+                          <span className="hidden sm:inline">{isAr ? 'أضف للسلة' : isEn ? 'Add to cart' : 'Ajouter au panier'}</span>
                         </span>
                       </>
                     )}
@@ -269,12 +270,12 @@ export default function ProductCard({ product, showRating = true, onQuickView }:
                   <button
                     type="button"
                     onClick={handleQuickBuy}
-                    title={isAr ? 'شراء الدفع عند الاستلام' : 'Commander (Paiement à la livraison)'}
-                    aria-label={isAr ? `شراء ${product.name}` : `Commander ${product.name} (COD)`}
+                    title={isAr ? 'شراء الدفع عند الاستلام' : isEn ? 'Buy now (Cash on Delivery)' : 'Commander (Paiement à la livraison)'}
+                    aria-label={isAr ? `شراء ${product.name}` : isEn ? `Buy ${product.name} (COD)` : `Commander ${product.name} (COD)`}
                     className="w-[38px] sm:w-auto sm:px-3 h-[38px] sm:h-[42px] rounded-[11px] sm:rounded-[13px] bg-[#FAF9F5] hover:bg-[#111827] text-[#111827] hover:text-white border border-[#E0DDD4] hover:border-[#111827] flex items-center justify-center gap-1.5 text-[11px] font-bold transition-colors duration-200 active:scale-[0.96] shrink-0 cursor-pointer"
                   >
                     <CodCashIcon size={16} className="shrink-0" />
-                    <span className="hidden md:inline">{isAr ? 'شراء' : 'Acheter'}</span>
+                    <span className="hidden md:inline">{isAr ? 'شراء' : isEn ? 'Buy' : 'Acheter'}</span>
                   </button>
                 </div>
               ) : (

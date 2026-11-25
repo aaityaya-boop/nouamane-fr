@@ -176,7 +176,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(prev => !prev)}
-              aria-label={isAr ? "القائمة الرئيسية" : "Menu de navigation"}
+              aria-label={isAr ? "القائمة الرئيسية" : isEn ? "Navigation menu" : "Menu de navigation"}
               className="w-10 h-10 -ml-1 rtl:-ml-0 rtl:-mr-1 rounded-full flex items-center justify-center text-[#111827] hover:bg-slate-100 active:scale-90 transition-all cursor-pointer"
             >
               <Menu size={22} strokeWidth={2} className="text-[#111827]" />
@@ -187,7 +187,7 @@ export default function Header() {
           <div className="flex items-center justify-center">
             <Link 
               href={`/${locale}`} 
-              aria-label="NAY Parfums - Accueil" 
+              aria-label={isAr ? "NAY Parfums - الرئيسية" : isEn ? "NAY Parfums - Home" : "NAY Parfums - Accueil"} 
               className="flex items-center justify-center group active:scale-95 transition-transform"
             >
               <div
@@ -210,7 +210,7 @@ export default function Header() {
           <div className="flex items-center justify-end gap-1">
             <Link
               href={`/${locale}/account`}
-              aria-label={isAr ? "حسابي الشخصي" : "Mon Compte"}
+              aria-label={isAr ? "حسابي الشخصي" : isEn ? "My Account" : "Mon Compte"}
               className="w-9 h-9 rounded-full flex items-center justify-center text-[#111827] hover:bg-slate-100 active:scale-90 transition-all cursor-pointer"
             >
               <User size={19} strokeWidth={1.9} className="text-[#111827]" />
@@ -557,18 +557,28 @@ export default function Header() {
                 {/* --- BUNDLES MEGA MENU --- */}
                 {activeMenu === 'bundles' && (
                   <div className="w-full flex-1">
-                    <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A] mb-6">Nos Éditions Spéciales</div>
+                    <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#9A9A9A] mb-6">
+                      {isAr ? 'إصداراتنا الخاصة' : isEn ? 'Our Special Editions' : 'Nos Éditions Spéciales'}
+                    </div>
                     <div className="grid grid-cols-1 gap-12">
                       {/* Coffrets Cadeaux Card */}
                       <Link href={`/${locale}/coffrets`} onClick={() => setActiveMenu(null)} className="group cursor-pointer flex items-center bg-[#f8fafc] border border-[#e0ddd4] p-8 rounded-xl hover:border-[#9E1B1B] hover:shadow-2xl transition-all">
                         <div className="flex-1">
-                          <span className="text-[#9E1B1B] text-[10px] font-bold uppercase tracking-widest mb-3 block">Offrez l'Inoubliable</span>
-                          <h3 className="heading-font text-3xl text-[#1A1A1A] mb-4 group-hover:text-[#9E1B1B] transition-colors">Découvrez Nos Coffrets Cadeaux</h3>
+                          <span className="text-[#9E1B1B] text-[10px] font-bold uppercase tracking-widest mb-3 block">
+                            {isAr ? 'أهدِ لحظة لا تُنسى' : isEn ? 'Gift the Unforgettable' : "Offrez l'Inoubliable"}
+                          </span>
+                          <h3 className="heading-font text-3xl text-[#1A1A1A] mb-4 group-hover:text-[#9E1B1B] transition-colors">
+                            {isAr ? 'اكتشف صناديق الهدايا الفاخرة' : isEn ? 'Discover Our Luxury Gift Sets' : 'Découvrez Nos Coffrets Cadeaux'}
+                          </h3>
                           <p className="text-[14px] text-[#6B6B6B] mb-8 leading-relaxed max-w-lg">
-                            Des assemblages uniques de nos fragrances les plus prestigieuses. Présentés dans des écrins luxueux, nos coffrets sont l'expression parfaite de l'élégance à offrir ou à s'offrir.
+                            {isAr
+                              ? 'تشكيلات حصرية من أرقى عطورنا في علب فاخرة مصممة للإهداء.'
+                              : isEn
+                              ? 'Curated pairings of our finest fragrances presented in luxurious gift boxes—crafted to delight.'
+                              : "Des assemblages uniques de nos fragrances les plus prestigieuses. Présentés dans des écrins luxueux, nos coffrets sont l'expression parfaite de l'élégance à offrir ou à s'offrir."}
                           </p>
                           <span className="bg-[#111] text-white text-[13px] px-8 py-3 rounded-full inline-block group-hover:bg-[#9E1B1B] group-hover:text-white transition-all shadow-md group-hover:shadow-lg">
-                            Explorer la Collection
+                            {isAr ? 'اكتشف المجموعة' : isEn ? 'Explore Collection' : 'Explorer la Collection'}
                           </span>
                         </div>
                       </Link>
@@ -647,7 +657,7 @@ export default function Header() {
                   {dict.nav?.searchPlaceholder || 'Rechercher un parfum, une marque...'}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 border border-sky-200/80 px-2 py-0.5 rounded-md">
-                  {isAr ? 'بحث' : 'Rechercher'}
+                  {isAr ? 'بحث' : isEn ? 'Search' : 'Rechercher'}
                 </span>
               </div>
 
@@ -666,12 +676,16 @@ export default function Header() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[9.5px] font-black uppercase tracking-widest text-[#38bdf8]">BOUSSOLE OLFACTIVE IA</span>
+                          <span className="text-[9.5px] font-black uppercase tracking-widest text-[#38bdf8]">
+                            {isAr ? 'البوصلة العطرية الذكية' : isEn ? 'AI OLFACTORY COMPASS' : 'BOUSSOLE OLFACTIVE IA'}
+                          </span>
                           <span className="text-slate-500 text-[10px]">·</span>
-                          <span className="text-[10px] text-slate-300 font-medium">{isAr ? 'حصري' : 'Nouveau'}</span>
+                          <span className="text-[10px] text-slate-300 font-medium">
+                            {isAr ? 'حصري' : isEn ? 'New' : 'Nouveau'}
+                          </span>
                         </div>
                         <h4 className="text-[13px] font-black text-white group-hover:text-sky-300 transition-colors">
-                          {isAr ? 'اكتشف بصمتك العطرية (Scent Match)' : 'NAY Scent Match — Trouver mon ADN'}
+                          {isAr ? 'اكتشف بصمتك العطرية (Scent Match)' : isEn ? 'NAY Scent Match — Find my Scent DNA' : 'NAY Scent Match — Trouver mon ADN'}
                         </h4>
                       </div>
                     </div>
@@ -683,11 +697,11 @@ export default function Header() {
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#0ea5e9]" />
                     <span className="text-[10.5px] font-black tracking-[0.2em] uppercase text-[#111827]">
-                      {isAr ? 'التشكيلات والباقات' : 'COLLECTIONS & GAMMES'}
+                      {isAr ? 'التشكيلات والباقات' : isEn ? 'COLLECTIONS & EDITIONS' : 'COLLECTIONS & GAMMES'}
                     </span>
                   </div>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    {isAr ? '4 اختيارات' : '4 Formats'}
+                    {isAr ? '4 اختيارات' : isEn ? '4 Formats' : '4 Formats'}
                   </span>
                 </div>
 
@@ -708,10 +722,10 @@ export default function Header() {
                     </div>
                     <div>
                       <h4 className="text-[12.5px] font-bold text-slate-900 group-hover:text-sky-600 transition-colors line-clamp-1">
-                        {isAr ? 'تيسترات أصلية' : 'Testeurs de Luxe'}
+                        {isAr ? 'تيسترات أصلية' : isEn ? 'Luxury Testers' : 'Testeurs de Luxe'}
                       </h4>
                       <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                        {isAr ? 'نفس الجودة والعطر' : "Flacons d'Atelier vérifiés"}
+                        {isAr ? 'نفس الجودة والعطر' : isEn ? 'Verified Atelier bottles' : "Flacons d'Atelier vérifiés"}
                       </p>
                     </div>
                   </Link>
@@ -727,15 +741,15 @@ export default function Header() {
                         <ShieldCheck size={13} strokeWidth={2.2} />
                       </span>
                       <span className="text-[8.5px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">
-                        {isAr ? 'أصلي 100%' : '100% Scellé'}
+                        {isAr ? 'أصلي 100%' : isEn ? '100% Sealed' : '100% Scellé'}
                       </span>
                     </div>
                     <div>
                       <h4 className="text-[12.5px] font-bold text-slate-900 group-hover:text-sky-600 transition-colors line-clamp-1">
-                        {isAr ? 'عطور أصلية' : 'Parfums Originaux'}
+                        {isAr ? 'عطور أصلية' : isEn ? 'Original Perfumes' : 'Parfums Originaux'}
                       </h4>
                       <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                        {isAr ? 'علب ريتيل بالبليستر' : 'Boîtes retail officielles'}
+                        {isAr ? 'علب ريتيل بالبليستر' : isEn ? 'Official sealed retail boxes' : 'Boîtes retail officielles'}
                       </p>
                     </div>
                   </Link>
@@ -756,10 +770,10 @@ export default function Header() {
                     </div>
                     <div>
                       <h4 className="text-[12.5px] font-bold text-slate-900 group-hover:text-sky-600 transition-colors line-clamp-1">
-                        {isAr ? 'ماستر كوبي' : 'Éditions Master Copy'}
+                        {isAr ? 'ماستر كوبي' : isEn ? 'Master Copy Editions' : 'Éditions Master Copy'}
                       </h4>
                       <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                        {isAr ? 'جودة وتطابق ممتاز' : 'Sillages Haute Niche 1:1'}
+                        {isAr ? 'جودة وتطابق ممتاز' : isEn ? '1:1 Haute Niche scents' : 'Sillages Haute Niche 1:1'}
                       </p>
                     </div>
                   </Link>
@@ -780,10 +794,10 @@ export default function Header() {
                     </div>
                     <div>
                       <h4 className="text-[12.5px] font-bold text-slate-900 group-hover:text-sky-600 transition-colors line-clamp-1">
-                        {isAr ? 'علب الهدايا' : 'Coffrets Cadeaux'}
+                        {isAr ? 'علب الهدايا' : isEn ? 'Gift Sets' : 'Coffrets Cadeaux'}
                       </h4>
                       <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                        {isAr ? 'إهداء فاخر لا يُنسى' : "Écrins d'exception à offrir"}
+                        {isAr ? 'إهداء فاخر لا يُنسى' : isEn ? 'Luxury gifting sets' : "Écrins d'exception à offrir"}
                       </p>
                     </div>
                   </Link>
@@ -797,7 +811,7 @@ export default function Header() {
                 >
                   <span className="text-[12px] font-bold tracking-widest uppercase flex items-center gap-2.5">
                     <ShoppingBag size={14} className="text-[#0ea5e9] group-hover:text-white transition-colors" />
-                    <span>{dict.nav?.allBoutique || 'Toute La Boutique (Tous Les Parfums)'}</span>
+                    <span>{dict.nav?.allBoutique || (isEn ? 'Full Boutique (All Perfumes)' : 'Toute La Boutique (Tous Les Parfums)')}</span>
                   </span>
                   <ChevronRight size={15} className="rtl:rotate-180 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
                 </Link>
@@ -811,15 +825,15 @@ export default function Header() {
                   </div>
                   <div>
                     <h5 className="text-[11.5px] font-bold text-slate-900 leading-tight">
-                      {isAr ? '0 درهم تسبيق · معاينة قبل الخلاص' : "0 DH d'avance · Inspectez avant de payer"}
+                      {isAr ? '0 درهم تسبيق · معاينة قبل الخلاص' : isEn ? '0 DH Upfront · Inspect before paying' : "0 DH d'avance · Inspectez avant de payer"}
                     </h5>
                     <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
-                      {isAr ? 'توصيل 24-48 ساعة بكل مدن المغرب' : 'Livraison express 24–48h partout au Maroc'}
+                      {isAr ? 'توصيل 24-48 ساعة بكل مدن المغرب' : isEn ? '24–48h express delivery across Morocco' : 'Livraison express 24–48h partout au Maroc'}
                     </p>
                   </div>
                 </div>
                 <span className="text-[9px] font-bold text-sky-700 bg-sky-50 border border-sky-200/80 px-2 py-0.5 rounded-md shrink-0">
-                  100% SÉCURISÉ
+                  {isAr ? 'آمن 100%' : isEn ? '100% SECURE' : '100% SÉCURISÉ'}
                 </span>
               </div>
 
@@ -829,7 +843,7 @@ export default function Header() {
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#0ea5e9]" />
                     <span className="text-[10.5px] font-black tracking-[0.2em] uppercase text-[#111827]">
-                      {isAr ? 'العوالم العطرية' : 'UNIVERS OLFACTIFS'}
+                      {isAr ? 'العوالم العطرية' : isEn ? 'FRAGRANCE UNIVERSES' : 'UNIVERS OLFACTIFS'}
                     </span>
                   </div>
                   <Link
@@ -837,7 +851,7 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="text-[10.5px] font-bold text-sky-600 hover:text-sky-700"
                   >
-                    {isAr ? 'عرض الكل' : 'Voir tout'}
+                    {isAr ? 'عرض الكل' : isEn ? 'View all' : 'Voir tout'}
                   </Link>
                 </div>
 
@@ -853,7 +867,7 @@ export default function Header() {
                     }`}
                   >
                     <User size={13} className={activeGenderTab === 'men' ? 'text-[#0ea5e9]' : 'text-slate-400'} strokeWidth={2.2} />
-                    <span>{isAr ? 'رجال' : 'Homme'}</span>
+                    <span>{isAr ? 'رجال' : isEn ? 'Men' : 'Homme'}</span>
                   </button>
 
                   <button
@@ -866,7 +880,7 @@ export default function Header() {
                     }`}
                   >
                     <Flower2 size={13} className={activeGenderTab === 'women' ? 'text-rose-500' : 'text-slate-400'} strokeWidth={2.2} />
-                    <span>{isAr ? 'نساء' : 'Femme'}</span>
+                    <span>{isAr ? 'نساء' : isEn ? 'Women' : 'Femme'}</span>
                   </button>
 
                   <button
@@ -879,7 +893,7 @@ export default function Header() {
                     }`}
                   >
                     <Gem size={13} className={activeGenderTab === 'unisex' ? 'text-indigo-500' : 'text-slate-400'} strokeWidth={2.2} />
-                    <span>{isAr ? 'مختلط' : 'Unisexe'}</span>
+                    <span>{isAr ? 'مختلط' : isEn ? 'Unisex' : 'Unisexe'}</span>
                   </button>
                 </div>
 
@@ -909,15 +923,15 @@ export default function Header() {
                           </h4>
                           <span className="text-[9.5px] font-medium text-slate-400">
                             {activeGenderTab === 'men' 
-                              ? (isAr ? 'كاريزما، ثبات وقوة السيلّاج' : 'Charisme, tenue & sillage puissant')
+                              ? (isAr ? 'كاريزما، ثبات وقوة السيلّاج' : isEn ? 'Charisma, longevity & strong sillage' : 'Charisme, tenue & sillage puissant')
                               : activeGenderTab === 'women'
-                              ? (isAr ? 'أنوثة راقية وجاذبية لا تقاوم' : 'Élégance, sensualité & coup de cœur')
-                              : (isAr ? 'عطور النيش الفاخرة والتوازن المتكامل' : 'Haute niche & équilibre d\'exception')}
+                              ? (isAr ? 'أنوثة راقية وجاذبية لا تقاوم' : isEn ? 'Elegance, sensuality & favorites' : 'Élégance, sensualité & coup de cœur')
+                              : (isAr ? 'عطور النيش الفاخرة والتوازن المتكامل' : isEn ? 'Haute niche & rare balance' : 'Haute niche & équilibre d\'exception')}
                           </span>
                         </div>
                       </div>
                       <span className="text-[8.5px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
-                        {activeGenderTab === 'men' ? (isAr ? 'الأكثر طلباً' : 'Best-Seller') : activeGenderTab === 'women' ? (isAr ? 'المفضل' : 'Coup de Cœur') : (isAr ? 'نيش فاخر' : 'Haute Niche')}
+                        {activeGenderTab === 'men' ? (isAr ? 'الأكثر طلباً' : 'Best-Seller') : activeGenderTab === 'women' ? (isAr ? 'المفضل' : isEn ? 'Top Pick' : 'Coup de Cœur') : (isAr ? 'نيش فاخر' : 'Haute Niche')}
                       </span>
                     </div>
 
@@ -969,7 +983,7 @@ export default function Header() {
                       className="w-full py-2 px-3 rounded-xl bg-[#FAF9F5] hover:bg-sky-50 text-slate-800 hover:text-[#0ea5e9] border border-[#ECE7DD] text-[11.5px] font-bold flex items-center justify-between transition-colors mt-1"
                     >
                       <span>
-                        {isAr ? `استكشف جميع عطور ${selectedCatTitle}` : `Explorer tout l'univers ${selectedCatTitle}`}
+                        {isAr ? `استكشف جميع عطور ${selectedCatTitle}` : isEn ? `Explore all ${selectedCatTitle} fragrances` : `Explorer tout l'univers ${selectedCatTitle}`}
                       </span>
                       <ChevronRight size={13} className="rtl:rotate-180" />
                     </Link>
@@ -1031,7 +1045,7 @@ export default function Header() {
                   className="w-full flex items-center justify-center gap-2 bg-[#059669] hover:bg-[#047857] text-white font-bold text-[12.5px] py-3.5 px-4 rounded-2xl shadow-sm active:scale-98 transition-all"
                 >
                   <MessageCircle size={16} />
-                  <span>{isAr ? 'استشارة VIP عبر واتساب (طلب فوري)' : 'Assistance VIP WhatsApp (Conseil & Commande)'}</span>
+                  <span>{isAr ? 'استشارة VIP عبر واتساب (طلب فوري)' : isEn ? 'VIP WhatsApp Concierge (Advice & Order)' : 'Assistance VIP WhatsApp (Conseil & Commande)'}</span>
                 </a>
 
                 {/* Minimalist Utility Pills */}
@@ -1054,7 +1068,7 @@ export default function Header() {
                   >
                     <Heart className="w-4 h-4 text-rose-500 mb-1" />
                     <span className="text-[10px] font-semibold text-slate-700 leading-tight">
-                      {dict.nav?.wishlist || 'Favoris'}
+                      {dict.nav?.wishlist || (isAr ? 'المفضلة' : isEn ? 'Favorites' : 'Favoris')}
                     </span>
                     {wishlistCount > 0 && (
                       <span className="absolute top-1 right-2 text-[8px] font-bold bg-rose-500 text-white w-4 h-4 rounded-full flex items-center justify-center">

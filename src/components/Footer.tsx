@@ -167,10 +167,10 @@ export default function Footer() {
                     </div>
                     <div>
                       <span className="text-[11.5px] font-bold block leading-tight">
-                        {isAr ? 'مستشار واتساب فوري' : 'WhatsApp Concierge VIP'}
+                        {isAr ? 'مستشار واتساب فوري' : isEn ? 'VIP WhatsApp Concierge' : 'WhatsApp Concierge VIP'}
                       </span>
                       <span className="text-[9.5px] text-emerald-700/80 font-medium">
-                        {phone} · {isAr ? 'رد فوري' : 'Réponse rapide 7j/7'}
+                        {phone} · {isAr ? 'رد فوري' : isEn ? 'Fast reply 7/7' : 'Réponse rapide 7j/7'}
                       </span>
                     </div>
                   </div>
@@ -188,7 +188,7 @@ export default function Footer() {
                     </div>
                     <div>
                       <span className="text-[11.5px] font-bold block leading-tight">
-                        {isAr ? 'اتصال مباشر' : 'Appel Direct'}
+                        {isAr ? 'اتصال مباشر' : isEn ? 'Direct Call' : 'Appel Direct'}
                       </span>
                       <span className="text-[9.5px] text-[#6B7280]">
                         {phone}
@@ -203,7 +203,7 @@ export default function Footer() {
             {/* Circular Luxury Social Buttons */}
             <div className="mt-6 pt-5 border-t border-[#ECE5D8]">
               <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#6B7280] block mb-3">
-                {isAr ? 'تابعونا على وسائل التواصل' : 'Rejoignez la communauté'}
+                {isAr ? 'تابعونا على وسائل التواصل' : isEn ? 'Follow our Maison' : 'Rejoignez la communauté'}
               </span>
               <div className="flex items-center gap-2.5">
                 {config.instagramUrl && (
@@ -353,7 +353,7 @@ export default function Footer() {
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Sparkles size={14} className="text-[#0284c7]" />
                 <span className="text-[9.5px] font-bold tracking-[0.2em] uppercase text-[#0284c7]">
-                  {isAr ? 'الدائرة الخاصة' : 'LE CERCLE PRIVÉ'}
+                  {isAr ? 'الدائرة الخاصة' : isEn ? 'THE PRIVATE CIRCLE' : 'LE CERCLE PRIVÉ'}
                 </span>
               </div>
 
@@ -363,6 +363,8 @@ export default function Footer() {
               <p className="text-[#6B7280] text-[11.5px] sm:text-[12px] leading-[1.6] mt-1 mb-4">
                 {isAr
                   ? 'انضم إلى الدائرة الخاصة وتوصل تلقائياً عبر بريدك الإلكتروني بكود خصم 10% الخاص بك ابتداءً من عطرين.'
+                  : isEn
+                  ? 'Join our Private Circle and receive an automatic -10% privilege code by email starting from 2 perfumes.'
                   : 'Rejoignez Le Cercle Privé et recevez automatiquement par e-mail votre code privilège de -10% dès 2 parfums.'}
               </p>
 
@@ -429,6 +431,8 @@ export default function Footer() {
                 <span>
                   {isAr 
                     ? 'نحن نحترم خصوصيتك بالكامل. يمكنك إلغاء الاشتراك في أي وقت.' 
+                    : isEn
+                    ? 'Privacy respected. Unsubscribe in 1 click at any time.'
                     : 'Confidentialité respectée. Désinscription en 1 clic à tout moment.'}
                 </span>
               </p>
@@ -471,7 +475,7 @@ export default function Footer() {
               © {new Date().getFullYear()} NAY Parfums. {dict.footer.copyright}
             </span>
             <span className="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-black/5 text-[9px] font-bold text-[#4B5563]">
-              🇲🇦 MAROC
+              {isAr ? '🇲🇦 المغرب' : isEn ? '🇲🇦 MOROCCO' : '🇲🇦 MAROC'}
             </span>
           </div>
         </div>

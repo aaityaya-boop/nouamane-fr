@@ -41,6 +41,7 @@ export default function AIChatWidget() {
   const [hasUnread, setHasUnread] = useState(false);
   const [showInvitation, setShowInvitation] = useState(true);
   const [isLauncherHovered, setIsLauncherHovered] = useState(false);
+  const [hiddenByOverlay, setHiddenByOverlay] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -50,6 +51,13 @@ export default function AIChatWidget() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      setHiddenByOverlay(document.body.dataset.hideFloatingWidgets === 'true');
+      const handleOverlayToggle = (e: Event) => {
+        const detail = (e as CustomEvent<{ hidden?: boolean }>).detail;
+        setHiddenByOverlay(Boolean(detail?.hidden));
+      };
+      window.addEventListener('nay-floating-widgets-toggle', handleOverlayToggle);
+
       let vid = localStorage.getItem('nay_vid');
       if (!vid) {
         vid = 'v_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
@@ -61,6 +69,10 @@ export default function AIChatWidget() {
       if (savedConv) {
         setConversationId(savedConv);
       }
+
+      return () => {
+        window.removeEventListener('nay-floating-widgets-toggle', handleOverlayToggle);
+      };
     }
   }, []);
 
@@ -759,7 +771,7 @@ export default function AIChatWidget() {
           LUXURY CIRCULAR FLOATING LAUNCHER (WHATSAPP-MATCHED AESTHETICS)
           ======================================================== */}
       <AnimatePresence>
-        {!isOpen && (
+        {!isOpen && !hiddenByOverlay && (
           <div
             className={`fixed bottom-[140px] lg:bottom-[86px] right-3 sm:right-6 rtl:right-auto rtl:left-3 rtl:sm:left-6 z-[110] flex items-center justify-end rtl:justify-start print:hidden ${
               isProductPage ? 'hidden lg:flex' : 'flex'

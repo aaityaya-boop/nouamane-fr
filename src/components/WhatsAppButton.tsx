@@ -8,11 +8,20 @@ export default function WhatsAppButton() {
   const [url, setUrl] = useState('https://api.whatsapp.com/send?phone=212663380011');
   const [isHovered, setIsHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [hiddenByOverlay, setHiddenByOverlay] = useState(false);
   const pathname = usePathname();
   const isProductPage = pathname?.includes('/product/');
 
   useEffect(() => {
     setMounted(true);
+    setHiddenByOverlay(document.body.dataset.hideFloatingWidgets === 'true');
+
+    const handleOverlayToggle = (e: Event) => {
+      const detail = (e as CustomEvent<{ hidden?: boolean }>).detail;
+      setHiddenByOverlay(Boolean(detail?.hidden));
+    };
+    window.addEventListener('nay-floating-widgets-toggle', handleOverlayToggle);
+
     const timer = setTimeout(() => {
       fetch('/api/settings')
         .then(res => res.json())
@@ -24,7 +33,10 @@ export default function WhatsAppButton() {
         .catch(console.error);
     }, 4000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('nay-floating-widgets-toggle', handleOverlayToggle);
+    };
   }, []);
 
   const locale = pathname?.split('/')[1] || 'fr';
@@ -53,7 +65,7 @@ export default function WhatsAppButton() {
 
   const isInvoicePage = pathname?.includes('/invoice');
 
-  if (isProductPage || isInvoicePage) return null;
+  if (isProductPage || isInvoicePage || hiddenByOverlay) return null;
   if (!mounted) return null; // Avoid rendering until mounted to prevent hydration mismatches on styles/href
 
   const helpText = isArabic ? "هل تحتاج لمساعدة؟" : isEnglish ? "Need help?" : "Besoin d'aide ?";

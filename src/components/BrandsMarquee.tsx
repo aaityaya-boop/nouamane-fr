@@ -15,6 +15,8 @@ interface Brand {
 export default function BrandsMarquee({ brands }: { brands: Brand[] }) {
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
+  const isAr = locale === 'ar';
+  const isEn = locale === 'en';
   if (!brands || brands.length === 0) return null;
 
   // We duplicate the list once to create an exact seamless infinite scrolling loop with translateX(-50%)
@@ -41,10 +43,10 @@ export default function BrandsMarquee({ brands }: { brands: Brand[] }) {
 
       <div className="max-w-[1400px] mx-auto px-6 mb-8 lg:mb-12 text-center">
         <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">
-          Nos Maisons Partenaires
+          {isAr ? 'شركاؤنا المعتمدون' : isEn ? 'Our Partner Houses' : 'Nos Maisons Partenaires'}
         </span>
         <h2 className="heading-font text-3xl lg:text-4xl mt-2 tracking-wide text-[#1A1A1A]">
-          Les Marques de Prestige
+          {isAr ? 'أشهر الماركات العالمية' : isEn ? 'Prestigious Fragrance Houses' : 'Les Marques de Prestige'}
         </h2>
       </div>
 

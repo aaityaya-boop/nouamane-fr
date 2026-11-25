@@ -14,6 +14,7 @@ export default function MobileTaskbar() {
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const isAr = locale === 'ar';
+  const isEn = locale === 'en';
   
   const { getItemCount } = useCart();
   const cartCount = getItemCount();
@@ -36,7 +37,7 @@ export default function MobileTaskbar() {
   return (
     <>
       <nav
-        aria-label="Navigation mobile"
+        aria-label={isAr ? "التنقل السريع" : isEn ? "Mobile navigation" : "Navigation mobile"}
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#ECEAE4] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] px-2 pt-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] transition-all select-none print:hidden rounded-t-[22px]"
       >
         <div className="max-w-md mx-auto grid grid-cols-5 items-end">
@@ -61,7 +62,7 @@ export default function MobileTaskbar() {
             <span className={`text-[10px] mt-1.5 tracking-tight leading-none ${
               isHome ? 'font-bold text-[#111827]' : 'font-medium text-[#64748b]'
             } ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
-              {isAr ? 'الرئيسية' : 'Accueil'}
+              {isAr ? 'الرئيسية' : isEn ? 'Home' : 'Accueil'}
             </span>
           </Link>
 
@@ -85,14 +86,14 @@ export default function MobileTaskbar() {
             <span className={`text-[10px] mt-1.5 tracking-tight leading-none ${
               isShop ? 'font-bold text-[#111827]' : 'font-medium text-[#64748b]'
             } ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
-              {isAr ? 'المتجر' : 'Boutique'}
+              {isAr ? 'المتجر' : isEn ? 'Shop' : 'Boutique'}
             </span>
           </Link>
 
           {/* TAB 3 (CENTER): PANIER - Elevated Luxury Medallion */}
           <Link
             href={`/${locale}/cart`}
-            aria-label={isAr ? `السلة (${cartCount} منتجات)` : `Panier (${cartCount} articles)`}
+            aria-label={isAr ? `السلة (${cartCount} منتجات)` : isEn ? `Cart (${cartCount} items)` : `Panier (${cartCount} articles)`}
             className="relative flex flex-col items-center justify-center -mt-5 group"
           >
             <div
@@ -118,7 +119,7 @@ export default function MobileTaskbar() {
             <span className={`text-[10px] mt-1.5 tracking-tight leading-none ${
               isCart ? 'font-bold text-[#0284c7]' : 'font-semibold text-[#0f172a]'
             } ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
-              {isAr ? 'السلة' : 'Panier'}
+              {isAr ? 'السلة' : isEn ? 'Cart' : 'Panier'}
             </span>
           </Link>
 
@@ -126,7 +127,7 @@ export default function MobileTaskbar() {
           <button
             type="button"
             onClick={() => setIsSearchOpen(true)}
-            aria-label={isAr ? "البحث في العطور" : "Rechercher un parfum"}
+            aria-label={isAr ? "البحث في العطور" : isEn ? "Search perfumes" : "Rechercher un parfum"}
             className="flex flex-col items-center justify-center pb-1 transition-all duration-200 active:scale-90 text-[#64748b] hover:text-[#111827] cursor-pointer"
           >
             <div className="relative flex flex-col items-center justify-center h-6">
@@ -135,14 +136,14 @@ export default function MobileTaskbar() {
             <span className={`text-[10px] mt-1.5 tracking-tight leading-none font-medium text-[#64748b] ${
               isAr ? 'font-arabic' : 'font-body-modern'
             }`}>
-              {isAr ? 'بحث' : 'Recherche'}
+              {isAr ? 'بحث' : isEn ? 'Search' : 'Recherche'}
             </span>
           </button>
 
           {/* TAB 5: Wishlist / Favoris (Replacing 3 points with direct Wishlist access) */}
           <Link
             href={`/${locale}/wishlist`}
-            aria-label={isAr ? `المفضلة (${wishlistCount} منتجات)` : `Favoris (${wishlistCount} articles)`}
+            aria-label={isAr ? `المفضلة (${wishlistCount} منتجات)` : isEn ? `Wishlist (${wishlistCount} items)` : `Favoris (${wishlistCount} articles)`}
             className={`flex flex-col items-center justify-center pb-1 transition-all duration-200 active:scale-90 ${
               isWishlist ? 'text-rose-500' : 'text-[#64748b] hover:text-[#111827]'
             }`}
@@ -165,7 +166,7 @@ export default function MobileTaskbar() {
             <span className={`text-[10px] mt-1.5 tracking-tight leading-none ${
               isWishlist ? 'font-bold text-rose-500' : 'font-medium text-[#64748b]'
             } ${isAr ? 'font-arabic' : 'font-body-modern'}`}>
-              {isAr ? 'المفضلة' : 'Favoris'}
+              {isAr ? 'المفضلة' : isEn ? 'Favorites' : 'Favoris'}
             </span>
           </Link>
 

@@ -31,10 +31,22 @@ import {
   MessageCircle,
   Clock,
   Search,
+  AlertCircle,
+  Mail,
 } from 'lucide-react';
 import FreeGiftSelector from '@/components/FreeGiftSelector';
 import { useAuth } from '@/context/AuthContext';
 import PromoAuthModal from '@/components/PromoAuthModal';
+
+/* Quick-tap Moroccan cities for 1-touch mobile checkout */
+const QUICK_PICK_CITIES = [
+  'Casablanca',
+  'Rabat',
+  'Marrakech',
+  'Tanger',
+  'Fès',
+  'Agadir',
+];
 
 /* Top 14 Moroccan destinations for instant selection */
 const TOP_MOROCCAN_CITIES = [
@@ -87,6 +99,12 @@ function CheckoutPageInner() {
 
   // Mobile Order Summary Accordion State
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+
+  // Inline Form Validation / Submission Errors
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const errorBannerRef = useRef<HTMLDivElement>(null);
 
   // Country Code Picker State (Default: Morocco +212)
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>(POPULAR_COUNTRIES[0]);
@@ -239,14 +257,24 @@ function CheckoutPageInner() {
     paymentMethod: 'cod' as 'cod' | 'card',
   });
 
+  // Live step progress indicators
+  const step1Done = Boolean(
+    form.firstName.trim() && form.lastName.trim() && form.phone.trim().length >= 8
+  );
+  const step2Done = Boolean(form.city.trim() && form.address.trim().length >= 4);
+
   // Pre-fill form from authenticated customer if available
   useEffect(() => {
     if (customer) {
+      const cleanCustEmail =
+        customer.email && !customer.email.endsWith('@noemail.nayparfum.local')
+          ? customer.email
+          : '';
       setForm((prev) => ({
         ...prev,
         firstName: prev.firstName || customer.name.split(' ')[0] || '',
         lastName: prev.lastName || customer.name.split(' ').slice(1).join(' ') || '',
-        email: prev.email || customer.email || '',
+        email: prev.email || cleanCustEmail,
         phone: prev.phone || customer.phone || '',
         address: prev.address || customer.address || '',
         city: prev.city || customer.city || 'Casablanca',
@@ -304,6 +332,15 @@ function CheckoutPageInner() {
 
   const update = (field: keyof typeof form, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    if (submitError) setSubmitError(null);
+    if (field === 'phone' && phoneError) setPhoneError(null);
+    if (field === 'email' && emailError) setEmailError(null);
+  };
+
+  const scrollToError = () => {
+    setTimeout(() => {
+      errorBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 60);
   };
 
   const handleApplyPromo = async (codeToOverride?: string) => {
@@ -380,10 +417,29 @@ function CheckoutPageInner() {
     e.preventDefault();
     if (effectiveCart.length === 0 || isSubmitting) return;
 
+    setSubmitError(null);
+    setPhoneError(null);
+    setEmailError(null);
+
     const fullPhoneNumber = formatCheckoutPhone(form.phone, selectedCountry.dial);
     const phoneCheck = validateAndNormalizePhone(fullPhoneNumber);
     if (!phoneCheck.isValid) {
-      alert(phoneCheck.error || 'Veuillez renseigner un numéro de téléphone WhatsApp valide (ex: 06 XX XX XX XX ou 07 XX XX XX XX) pour coordonner la livraison.');
+      const msg =
+        phoneCheck.error ||
+        'Veuillez renseigner un numéro de téléphone WhatsApp valide (ex: 06 XX XX XX XX ou 07 XX XX XX XX).';
+      setPhoneError(msg);
+      setSubmitError(msg);
+      scrollToError();
+      return;
+    }
+
+    // Email is completely optional — validate format ONLY if the client typed something
+    const trimmedEmail = form.email.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmedEmail)) {
+      const msg = "L'adresse email semble invalide. Corrigez-la ou laissez le champ vide.";
+      setEmailError(msg);
+      setSubmitError(msg);
+      scrollToError();
       return;
     }
 
@@ -401,11 +457,11 @@ function CheckoutPageInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerName: `${form.firstName} ${form.lastName}`.trim(),
-          customerEmail: form.email,
+          customerEmail: trimmedEmail,
           customerPhone: fullPhoneNumber,
-          shippingAddress: form.address,
+          shippingAddress: form.address.trim(),
           shippingCity: form.city,
-          shippingPostalCode: form.postalCode,
+          shippingPostalCode: form.postalCode.trim(),
           paymentMethod: form.paymentMethod,
           items: effectiveCart,
           subtotal,
@@ -434,11 +490,11 @@ function CheckoutPageInner() {
         orderNumber,
         invoiceToken: invoiceToken || null,
         customerName: `${form.firstName} ${form.lastName}`.trim(),
-        customerEmail: form.email,
+        customerEmail: trimmedEmail,
         customerPhone: fullPhoneNumber,
-        shippingAddress: form.address,
+        shippingAddress: form.address.trim(),
         shippingCity: form.city,
-        shippingPostalCode: form.postalCode,
+        shippingPostalCode: form.postalCode.trim(),
         paymentMethod: form.paymentMethod,
         items: effectiveCart,
         subtotal,
@@ -489,9 +545,12 @@ function CheckoutPageInner() {
       setIsSubmitting(false);
     } catch (err: any) {
       console.error(err);
-      alert(err?.message && err.message !== 'Order failed'
-        ? err.message
-        : 'Une erreur est survenue lors de la validation. Veuillez vérifier vos informations et réessayer.');
+      setSubmitError(
+        err?.message && err.message !== 'Order failed'
+          ? err.message
+          : 'Une erreur est survenue lors de la validation. Veuillez vérifier vos informations et réessayer.'
+      );
+      scrollToError();
       setIsSubmitting(false);
     }
   };
@@ -520,12 +579,14 @@ function CheckoutPageInner() {
   /* ---- BUY NOW LOADING GUARD ---- */
   if (isBuyNow && buyNowLoading) {
     return (
-      <div className="bg-[#fafaf7] min-h-screen flex flex-col justify-between">
+      <div className="bg-[#fafaf7] w-full max-w-full overflow-x-clip min-h-screen flex flex-col justify-between">
         <LuxuryTunnelHeader backHref={backHref} isBuyNow={isBuyNow} locale={locale} />
         <div className="max-w-md mx-auto py-24 text-center px-6">
-          <div className="w-12 h-12 border-3 border-[#0ea5e9] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-[3px] border-[#0ea5e9] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <h2 className="heading-font text-xl font-bold text-[#1A1A1A]">Sécurisation de votre commande…</h2>
-          <p className="text-[#6B6B6B] text-[13px] mt-1.5 font-medium">Préparation de votre flacon d&apos;exception en direct de l&apos;Atelier.</p>
+          <p className="text-[#6B6B6B] text-[13px] mt-1.5 font-medium">
+            Préparation de votre flacon d&apos;exception en direct de l&apos;Atelier.
+          </p>
         </div>
         <LuxuryTunnelFooter />
       </div>
@@ -535,7 +596,7 @@ function CheckoutPageInner() {
   /* ---- BUY NOW ERROR GUARD ---- */
   if (isBuyNow && (buyNowError || !buyNowData)) {
     return (
-      <div className="bg-[#fafaf7] min-h-screen flex flex-col justify-between">
+      <div className="bg-[#fafaf7] w-full max-w-full overflow-x-clip min-h-screen flex flex-col justify-between">
         <LuxuryTunnelHeader backHref={backHref} isBuyNow={isBuyNow} locale={locale} />
         <div className="max-w-md mx-auto py-24 text-center px-6">
           <div className="w-16 h-16 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 mx-auto mb-5 shadow-xs">
@@ -562,7 +623,7 @@ function CheckoutPageInner() {
   /* ---- EMPTY CART GUARD ---- */
   if (!isBuyNow && cart.length === 0) {
     return (
-      <div className="bg-[#fafaf7] min-h-screen flex flex-col justify-between">
+      <div className="bg-[#fafaf7] w-full max-w-full overflow-x-clip min-h-screen flex flex-col justify-between">
         <LuxuryTunnelHeader backHref={`/${locale}/shop`} isBuyNow={false} locale={locale} />
         <div className="max-w-md mx-auto py-24 text-center px-6">
           <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[#1A1A1A] mx-auto mb-5 shadow-xs">
@@ -586,17 +647,19 @@ function CheckoutPageInner() {
     );
   }
 
+  const firstItem = effectiveCart[0];
+  const totalUnits = effectiveCart.reduce((acc, item) => acc + (Number(item.quantity) || 1), 0);
+
   return (
-    <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen flex flex-col justify-between selection:bg-[#0ea5e9] selection:text-white pb-24 lg:pb-0">
-      
-      {/* 1. DEDICATED LUXURY CHECKOUT HEADER WITH PROMINENT NAY LOGO */}
+    <div className="bg-[#f8f7f3] text-[#111827] w-full max-w-full overflow-x-clip min-h-screen flex flex-col justify-between selection:bg-[#0ea5e9] selection:text-white pb-28 lg:pb-0">
+      {/* 1. DEDICATED LUXURY CHECKOUT HEADER */}
       <LuxuryTunnelHeader backHref={backHref} isBuyNow={isBuyNow} locale={locale} />
 
-      {/* 2. SLENDER TV NEWS TICKER MARQUEE (COMPACT & SLEEK) */}
-      <div className="bg-[#1A1A1A] text-white py-1 sm:py-1.5 overflow-hidden border-b border-[#2A2A2A] select-none">
+      {/* 2. SLEEK REASSURANCE TICKER */}
+      <div className="w-full max-w-full bg-[#0f172a] text-white py-1.5 overflow-hidden border-b border-white/10 select-none">
         <div
           className="flex w-max animate-marquee hover:[animation-play-state:paused]"
-          style={{ animationDuration: '28s' }}
+          style={{ animationDuration: '30s' }}
         >
           {[0, 1].map((copyIndex) => (
             <div
@@ -604,173 +667,271 @@ function CheckoutPageInner() {
               className="flex items-center gap-6 sm:gap-10 shrink-0 pr-6 sm:pr-10 text-[10px] sm:text-[11px] font-medium tracking-wider uppercase"
             >
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9] animate-pulse" />
-                <span className="font-bold text-white">PAIEMENT EN ESPÈCES À LA LIVRAISON</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8] animate-pulse" />
+                <span className="font-bold text-white">0 DH À PAYER EN LIGNE</span>
               </span>
-              <span className="text-white/30">•</span>
-              <span className="flex items-center gap-1.5 text-white">
-                <PackageCheck size={13} className="text-[#0ea5e9]" />
-                <span>Ouvrez & testez votre flacon devant le livreur</span>
+              <span className="text-white/25">•</span>
+              <span className="flex items-center gap-1.5 text-slate-100">
+                <PackageCheck size={13} className="text-[#38bdf8]" />
+                <span>Ouvrez & vérifiez votre flacon devant le livreur</span>
               </span>
-              <span className="text-white/30">•</span>
-              <span className="flex items-center gap-1.5 text-white">
-                <Truck size={13} className="text-[#0ea5e9]" />
+              <span className="text-white/25">•</span>
+              <span className="flex items-center gap-1.5 text-slate-100">
+                <Truck size={13} className="text-[#38bdf8]" />
                 <span>Livraison express 24h / 48h partout au Maroc</span>
               </span>
-              <span className="text-white/30">•</span>
-              <span className="flex items-center gap-1.5 text-white">
-                <ShieldCheck size={13} className="text-[#0ea5e9]" />
+              <span className="text-white/25">•</span>
+              <span className="flex items-center gap-1.5 text-slate-100">
+                <ShieldCheck size={13} className="text-[#38bdf8]" />
                 <span>Parfums & Testeurs 100% Authentiques</span>
               </span>
-              <span className="text-white/30">•</span>
-              <span className="flex items-center gap-1.5 text-white">
-                <Sparkles size={13} className="text-[#0ea5e9]" />
-                <span>Règlement sécurisé en mains propres</span>
-              </span>
-              <span className="text-white/30">•</span>
+              <span className="text-white/25">•</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 3. MAIN CHECKOUT CONTAINER */}
-      <main className="flex-1 py-8 sm:py-12 lg:py-16">
-        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* TITLE & STEP BREADCRUMB */}
-          <div className="mb-8 sm:mb-10 text-center sm:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-[#0284c7] text-[11px] font-bold uppercase tracking-wider mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9] animate-pulse" />
-              Commande Express · Paiement à la livraison
-            </div>
-            <h1 className="heading-font text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#1A1A1A]">
-              Finaliser votre commande
-            </h1>
-            <p className="text-[13px] sm:text-[14px] text-[#6B6B6B] mt-1.5 max-w-2xl">
-              Remplissez vos coordonnées ci-dessous. Le livreur coordonnera avec vous par téléphone avant son passage.
-            </p>
+      {/* 3. MAIN CHECKOUT WORKSPACE */}
+      <main className="flex-1 w-full max-w-full overflow-x-clip py-5 sm:py-9 lg:py-12">
+        <div className="w-full max-w-[1280px] mx-auto px-3.5 sm:px-6 lg:px-8">
+          {/* EXECUTIVE HERO HEADER & LIVE INTERACTIVE STEPPER */}
+          <div className="mb-5 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+              <div className="min-w-0">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-[#0284c7] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9] animate-pulse shrink-0" />
+                  <span>Commande Express · Paiement à la livraison</span>
+                </div>
+                <h1 className="heading-font text-[22px] sm:text-3xl lg:text-[34px] font-extrabold tracking-tight text-[#0f172a] leading-tight">
+                  Finaliser votre commande
+                </h1>
+                <p className="text-[12.5px] sm:text-[14px] text-[#64748b] mt-1 leading-relaxed max-w-xl">
+                  Complétez vos coordonnées en 30 secondes. Aucun paiement par carte requis.
+                </p>
+              </div>
 
-            {/* Visual Stepper */}
-            <div className="mt-6 pt-5 border-t border-[#e0ddd4] grid grid-cols-3 max-w-xl text-[11px] sm:text-[12px] font-bold">
-              <div className="flex items-center gap-2 text-[#1A1A1A]">
-                <span className="w-5 h-5 rounded-full bg-[#1A1A1A] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">1</span>
-                <span className="truncate">Coordonnées</span>
+              {/* Compact Trust Chip (Desktop) */}
+              <div className="hidden lg:flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white border border-[#e6e2d8] shadow-2xs shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/70 flex items-center justify-center text-emerald-600">
+                  <ShieldCheck size={17} />
+                </div>
+                <div className="text-left">
+                  <div className="text-[12px] font-bold text-[#0f172a] leading-tight">Paiement en mains propres</div>
+                  <div className="text-[11px] text-[#64748b]">Vérification avant règlement</div>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-[#1A1A1A]">
-                <span className="w-5 h-5 rounded-full bg-[#1A1A1A] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">2</span>
-                <span className="truncate">Livraison Maroc</span>
-              </div>
-              <div className="flex items-center gap-2 text-[#0284c7]">
-                <span className="w-5 h-5 rounded-full bg-[#0ea5e9] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">3</span>
-                <span className="truncate">Paiement COD</span>
+            </div>
+
+            {/* Live Progress Bar */}
+            <div className="mt-4 sm:mt-6 bg-white border border-[#e6e2d8] rounded-2xl px-3 py-3 sm:px-5 sm:py-3.5 shadow-[0_1px_8px_rgba(15,23,42,0.03)]">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 items-center">
+                <StepIndicator
+                  number={1}
+                  label="Coordonnées"
+                  mobileLabel="Contact"
+                  completed={step1Done}
+                  active={!step1Done}
+                />
+                <StepIndicator
+                  number={2}
+                  label="Livraison"
+                  mobileLabel="Livraison"
+                  completed={step2Done}
+                  active={step1Done && !step2Done}
+                />
+                <StepIndicator
+                  number={3}
+                  label="Paiement COD"
+                  mobileLabel="Paiement"
+                  completed={false}
+                  active={step1Done && step2Done}
+                />
               </div>
             </div>
           </div>
 
-          {/* MOBILE ONLY: EXPANDABLE ORDER SUMMARY DRAWER */}
-          <div className="lg:hidden mb-6 bg-white border border-[#e0ddd4] rounded-2xl shadow-xs overflow-hidden">
+          {/* MOBILE ONLY: PREMIUM EXPANDABLE ORDER SUMMARY CARD */}
+          <div className="lg:hidden mb-5 w-full min-w-0 bg-white border border-[#e6e2d8] rounded-2xl shadow-[0_2px_14px_rgba(15,23,42,0.04)] overflow-hidden">
             <button
               type="button"
               onClick={() => setMobileSummaryOpen((prev) => !prev)}
-              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-[#fafaf7] transition"
+              className="w-full p-3.5 flex items-center justify-between gap-3 text-left active:bg-[#fafaf7] transition cursor-pointer"
               aria-expanded={mobileSummaryOpen}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#0ea5e9] to-[#0284c7] text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <ShoppingBag size={18} />
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="relative w-11 h-12 rounded-xl bg-[#fafaf7] border border-[#e6e2d8] overflow-hidden shrink-0 flex items-center justify-center">
+                  {firstItem?.image ? (
+                    <Image
+                      src={firstItem.image}
+                      alt={firstItem.name}
+                      fill
+                      sizes="44px"
+                      className="object-contain p-1 mix-blend-multiply"
+                    />
+                  ) : (
+                    <ShoppingBag size={18} className="text-[#0ea5e9]" />
+                  )}
+                  <span className="absolute -top-0.5 -right-0.5 bg-[#0f172a] text-white min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[9px] font-bold">
+                    {totalUnits}
+                  </span>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[13px] font-bold text-[#1A1A1A] flex items-center gap-1.5">
-                    <span>Voir le récapitulatif</span>
-                    <span className="text-[11px] font-normal text-[#6B6B6B]">
-                      ({effectiveCart.length} article{effectiveCart.length > 1 ? 's' : ''})
-                    </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-bold text-[#0f172a] truncate">
+                    Commande · {effectiveCart.length} article{effectiveCart.length > 1 ? 's' : ''}
                   </div>
-                  <div className="text-[11px] text-[#0ea5e9] font-medium flex items-center gap-1 mt-0.5">
-                    <span>{mobileSummaryOpen ? 'Masquer le détail' : 'Toucher pour afficher les détails'}</span>
-                    {mobileSummaryOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                  <div className="text-[11px] text-[#0284c7] font-semibold flex items-center gap-1 mt-0.5">
+                    <span>{mobileSummaryOpen ? 'Masquer le détail' : 'Voir le détail'}</span>
+                    {mobileSummaryOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                   </div>
                 </div>
               </div>
 
               <div className="text-right shrink-0">
-                <span className="text-[16px] font-extrabold text-[#1A1A1A] tracking-tight">
+                <span className="text-[16px] font-extrabold text-[#0f172a] tracking-tight tabular-nums block leading-tight">
                   {formatMAD(total)}
                 </span>
-                <span className="block text-[10px] text-[#0ea5e9] font-bold">
-                  {shipping === 0 ? 'Livraison offerte' : '+35 DH livraison'}
+                <span
+                  className={`inline-block text-[10px] font-bold mt-0.5 ${
+                    shipping === 0 ? 'text-emerald-600' : 'text-[#64748b]'
+                  }`}
+                >
+                  {shipping === 0 ? 'Livraison offerte' : `+${formatMAD(shipping)} livraison`}
                 </span>
               </div>
             </button>
 
-            {/* Expandable Content */}
             {mobileSummaryOpen && (
-              <div className="p-4 pt-0 border-t border-[#f1f1eb] bg-[#fafaf7]/50 divide-y divide-[#f1f1eb]">
-                <div className="py-3 space-y-3 max-h-64 overflow-y-auto">
+              <div className="px-3.5 pb-4 pt-3 border-t border-[#f0ede6] bg-[#fafaf7]/70 space-y-3.5">
+                <div className="space-y-2.5 max-h-60 overflow-y-auto">
                   {effectiveCart.map((item) => (
-                    <div key={`${item.id}-${item.size}`} className="flex items-center gap-3">
-                      <div className="relative w-12 h-14 bg-white rounded-xl border border-[#E8E2D6] overflow-hidden shrink-0 flex items-center justify-center">
-                        <Image src={item.image} alt={item.name} fill className="object-contain scale-120 mix-blend-multiply" />
-                        <span className="absolute -top-1 -right-1 bg-[#1A1A1A] text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold">
+                    <div
+                      key={`${item.id}-${item.size}`}
+                      className="flex items-center gap-3 p-2 rounded-xl bg-white border border-[#ece8df] min-w-0"
+                    >
+                      <div className="relative w-11 h-13 bg-[#fafaf7] rounded-lg border border-[#ece8df] overflow-hidden shrink-0 flex items-center justify-center">
+                        <Image
+                          src={item.image || '/placeholder.jpg'}
+                          alt={item.name}
+                          fill
+                          sizes="44px"
+                          className="object-contain p-0.5 mix-blend-multiply"
+                        />
+                        <span className="absolute -top-0.5 -right-0.5 bg-[#0f172a] text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold">
                           {item.quantity}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[12px] font-bold text-[#1A1A1A] truncate">{item.name}</div>
-                        <div className="text-[10px] text-[#6B6B6B] uppercase font-semibold">{item.size}</div>
+                        <div className="text-[12px] font-bold text-[#0f172a] truncate">{item.name}</div>
+                        <div className="text-[10px] text-[#64748b] uppercase font-semibold">
+                          {item.size || '100ml'} · Qté {item.quantity}
+                        </div>
                       </div>
-                      <div className="text-[13px] font-bold text-[#1A1A1A]">
+                      <div className="text-[13px] font-extrabold text-[#0f172a] shrink-0 tabular-nums">
                         {formatMAD(item.price * item.quantity)}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-3 space-y-1.5 text-[12px]">
-                  <div className="flex justify-between text-[#6B6B6B]">
-                    <span>Sous-total</span>
-                    <span className="font-semibold text-[#1A1A1A]">{formatMAD(subtotal)}</span>
+                {/* Free shipping progress on mobile */}
+                <div className="p-3 rounded-xl bg-white border border-[#ece8df] space-y-1.5">
+                  <div className="flex items-center justify-between gap-2 text-[11px]">
+                    <span className="font-bold text-[#0f172a] flex items-center gap-1.5">
+                      <Truck size={13} className="text-[#0ea5e9] shrink-0" />
+                      <span>Livraison Offerte</span>
+                    </span>
+                    <span className="font-bold text-[#0284c7] shrink-0">
+                      {shipping === 0 ? 'Débloquée !' : 'Dès 800 MAD'}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-[#6B6B6B]">
-                    <span>Frais de livraison</span>
-                    <span className={shipping === 0 ? 'text-[#0ea5e9] font-bold' : 'text-[#1A1A1A] font-semibold'}>
-                      {shipping === 0 ? 'Livraison Gratuite (0 MAD)' : formatMAD(shipping)}
+                  <div className="w-full bg-[#eeece5] h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] h-full rounded-full transition-all duration-500"
+                      style={{ width: `${freeShippingProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-[10.5px] text-[#64748b]">
+                    {shipping === 0
+                      ? 'Livraison gratuite partout au Maroc incluse.'
+                      : `Plus que ${formatMAD(amountToFreeShipping)} pour la livraison offerte.`}
+                  </p>
+                </div>
+
+                {/* Totals breakdown */}
+                <div className="pt-2 border-t border-[#e6e2d8] space-y-1.5 text-[12.5px]">
+                  <div className="flex justify-between text-[#64748b]">
+                    <span>Sous-total</span>
+                    <span className="font-semibold text-[#0f172a] tabular-nums">{formatMAD(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-[#64748b]">
+                    <span>Livraison Maroc</span>
+                    <span
+                      className={
+                        shipping === 0
+                          ? 'text-emerald-600 font-bold'
+                          : 'text-[#0f172a] font-semibold tabular-nums'
+                      }
+                    >
+                      {shipping === 0 ? 'Gratuite (0 MAD)' : formatMAD(shipping)}
                     </span>
                   </div>
                   {totalDiscount > 0 && (
-                    <div className="flex justify-between text-[#0ea5e9] font-semibold">
+                    <div className="flex justify-between text-[#0284c7] font-semibold">
                       <span>Remise</span>
-                      <span>-{formatMAD(totalDiscount)}</span>
+                      <span className="tabular-nums">-{formatMAD(totalDiscount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-[14px] font-extrabold text-[#1A1A1A] pt-2 border-t border-[#e0ddd4]">
+                  <div className="flex justify-between text-[14px] font-extrabold text-[#0f172a] pt-2 border-t border-[#e6e2d8]">
                     <span>Total à régler au livreur</span>
-                    <span className="text-[#1A1A1A]">{formatMAD(total)}</span>
+                    <span className="tabular-nums">{formatMAD(total)}</span>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* MAIN CHECKOUT GRID (NO items-start SO ASIDE COLUMN STRETCHES FOR SMOOTH STICKY) */}
+          {/* INLINE ERROR BANNER (REPLACES HARSH BROWSER ALERT) */}
+          {submitError && (
+            <div
+              ref={errorBannerRef}
+              role="alert"
+              className="mb-5 w-full min-w-0 p-3.5 sm:p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3 shadow-2xs"
+            >
+              <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
+              <div className="text-[12.5px] sm:text-[13px] font-medium leading-relaxed min-w-0 flex-1">
+                {submitError}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSubmitError(null)}
+                className="text-rose-500 hover:text-rose-700 text-xs font-bold shrink-0 cursor-pointer"
+                aria-label="Fermer l'alerte"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* MAIN CHECKOUT GRID — minmax(0,1fr) GUARANTEES ZERO MOBILE OVERFLOW */}
           <form
             ref={formRef}
             onSubmit={handleSubmit}
-            className="grid lg:grid-cols-[1fr_450px] gap-8 lg:gap-12"
+            className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px] gap-5 sm:gap-7 lg:gap-10 w-full min-w-0"
           >
-            {/* LEFT COLUMN: THE FORM */}
-            <div className="space-y-6 sm:space-y-8">
-              
+            {/* LEFT COLUMN: STRUCTURED FORM SECTIONS */}
+            <div className="min-w-0 w-full space-y-5 sm:space-y-6">
               {/* SECTION 01: CONTACT */}
               <LuxuryFormSection
                 number="01"
                 title="Informations du Destinataire"
-                subtitle="Ces informations permettent au transporteur de vous contacter avant la livraison."
-                icon={<User size={18} />}
+                subtitle="Le livreur vous contactera par téléphone ou WhatsApp avant son passage."
+                icon={<User size={17} />}
+                completed={step1Done}
               >
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 min-w-0">
                   <LuxuryInput
-                    label="Prénom *"
+                    label="Prénom"
+                    requiredMark
                     name="firstName"
                     autoComplete="given-name"
                     placeholder="Votre prénom"
@@ -779,7 +940,8 @@ function CheckoutPageInner() {
                     required
                   />
                   <LuxuryInput
-                    label="Nom de famille *"
+                    label="Nom de famille"
+                    requiredMark
                     name="lastName"
                     autoComplete="family-name"
                     placeholder="Votre nom"
@@ -789,25 +951,35 @@ function CheckoutPageInner() {
                   />
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 min-w-0">
                   {/* Phone with World Country Code Picker + Flag Dropdown */}
-                  <div ref={countryPickerRef} className="relative">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#4A4A4A] mb-1.5 flex items-center justify-between">
-                      <span>Téléphone WhatsApp *</span>
-                      <span className="text-[10px] text-[#0284c7] font-semibold normal-case">Numéro de livraison</span>
+                  <div ref={countryPickerRef} className="relative min-w-0 w-full">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#334155] mb-1.5 flex items-center justify-between gap-2 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <span>Téléphone WhatsApp</span>
+                        <span className="text-rose-500">*</span>
+                      </span>
+                      <span className="text-[10px] text-[#0284c7] font-semibold normal-case bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+                        Contact livraison
+                      </span>
                     </label>
 
-                    <div className="relative flex rounded-xl border border-[#e0ddd4] bg-white focus-within:border-[#0ea5e9] focus-within:ring-2 focus-within:ring-[#0ea5e9]/15 transition-all">
+                    <div
+                      className={`flex w-full min-w-0 rounded-xl border bg-white overflow-hidden transition-all ${
+                        phoneError
+                          ? 'border-rose-400 ring-2 ring-rose-500/15'
+                          : 'border-[#dcd8ce] focus-within:border-[#0ea5e9] focus-within:ring-3 focus-within:ring-[#0ea5e9]/15'
+                      }`}
+                    >
                       {/* Country Selector Trigger */}
                       <button
                         type="button"
                         onClick={() => setIsCountryPickerOpen(!isCountryPickerOpen)}
-                        className="flex items-center gap-2 px-3 bg-[#fafaf7] hover:bg-[#f0ede4] border-r border-[#e0ddd4] text-[13px] font-bold text-[#1A1A1A] select-none shrink-0 transition cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 sm:px-3 bg-[#f8f7f3] hover:bg-[#f0ede4] border-r border-[#e4e0d6] text-[13px] font-bold text-[#0f172a] select-none shrink-0 transition cursor-pointer"
                         title="Changer le pays / indicatif"
                         aria-expanded={isCountryPickerOpen}
                       >
                         <span className="relative flex items-center justify-center w-5 h-3.5 rounded-[2px] overflow-hidden shadow-2xs border border-black/10 shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`}
                             alt={selectedCountry.name}
@@ -817,11 +989,16 @@ function CheckoutPageInner() {
                             }}
                           />
                         </span>
-                        <span>{selectedCountry.dial}</span>
-                        <ChevronDown size={13} className={`text-[#888] transition-transform duration-200 ${isCountryPickerOpen ? 'rotate-180' : ''}`} />
+                        <span className="tabular-nums">{selectedCountry.dial}</span>
+                        <ChevronDown
+                          size={13}
+                          className={`text-[#64748b] transition-transform duration-200 ${
+                            isCountryPickerOpen ? 'rotate-180' : ''
+                          }`}
+                        />
                       </button>
 
-                      {/* Phone Number Input */}
+                      {/* Phone Number Input — w-0 flex-1 min-w-0 prevents horizontal blowout on mobile */}
                       <input
                         type="tel"
                         inputMode="tel"
@@ -831,30 +1008,28 @@ function CheckoutPageInner() {
                         placeholder="06 XX XX XX XX"
                         value={form.phone}
                         onChange={(e) => update('phone', e.target.value)}
-                        className="w-full px-3.5 py-3 text-[14px] bg-transparent focus:outline-none placeholder:text-[#9A9A9A] font-medium text-[#1A1A1A]"
+                        className="flex-1 min-w-0 w-0 px-3 py-3 text-[16px] sm:text-[14px] bg-transparent focus:outline-none placeholder:text-[#94a3b8] font-medium text-[#0f172a]"
                       />
                     </div>
 
-                    {/* Country Code Popover Dropdown */}
+                    {/* Country Code Popover Dropdown (Bounded inside mobile viewport) */}
                     {isCountryPickerOpen && (
-                      <div className="absolute top-full left-0 mt-1.5 w-80 sm:w-96 bg-white border border-[#e0ddd4] rounded-2xl shadow-2xl z-50 overflow-hidden animate-fadeIn">
-                        {/* Search Bar */}
-                        <div className="p-3 border-b border-[#f1f1eb] bg-[#fafaf7]">
+                      <div className="absolute top-full left-0 right-0 sm:right-auto sm:w-96 mt-1.5 max-w-full bg-white border border-[#e0ddd4] rounded-2xl shadow-2xl z-50 overflow-hidden animate-fadeIn">
+                        <div className="p-2.5 border-b border-[#f1f1eb] bg-[#fafaf7]">
                           <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A]" />
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
                             <input
                               type="text"
                               value={countrySearch}
                               onChange={(e) => setCountrySearch(e.target.value)}
                               placeholder="Rechercher un pays ou indicatif…"
-                              className="w-full pl-8 pr-3 py-1.5 text-[12px] bg-white border border-[#e0ddd4] rounded-xl focus:outline-none focus:border-[#0ea5e9]"
+                              className="w-full min-w-0 pl-8 pr-3 py-2 text-[14px] sm:text-[12px] bg-white border border-[#e0ddd4] rounded-xl focus:outline-none focus:border-[#0ea5e9]"
                               autoFocus
                             />
                           </div>
                         </div>
 
-                        {/* Country List */}
-                        <div className="max-h-60 overflow-y-auto divide-y divide-[#f5f5f0] text-[13px]">
+                        <div className="max-h-56 overflow-y-auto divide-y divide-[#f5f5f0] text-[13px]">
                           {filteredCountries.length > 0 ? (
                             filteredCountries.map((c) => (
                               <button
@@ -865,13 +1040,14 @@ function CheckoutPageInner() {
                                   setIsCountryPickerOpen(false);
                                   setCountrySearch('');
                                 }}
-                                className={`w-full px-4 py-2.5 flex items-center justify-between text-left hover:bg-sky-50/60 transition ${
-                                  selectedCountry.code === c.code ? 'bg-sky-50 font-bold text-[#0284c7]' : 'text-[#1A1A1A]'
+                                className={`w-full px-3.5 py-2.5 flex items-center justify-between gap-2 text-left hover:bg-sky-50/60 transition cursor-pointer ${
+                                  selectedCountry.code === c.code
+                                    ? 'bg-sky-50 font-bold text-[#0284c7]'
+                                    : 'text-[#0f172a]'
                                 }`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
                                   <span className="relative flex items-center justify-center w-5 h-3.5 rounded-[2px] overflow-hidden shadow-2xs border border-black/10 shrink-0">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                       src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
                                       alt={c.name}
@@ -883,30 +1059,44 @@ function CheckoutPageInner() {
                                   </span>
                                   <span className="truncate">{c.name}</span>
                                 </div>
-                                <span className="text-[12px] font-mono text-[#6B6B6B] shrink-0 font-semibold">{c.dial}</span>
+                                <span className="text-[12px] font-mono text-[#64748b] shrink-0 font-semibold">
+                                  {c.dial}
+                                </span>
                               </button>
                             ))
                           ) : (
-                            <div className="p-4 text-center text-[#888] text-[12px]">Aucun pays trouvé.</div>
+                            <div className="p-4 text-center text-[#94a3b8] text-[12px]">
+                              Aucun pays trouvé.
+                            </div>
                           )}
                         </div>
                       </div>
                     )}
 
-                    <span className="text-[10px] text-[#6B6B6B] mt-1 block">
-                      Le livreur vous appellera sur ce numéro pour coordonner l&apos;heure de passage.
-                    </span>
+                    {phoneError ? (
+                      <span className="text-[11px] text-rose-600 font-medium mt-1.5 block leading-snug">
+                        {phoneError}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-[#64748b] mt-1.5 block leading-snug">
+                        Indispensable pour coordonner l&apos;heure de remise.
+                      </span>
+                    )}
                   </div>
 
+                  {/* Email Field — Clearly Optional & Zero-Friction */}
                   <LuxuryInput
-                    label="Adresse email (Optionnel)"
+                    label="Adresse email"
+                    optionalBadge
                     name="email"
                     type="email"
                     autoComplete="email"
                     placeholder="exemple@email.com"
                     value={form.email}
                     onChange={(v) => update('email', v)}
-                    helper="Pour recevoir votre reçu détaillé et votre numéro de suivi de colis"
+                    error={emailError}
+                    helper="Facultatif — vous pouvez commander sans email."
+                    leftIcon={<Mail size={15} className="text-[#94a3b8]" />}
                   />
                 </div>
               </LuxuryFormSection>
@@ -915,22 +1105,56 @@ function CheckoutPageInner() {
               <LuxuryFormSection
                 number="02"
                 title="Adresse de Livraison au Maroc"
-                subtitle="Indiquez l'adresse de votre domicile ou de votre lieu de travail."
-                icon={<MapPin size={18} />}
+                subtitle="Indiquez votre domicile ou lieu de travail pour une livraison rapide."
+                icon={<MapPin size={17} />}
+                completed={step2Done}
               >
-                <div className="grid sm:grid-cols-2 gap-4">
+                {/* Quick City Picker Pills */}
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#334155] mb-2 flex items-center justify-between gap-2 flex-wrap">
+                    <span className="flex items-center gap-1">
+                      <span>Ville de destination</span>
+                      <span className="text-rose-500">*</span>
+                    </span>
+                    <span className="text-[10px] font-medium normal-case text-[#64748b]">
+                      Sélection rapide
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 mb-2.5">
+                    {QUICK_PICK_CITIES.map((city) => {
+                      const active = form.city === city;
+                      return (
+                        <button
+                          key={city}
+                          type="button"
+                          onClick={() => update('city', city)}
+                          className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer border ${
+                            active
+                              ? 'bg-[#0f172a] text-white border-[#0f172a] shadow-xs'
+                              : 'bg-[#f8f7f3] text-[#334155] border-[#e2ded5] hover:border-[#0ea5e9] hover:text-[#0284c7]'
+                          }`}
+                        >
+                          {city}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 min-w-0">
                   {/* City Select */}
-                  <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#4A4A4A] mb-1.5 block">
-                      Ville de destination *
+                  <div className="min-w-0 w-full">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#334155] mb-1.5 block">
+                      Toutes les villes du Maroc
                     </label>
-                    <div className="relative">
+                    <div className="relative w-full min-w-0">
                       <select
                         name="city"
                         value={form.city}
                         onChange={(e) => update('city', e.target.value)}
                         required
-                        className="w-full border border-[#e0ddd4] rounded-xl px-4 py-3 text-[14px] bg-white font-medium text-[#1A1A1A] focus:outline-none focus:border-[#0ea5e9] focus:ring-2 focus:ring-[#0ea5e9]/15 transition appearance-none cursor-pointer"
+                        className="w-full min-w-0 max-w-full border border-[#dcd8ce] rounded-xl px-3.5 py-3 text-[16px] sm:text-[14px] bg-white font-medium text-[#0f172a] focus:outline-none focus:border-[#0ea5e9] focus:ring-3 focus:ring-[#0ea5e9]/15 transition cursor-pointer"
                       >
                         <optgroup label="Grandes Villes">
                           {TOP_MOROCCAN_CITIES.map((city) => (
@@ -947,15 +1171,12 @@ function CheckoutPageInner() {
                           ))}
                         </optgroup>
                       </select>
-                      <ChevronDown
-                        size={16}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B6B6B] pointer-events-none"
-                      />
                     </div>
                   </div>
 
                   <LuxuryInput
-                    label="Code postal (Optionnel)"
+                    label="Code postal"
+                    optionalBadge
                     name="postalCode"
                     autoComplete="postal-code"
                     placeholder="Ex : 20000"
@@ -965,160 +1186,195 @@ function CheckoutPageInner() {
                 </div>
 
                 <LuxuryInput
-                  label="Adresse complète *"
+                  label="Adresse complète"
+                  requiredMark
                   name="address"
                   autoComplete="street-address"
-                  placeholder="Quartier, résidence, rue, n° d'immeuble, appartement ou repère…"
+                  placeholder="Quartier, résidence, rue, n° d'immeuble ou repère…"
                   value={form.address}
                   onChange={(v) => update('address', v)}
                   required
                 />
 
-                <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#4A4A4A] mb-1.5 block">
-                    Instructions particulières pour le livreur (Optionnel)
+                <div className="min-w-0 w-full">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#334155] mb-1.5 flex items-center gap-2 flex-wrap">
+                    <span>Instructions pour le livreur</span>
+                    <span className="text-[10px] font-semibold normal-case tracking-normal px-2 py-0.5 rounded-full bg-slate-100 text-[#64748b] border border-slate-200/80">
+                      Optionnel
+                    </span>
                   </label>
                   <textarea
                     name="notes"
                     value={form.notes}
                     onChange={(e) => update('notes', e.target.value)}
                     rows={2}
-                    placeholder="Ex : Appeler 30 minutes avant, livrer au bureau 2ème étage, laisser au concierge si absent…"
-                    className="w-full border border-[#e0ddd4] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#0ea5e9] focus:ring-2 focus:ring-[#0ea5e9]/15 transition resize-none bg-white placeholder:text-[#9A9A9A]"
+                    placeholder="Ex : Appeler 30 min avant, livrer au bureau, laisser au concierge…"
+                    className="w-full min-w-0 max-w-full border border-[#dcd8ce] rounded-xl px-3.5 py-2.5 text-[16px] sm:text-[13.5px] focus:outline-none focus:border-[#0ea5e9] focus:ring-3 focus:ring-[#0ea5e9]/15 transition resize-none bg-white placeholder:text-[#94a3b8] text-[#0f172a]"
                   />
                 </div>
 
                 {/* Delivery Guarantee Pill */}
-                <div className="p-4 rounded-xl bg-[#fafaf7] border border-[#e0ddd4] flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-sky-50 text-[#0ea5e9] border border-sky-100 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-[#f8f7f3] border border-[#e6e2d8] flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-sky-50 text-[#0284c7] border border-sky-200/70 flex items-center justify-center shrink-0 mt-0.5">
                     <Clock size={16} />
                   </div>
-                  <div className="text-[12px] text-[#555] leading-relaxed">
-                    <strong className="text-[#1A1A1A] block font-bold text-[13px] mb-0.5">
-                      Expédition soignée sous 24h à 48h
+                  <div className="text-[12px] text-[#475569] leading-relaxed min-w-0">
+                    <strong className="text-[#0f172a] block font-bold text-[13px] mb-0.5">
+                      Expédition express 24h à 48h vers {form.city}
                     </strong>
-                    Votre colis est soigneusement préparé dans notre atelier et confié à notre transporteur express. Vous recevrez une confirmation et un appel téléphonique préalable pour convenir du moment idéal de remise.
+                    Préparation soignée dans notre atelier & appel préalable du livreur pour convenir du créneau qui vous arrange.
                   </div>
                 </div>
               </LuxuryFormSection>
 
-              {/* SECTION 03: PAYMENT (CLEAN & DIRECT COD SELECTION) */}
+              {/* SECTION 03: PAYMENT (EXECUTIVE COD EXPERIENCE) */}
               <LuxuryFormSection
                 number="03"
                 title="Mode de Règlement"
-                subtitle="Vous ne réglez rien en ligne. Paiement sécurisé à la réception du colis."
-                icon={<Banknote size={18} />}
+                subtitle="Zéro risque : vous ne réglez rien en ligne."
+                icon={<Banknote size={17} />}
               >
                 {/* Active COD Radio Tile */}
-                <div className="p-5 rounded-2xl border-2 border-[#1A1A1A] bg-[#fafaf7] shadow-xs">
+                <div className="p-4 sm:p-5 rounded-2xl border-2 border-[#0f172a] bg-gradient-to-br from-white via-[#fafaf7] to-sky-50/40 shadow-xs">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full border-2 border-[#1A1A1A] flex items-center justify-center shrink-0">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-5 h-5 mt-0.5 rounded-full border-2 border-[#0f172a] flex items-center justify-center shrink-0 bg-white">
                         <div className="w-2.5 h-2.5 rounded-full bg-[#0ea5e9]" />
                       </div>
-                      <div>
-                        <div className="text-[14px] font-bold text-[#1A1A1A]">
-                          Paiement en espèces à la livraison (Cash on Delivery)
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[14px] sm:text-[15px] font-bold text-[#0f172a]">
+                            Paiement en espèces à la livraison
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wide uppercase bg-[#0f172a] text-white px-2 py-0.5 rounded-full">
+                            <Check size={10} strokeWidth={3} className="text-[#38bdf8]" /> Recommandé
+                          </span>
                         </div>
-                        <p className="text-[12px] text-[#6B6B6B] mt-0.5 leading-relaxed">
-                          Réglez directement en dirhams (MAD) au livreur lors de la remise de votre colis en mains propres.
+                        <p className="text-[12px] sm:text-[12.5px] text-[#64748b] mt-1 leading-relaxed">
+                          Réglez <strong className="text-[#0f172a] tabular-nums">{formatMAD(total)}</strong> directement en dirhams (MAD) au livreur lors de la remise de votre colis.
                         </p>
                       </div>
                     </div>
-                    <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase bg-[#1A1A1A] text-white px-2.5 py-1 rounded-full shrink-0">
-                      <Check size={11} strokeWidth={3} className="text-[#0ea5e9]" /> Recommandé au Maroc
-                    </span>
+                  </div>
+
+                  {/* 3-Pillar COD Confidence Strip */}
+                  <div className="mt-4 pt-3.5 border-t border-[#e6e2d8] grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11.5px]">
+                    <div className="flex items-center gap-2 text-[#334155] font-medium">
+                      <span className="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-200/70 text-emerald-600 flex items-center justify-center shrink-0">
+                        <Banknote size={13} />
+                      </span>
+                      <span>0 DH d&apos;avance en ligne</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[#334155] font-medium">
+                      <span className="w-6 h-6 rounded-lg bg-sky-50 border border-sky-200/70 text-[#0284c7] flex items-center justify-center shrink-0">
+                        <PackageCheck size={13} />
+                      </span>
+                      <span>Vérification devant livreur</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[#334155] font-medium">
+                      <span className="w-6 h-6 rounded-lg bg-amber-50 border border-amber-200/70 text-amber-600 flex items-center justify-center shrink-0">
+                        <ShieldCheck size={13} />
+                      </span>
+                      <span>Authenticité garantie</span>
+                    </div>
                   </div>
                 </div>
               </LuxuryFormSection>
-
             </div>
 
-            {/* RIGHT COLUMN: STICKY ORDER SUMMARY (TRACKS PAGE VIEW ON SCROLL) */}
-            <aside className="self-stretch">
-              <div className="lg:sticky lg:top-28 z-10 bg-white border border-[#e0ddd4] rounded-3xl p-6 lg:p-7 shadow-xs space-y-5">
-                
+            {/* RIGHT COLUMN: STICKY ORDER SUMMARY */}
+            <aside className="min-w-0 w-full self-stretch">
+              <div className="lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto z-10 w-full min-w-0 bg-white border border-[#e6e2d8] rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 shadow-[0_6px_30px_rgba(15,23,42,0.05)] space-y-4">
                 {/* Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-[#f1f1eb]">
-                  <div>
-                    <h2 className="heading-font text-lg sm:text-xl font-bold text-[#1A1A1A] tracking-tight">
+                <div className="flex items-center justify-between gap-2 pb-4 border-b border-[#f0ede6]">
+                  <div className="min-w-0">
+                    <h2 className="heading-font text-[17px] sm:text-xl font-extrabold text-[#0f172a] tracking-tight">
                       Votre Commande
                     </h2>
-                    <span className="text-[11px] text-[#6B6B6B] block mt-0.5">
-                      {effectiveCart.length} article{effectiveCart.length > 1 ? 's' : ''} sélectionné{effectiveCart.length > 1 ? 's' : ''}
+                    <span className="text-[11.5px] text-[#64748b] block mt-0.5">
+                      {effectiveCart.length} référence{effectiveCart.length > 1 ? 's' : ''} · {totalUnits} unité{totalUnits > 1 ? 's' : ''}
                     </span>
                   </div>
                   {isBuyNow && (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#1A1A1A] text-white text-[10px] font-bold uppercase tracking-wider">
-                      <ShoppingBag size={11} /> Achat Direct
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#0f172a] text-white text-[10px] font-bold uppercase tracking-wider shrink-0">
+                      <ShoppingBag size={11} /> Express
                     </span>
                   )}
                 </div>
 
                 {/* Items List */}
-                <div className="space-y-3.5 max-h-72 overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-72 overflow-y-auto pr-0.5">
                   {effectiveCart.map((item) => (
                     <div
                       key={`${item.id}-${item.size}`}
-                      className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#fafaf7] border border-[#e0ddd4]"
+                      className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#f8f7f3] border border-[#e8e4db] min-w-0"
                     >
-                      <div className="relative w-14 h-16 bg-white rounded-xl border border-[#E8E2D6] overflow-hidden shrink-0 flex items-center justify-center">
+                      <div className="relative w-13 h-15 bg-white rounded-xl border border-[#e8e4db] overflow-hidden shrink-0 flex items-center justify-center">
                         <Image
                           src={item.image || '/placeholder.jpg'}
                           alt={item.name}
                           fill
-                          className="object-contain scale-120 mix-blend-multiply"
+                          sizes="52px"
+                          className="object-contain p-1 mix-blend-multiply"
                         />
-                        <span className="absolute -top-1 -right-1 bg-[#1A1A1A] text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold">
+                        <span className="absolute -top-0.5 -right-0.5 bg-[#0f172a] text-white min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[9px] font-bold">
                           {item.quantity}
                         </span>
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-[13px] font-bold text-[#1A1A1A] truncate">{item.name}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] font-bold tracking-wider uppercase text-[#0284c7] bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
+                        <h4 className="text-[13px] font-bold text-[#0f172a] truncate">{item.name}</h4>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <span className="text-[10px] font-bold tracking-wider uppercase text-[#0284c7] bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
                             {item.size || '100ml'}
                           </span>
-                          <span className="text-[11px] text-[#6B6B6B]">Qté : {item.quantity}</span>
+                          <span className="text-[11px] text-[#64748b]">Qté : {item.quantity}</span>
                         </div>
                       </div>
 
-                      <div className="text-[14px] font-extrabold text-[#1A1A1A] shrink-0 text-right">
+                      <div className="text-[13.5px] font-extrabold text-[#0f172a] shrink-0 text-right tabular-nums">
                         {formatMAD(item.price * item.quantity)}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Shipping Free Progress Bar (Brand Sky Blue) */}
-                <div className="p-3.5 rounded-2xl bg-[#fafaf7] border border-[#e0ddd4] space-y-2">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-[#1A1A1A] flex items-center gap-1.5">
-                      <Truck size={14} className="text-[#0ea5e9]" />
-                      <span>Livraison Offerte</span>
+                {/* Shipping Free Progress Bar */}
+                <div className="p-3.5 rounded-2xl bg-[#f8f7f3] border border-[#e8e4db] space-y-2">
+                  <div className="flex items-center justify-between gap-2 text-[11.5px]">
+                    <span className="font-bold text-[#0f172a] flex items-center gap-1.5 min-w-0">
+                      <Truck size={14} className="text-[#0ea5e9] shrink-0" />
+                      <span className="truncate">Livraison Offerte</span>
                     </span>
-                    <span className="font-semibold text-[#0284c7]">
-                      {shipping === 0 ? 'Offerte (0 MAD)' : `Dès 800 MAD`}
+                    <span
+                      className={`font-bold shrink-0 ${
+                        shipping === 0 ? 'text-emerald-600' : 'text-[#0284c7]'
+                      }`}
+                    >
+                      {shipping === 0 ? 'Offerte (0 MAD)' : 'Dès 800 MAD'}
                     </span>
                   </div>
-                  <div className="w-full bg-[#eeece5] h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-[#e6e2d8] h-2 rounded-full overflow-hidden">
                     <div
-                      className="bg-[#0ea5e9] h-full rounded-full transition-all duration-500"
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        shipping === 0
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                          : 'bg-gradient-to-r from-[#0ea5e9] to-[#0284c7]'
+                      }`}
                       style={{ width: `${freeShippingProgress}%` }}
                     />
                   </div>
-                  <p className="text-[10px] text-[#6B6B6B]">
+                  <p className="text-[11px] text-[#64748b] leading-snug">
                     {shipping === 0
                       ? 'Félicitations ! Vous profitez de la livraison gratuite partout au Maroc.'
-                      : `Ajoutez encore ${formatMAD(amountToFreeShipping)} pour bénéficier des frais de port offerts.`}
+                      : `Ajoutez encore ${formatMAD(amountToFreeShipping)} pour bénéficier de la livraison offerte.`}
                   </p>
                 </div>
 
                 {/* Promo Code Input */}
-                <div className="pt-2">
-                  <div className="flex items-center justify-between gap-1.5 mb-1.5">
-                    <span className="text-[10px] font-bold tracking-wider uppercase text-[#6B6B6B]">
+                <div className="min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                    <span className="text-[10.5px] font-bold tracking-wider uppercase text-[#64748b]">
                       Code Promotionnel
                     </span>
                     {!customer && (
@@ -1128,44 +1384,44 @@ function CheckoutPageInner() {
                     )}
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 min-w-0 w-full">
                     <input
                       type="text"
                       value={promoInput}
                       onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                      placeholder="Ex : CODE PROMO"
-                      className="flex-1 border border-[#e0ddd4] rounded-xl px-3 py-2 text-[13px] bg-white uppercase placeholder:text-[#9A9A9A] focus:outline-none focus:border-[#0ea5e9]"
+                      placeholder="Ex : NAY10"
+                      className="flex-1 min-w-0 w-0 border border-[#dcd8ce] rounded-xl px-3 py-2.5 text-[16px] sm:text-[13px] bg-white uppercase placeholder:text-[#94a3b8] text-[#0f172a] focus:outline-none focus:border-[#0ea5e9] focus:ring-2 focus:ring-[#0ea5e9]/15"
                     />
                     <button
                       type="button"
                       onClick={() => handleApplyPromo()}
                       disabled={isApplyingPromo || !promoInput.trim()}
-                      className="bg-[#1A1A1A] hover:bg-black text-white px-4 rounded-xl text-[11px] font-bold uppercase transition disabled:opacity-50 shrink-0 cursor-pointer"
+                      className="bg-[#0f172a] hover:bg-black text-white px-3.5 sm:px-4 rounded-xl text-[11px] font-bold uppercase tracking-wide transition disabled:opacity-45 shrink-0 cursor-pointer"
                     >
                       {isApplyingPromo ? '…' : 'Appliquer'}
                     </button>
                   </div>
 
                   {promoError && (
-                    <div className="text-rose-600 text-[11px] mt-1.5 flex items-center gap-1">
-                      <XCircle size={12} /> {promoError}
+                    <div className="text-rose-600 text-[11.5px] mt-1.5 flex items-center gap-1">
+                      <XCircle size={12} className="shrink-0" /> <span>{promoError}</span>
                     </div>
                   )}
                   {promoSuccess && !appliedPromo && (
-                    <div className="text-[#0284c7] text-[11px] mt-1.5 flex items-center gap-1">
-                      <CheckCircle2 size={12} /> {promoSuccess}
+                    <div className="text-[#0284c7] text-[11.5px] mt-1.5 flex items-center gap-1">
+                      <CheckCircle2 size={12} className="shrink-0" /> <span>{promoSuccess}</span>
                     </div>
                   )}
                   {appliedPromo && (
-                    <div className="mt-2.5 flex items-center justify-between bg-sky-50 border border-sky-200 px-3 py-2 rounded-xl">
-                      <div className="flex items-center gap-1.5 text-[#0284c7] text-[12px] font-bold">
-                        <Tag size={13} />
-                        <span>Code {appliedPromo.code} appliqué</span>
+                    <div className="mt-2.5 flex items-center justify-between gap-2 bg-sky-50 border border-sky-200 px-3 py-2 rounded-xl">
+                      <div className="flex items-center gap-1.5 text-[#0284c7] text-[12px] font-bold min-w-0">
+                        <Tag size={13} className="shrink-0" />
+                        <span className="truncate">Code {appliedPromo.code} appliqué</span>
                       </div>
                       <button
                         type="button"
                         onClick={handleRemovePromo}
-                        className="text-[11px] text-[#0284c7] underline hover:text-[#0369a1]"
+                        className="text-[11px] text-[#0284c7] underline hover:text-[#0369a1] shrink-0 cursor-pointer"
                       >
                         Retirer
                       </button>
@@ -1174,105 +1430,113 @@ function CheckoutPageInner() {
                 </div>
 
                 {!appliedPromo && (
-                  <div className="pt-1">
+                  <div className="pt-0.5 min-w-0">
                     <FreeGiftSelector />
                   </div>
                 )}
 
                 {/* Price Calculations */}
-                <div className="pt-3 border-t border-[#f1f1eb] space-y-2 text-[13px]">
-                  <div className="flex justify-between text-[#6B6B6B]">
+                <div className="pt-3.5 border-t border-[#f0ede6] space-y-2 text-[13px]">
+                  <div className="flex justify-between gap-2 text-[#64748b]">
                     <span>Sous-total articles</span>
-                    <span className="text-[#1A1A1A] font-semibold">{formatMAD(subtotal)}</span>
+                    <span className="text-[#0f172a] font-semibold tabular-nums">{formatMAD(subtotal)}</span>
                   </div>
 
                   {!appliedPromo && dealDiscount > 0 && appliedDeal && (
-                    <div className="flex justify-between text-[#1A1A1A] bg-[#fafaf7] px-2.5 py-1.5 rounded-lg border border-[#e0ddd4] text-[12px] font-semibold">
-                      <span className="flex items-center gap-1.5"><Sparkles size={13} className="text-[#0ea5e9]" /> {appliedDeal.badgeText || appliedDeal.title}</span>
-                      <span className="text-[#0284c7]">-{formatMAD(dealDiscount)}</span>
+                    <div className="flex justify-between gap-2 text-[#0f172a] bg-[#f8f7f3] px-2.5 py-1.5 rounded-lg border border-[#e6e2d8] text-[12px] font-semibold">
+                      <span className="flex items-center gap-1.5 min-w-0">
+                        <Sparkles size={13} className="text-[#0ea5e9] shrink-0" />
+                        <span className="truncate">{appliedDeal.badgeText || appliedDeal.title}</span>
+                      </span>
+                      <span className="text-[#0284c7] shrink-0 tabular-nums">-{formatMAD(dealDiscount)}</span>
                     </div>
                   )}
 
                   {promoDiscount > 0 && (
-                    <div className="flex justify-between text-[#0284c7] font-semibold">
+                    <div className="flex justify-between gap-2 text-[#0284c7] font-semibold">
                       <span>Remise code promo</span>
-                      <span>-{formatMAD(promoDiscount)}</span>
+                      <span className="tabular-nums">-{formatMAD(promoDiscount)}</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-[#6B6B6B]">
-                    <span>Livraison partout au Maroc</span>
-                    <span className={shipping === 0 ? 'text-[#0ea5e9] font-bold' : 'text-[#1A1A1A] font-semibold'}>
+                  <div className="flex justify-between gap-2 text-[#64748b]">
+                    <span>Livraison ({form.city})</span>
+                    <span
+                      className={
+                        shipping === 0
+                          ? 'text-emerald-600 font-bold'
+                          : 'text-[#0f172a] font-semibold tabular-nums'
+                      }
+                    >
                       {shipping === 0 ? 'Gratuite (0 MAD)' : formatMAD(shipping)}
                     </span>
                   </div>
                 </div>
 
-                {/* Big Authoritative Total Box */}
-                <div className="pt-4 border-t border-[#e0ddd4] flex justify-between items-baseline">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B6B6B] block">
+                {/* Authoritative Total Box */}
+                <div className="pt-4 border-t border-[#e6e2d8] flex justify-between items-end gap-2">
+                  <div className="min-w-0">
+                    <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#64748b] block">
                       Total à régler au livreur
                     </span>
                     <span className="text-[11px] text-[#0284c7] font-bold flex items-center gap-1 mt-0.5">
-                      <Check size={12} strokeWidth={3} /> Espèces à la réception
+                      <Check size={12} strokeWidth={3} className="shrink-0" /> Espèces à la réception
                     </span>
                   </div>
-                  <span className="heading-font text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
+                  <span className="heading-font text-[26px] sm:text-3xl font-extrabold text-[#0f172a] tracking-tight tabular-nums shrink-0 leading-none">
                     {formatMAD(total)}
                   </span>
                 </div>
 
-                {/* CONFIRMER MA COMMANDE IN BRAND VIBRANT BLUE GRADIENT */}
+                {/* Primary CTA */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-14 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] text-white text-[14px] sm:text-[15px] font-bold tracking-wide rounded-2xl shadow-xl shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] flex items-center justify-center gap-2.5 transition border border-sky-400/30 cursor-pointer"
+                  className="w-full h-13 sm:h-14 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] text-white text-[14px] sm:text-[15px] font-bold tracking-wide rounded-2xl shadow-lg shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] flex items-center justify-center gap-2 transition border border-sky-400/30 cursor-pointer px-4"
                 >
                   {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <Lock size={16} />
-                      <span>Confirmer ma commande · {formatMAD(total)}</span>
-                      <ArrowRight size={16} />
+                      <Lock size={15} className="shrink-0" />
+                      <span className="truncate">Confirmer · {formatMAD(total)}</span>
+                      <ArrowRight size={16} className="shrink-0" />
                     </>
                   )}
                 </button>
 
-                <p className="text-[11px] text-[#6B6B6B] text-center leading-relaxed flex items-center justify-center gap-1.5">
-                  <ShieldCheck size={14} className="text-[#0ea5e9] shrink-0" />
-                  <span>Aucun paiement en ligne · Vous avez le droit d&apos;inspecter votre commande avant de régler.</span>
+                <p className="text-[11px] text-[#64748b] text-center leading-relaxed flex items-start justify-center gap-1.5">
+                  <ShieldCheck size={14} className="text-[#0ea5e9] shrink-0 mt-0.5" />
+                  <span>Aucun paiement en ligne · Vérifiez votre colis avant de régler.</span>
                 </p>
 
                 {/* Direct WhatsApp Concierge Assistance */}
-                <div className="pt-4 border-t border-[#f1f1eb] text-center">
+                <div className="pt-3.5 border-t border-[#f0ede6] text-center">
                   <a
                     href="https://wa.me/212663380011?text=Bonjour,%20j%27ai%20une%20question%20concernant%20ma%20commande%20sur%20NAY%20Parfum"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-[12px] font-semibold text-[#1A1A1A] hover:text-[#0ea5e9] transition"
+                    className="inline-flex flex-wrap items-center justify-center gap-1.5 text-[12px] font-semibold text-[#334155] hover:text-[#0284c7] transition"
                   >
-                    <MessageCircle size={15} className="text-[#0ea5e9]" />
-                    <span>Besoin d&apos;aide ? Échangez sur WhatsApp : <strong>+212 663-380011</strong></span>
+                    <MessageCircle size={15} className="text-emerald-600 shrink-0" />
+                    <span>Besoin d&apos;aide ? WhatsApp :</span>
+                    <strong className="text-[#0f172a]">+212 663-380011</strong>
                   </a>
                 </div>
-
               </div>
             </aside>
-
           </form>
         </div>
       </main>
 
-      {/* 4. MOBILE STICKY BOTTOM CHECKOUT BAR (BRAND COLOR BUTTON) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[#e0ddd4] p-3 px-4 shadow-[0_-8px_25px_rgba(0,0,0,0.12)]">
-        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
-          <div>
-            <span className="text-[10px] text-[#6B6B6B] block uppercase tracking-wider font-bold">
-              Total à la livraison :
+      {/* 4. MOBILE STICKY BOTTOM CHECKOUT BAR (PERFECTLY SIZED FOR 320px–430px PHONES) */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[#e6e2d8] pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-3.5 shadow-[0_-10px_30px_rgba(15,23,42,0.10)]">
+        <div className="w-full max-w-lg mx-auto flex items-center justify-between gap-3 min-w-0">
+          <div className="shrink-0">
+            <span className="text-[9.5px] text-[#64748b] block uppercase tracking-wider font-bold leading-tight">
+              À la livraison
             </span>
-            <span className="heading-font text-xl font-extrabold text-[#1A1A1A] tracking-tight">
+            <span className="heading-font text-[19px] font-extrabold text-[#0f172a] tracking-tight tabular-nums leading-tight">
               {formatMAD(total)}
             </span>
           </div>
@@ -1281,15 +1545,15 @@ function CheckoutPageInner() {
             type="button"
             onClick={handleMobileSubmitClick}
             disabled={isSubmitting}
-            className="flex-1 max-w-[240px] h-12 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] active:from-[#0284c7] active:to-[#0369a1] text-white text-[13px] font-bold rounded-xl shadow-md shadow-sky-500/25 flex items-center justify-center gap-2 transition"
+            className="flex-1 min-w-0 h-12 px-4 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] active:from-[#0284c7] active:to-[#0369a1] text-white text-[13.5px] font-bold rounded-xl shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
             {isSubmitting ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <ShieldCheck size={16} />
-                <span>Commander ({formatMAD(total)})</span>
-                <ArrowRight size={14} />
+                <ShieldCheck size={16} className="shrink-0" />
+                <span className="truncate">Commander</span>
+                <ArrowRight size={15} className="shrink-0" />
               </>
             )}
           </button>
@@ -1329,12 +1593,63 @@ function CheckoutPageInner() {
 }
 
 /* ============================================================
+   LIVE INTERACTIVE STEP INDICATOR
+   ============================================================ */
+
+function StepIndicator({
+  number,
+  label,
+  mobileLabel,
+  completed,
+  active,
+}: {
+  number: number;
+  label: string;
+  mobileLabel?: string;
+  completed?: boolean;
+  active?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+      <span
+        className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold shrink-0 transition-all ${
+          completed
+            ? 'bg-emerald-500 text-white shadow-xs'
+            : active
+            ? 'bg-[#0ea5e9] text-white shadow-xs ring-3 ring-sky-500/20'
+            : 'bg-[#f1efe9] text-[#64748b] border border-[#dedad0]'
+        }`}
+      >
+        {completed ? <Check size={13} strokeWidth={3} /> : number}
+      </span>
+      <span
+        className={`text-[11px] sm:text-[12.5px] font-bold truncate transition-colors ${
+          completed
+            ? 'text-emerald-700'
+            : active
+            ? 'text-[#0f172a]'
+            : 'text-[#64748b]'
+        }`}
+      >
+        {mobileLabel ? (
+          <>
+            <span className="sm:hidden">{mobileLabel}</span>
+            <span className="hidden sm:inline">{label}</span>
+          </>
+        ) : (
+          label
+        )}
+      </span>
+    </div>
+  );
+}
+
+/* ============================================================
    CELEBRATION SUCCESS MODAL WITH LUXURY ANIMATION
    ============================================================ */
 
 function OrderCelebrationModal({
   data,
-  locale,
   onRedirect,
 }: {
   data: {
@@ -1367,12 +1682,9 @@ function OrderCelebrationModal({
   return (
     <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
       <div className="relative max-w-lg w-full bg-white rounded-3xl p-6 sm:p-8 text-center shadow-2xl border border-sky-100 overflow-hidden">
-        
-        {/* Subtle Decorative Golden/Cyan Glows */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-[#0ea5e9]/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Animated Celebration Icon with Pulse */}
         <div className="relative mx-auto mb-5 w-24 h-24 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full bg-[#0ea5e9]/20 animate-ping" />
           <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-[#0ea5e9] to-sky-400 text-white flex items-center justify-center shadow-xl shadow-sky-500/30">
@@ -1390,40 +1702,45 @@ function OrderCelebrationModal({
           </div>
         </div>
 
-        {/* Order Status Badge */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-[#0284c7] text-[11px] font-bold uppercase tracking-wider mb-2">
           <Sparkles size={12} className="text-[#0ea5e9]" /> Commande Confirmée avec Succès
         </div>
 
-        <h3 className="heading-font text-2xl sm:text-3xl font-extrabold text-[#1A1A1A] tracking-tight">
+        <h3 className="heading-font text-2xl sm:text-3xl font-extrabold text-[#0f172a] tracking-tight">
           Merci pour votre commande !
         </h3>
 
-        <p className="text-[13px] text-[#6B6B6B] mt-1.5 leading-relaxed">
-          {data.customerName ? `Félicitations ${data.customerName}, votre ` : 'Votre '}parfum d&apos;exception est en cours de préparation dans notre Atelier de Casablanca.
+        <p className="text-[13px] text-[#64748b] mt-1.5 leading-relaxed">
+          {data.customerName ? `Félicitations ${data.customerName}, votre ` : 'Votre '}parfum d&apos;exception est en cours de préparation dans notre Atelier.
         </p>
 
-        {/* Order Number Box */}
-        <div className="my-5 p-4 rounded-2xl bg-[#fafaf7] border border-[#e0ddd4] flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="text-left">
-            <span className="text-[10px] uppercase tracking-wider font-bold text-[#888] block">N° de Commande</span>
-            <span className="font-mono font-bold text-[#1A1A1A] text-[15px]">{data.orderNumber}</span>
+        <div className="my-5 p-4 rounded-2xl bg-[#f8f7f3] border border-[#e6e2d8] flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="text-center sm:text-left">
+            <span className="text-[10px] uppercase tracking-wider font-bold text-[#64748b] block">
+              N° de Commande
+            </span>
+            <span className="font-mono font-bold text-[#0f172a] text-[15px]">{data.orderNumber}</span>
           </div>
-          <div className="text-right">
-            <span className="text-[10px] uppercase tracking-wider font-bold text-[#888] block">À régler au livreur</span>
-            <span className="heading-font font-extrabold text-[#0284c7] text-[16px]">{formatMAD(data.total)}</span>
+          <div className="text-center sm:text-right">
+            <span className="text-[10px] uppercase tracking-wider font-bold text-[#64748b] block">
+              À régler au livreur
+            </span>
+            <span className="heading-font font-extrabold text-[#0284c7] text-[16px] tabular-nums">
+              {formatMAD(data.total)}
+            </span>
           </div>
         </div>
 
-        {/* 3 Status Points */}
-        <div className="space-y-2 text-left text-[12px] text-[#555] mb-6">
+        <div className="space-y-2 text-left text-[12px] text-[#475569] mb-6">
           <div className="flex items-center gap-2">
             <Check size={14} className="text-[#0ea5e9] shrink-0" strokeWidth={3} />
             <span>Colis emballé avec soin & contrôle d&apos;authenticité</span>
           </div>
           <div className="flex items-center gap-2">
             <Check size={14} className="text-[#0ea5e9] shrink-0" strokeWidth={3} />
-            <span>Expédition express sous 24h à 48h vers <strong>{data.city}</strong></span>
+            <span>
+              Expédition express sous 24h à 48h vers <strong>{data.city}</strong>
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Check size={14} className="text-[#0ea5e9] shrink-0" strokeWidth={3} />
@@ -1431,7 +1748,6 @@ function OrderCelebrationModal({
           </div>
         </div>
 
-        {/* Countdown & Immediate Button */}
         <button
           type="button"
           onClick={onRedirect}
@@ -1441,17 +1757,16 @@ function OrderCelebrationModal({
           <ArrowRight size={16} />
         </button>
 
-        <p className="text-[11px] text-[#9A9A9A] mt-2.5">
+        <p className="text-[11px] text-[#94a3b8] mt-2.5">
           Redirection automatique dans {countdown}s…
         </p>
-
       </div>
     </div>
   );
 }
 
 /* ============================================================
-   ELEGANT LUXURY TUNNEL SUB-COMPONENTS WITH PROMINENT LOGO
+   ELEGANT LUXURY TUNNEL SUB-COMPONENTS
    ============================================================ */
 
 function LuxuryTunnelHeader({
@@ -1464,28 +1779,28 @@ function LuxuryTunnelHeader({
   locale: string;
 }) {
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#e0ddd4] shadow-2xs">
-      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-24 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full max-w-full bg-white/95 backdrop-blur-md border-b border-[#e6e2d8] shadow-[0_1px_12px_rgba(15,23,42,0.03)]">
+      <div className="w-full max-w-[1280px] mx-auto px-3.5 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
         {/* Left: Back Link */}
         <Link
           href={backHref}
-          className="flex items-center gap-1.5 sm:gap-2 text-[12px] sm:text-[13px] font-bold text-[#6B6B6B] hover:text-[#1A1A1A] transition"
+          className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#f8f7f3] hover:bg-[#efece4] border border-[#e6e2d8] text-[12px] sm:text-[13px] font-bold text-[#334155] hover:text-[#0f172a] transition shrink-0"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={15} />
           <span className="hidden sm:inline">
-            {isBuyNow ? 'Retour à la fiche produit' : 'Retour au panier'}
+            {isBuyNow ? 'Retour au produit' : 'Retour au panier'}
           </span>
           <span className="sm:hidden">Retour</span>
         </Link>
 
-        {/* Center: Real NAY Brand Logo (Enlarged and bold) */}
+        {/* Center: Real NAY Brand Logo */}
         <Link
           href={`/${locale}`}
           aria-label="NAY Parfums - Accueil"
-          className="flex items-center justify-center group active:scale-95 transition-transform py-2"
+          className="flex items-center justify-center group active:scale-95 transition-transform shrink-0"
         >
           <div
-            className="w-28 h-16 sm:w-36 sm:h-20 lg:w-44 lg:h-24 transition-colors duration-300 group-hover:bg-[#0ea5e9] bg-[#1A1A1A]"
+            className="w-24 h-12 sm:w-32 sm:h-16 lg:w-40 lg:h-20 transition-colors duration-300 group-hover:bg-[#0ea5e9] bg-[#0f172a]"
             style={{
               maskImage: 'url("/images/nay/Artboard%202.png")',
               WebkitMaskImage: 'url("/images/nay/Artboard%202.png")',
@@ -1499,10 +1814,10 @@ function LuxuryTunnelHeader({
           />
         </Link>
 
-        {/* Right: Security Trust Pill (Brand Styled) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 rounded-full bg-[#fafaf7] border border-[#e0ddd4] text-[#1A1A1A] text-[11px] font-bold shadow-2xs">
-          <ShieldCheck size={14} className="text-[#0ea5e9] shrink-0" />
-          <span className="hidden sm:inline">Paiement 100% Sécurisé</span>
+        {/* Right: Security Trust Pill */}
+        <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-full bg-emerald-50/80 border border-emerald-200/80 text-emerald-800 text-[11px] font-bold shrink-0">
+          <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
+          <span className="hidden sm:inline">Commande 100% Sécurisée</span>
           <span className="sm:hidden">Sécurisé</span>
         </div>
       </div>
@@ -1512,46 +1827,46 @@ function LuxuryTunnelHeader({
 
 function LuxuryTunnelFooter() {
   return (
-    <footer className="mt-12 sm:mt-16 border-t border-[#e0ddd4] bg-white py-10 text-[#6B6B6B] text-[12px]">
-      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pb-8 border-b border-[#f1f1eb] text-center md:text-left">
+    <footer className="mt-10 sm:mt-16 w-full max-w-full border-t border-[#e6e2d8] bg-white py-8 sm:py-10 text-[#64748b] text-[12px]">
+      <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 sm:gap-6 pb-7 border-b border-[#f0ede6] text-center md:text-left">
           <div className="space-y-1">
-            <h5 className="font-bold text-[#1A1A1A] text-[13px] flex items-center justify-center md:justify-start gap-1.5">
-              <ShieldCheck size={15} className="text-[#0ea5e9]" /> Authenticité 100%
+            <h5 className="font-bold text-[#0f172a] text-[12.5px] sm:text-[13px] flex items-center justify-center md:justify-start gap-1.5">
+              <ShieldCheck size={15} className="text-[#0ea5e9] shrink-0" /> Authenticité 100%
             </h5>
-            <p className="text-[11px] text-[#6B6B6B]">Même jus, même sillage et formulation certifiée.</p>
+            <p className="text-[11px] text-[#64748b]">Même jus, même sillage et formulation certifiée.</p>
           </div>
 
           <div className="space-y-1">
-            <h5 className="font-bold text-[#1A1A1A] text-[13px] flex items-center justify-center md:justify-start gap-1.5">
-              <PackageCheck size={15} className="text-[#0ea5e9]" /> Test devant livreur
+            <h5 className="font-bold text-[#0f172a] text-[12.5px] sm:text-[13px] flex items-center justify-center md:justify-start gap-1.5">
+              <PackageCheck size={15} className="text-[#0ea5e9] shrink-0" /> Test devant livreur
             </h5>
-            <p className="text-[11px] text-[#6B6B6B]">Inspectez votre flacon en main propre avant de régler.</p>
+            <p className="text-[11px] text-[#64748b]">Inspectez votre flacon en main propre avant de régler.</p>
           </div>
 
           <div className="space-y-1">
-            <h5 className="font-bold text-[#1A1A1A] text-[13px] flex items-center justify-center md:justify-start gap-1.5">
-              <Truck size={15} className="text-[#0ea5e9]" /> Livraison 24h/48h
+            <h5 className="font-bold text-[#0f172a] text-[12.5px] sm:text-[13px] flex items-center justify-center md:justify-start gap-1.5">
+              <Truck size={15} className="text-[#0ea5e9] shrink-0" /> Livraison 24h/48h
             </h5>
-            <p className="text-[11px] text-[#6B6B6B]">Expédition partout au Maroc avec coordination préalable.</p>
+            <p className="text-[11px] text-[#64748b]">Expédition partout au Maroc avec coordination préalable.</p>
           </div>
 
           <div className="space-y-1">
-            <h5 className="font-bold text-[#1A1A1A] text-[13px] flex items-center justify-center md:justify-start gap-1.5">
-              <Phone size={15} className="text-[#0ea5e9]" /> Atelier Client NAY
+            <h5 className="font-bold text-[#0f172a] text-[12.5px] sm:text-[13px] flex items-center justify-center md:justify-start gap-1.5">
+              <Phone size={15} className="text-[#0ea5e9] shrink-0" /> Atelier Client NAY
             </h5>
-            <p className="text-[11px] text-[#6B6B6B]">Conseil personnalisé & suivi WhatsApp 7j/7.</p>
+            <p className="text-[11px] text-[#64748b]">Conseil personnalisé & suivi WhatsApp 7j/7.</p>
           </div>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#9A9A9A]">
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#94a3b8]">
           <span>© 2026 NAY Parfum Maroc · Tous droits réservés.</span>
-          <div className="flex items-center gap-4">
-            <Link href="/legal/terms" target="_blank" className="hover:text-[#1A1A1A] transition">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <Link href="/legal/terms" target="_blank" className="hover:text-[#0f172a] transition">
               Conditions Générales de Vente
             </Link>
             <span>•</span>
-            <Link href="/legal/privacy" target="_blank" className="hover:text-[#1A1A1A] transition">
+            <Link href="/legal/privacy" target="_blank" className="hover:text-[#0f172a] transition">
               Politique de Confidentialité
             </Link>
           </div>
@@ -1566,35 +1881,45 @@ function LuxuryFormSection({
   title,
   subtitle,
   icon,
+  completed,
   children,
 }: {
   number: string;
   title: string;
   subtitle: string;
   icon?: React.ReactNode;
+  completed?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <section className="bg-white border border-[#e0ddd4] rounded-3xl p-5 sm:p-7 lg:p-8 shadow-xs">
-      <div className="flex items-start gap-3.5 sm:gap-4 mb-6 pb-4 border-b border-[#f1f1eb]">
-        <span className="heading-font text-2xl sm:text-3xl font-extrabold text-[#0ea5e9]/70 leading-none shrink-0 mt-0.5">
-          {number}
-        </span>
+    <section className="w-full min-w-0 bg-white border border-[#e6e2d8] rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-7 shadow-[0_2px_18px_rgba(15,23,42,0.035)]">
+      <div className="flex items-start gap-3 sm:gap-3.5 mb-5 pb-4 border-b border-[#f0ede6]">
+        <div
+          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 font-extrabold text-[13px] sm:text-[14px] transition-colors ${
+            completed
+              ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/80'
+              : 'bg-sky-50 text-[#0284c7] border border-sky-200/70'
+          }`}
+        >
+          {completed ? <Check size={17} strokeWidth={2.75} /> : number}
+        </div>
         <div className="flex-1 min-w-0">
-          <h3 className="heading-font text-[16px] sm:text-[18px] font-extrabold tracking-tight text-[#1A1A1A] flex items-center gap-2">
+          <h3 className="heading-font text-[15.5px] sm:text-[18px] font-extrabold tracking-tight text-[#0f172a] flex items-center gap-2 leading-snug">
             {icon && <span className="text-[#0ea5e9] shrink-0">{icon}</span>}
-            <span>{title}</span>
+            <span className="break-words">{title}</span>
           </h3>
-          <p className="text-[12px] text-[#6B6B6B] mt-0.5">{subtitle}</p>
+          <p className="text-[12px] text-[#64748b] mt-0.5 leading-relaxed">{subtitle}</p>
         </div>
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-4 min-w-0">{children}</div>
     </section>
   );
 }
 
 function LuxuryInput({
   label,
+  requiredMark,
+  optionalBadge,
   name,
   value,
   onChange,
@@ -1603,8 +1928,12 @@ function LuxuryInput({
   autoComplete,
   required,
   helper,
+  error,
+  leftIcon,
 }: {
   label: string;
+  requiredMark?: boolean;
+  optionalBadge?: boolean;
   name?: string;
   value: string;
   onChange: (v: string) => void;
@@ -1613,23 +1942,50 @@ function LuxuryInput({
   autoComplete?: string;
   required?: boolean;
   helper?: string;
+  error?: string | null;
+  leftIcon?: React.ReactNode;
 }) {
   return (
-    <div>
-      <label className="text-[11px] font-bold uppercase tracking-wider text-[#4A4A4A] mb-1.5 block">
-        {label}
+    <div className="min-w-0 w-full">
+      <label className="text-[11px] font-bold uppercase tracking-wider text-[#334155] mb-1.5 flex items-center justify-between gap-2 flex-wrap">
+        <span className="flex items-center gap-1">
+          <span>{label}</span>
+          {requiredMark && <span className="text-rose-500">*</span>}
+        </span>
+        {optionalBadge && (
+          <span className="text-[10px] font-semibold normal-case tracking-normal px-2 py-0.5 rounded-full bg-slate-100 text-[#64748b] border border-slate-200/80">
+            Optionnel
+          </span>
+        )}
       </label>
-      <input
-        name={name}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        required={required}
-        className="w-full border border-[#e0ddd4] rounded-xl px-4 py-3 text-[14px] bg-white font-medium text-[#1A1A1A] focus:outline-none focus:border-[#0ea5e9] focus:ring-2 focus:ring-[#0ea5e9]/15 transition-all placeholder:text-[#9A9A9A]"
-      />
-      {helper && <span className="text-[10px] text-[#6B6B6B] mt-1 block">{helper}</span>}
+      <div className="relative w-full min-w-0">
+        {leftIcon && (
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+            {leftIcon}
+          </span>
+        )}
+        <input
+          name={name}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          required={required}
+          className={`w-full min-w-0 max-w-full border rounded-xl ${
+            leftIcon ? 'pl-10 pr-3.5' : 'px-3.5'
+          } py-3 text-[16px] sm:text-[14px] bg-white font-medium text-[#0f172a] focus:outline-none transition-all placeholder:text-[#94a3b8] ${
+            error
+              ? 'border-rose-400 focus:border-rose-500 focus:ring-3 focus:ring-rose-500/15'
+              : 'border-[#dcd8ce] focus:border-[#0ea5e9] focus:ring-3 focus:ring-[#0ea5e9]/15'
+          }`}
+        />
+      </div>
+      {error ? (
+        <span className="text-[11px] text-rose-600 font-medium mt-1.5 block leading-snug">{error}</span>
+      ) : helper ? (
+        <span className="text-[11px] text-[#64748b] mt-1.5 block leading-snug">{helper}</span>
+      ) : null}
     </div>
   );
 }
@@ -1638,8 +1994,8 @@ export default function CheckoutPage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-[#fafaf7] min-h-screen flex items-center justify-center">
-          <div className="w-10 h-10 border-3 border-[#0ea5e9] border-t-transparent rounded-full animate-spin" />
+        <div className="bg-[#f8f7f3] min-h-screen flex items-center justify-center">
+          <div className="w-10 h-10 border-[3px] border-[#0ea5e9] border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

@@ -204,6 +204,7 @@ export default function FAQ() {
   const locale = (pathname?.split('/')[1] || 'fr') as keyof typeof FAQ_DATA;
   const data = FAQ_DATA[locale] || FAQ_DATA['fr'];
   const isAr = locale === 'ar';
+  const isEn = locale === 'en';
 
   const categories = Array.from(new Set(data.items.map(item => item.category)));
 
@@ -348,20 +349,34 @@ export default function FAQ() {
             </div>
             <div>
               <h4 className="text-[15px] font-bold text-white">
-                {isAr ? 'هل لديك استفسار حول عطر معين أو كود دفعة؟' : 'Une question sur un parfum ou un Batch Code spécifique ?'}
+                {isAr
+                  ? 'هل لديك استفسار حول عطر معين أو كود دفعة؟'
+                  : isEn
+                  ? 'Have a question about a perfume or batch code?'
+                  : 'Une question sur un parfum ou un Batch Code spécifique ?'}
               </h4>
               <p className="text-[12.5px] text-slate-400 mt-0.5">
-                {isAr ? 'فريقنا متاح عبر واتساب لتقديم صور حقيقية فورية للقنينة المتوفرة بالمخزن.' : 'Notre équipe vous répond sur WhatsApp avec des photos réelles du flacon en stock.'}
+                {isAr
+                  ? 'فريقنا متاح عبر واتساب لتقديم صور حقيقية فورية للقنينة المتوفرة بالمخزن.'
+                  : isEn
+                  ? 'Our team replies on WhatsApp with real photos of your bottle in stock.'
+                  : 'Notre équipe vous répond sur WhatsApp avec des photos réelles du flacon en stock.'}
               </p>
             </div>
           </div>
           <a
-            href="https://wa.me/212663380011?text=Bonjour,%20je%20souhaite%20des%20informations%20sur%20un%20parfum%20NAY"
+            href={`https://wa.me/212663380011?text=${encodeURIComponent(
+              isAr
+                ? 'مرحباً، أود الاستفسار عن عطر من NAY Parfums'
+                : isEn
+                ? 'Hello, I would like information about a NAY perfume'
+                : 'Bonjour, je souhaite des informations sur un parfum NAY'
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-[12.5px] font-bold transition-colors whitespace-nowrap shadow-md shadow-[#0ea5e9]/30"
           >
-            <span>{isAr ? 'تواصل عبر واتساب' : 'Conseil Personnalisé'}</span>
+            <span>{isAr ? 'تواصل عبر واتساب' : isEn ? 'WhatsApp Advice' : 'Conseil Personnalisé'}</span>
           </a>
         </div>
 

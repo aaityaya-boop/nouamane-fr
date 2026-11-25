@@ -404,9 +404,11 @@ export default async function proxy(request: NextRequest) {
   );
 
   if (pathnameIsMissingLocale) {
-    const targetPath = pathname === '/' ? `/${defaultLocale}` : `/${defaultLocale}${pathname}`;
+    const cookieLocale = request.cookies.get('NAY_LOCALE')?.value;
+    const targetLocale = cookieLocale && locales.includes(cookieLocale) ? cookieLocale : defaultLocale;
+    const targetPath = pathname === '/' ? `/${targetLocale}` : `/${targetLocale}${pathname}`;
     const url = new URL(`${targetPath}${request.nextUrl.search}`, request.url);
-    return NextResponse.redirect(url, 308);
+    return NextResponse.redirect(url, 307);
   }
 
   const res = NextResponse.next();

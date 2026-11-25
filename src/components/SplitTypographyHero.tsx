@@ -508,7 +508,7 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
               className="inline-flex items-center gap-2.5 px-3.5 sm:px-4 py-1.5 rounded-full bg-slate-900/[0.04] border border-slate-900/[0.08] text-[10.5px] sm:text-[11px] font-semibold tracking-[0.22em] uppercase text-slate-700 w-fit mb-5 sm:mb-6 backdrop-blur-sm"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9]" />
-              <span>{isAr ? 'دار العطور الأصلية بالمغرب' : 'Maison de Haute Parfumerie · Maroc'}</span>
+              <span>{isAr ? 'دار العطور الأصلية بالمغرب' : isEn ? 'Haute Parfumerie House · Morocco' : 'Maison de Haute Parfumerie · Maroc'}</span>
             </motion.div>
 
             {/* Creative Minimalist Headline (Urbanist Modern Geometric Bold) */}
@@ -569,7 +569,7 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
                 href={`/${locale}/shop`}
                 className="group inline-flex items-center gap-3 bg-slate-950 hover:bg-[#0ea5e9] text-white px-7 sm:px-8 py-3.5 sm:py-4 rounded-full font-bold text-[11.5px] sm:text-[12px] tracking-[0.2em] uppercase transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
               >
-                <span>{isAr ? 'تسوق المجموعة' : 'Explorer la Collection'}</span>
+                <span>{isAr ? 'تسوق المجموعة' : isEn ? 'Explore Collection' : 'Explorer la Collection'}</span>
                 <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 rtl:rotate-180" />
               </Link>
 
@@ -577,7 +577,7 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
                 href={`/${locale}/shop/testers`}
                 className="inline-flex items-center gap-2 bg-transparent hover:bg-slate-100 text-slate-900 border border-slate-300 hover:border-slate-400 px-7 sm:px-8 py-3.5 sm:py-4 rounded-full font-semibold text-[11.5px] sm:text-[12px] tracking-[0.2em] uppercase transition-all duration-300"
               >
-                <span>{isAr ? 'تسترات بريميوم' : 'Testeurs de Luxe'}</span>
+                <span>{isAr ? 'تسترات بريميوم' : isEn ? 'Luxury Testers' : 'Testeurs de Luxe'}</span>
               </Link>
             </motion.div>
 
@@ -585,17 +585,17 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11.5px] sm:text-[12.5px] text-slate-500 font-medium">
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9]" />
-                {isAr ? 'تركيبة أصلية وسياج مميز' : 'Formulation Authentique & Sillage Remarquable'}
+                {isAr ? 'تركيبة أصلية وسياج مميز' : isEn ? 'Authentic Formula & Rich Sillage' : 'Formulation Authentique & Sillage Remarquable'}
               </span>
               <span className="text-slate-300">·</span>
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9]" />
-                {isAr ? 'توصيل سريع 24/48 ساعة' : 'Expédition Express 24-48h'}
+                {isAr ? 'توصيل سريع 24/48 ساعة' : isEn ? 'Express Delivery 24–48h' : 'Expédition Express 24-48h'}
               </span>
               <span className="text-slate-300">·</span>
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9]" />
-                {isAr ? 'الدفع عند الاستلام والمعاينة' : 'Paiement à la Réception'}
+                {isAr ? 'الدفع عند الاستلام والمعاينة' : isEn ? 'Cash on Delivery' : 'Paiement à la Réception'}
               </span>
             </div>
 
@@ -713,7 +713,7 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
                   href={`/${locale}/product/${activeFlacon.slug}`}
                   className="w-full bg-slate-950 hover:bg-[#0ea5e9] text-white py-3.5 px-6 rounded-full font-bold text-[11.5px] tracking-[0.2em] uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md group/btn"
                 >
-                  <span>{isAr ? 'عرض تفاصيل العطر' : 'Découvrir la Fragrance'}</span>
+                  <span>{isAr ? 'عرض تفاصيل العطر' : isEn ? 'Discover Fragrance' : 'Découvrir la Fragrance'}</span>
                   <ArrowRight size={14} className="transition-transform duration-300 group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1 rtl:rotate-180" />
                 </Link>
 
@@ -764,10 +764,10 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
               </div>
               <div className="min-w-0">
                 <h4 className="font-display text-[14px] sm:text-[14.5px] font-bold text-slate-950 tracking-tight group-hover:text-[#0ea5e9] transition-colors leading-snug">
-                  {isAr ? 'جودة عالية وثبات ممتاز' : 'Haute Qualité & Tenue'}
+                  {isAr ? 'جودة عالية وثبات ممتاز' : isEn ? 'Superior Quality & Hold' : 'Haute Qualité & Tenue'}
                 </h4>
                 <p className="text-[11.5px] sm:text-[12px] text-slate-500 font-normal leading-relaxed mt-0.5">
-                  {isAr ? 'عطور وتسترات مختارة بعناية فائقة' : 'Sillages intenses & flacons rigoureusement sélectionnés.'}
+                  {isAr ? 'عطور وتسترات مختارة بعناية فائقة' : isEn ? 'Rich sillage & hand-selected bottles.' : 'Sillages intenses & flacons rigoureusement sélectionnés.'}
                 </p>
               </div>
               <div className="hidden lg:block absolute right-0 rtl:right-auto rtl:left-0 top-1/2 -translate-y-1/2 h-8 w-[1px] bg-gradient-to-b from-transparent via-slate-200 to-transparent pointer-events-none" />
@@ -780,10 +780,10 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
               </div>
               <div className="min-w-0">
                 <h4 className="font-display text-[14px] sm:text-[14.5px] font-bold text-slate-950 tracking-tight group-hover:text-[#0ea5e9] transition-colors leading-snug">
-                  {isAr ? 'توصيل سريع 24 - 48 ساعة' : 'Livraison Express 24-48h'}
+                  {isAr ? 'توصيل سريع 24 - 48 ساعة' : isEn ? 'Express Delivery 24–48h' : 'Livraison Express 24-48h'}
                 </h4>
                 <p className="text-[11.5px] sm:text-[12px] text-slate-500 font-normal leading-relaxed mt-0.5">
-                  {isAr ? 'كازا، الرباط وجميع مدن المغرب' : 'Partout au Maroc avec suivi direct.'}
+                  {isAr ? 'كازا، الرباط وجميع مدن المغرب' : isEn ? 'Across Morocco with live tracking.' : 'Partout au Maroc avec suivi direct.'}
                 </p>
               </div>
               <div className="hidden lg:block absolute right-0 rtl:right-auto rtl:left-0 top-1/2 -translate-y-1/2 h-8 w-[1px] bg-gradient-to-b from-transparent via-slate-200 to-transparent pointer-events-none" />
@@ -796,10 +796,10 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
               </div>
               <div className="min-w-0">
                 <h4 className="font-display text-[14px] sm:text-[14.5px] font-bold text-slate-950 tracking-tight group-hover:text-[#0ea5e9] transition-colors leading-snug">
-                  {isAr ? 'معاينة الطرد قبل الدفع' : 'Paiement à la Livraison'}
+                  {isAr ? 'معاينة الطرد قبل الدفع' : isEn ? 'Cash on Delivery' : 'Paiement à la Livraison'}
                 </h4>
                 <p className="text-[11.5px] sm:text-[12px] text-slate-500 font-normal leading-relaxed mt-0.5">
-                  {isAr ? 'عاين العطر وافتحه بكل أمان قبل الدفع' : 'Inspectez votre colis avant de payer.'}
+                  {isAr ? 'عاين العطر وافتحه بكل أمان قبل الدفع' : isEn ? 'Inspect your parcel before paying.' : 'Inspectez votre colis avant de payer.'}
                 </p>
               </div>
               <div className="hidden lg:block absolute right-0 rtl:right-auto rtl:left-0 top-1/2 -translate-y-1/2 h-8 w-[1px] bg-gradient-to-b from-transparent via-slate-200 to-transparent pointer-events-none" />
@@ -812,10 +812,10 @@ export default function SplitTypographyHero({ config, bestsellers = [] }: SplitT
               </div>
               <div className="min-w-0">
                 <h4 className="font-display text-[14px] sm:text-[14.5px] font-bold text-slate-950 tracking-tight group-hover:text-[#0ea5e9] transition-colors leading-snug">
-                  {isAr ? 'استشارة واختيار شخصي 7/7' : 'Conseil Olfactif Personnalisé'}
+                  {isAr ? 'استشارة واختيار شخصي 7/7' : isEn ? 'Personal Scent Advice 7/7' : 'Conseil Olfactif Personnalisé'}
                 </h4>
                 <p className="text-[11.5px] sm:text-[12px] text-slate-500 font-normal leading-relaxed mt-0.5">
-                  {isAr ? 'مساعدة لاختيار عطرك المثالي' : 'Recommandations d\'experts 7j/7.'}
+                  {isAr ? 'مساعدة لاختيار عطرك المثالي' : isEn ? 'Expert recommendations 7 days/week.' : 'Recommandations d\'experts 7j/7.'}
                 </p>
               </div>
             </div>

@@ -38,20 +38,33 @@ export async function POST(request: Request) {
       selectedFreeGift,
     } = body;
 
-    // Basic validation
+    // Basic validation (customerEmail is optional)
+    const cleanCustomerName = typeof customerName === 'string' ? customerName.trim() : '';
+    const cleanEmail = typeof customerEmail === 'string' ? customerEmail.trim().toLowerCase() : '';
+    const cleanShippingAddress = typeof shippingAddress === 'string' ? shippingAddress.trim() : '';
+    const cleanShippingCity = typeof shippingCity === 'string' ? shippingCity.trim() : '';
+    const cleanPostalCode = typeof shippingPostalCode === 'string' ? shippingPostalCode.trim() : '';
+
     if (
-      !customerName ||
-      !customerEmail ||
+      !cleanCustomerName ||
       !customerPhone ||
-      !shippingAddress ||
-      !shippingCity ||
+      !cleanShippingAddress ||
+      !cleanShippingCity ||
       !paymentMethod ||
       !Array.isArray(items) ||
       items.length === 0 ||
       items.length > 50
     ) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Veuillez remplir tous les champs obligatoires pour finaliser votre commande.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format only if the client chose to provide one
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cleanEmail)) {
+      return NextResponse.json(
+        { error: 'Adresse email invalide. Corrigez-la ou laissez le champ vide.' },
         { status: 400 }
       );
     }
@@ -294,7 +307,6 @@ export async function POST(request: Request) {
 
     // ── Automatic Customer Creation & Linking ──────────────────────────────
     let customerId: string | null = null;
-    const cleanEmail = customerEmail.trim().toLowerCase();
 
     try {
       // 1. Check if logged-in customer session exists (verifiedTokenPayload from earlier)
@@ -307,10 +319,12 @@ export async function POST(request: Request) {
         }
       }
 
-      // 2. If not logged in, search existing customer by email or phone
-      let targetCustomer = customerId 
+      // 2. If not logged in, search existing customer by email (only if provided) or phone
+      let targetCustomer = customerId
         ? await prisma.customer.findUnique({ where: { id: customerId } })
-        : await prisma.customer.findUnique({ where: { email: cleanEmail } });
+        : cleanEmail
+        ? await prisma.customer.findUnique({ where: { email: cleanEmail } })
+        : null;
 
       if (!targetCustomer && normalizedPhone) {
         targetCustomer = await prisma.customer.findFirst({
@@ -324,26 +338,31 @@ export async function POST(request: Request) {
         await prisma.customer.update({
           where: { id: targetCustomer.id },
           data: {
-            name: customerName.trim() || targetCustomer.name,
+            name: cleanCustomerName || targetCustomer.name,
             phone: normalizedPhone || targetCustomer.phone,
-            address: shippingAddress.trim() || targetCustomer.address,
-            city: shippingCity.trim() || targetCustomer.city,
-            postalCode: shippingPostalCode?.trim() || targetCustomer.postalCode,
+            address: cleanShippingAddress || targetCustomer.address,
+            city: cleanShippingCity || targetCustomer.city,
+            postalCode: cleanPostalCode || targetCustomer.postalCode,
           }
         });
       } else {
-        // 3. New visitor/guest order: AUTOMATICALLY create real Customer record in DB!
+        // 3. New visitor/guest order: AUTOMATICALLY create real Customer record in DB.
+        // Customer.email is @unique in Prisma, so generate a collision-free internal placeholder if email was omitted.
         const randomPassword = crypto.randomBytes(16).toString('hex');
         const hashedPassword = await bcrypt.hash(randomPassword, 10);
+        const phoneDigits = normalizedPhone.replace(/\D/g, '') || crypto.randomBytes(4).toString('hex');
+        const crmEmail =
+          cleanEmail ||
+          `client.${phoneDigits}.${crypto.randomBytes(2).toString('hex')}@noemail.nayparfum.local`;
 
         const newCustomer = await prisma.customer.create({
           data: {
-            name: customerName.trim(),
-            email: cleanEmail,
+            name: cleanCustomerName,
+            email: crmEmail,
             phone: normalizedPhone,
-            address: shippingAddress.trim(),
-            city: shippingCity.trim(),
-            postalCode: shippingPostalCode?.trim() || '',
+            address: cleanShippingAddress,
+            city: cleanShippingCity,
+            postalCode: cleanPostalCode,
             password: hashedPassword,
             tags: {
               create: [
@@ -361,12 +380,12 @@ export async function POST(request: Request) {
     const created = await prisma.order.create({
       data: {
         orderNumber,
-        customerName: customerName.trim(),
+        customerName: cleanCustomerName,
         customerEmail: cleanEmail,
         customerPhone: normalizedPhone,
-        shippingAddress: shippingAddress.trim(),
-        shippingCity: shippingCity.trim(),
-        shippingPostalCode: shippingPostalCode || '',
+        shippingAddress: cleanShippingAddress,
+        shippingCity: cleanShippingCity,
+        shippingPostalCode: cleanPostalCode,
         paymentMethod,
         items: JSON.stringify(finalItemsWithSKU),
         subtotal: verifiedSubtotal,

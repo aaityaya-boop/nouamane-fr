@@ -83,11 +83,11 @@ function OrderConfirmationInner() {
   });
 
   return (
-    <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen">
+    <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen w-full max-w-full overflow-x-clip">
       <Header />
 
       <main className="pt-28 lg:pt-36 pb-24">
-        <div className="max-w-3xl mx-auto px-6 lg:px-10">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10">
           {/* ========== SUCCESS HERO ========== */}
           <div className="text-center pb-14 pt-6">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-50 border border-green-200 text-green-600 mb-6 animate-[bounce_1s_ease-out]">
@@ -103,9 +103,9 @@ function OrderConfirmationInner() {
             </h1>
 
             <p className="mt-5 text-[15px] lg:text-base text-[#6B6B6B] max-w-lg mx-auto leading-relaxed">
-              Votre commande a été reçue avec succès. Un email de confirmation
-              vient de vous être envoyé
-              {order?.customerEmail ? ` à ${order.customerEmail}` : ''}.
+              {order?.customerEmail?.trim()
+                ? `Votre commande a été reçue avec succès. Un récapitulatif est associé à ${order.customerEmail} et notre équipe vous contactera par téléphone ou WhatsApp avant la livraison.`
+                : 'Votre commande a été reçue avec succès. Notre équipe vous contactera par téléphone ou WhatsApp pour coordonner votre livraison express.'}
             </p>
 
             {/* Order number */}
@@ -200,9 +200,11 @@ function OrderConfirmationInner() {
                     <div className="mt-3 pt-3 border-t border-[#eeece5] text-[#6B6B6B] text-[13px] flex items-center gap-2">
                       <Phone size={12} /> {order.customerPhone}
                     </div>
-                    <div className="text-[#6B6B6B] text-[13px] flex items-center gap-2 mt-1">
-                      <Mail size={12} /> {order.customerEmail}
-                    </div>
+                    {order.customerEmail?.trim() && (
+                      <div className="text-[#6B6B6B] text-[13px] flex items-center gap-2 mt-1 break-all">
+                        <Mail size={12} className="shrink-0" /> {order.customerEmail}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -306,8 +308,10 @@ function OrderConfirmationInner() {
                     <Phone size={14} /> WhatsApp
                   </a>
                   <a
-                    href="#"
-                    className="inline-flex items-center gap-2 bg-[#f8fafc] hover:bg-black text-white px-6 py-3 text-[11px] font-semibold tracking-[0.15em] uppercase rounded-full transition-colors"
+                    href="https://www.instagram.com/nayparfum"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-[#1A1A1A] hover:bg-black text-white px-6 py-3 text-[11px] font-semibold tracking-[0.15em] uppercase rounded-full transition-colors"
                   >
                     <Share2 size={14} /> Nous suivre
                   </a>
@@ -328,8 +332,8 @@ function OrderConfirmationInner() {
         </div>
       </main>
 
-      {/* ========== GOOGLE CUSTOMER REVIEWS ========== */}
-      {order && (
+      {/* ========== GOOGLE CUSTOMER REVIEWS (ONLY WHEN EMAIL IS PROVIDED) ========== */}
+      {order && order.customerEmail?.trim() && (
         <>
           <Script
             id="gcr-optin-code"

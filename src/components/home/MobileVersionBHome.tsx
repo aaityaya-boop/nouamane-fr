@@ -7,12 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, 
   ChevronRight, 
-  ChevronLeft,
   Sparkles, 
-  Star, 
   Flame,
   Sun,
-  BadgeCheck, 
   ShieldCheck,
   Truck, 
   Banknote,
@@ -52,6 +49,7 @@ interface FlagshipFlacon {
   image: string;
   slug: string;
   badge: string;
+  badgeEn: string;
   badgeAr: string;
 }
 
@@ -69,6 +67,7 @@ const FLAGSHIP_FLACONS: FlagshipFlacon[] = [
     image: 'https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/raw-1783986823993-Dior_Homme_Intense.jpg',
     slug: 'dior-dior-homme-intense-tester',
     badge: 'LE CHARISME ABSOLU · SÉLECTION HOMME',
+    badgeEn: 'PURE CHARISMA · MEN SELECTION',
     badgeAr: 'كاريزما وأصالة · اختيار رجالي فاخر',
   },
   {
@@ -83,6 +82,7 @@ const FLAGSHIP_FLACONS: FlagshipFlacon[] = [
     image: 'https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/1784027743660-838331011-baccarat_rouge.jpg',
     slug: 'baccarat-rouge-540-tester',
     badge: 'HAUTE PARFUMERIE · BESTSELLER N°01',
+    badgeEn: 'HAUTE PARFUMERIE · BESTSELLER N°01',
     badgeAr: 'عطر فاخر · الأكثر طلباً N°01',
   },
   {
@@ -97,6 +97,7 @@ const FLAGSHIP_FLACONS: FlagshipFlacon[] = [
     image: 'https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/1784029058352-526765774-Libre_Intense.jpg',
     slug: 'YSL-libre-intense-tester',
     badge: 'COUP DE CŒUR · ÉDITION LUXE FEMME',
+    badgeEn: 'TOP PICK · WOMEN LUXURY EDITION',
     badgeAr: 'المفضل لدى النساء · إصدار فاخر',
   },
 ];
@@ -109,11 +110,12 @@ export default function MobileVersionBHome({
   seasonalTitle,
   seasonalSubtitle,
   seasonQueryParam = 'Été,Automne',
-  latestReviews = [],
   locale,
-  dict,
 }: MobileVersionBHomeProps) {
   const isAr = locale === 'ar';
+  const isEn = locale === 'en';
+  const t = (fr: string, en: string, ar: string) => (isAr ? ar : isEn ? en : fr);
+
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
@@ -130,8 +132,8 @@ export default function MobileVersionBHome({
     }
     const tagged = products.filter(p => {
       try {
-        const t = typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags;
-        return Array.isArray(t) && t.includes('bestseller');
+        const tg = typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags;
+        return Array.isArray(tg) && tg.includes('bestseller');
       } catch {
         return false;
       }
@@ -139,15 +141,23 @@ export default function MobileVersionBHome({
     return tagged.length >= 1 ? tagged : products;
   })();
 
-  // Random pick of bestsellers on every page load/refresh
+  const pickedBestsellersRef = useRef(false);
+
+  // Random pick of bestsellers once on initial data load
   useEffect(() => {
+    if (pickedBestsellersRef.current) return;
     if (bestsellersList && bestsellersList.length >= 3) {
-      // Shuffle bestsellers list to get dynamic picks on every refresh
+      pickedBestsellersRef.current = true;
       const shuffled = [...bestsellersList].sort(() => Math.random() - 0.5);
       const badges = [
         'BESTSELLER N°01 · COUP DE CŒUR',
         'LE CHARISME ABSOLU · SÉLECTION VIP',
         'SÉLECTION EXCLUSIVE · HAUTE NICHE',
+      ];
+      const badgesEn = [
+        'BESTSELLER N°01 · TOP PICK',
+        'PURE CHARISMA · VIP SELECTION',
+        'EXCLUSIVE SELECTION · HAUTE NICHE',
       ];
       const badgesAr = [
         'الأكثر طلباً بالمغرب N°01',
@@ -157,14 +167,22 @@ export default function MobileVersionBHome({
 
       const dynamicFlacons: FlagshipFlacon[] = shuffled.slice(0, 3).map((p, idx) => {
         const brandName = p.brandLabel || (typeof p.brand === 'string' ? p.brand.toUpperCase() : 'HAUTE PARFUMERIE');
-        const shortName = p.name.split('·')[0].split('-')[0].trim();
+        const rawSegments = (p.name || '')
+          .split(/[·\-–]/)
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+        const primarySegment = rawSegments[0] || p.name || brandName;
+        const trimmedBrand = primarySegment
+          .replace(/^(Yves Saint Laurent|Jean Paul Gaultier|Giorgio Armani|Parfums de Marly|Christian Dior|Dolce\s*&\s*Gabbana|Maison Francis Kurkdjian|Tom Ford|Xerjoff|Kayali)\s+/i, '')
+          .trim();
+        const shortName = trimmedBrand || primarySegment || brandName;
         const discount = p.originalPrice && p.originalPrice > p.price ? p.originalPrice : Math.round(p.price * 1.45);
 
         return {
           id: String(p.id),
           brand: brandName,
           name: p.name,
-          shortName: shortName,
+          shortName,
           shortNameAr: shortName,
           concentration: p.subcategoryLabel ? `${p.subcategoryLabel} · 100ml` : 'Eau de Parfum · 100ml',
           price: p.price,
@@ -172,13 +190,13 @@ export default function MobileVersionBHome({
           image: p.images?.[0] || 'https://l3qgcdajft9wdkxz.public.blob.vercel-storage.com/raw-1783986823993-Dior_Homme_Intense.jpg',
           slug: p.slug,
           badge: badges[idx % badges.length],
+          badgeEn: badgesEn[idx % badgesEn.length],
           badgeAr: badgesAr[idx % badgesAr.length],
         };
       });
 
       setHeroFlacons(dynamicFlacons);
-      // Random pick on refresh
-      setActiveFlaconIdx(Math.floor(Math.random() * dynamicFlacons.length));
+      setActiveFlaconIdx(0);
     }
   }, [bestsellersList]);
 
@@ -221,8 +239,6 @@ export default function MobileVersionBHome({
 
   const activeFlacon = heroFlacons[activeFlaconIdx] || heroFlacons[0] || FLAGSHIP_FLACONS[0];
 
-
-
   // 2. NEW ARRIVALS LIST: Synchronized with admin panel (featuredLatest)
   const newArrivalsList = (() => {
     if (newArrivals && newArrivals.length >= 1) {
@@ -239,8 +255,8 @@ export default function MobileVersionBHome({
     }
     const seasonalTagged = products.filter(p => {
       try {
-        const t = typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags;
-        return Array.isArray(t) && (t.includes('seasonal-fall') || t.includes('seasonal-spring'));
+        const tg = typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags;
+        return Array.isArray(tg) && (tg.includes('seasonal-fall') || tg.includes('seasonal-spring'));
       } catch {
         return false;
       }
@@ -256,7 +272,7 @@ export default function MobileVersionBHome({
     }, 2000);
   };
 
-  // Reusable Horizontal Swipe Card (Clean, Simple Regular Body + Bold Titles)
+  // Reusable Horizontal Swipe Card
   const renderHorizontalCard = (p: Product, options?: { badge?: string; badgeColor?: string; rank?: number }) => {
     const isFav = isInWishlist(p.slug);
     const isAdded = addedIds[p.id];
@@ -270,7 +286,6 @@ export default function MobileVersionBHome({
         key={p.id}
         className="w-[156px] sm:w-[172px] shrink-0 snap-start bg-white rounded-[20px] border border-[#ECEAE4] p-2.5 flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-md transition-all duration-300 relative group"
       >
-        {/* Flacon Link (Seamless Pure White Canvas, 100% empty of any overlays) */}
         <Link
           href={`/${locale}/product/${p.slug}`}
           className="relative w-full h-[166px] overflow-hidden rounded-2xl bg-white flex items-center justify-center my-0.5"
@@ -285,10 +300,8 @@ export default function MobileVersionBHome({
           />
         </Link>
 
-        {/* Info & Metadata */}
         <div className="pt-2 border-t border-[#F3F0EA] flex flex-col justify-between flex-1">
           <div>
-            {/* Row 1: Brand & Badge (Left), Heart (Right) */}
             <div className="flex items-center justify-between gap-1 mb-1 min-w-0">
               <div className="flex items-center gap-1 min-w-0 truncate">
                 {options?.rank !== undefined && (
@@ -306,7 +319,6 @@ export default function MobileVersionBHome({
                 </span>
               </div>
 
-              {/* Wishlist Heart */}
               <button
                 type="button"
                 onClick={(e) => {
@@ -314,7 +326,11 @@ export default function MobileVersionBHome({
                   e.stopPropagation();
                   toggleWishlist(p.slug);
                 }}
-                aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                aria-label={
+                  isFav
+                    ? t('Retirer des favoris', 'Remove from favorites', 'إزالة من المفضلة')
+                    : t('Ajouter aux favoris', 'Add to favorites', 'إضافة للمفضلة')
+                }
                 className="w-6 h-6 rounded-full flex items-center justify-center text-[#111827] hover:text-rose-500 active:scale-85 transition shrink-0 cursor-pointer"
               >
                 <Heart 
@@ -362,12 +378,12 @@ export default function MobileVersionBHome({
               {isAdded ? (
                 <>
                   <Check size={12} strokeWidth={2.5} />
-                  <span>{isAr ? 'تمت الإضافة' : 'Ajouté'}</span>
+                  <span>{t('Ajouté', 'Added', 'تمت الإضافة')}</span>
                 </>
               ) : (
                 <>
                   <ShoppingBag size={12} strokeWidth={2.2} />
-                  <span>{isAr ? 'أضف للسلة' : 'Ajouter'}</span>
+                  <span>{t('Ajouter', 'Add', 'أضف للسلة')}</span>
                 </>
               )}
             </button>
@@ -382,7 +398,6 @@ export default function MobileVersionBHome({
       
       {/* ========================================================
           HERO: MODERN LUXURY ART DIRECTION & EFFORTLESS UX
-          Symmetrical Editorial Layout · Grand Hero Stage · Direct-Select Chips
           ======================================================== */}
       <section 
         className="relative pt-[62px] pb-5 overflow-hidden bg-gradient-to-b from-[#F8F6F0] via-[#FAF9F6] to-[#F5F2EB]"
@@ -395,12 +410,12 @@ export default function MobileVersionBHome({
           <div className="flex items-center justify-center gap-2.5 mb-3">
             <span className="h-px w-8 bg-[#E0DDD4]" />
             <span className="font-body-modern text-[8.5px] font-semibold tracking-[0.24em] uppercase text-[#6B7280]">
-              {isAr ? 'دار العطور الراقية · المغرب' : 'MAISON DE HAUTE PARFUMERIE · MAROC'}
+              {t('MAISON DE HAUTE PARFUMERIE · MAROC', 'HAUTE PARFUMERIE HOUSE · MOROCCO', 'دار العطور الراقية · المغرب')}
             </span>
             <span className="h-px w-8 bg-[#E0DDD4]" />
           </div>
 
-          {/* Editorial Headline & Value Proposition (Centered & Uncramped) */}
+          {/* Editorial Headline & Value Proposition */}
           <div className="text-center px-4 mb-4">
             <h1 className="font-display-modern text-[22px] sm:text-[25px] font-bold text-[#111827] tracking-tight leading-[1.2]">
               {isAr ? (
@@ -408,35 +423,41 @@ export default function MobileVersionBHome({
                   فن العطور الفاخرة، <br />
                   <span className="text-[#0284c7] font-extrabold">جوهر الذكريات الخالدة.</span>
                 </>
+              ) : isEn ? (
+                <>
+                  The Art of Fine Perfume, <br />
+                  <span className="text-[#0284c7] font-extrabold">the Essence of Unforgettable.</span>
+                </>
               ) : (
                 <>
-                  L'Art du Parfum d'Exception, <br />
-                  <span className="text-[#0284c7] font-extrabold">l'Essence de l'Inoubliable.</span>
+                  L&apos;Art du Parfum d&apos;Exception, <br />
+                  <span className="text-[#0284c7] font-extrabold">l&apos;Essence de l&apos;Inoubliable.</span>
                 </>
               )}
             </h1>
 
             <p className="font-body-modern text-[11px] font-normal text-[#6B7280] mt-1.5 max-w-xs mx-auto leading-relaxed">
-              {isAr 
-                ? 'عطور راقية وتسترات أصلية مستوردة، توصيل سريع 24/48h مع إمكانية معاينة الطرد قبل الدفع.'
-                : 'Parfums d’exception & testeurs authentiques au Maroc. Livraison 24/48h avec inspection du colis avant paiement.'
-              }
+              {t(
+                'Parfums d’exception & testeurs authentiques au Maroc. Livraison 24/48h avec inspection du colis avant paiement.',
+                'Luxury fragrances & authentic testers in Morocco. 24/48h delivery with parcel inspection before payment.',
+                'عطور راقية وتسترات أصلية مستوردة، توصيل سريع 24/48h مع إمكانية معاينة الطرد قبل الدفع.'
+              )}
             </p>
           </div>
 
-          {/* Grand Hero Stage Card: Clean, Unified, Every Element In Place */}
+          {/* Grand Hero Stage Card */}
           <div className="mx-3.5 rounded-[28px] bg-white border border-[#E5DFD3]/90 shadow-[0_10px_30px_rgba(17,24,39,0.06)] p-4 flex flex-col items-center relative">
             
             {/* Curation Badge */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF9F5] border border-[#E5DFD3] text-[8.5px] sm:text-[9px] font-bold tracking-[0.16em] uppercase text-[#111827] shadow-2xs mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9]" />
-              <span>{isAr ? activeFlacon.badgeAr : activeFlacon.badge}</span>
+              <span>{isAr ? activeFlacon.badgeAr : isEn ? activeFlacon.badgeEn : activeFlacon.badge}</span>
             </div>
 
-            {/* Grand Flacon Showcase (Large, Crisp, Unconstrained) */}
+            {/* Grand Flacon Showcase */}
             <Link
               href={`/${locale}/product/${activeFlacon.slug}`}
-              aria-label={`Voir ${activeFlacon.name}`}
+              aria-label={t(`Voir ${activeFlacon.name}`, `View ${activeFlacon.name}`, `عرض ${activeFlacon.name}`)}
               className="relative w-full h-[185px] sm:h-[200px] flex items-center justify-center my-1 group cursor-pointer overflow-hidden"
             >
               <AnimatePresence mode="wait">
@@ -473,7 +494,6 @@ export default function MobileVersionBHome({
                 {activeFlacon.concentration}
               </span>
 
-              {/* Price Row */}
               <div className="flex items-center justify-center gap-2 mt-2">
                 <span className="font-body-modern text-[17px] sm:text-[18px] font-extrabold text-[#111827] tracking-tight" dir="ltr">
                   {formatMAD(activeFlacon.price)}
@@ -489,7 +509,7 @@ export default function MobileVersionBHome({
               </div>
             </div>
 
-            {/* 3 Direct-Select Fragrance Chips (Sitting Right Below Flacon) */}
+            {/* 3 Direct-Select Fragrance Chips */}
             <div className="relative z-10 w-full mt-3 pt-2.5 border-t border-[#E5DFD3]/80 grid grid-cols-3 gap-1.5">
               {heroFlacons.map((flacon, idx) => {
                 const isActive = activeFlaconIdx === idx;
@@ -498,7 +518,7 @@ export default function MobileVersionBHome({
                     key={flacon.id}
                     type="button"
                     onClick={() => setActiveFlaconIdx(idx)}
-                    aria-label={`Afficher ${flacon.name}`}
+                    aria-label={t(`Afficher ${flacon.name}`, `Show ${flacon.name}`, `عرض ${flacon.name}`)}
                     className={`py-2 px-1 rounded-xl text-center transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
                       isActive
                         ? 'bg-[#111827] text-white shadow-sm ring-1 ring-[#111827]'
@@ -521,7 +541,6 @@ export default function MobileVersionBHome({
                 );
               })}
             </div>
-
           </div>
 
           {/* Primary High-Impact CTA Button & Trust Guarantees */}
@@ -530,7 +549,9 @@ export default function MobileVersionBHome({
               href={`/${locale}/shop`}
               className="font-body-modern w-full bg-[#111827] hover:bg-black text-white py-3.5 px-6 rounded-2xl text-[11.5px] font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2.5 shadow-[0_6px_20px_rgba(17,24,39,0.18)] active:scale-[0.98] transition-all"
             >
-              <span>{isAr ? 'اكتشف جميع العطور في المتجر' : 'DÉCOUVRIR TOUTE LA BOUTIQUE'}</span>
+              <span>
+                {t('DÉCOUVRIR TOUTE LA BOUTIQUE', 'EXPLORE THE FULL BOUTIQUE', 'اكتشف جميع العطور في المتجر')}
+              </span>
               <ArrowRight size={15} className="rtl:rotate-180" />
             </Link>
 
@@ -538,88 +559,92 @@ export default function MobileVersionBHome({
             <div className="grid grid-cols-3 gap-1.5 pt-0.5 text-center">
               <div className="bg-white/85 rounded-xl border border-[#E5DFD3]/80 py-2 px-1 flex flex-col items-center shadow-2xs">
                 <ShieldCheck size={14} className="text-[#0284c7] mb-0.5" />
-                <span className="text-[9.5px] font-bold text-[#111827] leading-tight">{isAr ? 'أصلية 100%' : '100% Authentique'}</span>
-                <span className="text-[8px] text-[#6B7280]">{isAr ? 'مستوردة ومضمونة' : 'Testeurs certifiés'}</span>
+                <span className="text-[9.5px] font-bold text-[#111827] leading-tight">
+                  {t('100% Authentique', '100% Authentic', 'أصلية 100%')}
+                </span>
+                <span className="text-[8px] text-[#6B7280]">
+                  {t('Testeurs certifiés', 'Certified testers', 'مستوردة ومضمونة')}
+                </span>
               </div>
               <div className="bg-white/85 rounded-xl border border-[#E5DFD3]/80 py-2 px-1 flex flex-col items-center shadow-2xs">
                 <Truck size={14} className="text-[#0284c7] mb-0.5" />
-                <span className="text-[9.5px] font-bold text-[#111827] leading-tight">{isAr ? 'توصيل 24/48h' : 'Livraison 24–48h'}</span>
-                <span className="text-[8px] text-[#6B7280]">{isAr ? 'سريع بالمغرب' : 'Partout au Maroc'}</span>
+                <span className="text-[9.5px] font-bold text-[#111827] leading-tight">
+                  {t('Livraison 24–48h', 'Delivery 24–48h', 'توصيل 24/48h')}
+                </span>
+                <span className="text-[8px] text-[#6B7280]">
+                  {t('Partout au Maroc', 'Across Morocco', 'سريع بالمغرب')}
+                </span>
               </div>
               <div className="bg-white/85 rounded-xl border border-[#E5DFD3]/80 py-2 px-1 flex flex-col items-center shadow-2xs">
                 <Banknote size={14} className="text-[#0284c7] mb-0.5" />
-                <span className="text-[9.5px] font-bold text-[#111827] leading-tight">{isAr ? 'معاينة قبل الدفع' : 'Paiement à la livraison'}</span>
-                <span className="text-[8px] text-[#6B7280]">{isAr ? '0 درهم مسبق' : 'Inspectez le colis'}</span>
+                <span className="text-[9.5px] font-bold text-[#111827] leading-tight">
+                  {t('Paiement à la livraison', 'Cash on Delivery', 'معاينة قبل الدفع')}
+                </span>
+                <span className="text-[8px] text-[#6B7280]">
+                  {t('Inspectez le colis', 'Inspect first', '0 درهم مسبق')}
+                </span>
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
       {/* ========================================================
-          CATEGORY DISCOVERY: LES UNIVERS OLFACTIFS (GENDER / NICHE)
-          HOMME · FEMME · UNISEXE (Originaux moved under Tendances)
-          Pure Floating Flacons (Zero Shadow Cutout) & Luxury Aura
+          CATEGORY DISCOVERY: FRAGRANCE UNIVERSES
           ======================================================== */}
       <section className="px-4 py-6 bg-gradient-to-b from-white via-[#FAF8F5] to-white border-y border-[#ECE7DC]">
         <div className="w-full">
-          {/* Category Header */}
           <div className="flex items-center justify-between mb-3.5 px-0.5">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#0284c7]" />
                 <span className="text-[8.5px] font-bold text-[#0284c7] uppercase tracking-[0.2em] block">
-                  {isAr ? 'تصفح حسب الفئة' : 'PARCOURIR PAR UNIVERS'}
+                  {t('PARCOURIR PAR UNIVERS', 'BROWSE BY UNIVERSE', 'تصفح حسب الفئة')}
                 </span>
               </div>
               <h3 className="font-display-modern text-[16px] font-bold text-[#111827] tracking-tight">
-                {isAr ? 'العوالم العطرية الفاخرة' : 'Les Univers Olfactifs'}
+                {t('Les Univers Olfactifs', 'Fragrance Universes', 'العوالم العطرية الفاخرة')}
               </h3>
             </div>
             <Link 
               href={`/${locale}/shop`} 
               className="text-[11px] font-bold text-[#0284c7] bg-[#0284c7]/5 hover:bg-[#0284c7]/10 px-2.5 py-1 rounded-full flex items-center gap-1 transition-colors border border-[#0284c7]/15"
             >
-              <span>{isAr ? 'عرض الكل' : 'Voir tout'}</span>
+              <span>{t('Voir tout', 'View all', 'عرض الكل')}</span>
               <ChevronRight size={13} className="rtl:rotate-180" />
             </Link>
           </div>
 
-          {/* Grand Category Cards: Homme + Femme (2 Cols) & Unisexe (Full Width Luxe) — Pure Floating Flacons (No Ground Shadow) */}
           <div className="grid grid-cols-2 gap-2.5">
-            {/* HOMME */}
+            {/* MEN */}
             <Link
               href={`/${locale}/shop/men`}
               className="group relative rounded-2xl border border-slate-200/90 hover:border-sky-400/60 bg-gradient-to-b from-[#FAFBFD] via-[#F3F7FA] to-[#E9F0F6] p-3 flex flex-col justify-between overflow-hidden shadow-2xs hover:shadow-md active:scale-[0.98] transition-all duration-300 h-[216px]"
             >
-              {/* Subtle Luxury Editorial Monogram Watermark */}
               <span className="absolute ltr:-right-1 rtl:-left-1 -top-1.5 text-[44px] font-black tracking-tighter text-slate-900/[0.04] select-none pointer-events-none font-serif leading-none">
                 I
               </span>
-              {/* Luminous Ambient Spotlight (Pure back light, zero shadow) */}
               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full bg-sky-400/15 blur-xl pointer-events-none" />
 
               <div className="relative z-10">
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <span className="font-display-modern text-[13.5px] font-black tracking-[0.06em] uppercase text-[#111827] group-hover:text-sky-600 transition-colors">
-                    {isAr ? 'رجال' : 'HOMME'}
+                    {t('HOMME', 'MEN', 'رجال')}
                   </span>
                   <span className="text-[7.5px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50/95 border border-sky-300/50 px-1.5 py-0.5 rounded-full shadow-2xs shrink-0 flex items-center gap-1">
                     <span className="w-1 h-1 rounded-full bg-sky-500" />
-                    <span>{isAr ? 'الأكثر طلباً' : 'Best-Seller'}</span>
+                    <span>{t('Best-Seller', 'Best-Seller', 'الأكثر طلباً')}</span>
                   </span>
                 </div>
                 <p className="text-[9.5px] font-medium text-slate-500 leading-tight line-clamp-1">
-                  {isAr ? 'جاذبية وقوة السيلّاج' : 'Sillage & Puissance'}
+                  {t('Sillage & Puissance', 'Sillage & Power', 'جاذبية وقوة السيلّاج')}
                 </p>
               </div>
 
-              {/* Pure Floating Flacon — 100% Transparent Cutout, Zero Shadow */}
               <div className="relative w-full h-[116px] mt-1 mb-0.5 flex items-center justify-center z-10">
                 <Image
                   src="/images/flacon_dior_sauvage.png"
-                  alt="Parfums Homme"
+                  alt={t('Parfums Homme', "Men's Perfumes", 'عطور رجالية')}
                   fill
                   sizes="160px"
                   unoptimized
@@ -629,7 +654,7 @@ export default function MobileVersionBHome({
 
               <div className="relative z-10 flex items-center justify-between pt-1.5 border-t border-slate-900/5">
                 <span className="text-[10px] font-bold text-slate-800 group-hover:text-sky-600 transition-colors">
-                  {isAr ? 'استكشف المجموعة' : 'Explorer'}
+                  {t('Explorer', 'Explore', 'استكشف المجموعة')}
                 </span>
                 <div className="w-5 h-5 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 group-hover:bg-sky-500 group-hover:border-sky-500 group-hover:text-white transition-all duration-200">
                   <ChevronRight size={11} className="rtl:rotate-180" />
@@ -637,38 +662,35 @@ export default function MobileVersionBHome({
               </div>
             </Link>
 
-            {/* FEMME */}
+            {/* WOMEN */}
             <Link
               href={`/${locale}/shop/women`}
               className="group relative rounded-2xl border border-rose-200/80 hover:border-rose-400/60 bg-gradient-to-b from-[#FFFDFD] via-[#FDF5F2] to-[#FBECE6] p-3 flex flex-col justify-between overflow-hidden shadow-2xs hover:shadow-md active:scale-[0.98] transition-all duration-300 h-[216px]"
             >
-              {/* Subtle Luxury Editorial Monogram Watermark */}
               <span className="absolute ltr:-right-1 rtl:-left-1 -top-1.5 text-[44px] font-black tracking-tighter text-rose-950/[0.04] select-none pointer-events-none font-serif leading-none">
                 II
               </span>
-              {/* Luminous Ambient Spotlight (Pure back light, zero shadow) */}
               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full bg-rose-400/15 blur-xl pointer-events-none" />
 
               <div className="relative z-10">
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <span className="font-display-modern text-[13.5px] font-black tracking-[0.06em] uppercase text-[#111827] group-hover:text-rose-600 transition-colors">
-                    {isAr ? 'نساء' : 'FEMME'}
+                    {t('FEMME', 'WOMEN', 'نساء')}
                   </span>
                   <span className="text-[7.5px] font-bold uppercase tracking-wider text-rose-700 bg-rose-50/95 border border-rose-300/50 px-1.5 py-0.5 rounded-full shadow-2xs shrink-0 flex items-center gap-1">
                     <span className="w-1 h-1 rounded-full bg-rose-500" />
-                    <span>{isAr ? 'أنوثة راقية' : 'Coup de Cœur'}</span>
+                    <span>{t('Coup de Cœur', 'Top Pick', 'أنوثة راقية')}</span>
                   </span>
                 </div>
                 <p className="text-[9.5px] font-medium text-slate-500 leading-tight line-clamp-1">
-                  {isAr ? 'أناقة وسحر أنثوي' : 'Élégance & Douceur'}
+                  {t('Élégance & Douceur', 'Elegance & Grace', 'أناقة وسحر أنثوي')}
                 </p>
               </div>
 
-              {/* Pure Floating Flacon — 100% Transparent Cutout, Zero Shadow */}
               <div className="relative w-full h-[116px] mt-1 mb-0.5 flex items-center justify-center z-10">
                 <Image
                   src="/images/flacon_libre_intense.png"
-                  alt="Parfums Femme"
+                  alt={t('Parfums Femme', "Women's Perfumes", 'عطور نسائية')}
                   fill
                   sizes="160px"
                   unoptimized
@@ -678,7 +700,7 @@ export default function MobileVersionBHome({
 
               <div className="relative z-10 flex items-center justify-between pt-1.5 border-t border-rose-900/5">
                 <span className="text-[10px] font-bold text-slate-800 group-hover:text-rose-600 transition-colors">
-                  {isAr ? 'استكشف المجموعة' : 'Explorer'}
+                  {t('Explorer', 'Explore', 'استكشف المجموعة')}
                 </span>
                 <div className="w-5 h-5 rounded-full bg-white border border-rose-200/80 shadow-2xs flex items-center justify-center text-slate-700 group-hover:bg-rose-500 group-hover:border-rose-500 group-hover:text-white transition-all duration-200">
                   <ChevronRight size={11} className="rtl:rotate-180" />
@@ -686,37 +708,35 @@ export default function MobileVersionBHome({
               </div>
             </Link>
 
-            {/* UNISEXE — Full Width Prestige Showcase */}
+            {/* UNISEX */}
             <Link
               href={`/${locale}/shop/unisex`}
               className="group relative col-span-2 rounded-2xl border border-amber-200/90 hover:border-amber-400/70 bg-gradient-to-r from-[#FCFAF6] via-[#FAF4EA] to-[#F5ECE0] p-3.5 flex items-center justify-between overflow-hidden shadow-2xs hover:shadow-md active:scale-[0.99] transition-all duration-300 min-h-[134px]"
             >
-              {/* Subtle Luxury Editorial Monogram Watermark */}
               <span className="absolute ltr:-left-1 rtl:-right-1 -bottom-2 text-[52px] font-black tracking-tighter text-amber-950/[0.04] select-none pointer-events-none font-serif leading-none">
                 III
               </span>
-              {/* Luminous Ambient Spotlight (Pure back light, zero shadow) */}
               <div className="absolute right-8 top-1/2 -translate-y-1/2 rtl:right-auto rtl:left-8 w-32 h-32 rounded-full bg-amber-400/20 blur-xl pointer-events-none" />
               
               <div className="relative z-10 flex flex-col justify-between h-full pr-3 rtl:pr-0 rtl:pl-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-display-modern text-[14px] font-black tracking-[0.06em] uppercase text-[#111827] group-hover:text-amber-700 transition-colors">
-                      {isAr ? 'للجنسين' : 'UNISEXE'}
+                      {t('UNISEXE', 'UNISEX', 'للجنسين')}
                     </span>
                     <span className="text-[7.5px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100/90 border border-amber-300/60 px-2 py-0.5 rounded-full shadow-2xs flex items-center gap-1">
                       <Sparkles size={8} className="text-amber-600" />
-                      <span>{isAr ? 'عطور نيش' : 'Haute Niche'}</span>
+                      <span>{t('Haute Niche', 'Haute Niche', 'عطور نيش')}</span>
                     </span>
                   </div>
                   <p className="text-[10px] font-medium text-slate-600 leading-tight line-clamp-1">
-                    {isAr ? 'عطور النيش الخاصة وإبداعات نادرة' : 'Collections Privées & Sillages Rares'}
+                    {t('Collections Privées & Sillages Rares', 'Private Collections & Rare Scents', 'عطور النيش الخاصة وإبداعات نادرة')}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-1.5 pt-2 text-[#111827] group-hover:text-amber-700 transition-colors">
                   <span className="text-[10.5px] font-bold">
-                    {isAr ? 'استكشف عطور النيش' : 'Explorer les collections'}
+                    {t('Explorer les collections', 'Explore collections', 'استكشف عطور النيش')}
                   </span>
                   <div className="w-5 h-5 rounded-full bg-white border border-amber-200/80 shadow-2xs flex items-center justify-center text-slate-700 group-hover:bg-amber-600 group-hover:border-amber-600 group-hover:text-white transition-all duration-200">
                     <ChevronRight size={11} className="rtl:rotate-180" />
@@ -724,11 +744,10 @@ export default function MobileVersionBHome({
                 </div>
               </div>
 
-              {/* Pure Floating Flacon — 100% Transparent Cutout, Zero Shadow */}
               <div className="relative w-[114px] h-[108px] shrink-0 flex items-center justify-center z-10">
                 <Image
                   src="/images/flacon_baccarat_rouge.png"
-                  alt="Parfums Unisexe & Niche"
+                  alt={t('Parfums Unisexe & Niche', 'Unisex & Niche Perfumes', 'عطور للجنسين ونيش')}
                   fill
                   sizes="130px"
                   unoptimized
@@ -741,24 +760,20 @@ export default function MobileVersionBHome({
       </section>
 
       {/* ========================================================
-          1. BESTSELLERS: "Les Bestsellers Absolus"
-          Horizontal Swipe Carousel (Matching "Les Dernières Sorties" Style)
-          Synchronized 100% with Admin Panel (featuredBestsellers)
+          1. BESTSELLERS
           ======================================================== */}
       <section className="py-7 bg-[#FAF9F6] border-b border-[#ECE7DC]">
         <div className="w-full">
-          
-          {/* Section Header with Bold Modern Title */}
           <div className="px-4 flex items-end justify-between mb-4">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <Sparkles size={11} className="text-[#0284c7]" />
                 <span className="font-body-modern text-[9.5px] font-semibold tracking-[0.24em] uppercase text-[#0284c7]">
-                  {isAr ? 'الأكثر طلباً بالمغرب —' : 'COUP DE CŒUR CLIENTS —'}
+                  {t('COUP DE CŒUR CLIENTS —', 'CUSTOMER FAVORITES —', 'الأكثر طلباً بالمغرب —')}
                 </span>
               </div>
               <h2 className="font-display-modern text-[21px] sm:text-[23px] font-bold text-[#111827] tracking-tight">
-                {isAr ? 'أكثر العطور طلباً' : 'Les Bestsellers Absolus'}
+                {t('Les Bestsellers Absolus', 'All-Time Bestsellers', 'أكثر العطور طلباً')}
               </h2>
             </div>
             
@@ -766,38 +781,32 @@ export default function MobileVersionBHome({
               href={`/${locale}/shop?sort=bestseller`} 
               className="font-body-modern text-[11px] font-bold uppercase tracking-wider text-[#111827] hover:text-[#0284c7] transition flex items-center gap-1"
             >
-              <span>{isAr ? 'عرض الكل' : 'Voir tout'}</span>
+              <span>{t('Voir tout', 'View all', 'عرض الكل')}</span>
               <ArrowRight size={12} className="rtl:rotate-180" />
             </Link>
           </div>
 
-          {/* Horizontal Snap Carousel with Admin Order & End Padding */}
           <div className="flex gap-3 overflow-x-auto pb-3 px-4 scrollbar-none snap-x snap-mandatory after:w-10 after:shrink-0">
             {bestsellersList.map((p, idx) => renderHorizontalCard(p, { rank: idx + 1 }))}
           </div>
-
         </div>
       </section>
 
       {/* ========================================================
-          2. LES DERNIÈRES SORTIES (NEW ARRIVALS)
-          Horizontal Swipe Carousel with NOUVEAU Badge
-          Synchronized 100% with Admin Panel (featuredLatest)
+          2. NEW ARRIVALS
           ======================================================== */}
       <section className="py-7 bg-white border-b border-[#ECE7DC]">
         <div className="w-full">
-          
-          {/* Section Header with Bold Modern Title */}
           <div className="px-4 flex items-end justify-between mb-4">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <Flame size={12} className="text-[#0284c7]" />
                 <span className="font-body-modern text-[9.5px] font-semibold tracking-[0.24em] uppercase text-[#0284c7]">
-                  {isAr ? 'وصل حديثاً —' : 'ARRIVAGES RÉCENTS —'}
+                  {t('ARRIVAGES RÉCENTS —', 'NEW ARRIVALS —', 'وصل حديثاً —')}
                 </span>
               </div>
               <h2 className="font-display-modern text-[21px] sm:text-[23px] font-bold text-[#111827] tracking-tight">
-                {isAr ? 'أحدث الإصدارات' : 'Les Dernières Sorties'}
+                {t('Les Dernières Sorties', 'Latest Releases', 'أحدث الإصدارات')}
               </h2>
             </div>
             
@@ -805,38 +814,37 @@ export default function MobileVersionBHome({
               href={`/${locale}/shop?sort=newest`} 
               className="font-body-modern text-[11px] font-bold uppercase tracking-wider text-[#111827] hover:text-[#0284c7] transition flex items-center gap-1"
             >
-              <span>{isAr ? 'عرض الكل' : 'Voir tout'}</span>
+              <span>{t('Voir tout', 'View all', 'عرض الكل')}</span>
               <ArrowRight size={12} className="rtl:rotate-180" />
             </Link>
           </div>
 
-          {/* Horizontal Snap Carousel with Admin Order & End Padding */}
           <div className="flex gap-3 overflow-x-auto pb-3 px-4 scrollbar-none snap-x snap-mandatory after:w-10 after:shrink-0">
-            {newArrivalsList.map((p) => renderHorizontalCard(p, { badge: isAr ? 'جديد' : 'NOUVEAU', badgeColor: 'bg-[#0284c7] text-white' }))}
+            {newArrivalsList.map((p) =>
+              renderHorizontalCard(p, {
+                badge: t('NOUVEAU', 'NEW', 'جديد'),
+                badgeColor: 'bg-[#0284c7] text-white',
+              })
+            )}
           </div>
-
         </div>
       </section>
 
       {/* ========================================================
-          3. TENDANCES ÉTÉ-AUTOMNE (SEASONAL TRENDS)
-          New Horizontal Swipe Carousel Style (Matching User's Favorite Format)
-          Synchronized 100% with Admin Panel (featuredSeasonal)
+          3. SEASONAL TRENDS
           ======================================================== */}
       <section className="py-7 bg-[#FAF9F6] border-b border-[#ECE7DC]">
         <div className="w-full">
-          
-          {/* Section Header with Bold Modern Title & Subtitle */}
           <div className="px-4 flex items-end justify-between mb-1.5">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <Sun size={12} className="text-[#b45309]" />
                 <span className="font-body-modern text-[9.5px] font-semibold tracking-[0.24em] uppercase text-[#b45309]">
-                  {isAr ? 'إصدار موسمي خاص —' : 'ÉDITION SAISONNIÈRE —'}
+                  {t('ÉDITION SAISONNIÈRE —', 'SEASONAL EDITION —', 'إصدار موسمي خاص —')}
                 </span>
               </div>
               <h2 className="font-display-modern text-[21px] sm:text-[23px] font-bold text-[#111827] tracking-tight">
-                {seasonalTitle || (isAr ? 'اتجاهات الصيف والخريف' : 'Tendances Été-Automne')}
+                {seasonalTitle || t('Tendances Été-Automne', 'Seasonal Highlights', 'اتجاهات الصيف والخريف')}
               </h2>
             </div>
             
@@ -844,59 +852,59 @@ export default function MobileVersionBHome({
               href={`/${locale}/shop?season=${seasonQueryParam}`} 
               className="font-body-modern text-[11px] font-bold uppercase tracking-wider text-[#111827] hover:text-[#b45309] transition flex items-center gap-1 shrink-0"
             >
-              <span>{isAr ? 'عرض الكل' : 'Voir tout'}</span>
+              <span>{t('Voir tout', 'View all', 'عرض الكل')}</span>
               <ArrowRight size={12} className="rtl:rotate-180" />
             </Link>
           </div>
 
-          {/* Seasonal Subtitle */}
           <p className="px-4 font-body-modern text-[11px] font-normal text-[#6B7280] mb-4 leading-relaxed">
-            {seasonalSubtitle || (isAr 
-              ? 'عطور أيقونية بنفحات شمسية وخشبية دافئة لمرافقة الانتقال الموسمي بكل أناقة.'
-              : 'Des parfums iconiques pour prolonger l’été et accueillir l’automne avec élégance.'
-            )}
+            {seasonalSubtitle ||
+              t(
+                'Des parfums iconiques pour prolonger l’été et accueillir l’automne avec élégance.',
+                'Iconic fragrances with warm woody and solar notes tailored for the season.',
+                'عطور أيقونية بنفحات شمسية وخشبية دافئة لمرافقة الانتقال الموسمي بكل أناقة.'
+              )}
           </p>
 
-          {/* Horizontal Snap Carousel with Seasonal Badge & End Padding */}
           <div className="flex gap-3 overflow-x-auto pb-3 px-4 scrollbar-none snap-x snap-mandatory after:w-10 after:shrink-0">
-            {seasonalTrendsList.map((p) => renderHorizontalCard(p, { badge: isAr ? 'صيف-خريف' : 'ÉTÉ-AUTOMNE', badgeColor: 'bg-[#b45309] text-white' }))}
+            {seasonalTrendsList.map((p) =>
+              renderHorizontalCard(p, {
+                badge: t('ÉTÉ-AUTOMNE', 'SEASONAL', 'صيف-خريف'),
+                badgeColor: 'bg-[#b45309] text-white',
+              })
+            )}
           </div>
-
         </div>
       </section>
 
       {/* ========================================================
-          4. PARCOURIR PAR GAMME : TESTEURS (TOP) · ORIGINAUX & MASTER COPY (ROW)
-          Pure Floating Flacons (No Inner Box, Background Removed)
-          Place de Testeur inversée avec Parfum Original selon la demande utilisateur
+          4. EXPLORE BY COLLECTION: TESTERS · ORIGINALS · MASTER COPY
           ======================================================== */}
       <section className="px-4 py-7 bg-white border-b border-[#ECE7DC]">
         <div className="w-full">
-          {/* Section Header */}
           <div className="flex items-center justify-between mb-3.5 px-0.5">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <Award size={12} className="text-[#0284c7]" />
                 <span className="text-[8.5px] font-bold text-[#0284c7] uppercase tracking-[0.2em] block">
-                  {isAr ? 'تصفح حسب الفئة —' : 'EXPLOREZ PAR GAMME —'}
+                  {t('EXPLOREZ PAR GAMME —', 'EXPLORE BY COLLECTION —', 'تصفح حسب الفئة —')}
                 </span>
               </div>
               <h2 className="font-display-modern text-[19px] sm:text-[21px] font-bold text-[#111827] tracking-tight">
-                {isAr ? 'تسترات، عطور أصلية وماستر كوبي' : 'Testeurs, Originaux & Master Copy'}
+                {t('Testeurs, Originaux & Master Copy', 'Testers, Originals & Master Copy', 'تسترات، عطور أصلية وماستر كوبي')}
               </h2>
               <p className="text-[10.5px] font-normal text-[#6B7280] mt-0.5 leading-relaxed">
-                {isAr 
-                  ? 'اختر الفئة المناسبة: تسترات أصلية مستوردة، عطور أصلية مختومة، أو تشكيلة ماستر كوبي.'
-                  : 'Choisissez votre univers : testeurs authentiques importés, flacons retail scellés ou éditions Master Copy.'
-                }
+                {t(
+                  'Choisissez votre univers : testeurs authentiques importés, flacons retail scellés ou éditions Master Copy.',
+                  'Choose your collection: imported authentic testers, sealed retail bottles, or Master Copy editions.',
+                  'اختر الفئة المناسبة: تسترات أصلية مستوردة، عطور أصلية مختومة، أو تشكيلة ماستر كوبي.'
+                )}
               </p>
             </div>
           </div>
 
-          {/* Cards Grid: 1 Wide Flagship (TESTEURS) + 2 Columns (ORIGINAUX & MASTER COPY) */}
           <div className="grid grid-cols-2 gap-2.5 mt-3">
-            
-            {/* 1. TESTEURS — Full Width Flagship Card (Swapped on Top as Requested) */}
+            {/* 1. TESTERS */}
             <Link
               href={`/${locale}/testeurs`}
               className="group relative col-span-2 rounded-2xl border border-[#CDE3F7] bg-gradient-to-r from-[#F6FAFE] via-[#EDF5FD] to-[#E3F0FA] p-3.5 flex items-center justify-between overflow-hidden shadow-2xs hover:shadow-md hover:border-[#0284c7]/50 active:scale-[0.99] transition-all duration-300 min-h-[135px]"
@@ -907,23 +915,24 @@ export default function MobileVersionBHome({
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-display-modern text-[14.5px] font-black tracking-[0.06em] uppercase text-[#111827] group-hover:text-[#0284c7] transition-colors">
-                      {isAr ? 'تسترات أصلية' : 'TESTEURS AUTHENTIQUES'}
+                      {t('TESTEURS AUTHENTIQUES', 'AUTHENTIC TESTERS', 'تسترات أصلية')}
                     </span>
                     <span className="text-[7.5px] font-bold uppercase tracking-wider text-[#0284c7] bg-white/95 border border-[#0284c7]/25 px-1.5 py-0.5 rounded-full shadow-2xs">
-                      {isAr ? 'الأكثر طلباً' : 'Authentique 100%'}
+                      {t('Authentique 100%', '100% Authentic', 'الأكثر طلباً')}
                     </span>
                   </div>
                   <p className="text-[10px] font-medium text-[#6B7280] leading-snug max-w-[210px]">
-                    {isAr 
-                      ? 'تسترات أصلية مستوردة بنفس التركيز الأصلي، أسعار استثنائية وتوفير حتى 60%.'
-                      : 'Même jus que le flacon scellé, emballage neutre officiel et rapport qualité/prix imbattable.'
-                    }
+                    {t(
+                      'Même jus que le flacon scellé, emballage neutre officiel et rapport qualité/prix imbattable.',
+                      'Identical fragrance juice in official tester box at unbeatable privilege savings.',
+                      'تسترات أصلية مستوردة بنفس التركيز الأصلي، أسعار استثنائية وتوفير حتى 60%.'
+                    )}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-1.5 pt-2 text-[#111827] group-hover:text-[#0284c7] transition-colors">
                   <span className="text-[10.5px] font-bold">
-                    {isAr ? 'اكتشف التسترات الأصلية' : 'Explorer les Testeurs'}
+                    {t('Explorer les Testeurs', 'Explore Testers', 'اكتشف التسترات الأصلية')}
                   </span>
                   <div className="w-5 h-5 rounded-full bg-white shadow-2xs flex items-center justify-center text-[#111827] group-hover:bg-[#0284c7] group-hover:text-white transition-all duration-200">
                     <ChevronRight size={11} className="rtl:rotate-180" />
@@ -931,11 +940,10 @@ export default function MobileVersionBHome({
                 </div>
               </div>
 
-              {/* Pure Floating Flacon — Transparent Cutout, No Box, Zero Shadow */}
               <div className="relative w-[110px] h-[115px] shrink-0 flex items-center justify-center z-10">
                 <Image
                   src="/images/flacon_dior_homme_intense.png"
-                  alt="Testeurs de Parfums Authentiques"
+                  alt={t('Testeurs de Parfums Authentiques', 'Authentic Perfume Testers', 'تسترات أصلية')}
                   fill
                   sizes="140px"
                   unoptimized
@@ -944,7 +952,7 @@ export default function MobileVersionBHome({
               </div>
             </Link>
 
-            {/* 2. PARFUMS ORIGINAUX — Column 1 (Swapped to Row 2) */}
+            {/* 2. ORIGINALS */}
             <Link
               href={`/${locale}/parfums-originaux`}
               className="group relative rounded-2xl border border-[#E5D7F4] bg-gradient-to-b from-[#FAF7FD] to-[#EFE4FA] p-3 flex flex-col justify-between overflow-hidden shadow-2xs hover:shadow-md hover:border-[#9333ea]/50 active:scale-[0.98] transition-all duration-300 h-[206px]"
@@ -954,22 +962,21 @@ export default function MobileVersionBHome({
               <div className="relative z-10">
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <span className="font-display-modern text-[13.5px] font-black tracking-[0.06em] uppercase text-[#111827] group-hover:text-[#9333ea] transition-colors">
-                    {isAr ? 'عطور أصلية' : 'ORIGINAUX'}
+                    {t('ORIGINAUX', 'ORIGINALS', 'عطور أصلية')}
                   </span>
                   <span className="text-[7.5px] font-bold uppercase tracking-wider text-[#9333ea] bg-white/95 border border-[#9333ea]/20 px-1.5 py-0.5 rounded-full shadow-2xs shrink-0">
-                    {isAr ? 'مختومة 100%' : '100% Scellés'}
+                    {t('100% Scellés', '100% Sealed', 'مختومة 100%')}
                   </span>
                 </div>
                 <p className="text-[9.5px] font-medium text-[#6B7280] leading-tight line-clamp-1">
-                  {isAr ? 'علب مختومة مع السلوفان' : 'Blister d’origine & garantie'}
+                  {t('Blister d’origine & garantie', 'Factory sealed & verified', 'علب مختومة مع السلوفان')}
                 </p>
               </div>
 
-              {/* Pure Floating Flacon — Transparent Cutout, No Box, Zero Shadow */}
               <div className="relative w-full h-[115px] my-1 flex items-center justify-center z-10">
                 <Image
                   src="/images/flacon_amouage_interlude.png"
-                  alt="Parfums Originaux Scellés"
+                  alt={t('Parfums Originaux Scellés', 'Sealed Original Perfumes', 'عطور أصلية مختومة')}
                   fill
                   sizes="160px"
                   unoptimized
@@ -979,7 +986,7 @@ export default function MobileVersionBHome({
 
               <div className="relative z-10 flex items-center justify-between pt-1 border-t border-black/5">
                 <span className="text-[10px] font-bold text-[#111827] group-hover:text-[#9333ea] transition-colors">
-                  {isAr ? 'تصفح الأصلية' : 'Explorer'}
+                  {t('Explorer', 'Explore', 'تصفح الأصلية')}
                 </span>
                 <div className="w-5 h-5 rounded-full bg-white shadow-2xs flex items-center justify-center text-[#111827] group-hover:bg-[#9333ea] group-hover:text-white transition-all duration-200">
                   <ChevronRight size={11} className="rtl:rotate-180" />
@@ -987,7 +994,7 @@ export default function MobileVersionBHome({
               </div>
             </Link>
 
-            {/* 3. MASTER COPY — Column 2 */}
+            {/* 3. MASTER COPY */}
             <Link
               href={`/${locale}/master-copier`}
               className="group relative rounded-2xl border border-[#EDDBC6] bg-gradient-to-b from-[#FCFAF7] to-[#F7EDE1] p-3 flex flex-col justify-between overflow-hidden shadow-2xs hover:shadow-md hover:border-[#b45309]/50 active:scale-[0.98] transition-all duration-300 h-[206px]"
@@ -997,22 +1004,21 @@ export default function MobileVersionBHome({
               <div className="relative z-10">
                 <div className="flex items-center justify-between gap-1 mb-0.5">
                   <span className="font-display-modern text-[13.5px] font-black tracking-[0.06em] uppercase text-[#111827] group-hover:text-[#b45309] transition-colors">
-                    {isAr ? 'ماستر كوبي' : 'MASTER COPY'}
+                    {t('MASTER COPY', 'MASTER COPY', 'ماستر كوبي')}
                   </span>
                   <span className="text-[7.5px] font-bold uppercase tracking-wider text-[#b45309] bg-white/95 border border-amber-300/40 px-1.5 py-0.5 rounded-full shadow-2xs shrink-0">
-                    {isAr ? 'سعر خاص' : 'Prix Doux'}
+                    {t('Prix Doux', 'Great Value', 'سعر خاص')}
                   </span>
                 </div>
                 <p className="text-[9.5px] font-medium text-[#6B7280] leading-tight line-clamp-1">
-                  {isAr ? 'جودة عالية مطابقة' : 'Inspiration 1:1 fidèle'}
+                  {t('Inspiration 1:1 fidèle', '1:1 faithful scent profile', 'جودة عالية مطابقة')}
                 </p>
               </div>
 
-              {/* Pure Floating Flacon — Transparent Cutout, No Box, Zero Shadow */}
               <div className="relative w-full h-[115px] my-1 flex items-center justify-center z-10">
                 <Image
                   src="/images/flacon_le_male_elixir.png"
-                  alt="Parfums Master Copy"
+                  alt={t('Parfums Master Copy', 'Master Copy Perfumes', 'ماستر كوبي')}
                   fill
                   sizes="160px"
                   unoptimized
@@ -1022,86 +1028,78 @@ export default function MobileVersionBHome({
 
               <div className="relative z-10 flex items-center justify-between pt-1 border-t border-black/5">
                 <span className="text-[10px] font-bold text-[#111827] group-hover:text-[#b45309] transition-colors">
-                  {isAr ? 'تصفح ماستر كوبي' : 'Explorer'}
+                  {t('Explorer', 'Explore', 'تصفح ماستر كوبي')}
                 </span>
                 <div className="w-5 h-5 rounded-full bg-white shadow-2xs flex items-center justify-center text-[#111827] group-hover:bg-[#b45309] group-hover:text-white transition-all duration-200">
                   <ChevronRight size={11} className="rtl:rotate-180" />
                 </div>
               </div>
             </Link>
-
           </div>
         </div>
       </section>
 
       {/* ========================================================
           TRUST PILLARS: 4 REFINED COLUMNS
-          Clean Modern Typography · Zero Clutter
           ======================================================== */}
       <section className="px-4 py-6 bg-white border-y border-[#ECE7DC]">
         <div className="w-full">
           <div className="grid grid-cols-2 gap-y-5 gap-x-4">
-            
-            {/* Pillar 1 */}
             <div className="flex items-start gap-2.5">
               <div className="w-7 h-7 rounded-full bg-sky-50 text-[#0284c7] flex items-center justify-center shrink-0 mt-0.5">
                 <Award size={14} />
               </div>
               <div>
                 <span className="font-body-modern text-[11.5px] font-bold text-[#111827] block">
-                  {isAr ? 'جودة أصلية' : 'Haute Qualité'}
+                  {t('Haute Qualité', 'Premium Quality', 'جودة أصلية')}
                 </span>
                 <span className="font-body-modern text-[10px] font-normal text-[#6B7280] block mt-0.5">
-                  {isAr ? '100% عطور وتسترات أصلية' : '100% Authentique garanti'}
+                  {t('100% Authentique garanti', '100% Authentic guaranteed', '100% عطور وتسترات أصلية')}
                 </span>
               </div>
             </div>
 
-            {/* Pillar 2 */}
             <div className="flex items-start gap-2.5">
               <div className="w-7 h-7 rounded-full bg-sky-50 text-[#0284c7] flex items-center justify-center shrink-0 mt-0.5">
                 <Truck size={14} />
               </div>
               <div>
                 <span className="font-body-modern text-[11.5px] font-bold text-[#111827] block">
-                  {isAr ? 'توصيل سريع' : 'Livraison Express'}
+                  {t('Livraison Express', 'Express Delivery', 'توصيل سريع')}
                 </span>
                 <span className="font-body-modern text-[10px] font-normal text-[#6B7280] block mt-0.5">
-                  {isAr ? '24–48 ساعة لكافة المدن' : '24–48h partout au Maroc'}
+                  {t('24–48h partout au Maroc', '24–48h across Morocco', '24–48 ساعة لكافة المدن')}
                 </span>
               </div>
             </div>
 
-            {/* Pillar 3 */}
             <div className="flex items-start gap-2.5">
               <div className="w-7 h-7 rounded-full bg-sky-50 text-[#0284c7] flex items-center justify-center shrink-0 mt-0.5">
                 <Banknote size={14} />
               </div>
               <div>
                 <span className="font-body-modern text-[11.5px] font-bold text-[#111827] block">
-                  {isAr ? 'دفع عند الاستلام' : 'Paiement à la Réception'}
+                  {t('Paiement à la Réception', 'Cash on Delivery', 'دفع عند الاستلام')}
                 </span>
                 <span className="font-body-modern text-[10px] font-normal text-[#6B7280] block mt-0.5">
-                  {isAr ? 'عاين قبل أداء درهم واحد' : 'Zéro avance exigée'}
+                  {t('Zéro avance exigée', 'Zero upfront payment', 'عاين قبل أداء درهم واحد')}
                 </span>
               </div>
             </div>
 
-            {/* Pillar 4 */}
             <div className="flex items-start gap-2.5">
               <div className="w-7 h-7 rounded-full bg-sky-50 text-[#0284c7] flex items-center justify-center shrink-0 mt-0.5">
                 <Headphones size={14} />
               </div>
               <div>
                 <span className="font-body-modern text-[11.5px] font-bold text-[#111827] block">
-                  {isAr ? 'استشارة الخبراء' : 'Conseil d\'Experts'}
+                  {t("Conseil d'Experts", 'Expert Advice', 'استشارة الخبراء')}
                 </span>
                 <span className="font-body-modern text-[10px] font-normal text-[#6B7280] block mt-0.5">
-                  {isAr ? 'خدمة الزبناء رهن إشارتكم' : 'Assistance personnalisée'}
+                  {t('Assistance personnalisée', 'Personalized support', 'خدمة الزبناء رهن إشارتكم')}
                 </span>
               </div>
             </div>
-
           </div>
         </div>
       </section>
@@ -1112,7 +1110,6 @@ export default function MobileVersionBHome({
       <div className="px-4 py-4">
         <RecentlyViewed />
       </div>
-
     </div>
   );
 }

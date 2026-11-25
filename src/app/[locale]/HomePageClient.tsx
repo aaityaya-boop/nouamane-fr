@@ -122,6 +122,7 @@ export default function HomePageClient({
       : (dict.seasonal?.subtitleSpring || 'Des notes hespéridées, aquatiques et solaires pour illuminer vos journées.'));
 
   const isAr = locale === 'ar';
+  const isEn = locale === 'en';
 
   const categoryMeta: Record<string, {
     label: string;
@@ -257,7 +258,7 @@ export default function HomePageClient({
           bestsellers={bestsellersDisplay}
           newArrivals={newArrivals}
           seasonalTrends={seasonalTrends}
-          seasonalTitle={isCustomFrenchSeason ? homepageConfig?.seasonalTrendTitle : (isAr ? 'اتجاهات الصيف والخريف' : 'Tendances Été-Automne')}
+          seasonalTitle={isCustomFrenchSeason ? homepageConfig?.seasonalTrendTitle : (isAr ? 'اتجاهات الصيف والخريف' : isEn ? 'Seasonal Highlights' : 'Tendances Été-Automne')}
           seasonalSubtitle={displaySeasonalSubtitle}
           seasonQueryParam={seasonQueryParam}
           latestReviews={latestReviews}
@@ -665,23 +666,39 @@ export default function HomePageClient({
           {[
             { 
               icon: <ShieldCheck size={19} strokeWidth={1.8} />, 
-              title: 'Essayez avant de payer', 
-              desc: 'Ouvrez votre colis et testez le parfum devant le livreur. Si vous refusez, vous ne payez rien, aucun frais de livraison.' 
+              title: isAr ? 'عاين قبل أن تدفع' : isEn ? 'Try Before You Pay' : 'Essayez avant de payer', 
+              desc: isAr
+                ? 'افتح طردك وجرب العطر أمام الموزع. إذا لم يعجبك، لن تدفع شيئاً بدون أي رسوم.'
+                : isEn
+                ? 'Open your parcel and inspect the perfume with the courier. If you decline, you pay nothing.'
+                : 'Ouvrez votre colis et testez le parfum devant le livreur. Si vous refusez, vous ne payez rien, aucun frais de livraison.' 
             },
             { 
               icon: <Truck size={19} strokeWidth={1.8} />, 
-              title: 'Livraison 24–48h', 
-              desc: 'Délai moyen de 24 à 48h après expédition (délai total ~72h selon disponibilité du flacon) partout au Maroc.' 
+              title: isAr ? 'توصيل خلال 24–48 ساعة' : isEn ? 'Delivery in 24–48h' : 'Livraison 24–48h', 
+              desc: isAr
+                ? 'شحن سريع خلال 24 إلى 48 ساعة بعد الإرسال لكافة مدن المملكة المغربية.'
+                : isEn
+                ? 'Average 24–48h delivery after dispatch (~72h total depending on availability) across Morocco.'
+                : 'Délai moyen de 24 à 48h après expédition (délai total ~72h selon disponibilité du flacon) partout au Maroc.' 
             },
             { 
               icon: <Award size={19} strokeWidth={1.8} />, 
-              title: 'Flacons 100% Authentiques', 
-              desc: 'Parfums originaux et testeurs de grandes maisons de luxe, issus directement de distributeurs agréés.' 
+              title: isAr ? 'قنينات أصلية 100%' : isEn ? '100% Authentic Bottles' : 'Flacons 100% Authentiques', 
+              desc: isAr
+                ? 'عطور أصلية وتسترات من أفخم الدور العالمية عبر موزعين معتمدين.'
+                : isEn
+                ? 'Authentic fragrances and testers from top luxury houses sourced from authorized distributors.'
+                : 'Parfums originaux et testeurs de grandes maisons de luxe, issus directement de distributeurs agréés.' 
             },
             { 
               icon: <Banknote size={19} strokeWidth={1.8} />, 
-              title: 'Paiement à la livraison', 
-              desc: '0 DH d\'avance exigé. Réglez en toute sérénité en espèces lors de la remise en main propre.' 
+              title: isAr ? 'الدفع عند الاستلام' : isEn ? 'Cash on Delivery' : 'Paiement à la livraison', 
+              desc: isAr
+                ? '0 درهم تسبيق. الدفع نقداً بكل أمان عند استلام طلبيتك.'
+                : isEn
+                ? '0 MAD advance required. Pay safely in cash when your parcel is handed to you.'
+                : '0 DH d\'avance exigé. Réglez en toute sérénité en espèces lors de la remise en main propre.' 
             },
           ].map((item) => (
             <motion.div variants={staggerItem} key={item.title} className="text-center sm:text-start bg-white rounded-2xl p-3.5 sm:p-5 border border-[#e0ddd4]/70 shadow-2xs group flex flex-col justify-between">

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Globe } from 'lucide-react';
+import Cookies from 'js-cookie';
 import { useDictionary } from '@/context/DictionaryContext';
 
 const languages = [
@@ -18,18 +19,34 @@ export default function LanguageSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
 
   // Extract current locale from pathname
-  const currentLocale = pathname.split('/')[1];
-  const currentLang = languages.find(l => l.code === currentLocale) || languages[0];
+  const firstSegment = pathname.split('/')[1] || '';
+  const hasLocalePrefix = languages.some((l) => l.code === firstSegment);
+  const currentLocale = hasLocalePrefix ? firstSegment : 'fr';
+  const currentLang = languages.find((l) => l.code === currentLocale) || languages[0];
   const isAr = currentLocale === 'ar';
+  const isEn = currentLocale === 'en';
+
+  useEffect(() => {
+    if (hasLocalePrefix) {
+      Cookies.set('NAY_LOCALE', currentLocale, { expires: 365, path: '/', sameSite: 'lax' });
+    }
+  }, [currentLocale, hasLocalePrefix]);
 
   const handleLanguageChange = (newLocale: string) => {
     setIsOpen(false);
     if (newLocale === currentLocale) return;
 
-    const regex = new RegExp(`^/${currentLocale}(/|$)`);
-    const newPath = pathname.replace(regex, `/${newLocale}$1`);
+    Cookies.set('NAY_LOCALE', newLocale, { expires: 365, path: '/', sameSite: 'lax' });
+
+    const newPath = hasLocalePrefix
+      ? pathname.replace(new RegExp(`^/${currentLocale}(/|$)`), `/${newLocale}$1`)
+      : pathname === '/'
+      ? `/${newLocale}`
+      : `/${newLocale}${pathname}`;
+
     const search = typeof window !== 'undefined' ? window.location.search : '';
     router.push(`${newPath || `/${newLocale}`}${search}`);
+    router.refresh();
   };
 
   return (
@@ -37,15 +54,15 @@ export default function LanguageSwitcher() {
       <button 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        aria-label={isAr ? `تغيير اللغة (الحالية: ${currentLang.name})` : `Changer de langue (actuelle : ${currentLang.name})`}
+        aria-label={isAr ? `تغيير اللغة (الحالية: ${currentLang.name})` : isEn ? `Change language (current: ${currentLang.name})` : `Changer de langue (actuelle : ${currentLang.name})`}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        title={isAr ? `تغيير اللغة (${currentLang.name})` : `Changer de langue (${currentLang.name})`}
-        className="flex items-center gap-1.5 text-[12px] font-semibold tracking-wider hover:text-gray-600 transition-colors uppercase cursor-pointer"
+        title={isAr ? `تغيير اللغة (${currentLang.name})` : isEn ? `Change language (${currentLang.name})` : `Changer de langue (${currentLang.name})`}
+        className="flex items-center gap-1.5 text-[12px] font-semibold tracking-wider hover:text-gray-600 transition-colors uppercase cursor-pointer py-1 px-1"
       >
         <Globe size={16} aria-hidden="true" />
         <span className="text-[11.5px] font-bold uppercase">{currentLang.code}</span>
-        <span className="sr-only">{isAr ? 'تغيير لغة الموقع' : 'Changer la langue du site'}</span>
+        <span className="sr-only">{isAr ? 'تغيير لغة الموقع' : isEn ? 'Change website language' : 'Changer la langue du site'}</span>
       </button>
 
       {isOpen && (

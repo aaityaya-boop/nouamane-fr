@@ -15,6 +15,7 @@ import {
   Minus,
   Trash2,
   ArrowRight,
+  ChevronLeft,
   ShoppingBag,
   Truck,
   ShieldCheck,
@@ -182,6 +183,21 @@ export default function CartPage() {
           
           {/* HEADER & TUNNEL STEPPER */}
           <div className="mb-5 sm:mb-8 lg:mb-12">
+            <div className="mb-3 sm:mb-4">
+              <Link
+                href={`/${locale}/shop`}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-[#111827] text-[#111827] hover:text-white border border-[#E5E0D6] hover:border-[#111827] text-[11.5px] sm:text-[12px] font-bold shadow-2xs transition-all active:scale-95"
+              >
+                <ChevronLeft size={14} strokeWidth={2.5} className="rtl:rotate-180 shrink-0" />
+                <span>
+                  {locale === 'ar'
+                    ? 'العودة إلى المتجر'
+                    : locale === 'en'
+                    ? 'Back to Shop'
+                    : 'Retour à la boutique'}
+                </span>
+              </Link>
+            </div>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 border-b border-[#E5E0D6] pb-4 sm:pb-6">
               <div>
                 <div className="inline-flex items-center gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-sky-50 border border-sky-200/80 text-[#0284c7] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">

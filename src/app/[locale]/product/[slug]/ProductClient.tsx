@@ -83,7 +83,26 @@ export default function ProductClient({
   const pathname = usePathname();
   const rawLocale = propLocale || (pathname?.split('/')[1] as Locale) || 'fr';
   const locale: Locale = (['fr', 'en', 'ar'].includes(rawLocale) ? rawLocale : 'fr') as Locale;
+  const isAr = locale === 'ar';
+  const isEn = locale === 'en';
   const t = translations[locale] || translations.fr;
+
+  const handleBackToShop = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1 && document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (
+          refUrl.origin === window.location.origin &&
+          !refUrl.pathname.includes('/checkout') &&
+          refUrl.pathname !== window.location.pathname
+        ) {
+          router.back();
+          return;
+        }
+      } catch {}
+    }
+    router.push(`/${locale}/shop`);
+  };
 
   // Accordion open/close state — all closed by default as requested
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -408,57 +427,77 @@ export default function ProductClient({
     <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen pb-24 lg:pb-16 overflow-x-hidden">
       <Header />
 
-      {/* BREADCRUMB */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[34px] pt-[62px] sm:pt-[76px] lg:pt-[89px] pb-[8px] sm:pb-[13px]">
-        <nav className="flex items-center gap-1.5 sm:gap-2 text-[10.5px] sm:text-[11px] text-[#8C827A] overflow-x-auto no-scrollbar whitespace-nowrap py-1 tracking-[0.02em]">
-          <Link href={`/${locale}`} className="hover:text-[#0ea5e9] shrink-0 transition">
-            {t.breadcrumb.home}
-          </Link>
-          <Chev size={12} className="shrink-0 text-[#ccc]" />
-          <Link href={`/${locale}/shop`} className="hover:text-[#0ea5e9] shrink-0 transition">
-            {t.breadcrumb.shop}
-          </Link>
-          <Chev size={12} className="shrink-0 text-[#ccc]" />
-          <Link
-            href={`/${locale}/shop/${product.gender}`}
-            className="hover:text-[#0ea5e9] shrink-0 transition"
+      {/* TOP BACK TO SHOP & BREADCRUMB BAR */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[34px] pt-[66px] sm:pt-[82px] lg:pt-[94px] pb-[8px] sm:pb-[13px]">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <button
+            type="button"
+            onClick={handleBackToShop}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-[#111827] text-[#111827] hover:text-white border border-[#e0ddd4] hover:border-[#111827] text-[11.5px] sm:text-[12px] font-bold shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
           >
-            {t.genderMap[product.gender as keyof typeof t.genderMap]
-              ? `Parfums ${t.genderMap[product.gender as keyof typeof t.genderMap]}`
-              : product.subcategoryLabel}
-          </Link>
-          {product.brand && (
-            <>
-              <Chev size={12} className="shrink-0 text-[#ccc]" />
-              <Link
-                href={`/${locale}/brands/${product.brand}`}
-                className="hover:text-[#0ea5e9] shrink-0 transition"
-              >
-                {product.brandLabel}
-              </Link>
-            </>
-          )}
-          <Chev size={12} className="shrink-0 text-[#ccc]" />
-          <span className="text-[#1A1A1A] font-semibold shrink-0 truncate max-w-[140px] sm:max-w-none">
-            {product.name}
-          </span>
-        </nav>
+            <ChevronLeft size={14} strokeWidth={2.5} className="rtl:rotate-180 shrink-0" />
+            <span>
+              {isAr ? 'العودة إلى المتجر' : isEn ? 'Back to Shop' : 'Retour à la boutique'}
+            </span>
+          </button>
+
+          <nav
+            aria-label="Breadcrumb"
+            className="flex items-center gap-1.5 sm:gap-2 text-[10.5px] sm:text-[11px] text-[#8C827A] overflow-x-auto no-scrollbar whitespace-nowrap py-1 tracking-[0.02em] min-w-0"
+          >
+            <Link href={`/${locale}`} className="hover:text-[#0ea5e9] shrink-0 transition">
+              {t.breadcrumb.home}
+            </Link>
+            <Chev size={12} className="shrink-0 text-[#ccc] rtl:rotate-180" />
+            <Link href={`/${locale}/shop`} className="hover:text-[#0ea5e9] shrink-0 transition">
+              {t.breadcrumb.shop}
+            </Link>
+            <Chev size={12} className="shrink-0 text-[#ccc] rtl:rotate-180" />
+            <Link
+              href={`/${locale}/shop/${product.gender}`}
+              className="hover:text-[#0ea5e9] shrink-0 transition"
+            >
+              {t.genderMap[product.gender as keyof typeof t.genderMap]
+                ? isAr
+                  ? `عطور ${t.genderMap[product.gender as keyof typeof t.genderMap]}`
+                  : isEn
+                  ? `${t.genderMap[product.gender as keyof typeof t.genderMap]} Fragrances`
+                  : `Parfums ${t.genderMap[product.gender as keyof typeof t.genderMap]}`
+                : product.subcategoryLabel}
+            </Link>
+            {product.brand && (
+              <>
+                <Chev size={12} className="shrink-0 text-[#ccc] rtl:rotate-180" />
+                <Link
+                  href={`/${locale}/brands/${product.brand}`}
+                  className="hover:text-[#0ea5e9] shrink-0 transition"
+                >
+                  {product.brandLabel}
+                </Link>
+              </>
+            )}
+            <Chev size={12} className="shrink-0 text-[#ccc] rtl:rotate-180 hidden sm:inline" />
+            <span className="hidden sm:inline text-[#1A1A1A] font-semibold shrink-0 truncate max-w-[200px] lg:max-w-none">
+              {product.name}
+            </span>
+          </nav>
+        </div>
       </div>
 
       {/* ====== MAIN HERO: GOLDEN RATIO SPLIT GALLERY (1.618fr) & BUYBOX (1fr) ====== */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[34px] pt-[8px] pb-[21px] sm:py-[21px] lg:py-[34px]">
         <div className="grid lg:grid-cols-[1.618fr_1fr] gap-[21px] lg:gap-[34px] items-start">
           
-          {/* -------- LEFT: LUXURY GOLDEN SPIRAL GALLERY (61.8% Desktop / Above-Fold Balanced Mobile) -------- */}
+          {/* -------- LEFT: LUXURY STUDIO GALLERY (Matches image cleanly to frame) -------- */}
           <div className="min-w-0 lg:sticky lg:top-[89px]">
             <div
-              className="relative aspect-[1.272/1] sm:aspect-[1.272/1] lg:aspect-[1/1.02] bg-gradient-to-b from-[#FAF9F5] to-white rounded-[16px] sm:rounded-[21px] overflow-hidden border border-[#E5E0D6] shadow-xs group select-none touch-pan-y"
+              className="relative aspect-[1/1.02] sm:aspect-[1/1.02] bg-white rounded-[16px] sm:rounded-[21px] overflow-hidden border border-[#E5E0D6] shadow-xs group select-none touch-pan-y"
               onTouchStart={handleGalleryTouchStart}
               onTouchMove={handleGalleryTouchMove}
               onTouchEnd={handleGalleryTouchEnd}
             >
               <div
-                className="relative w-full h-full overflow-hidden cursor-crosshair"
+                className="relative w-full h-full overflow-hidden cursor-crosshair bg-white flex items-center justify-center"
                 onMouseMove={handleGalleryMouseMove}
                 onMouseLeave={handleGalleryMouseLeave}
               >
@@ -470,9 +509,9 @@ export default function ProductClient({
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 62vw, 780px"
                   style={{
                     transformOrigin: zoomPos ? `${zoomPos.x}% ${zoomPos.y}%` : 'center center',
-                    transform: zoomPos ? 'scale(1.75)' : 'scale(1)',
+                    transform: zoomPos ? 'scale(1.75)' : 'scale(1.12)',
                   }}
-                  className="object-contain sm:object-cover p-2 sm:p-0 transition-transform duration-200 ease-out"
+                  className="object-contain mix-blend-multiply transition-transform duration-200 ease-out"
                   priority
                 />
               </div>
@@ -480,7 +519,23 @@ export default function ProductClient({
               {/* Badges on Gallery */}
               <div className="absolute top-[13px] left-[13px] sm:top-[21px] sm:left-[21px] z-10 flex flex-wrap items-center gap-[8px] pointer-events-none">
                 <span className="text-[9.5px] sm:text-[10px] font-bold tracking-[0.14em] uppercase bg-[#111827]/85 backdrop-blur-md text-white px-3 py-1 rounded-full shadow-sm">
-                  {isTesterProduct ? 'Testeur de Parfum' : isOrientalProduct ? 'Parfum Oriental' : 'Édition Originale'}
+                  {isTesterProduct
+                    ? isAr
+                      ? 'تستر عطر'
+                      : isEn
+                      ? 'Perfume Tester'
+                      : 'Testeur de Parfum'
+                    : isOrientalProduct
+                    ? isAr
+                      ? 'عطر شرقي'
+                      : isEn
+                      ? 'Oriental Perfume'
+                      : 'Parfum Oriental'
+                    : isAr
+                    ? 'إصدار أصلي'
+                    : isEn
+                    ? 'Original Edition'
+                    : 'Édition Originale'}
                 </span>
                 {product.originalPrice && product.originalPrice > currentPrice && (
                   <span className="text-[9.5px] sm:text-[10px] font-bold tracking-wider uppercase bg-[#0ea5e9] text-white px-2.5 py-1 rounded-full shadow-sm tabular-nums">
@@ -633,7 +688,7 @@ export default function ProductClient({
             <div className="p-[13px] sm:p-[21px] rounded-[16px] sm:rounded-[21px] bg-white border border-[#E5E0D6] shadow-xs flex items-center justify-between gap-[13px]">
               <div className="min-w-0">
                 <span className="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.16em] text-[#8C827A] block mb-0.5">
-                  Prix au Maroc
+                  {t.fiche.priceMorocco}
                 </span>
                 <div className="flex items-baseline gap-[8px] sm:gap-[13px] flex-wrap">
                   <span className="heading-font text-[26px] sm:text-[34px] font-extrabold text-[#111827] tabular-nums leading-none tracking-[-0.02em]">
@@ -650,10 +705,20 @@ export default function ProductClient({
               <div className="text-right shrink-0">
                 <span className="text-[11px] sm:text-[12px] text-emerald-700 font-bold flex items-center justify-end gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                  {inStock ? 'En stock' : 'Rupture'}
+                  {inStock
+                    ? isAr
+                      ? 'متوفر'
+                      : isEn
+                      ? 'In stock'
+                      : 'En stock'
+                    : isAr
+                    ? 'نفدت الكمية'
+                    : isEn
+                    ? 'Out of stock'
+                    : 'Rupture'}
                 </span>
                 <span className="text-[10px] text-[#8C827A] block mt-0.5 font-medium">
-                  TTC · Paiement COD
+                  {isAr ? 'شامل للضريبة · الدفع عند الاستلام' : isEn ? 'Tax incl. · COD' : 'TTC · Paiement COD'}
                 </span>
               </div>
             </div>
@@ -743,12 +808,12 @@ export default function ProductClient({
                       ) : isAdded ? (
                         <>
                           <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span>Ajouté au panier !</span>
+                          <span>{t.actions.addSuccess}</span>
                         </>
                       ) : (
                         <>
                           <ShoppingBag className="w-4 h-4 shrink-0" />
-                          <span>Ajouter au panier</span>
+                          <span>{t.actions.addToCart}</span>
                         </>
                       )}
                     </button>
