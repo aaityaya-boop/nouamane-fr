@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart, calculatePromoDiscount } from '@/context/CartContext';
 import { formatMAD, MOROCCAN_CITIES } from '@/lib/products';
 import { ALL_COUNTRIES, POPULAR_COUNTRIES, CountryCode } from '@/lib/countryCodes';
@@ -111,15 +112,7 @@ function CheckoutPageInner() {
   const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const countryPickerRef = useRef<HTMLDivElement>(null);
-
-  // Success Celebration Modal State
-  const [orderSuccessData, setOrderSuccessData] = useState<{
-    orderNumber: string;
-    invoiceToken: string | null;
-    customerName: string;
-    total: number;
-    city: string;
-  } | null>(null);
+  const [isRedirectingToConfirm, setIsRedirectingToConfirm] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -133,18 +126,6 @@ function CheckoutPageInner() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    if (searchParams.get('previewCelebration') === '1') {
-      setOrderSuccessData({
-        orderNumber: 'NAY-2026-9412',
-        invoiceToken: 'DEMO-TOKEN',
-        customerName: 'Youssef El Alami',
-        total: 334,
-        city: 'Casablanca',
-      });
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     if (!isBuyNow) {
@@ -205,6 +186,11 @@ function CheckoutPageInner() {
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Prefetch confirmation page for a seamless instant transition on order submit
+  useEffect(() => {
+    router.prefetch(`/${locale}/order-confirmation`);
+  }, [router, locale]);
 
   // Promo Code State
   const [promoInput, setPromoInput] = useState('');
@@ -533,16 +519,13 @@ function CheckoutPageInner() {
         });
       }
 
-      // Trigger Celebration Modal with Luxury Animation before redirect
-      setOrderSuccessData({
-        orderNumber,
-        invoiceToken: invoiceToken || null,
-        customerName: `${form.firstName} ${form.lastName}`.trim(),
-        total,
-        city: form.city,
-      });
-
-      setIsSubmitting(false);
+      // Simple clean crossfade transition into confirmation & order tracking
+      const targetUrl = `/${locale}/order-confirmation?order=${encodeURIComponent(orderNumber)}`;
+      router.prefetch(targetUrl);
+      setIsRedirectingToConfirm(true);
+      setTimeout(() => {
+        router.push(targetUrl);
+      }, 240);
     } catch (err: any) {
       console.error(err);
       setSubmitError(
@@ -1563,17 +1546,6 @@ function CheckoutPageInner() {
       {/* 5. DEDICATED LUXURY CHECKOUT FOOTER */}
       <LuxuryTunnelFooter />
 
-      {/* 6. CELEBRATION SUCCESS ANIMATION MODAL */}
-      {orderSuccessData && (
-        <OrderCelebrationModal
-          data={orderSuccessData}
-          locale={locale}
-          onRedirect={() => {
-            router.push(`/${locale}/order-confirmation?order=${orderSuccessData.orderNumber}`);
-          }}
-        />
-      )}
-
       {/* Promo Authentication Modal */}
       <PromoAuthModal
         isOpen={showAuthModal}
@@ -1588,6 +1560,37 @@ function CheckoutPageInner() {
           }
         }}
       />
+
+      {/* Simple Clean Alabaster Transition into Order Confirmation */}
+      <AnimatePresence>
+        {isRedirectingToConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="fixed inset-0 z-[9999] bg-[#fafaf7] flex flex-col items-center justify-center px-6 text-center"
+            aria-live="polite"
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div
+                className="w-24 h-10 bg-[#0f172a]"
+                style={{
+                  maskImage: 'url("/images/nay/Artboard%202.png")',
+                  WebkitMaskImage: 'url("/images/nay/Artboard%202.png")',
+                  maskSize: 'contain',
+                  WebkitMaskSize: 'contain',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskPosition: 'center',
+                  WebkitMaskPosition: 'center',
+                }}
+              />
+              <div className="w-5 h-5 border-2 border-[#e2ddd2] border-t-[#0284c7] rounded-full animate-spin" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1640,127 +1643,6 @@ function StepIndicator({
           label
         )}
       </span>
-    </div>
-  );
-}
-
-/* ============================================================
-   CELEBRATION SUCCESS MODAL WITH LUXURY ANIMATION
-   ============================================================ */
-
-function OrderCelebrationModal({
-  data,
-  onRedirect,
-}: {
-  data: {
-    orderNumber: string;
-    invoiceToken: string | null;
-    customerName: string;
-    total: number;
-    city: string;
-  };
-  locale: string;
-  onRedirect: () => void;
-}) {
-  const [countdown, setCountdown] = useState(3);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          onRedirect();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [onRedirect]);
-
-  return (
-    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="relative max-w-lg w-full bg-white rounded-3xl p-6 sm:p-8 text-center shadow-2xl border border-sky-100 overflow-hidden">
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-[#0ea5e9]/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative mx-auto mb-5 w-24 h-24 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-[#0ea5e9]/20 animate-ping" />
-          <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-[#0ea5e9] to-sky-400 text-white flex items-center justify-center shadow-xl shadow-sky-500/30">
-            <svg
-              className="w-10 h-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={3}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-          </div>
-        </div>
-
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-[#0284c7] text-[11px] font-bold uppercase tracking-wider mb-2">
-          <Sparkles size={12} className="text-[#0ea5e9]" /> Commande Confirmée avec Succès
-        </div>
-
-        <h3 className="heading-font text-2xl sm:text-3xl font-extrabold text-[#0f172a] tracking-tight">
-          Merci pour votre commande !
-        </h3>
-
-        <p className="text-[13px] text-[#64748b] mt-1.5 leading-relaxed">
-          {data.customerName ? `Félicitations ${data.customerName}, votre ` : 'Votre '}parfum d&apos;exception est en cours de préparation dans notre Atelier.
-        </p>
-
-        <div className="my-5 p-4 rounded-2xl bg-[#f8f7f3] border border-[#e6e2d8] flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="text-center sm:text-left">
-            <span className="text-[10px] uppercase tracking-wider font-bold text-[#64748b] block">
-              N° de Commande
-            </span>
-            <span className="font-mono font-bold text-[#0f172a] text-[15px]">{data.orderNumber}</span>
-          </div>
-          <div className="text-center sm:text-right">
-            <span className="text-[10px] uppercase tracking-wider font-bold text-[#64748b] block">
-              À régler au livreur
-            </span>
-            <span className="heading-font font-extrabold text-[#0284c7] text-[16px] tabular-nums">
-              {formatMAD(data.total)}
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-2 text-left text-[12px] text-[#475569] mb-6">
-          <div className="flex items-center gap-2">
-            <Check size={14} className="text-[#0ea5e9] shrink-0" strokeWidth={3} />
-            <span>Colis emballé avec soin & contrôle d&apos;authenticité</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check size={14} className="text-[#0ea5e9] shrink-0" strokeWidth={3} />
-            <span>
-              Expédition express sous 24h à 48h vers <strong>{data.city}</strong>
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check size={14} className="text-[#0ea5e9] shrink-0" strokeWidth={3} />
-            <span>Ouvrez et testez votre flacon avant de régler en espèces</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onRedirect}
-          className="w-full h-13 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] text-white font-bold text-[14px] rounded-2xl shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
-        >
-          <span>Consulter mon reçu officiel</span>
-          <ArrowRight size={16} />
-        </button>
-
-        <p className="text-[11px] text-[#94a3b8] mt-2.5">
-          Redirection automatique dans {countdown}s…
-        </p>
-      </div>
     </div>
   );
 }

@@ -338,7 +338,7 @@ export default async function LocaleLayout({
                 availableLanguage: ["fr", "ar", "en"]
               },
               sameAs: [
-                "https://www.instagram.com/nayparfum",
+                "https://www.instagram.com/nayparfums/",
                 "https://www.facebook.com/nayparfum"
               ]
                 }

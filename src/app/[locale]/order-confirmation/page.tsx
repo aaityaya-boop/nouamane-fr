@@ -3,10 +3,12 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import Script from 'next/script';
+import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { PerfumeBottleIcon, CodCashIcon } from '@/components/icons/MaisonIcons';
 import { formatMAD } from '@/lib/products';
 import {
   Check,
@@ -17,11 +19,35 @@ import {
   Mail,
   Phone,
   MapPin,
-  Share2,
   Printer,
-  Banknote,
-  CreditCard,
+  ClipboardCheck,
+  MessageCircle,
+  ArrowRight,
+  ShieldCheck,
+  Search,
+  ShoppingBag,
 } from 'lucide-react';
+
+function InstagramVectorIcon({ size = 16, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  );
+}
 
 type OrderConfirmation = {
   orderNumber: string;
@@ -50,284 +76,478 @@ type OrderConfirmation = {
 
 function OrderConfirmationInner() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const rawLocale = pathname?.split('/')[1] || 'fr';
+  const locale = (['fr', 'en', 'ar'].includes(rawLocale) ? rawLocale : 'fr') as 'fr' | 'en' | 'ar';
   const orderNumber = searchParams.get('order');
   const [order, setOrder] = useState<OrderConfirmation | null>(null);
   const [copied, setCopied] = useState(false);
+  const [recordedAtLabel, setRecordedAtLabel] = useState("Aujourd'hui");
+  const [deliveryLabel, setDeliveryLabel] = useState('Sous 24 à 48h ouvrées');
 
   useEffect(() => {
+    const now = new Date();
+    setRecordedAtLabel(
+      `Aujourd'hui, ${now.toLocaleTimeString('fr-MA', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`
+    );
+
+    const est = new Date(now);
+    est.setDate(est.getDate() + 3);
+    setDeliveryLabel(
+      est.toLocaleDateString('fr-MA', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      })
+    );
+
     const saved = localStorage.getItem('nouamaneLastOrder');
     if (saved) {
       try {
-        setOrder(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (!orderNumber || parsed?.orderNumber === orderNumber) {
+          setOrder(parsed);
+        } else {
+          setOrder(null);
+        }
       } catch {
         setOrder(null);
       }
     }
-  }, []);
+  }, [orderNumber]);
+
+  const displayOrderNumber = order?.orderNumber || orderNumber || '';
 
   const handleCopyOrder = () => {
-    if (order?.orderNumber) {
-      navigator.clipboard.writeText(order.orderNumber);
+    if (displayOrderNumber) {
+      navigator.clipboard.writeText(displayOrderNumber);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  // Estimate delivery: 3 business days
+  // Used client-side when order & email are present for Google Customer Reviews
   const estimatedDelivery = new Date();
   estimatedDelivery.setDate(estimatedDelivery.getDate() + 3);
-  const deliveryStr = estimatedDelivery.toLocaleDateString('fr-MA', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
+
+  const whatsappTrackHref = `https://api.whatsapp.com/send?phone=212663380011&text=${encodeURIComponent(
+    displayOrderNumber
+      ? `Bonjour NAY Parfums, je viens de valider ma commande ${displayOrderNumber}.`
+      : 'Bonjour NAY Parfums, j’ai une question concernant ma commande.'
+  )}`;
+
+  const firstName = order?.customerName?.trim().split(/\s+/)[0] || '';
+  const totalUnits = order?.items?.reduce((acc, item) => acc + (Number(item.quantity) || 1), 0) || 0;
 
   return (
-    <div className="bg-[#fafaf7] text-[#1A1A1A] min-h-screen w-full max-w-full overflow-x-clip">
+    <div className="bg-[#fafaf7] text-[#111827] min-h-screen w-full max-w-full overflow-x-clip">
       <Header />
 
-      <main className="pt-28 lg:pt-36 pb-24">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10">
-          {/* ========== SUCCESS HERO ========== */}
-          <div className="text-center pb-14 pt-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-50 border border-green-200 text-green-600 mb-6 animate-[bounce_1s_ease-out]">
-              <Check size={40} strokeWidth={1.8} />
+      <main className="pt-28 sm:pt-32 lg:pt-36 pb-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
+          {/* ========== 1. ASYMMETRIC EDITORIAL HERO & ACTION TICKET ========== */}
+          <div className="pb-8 sm:pb-10 mb-8 sm:mb-10 border-b border-[#e5e0d6] flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="min-w-0 max-w-2xl">
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#e3ded3] text-[10px] font-bold tracking-[0.2em] uppercase text-[#0284c7] shadow-2xs whitespace-nowrap">
+                <PerfumeBottleIcon size={13} className="text-[#0284c7] shrink-0" />
+                <span>Commande confirmée</span>
+              </span>
+
+              <h1 className="heading-font text-3xl sm:text-5xl lg:text-[52px] font-extrabold mt-4 tracking-tight leading-[1.06] text-[#0f172a]">
+                Merci{firstName ? `, ${firstName}` : ''} !
+              </h1>
+
+              <p className="mt-3.5 text-[14.5px] sm:text-[15.5px] text-[#5f5a52] leading-relaxed max-w-xl">
+                {order?.customerEmail?.trim()
+                  ? `Votre sélection est enregistrée. Un récapitulatif est associé à ${order.customerEmail} et notre équipe vous contactera sur WhatsApp ou par appel avant la remise.`
+                  : 'Votre sélection est enregistrée dans notre Atelier. Notre équipe vous contactera par téléphone ou WhatsApp pour confirmer votre créneau de livraison.'}
+              </p>
             </div>
 
-            <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#0ea5e9]">
-              Commande confirmée
-            </span>
+            {/* Interactive Reference & Official Print Ticket */}
+            {displayOrderNumber && (
+              <div className="w-full lg:w-[390px] bg-white border border-[#ded8cc] rounded-2xl p-4 sm:p-5 shadow-[0_8px_28px_-12px_rgba(15,23,42,0.08)] shrink-0">
+                <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-[#efece4]">
+                  <div className="min-w-0">
+                    <span className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-[#736d65] block">
+                      Référence commande
+                    </span>
+                    <span
+                      className="mt-0.5 block font-mono text-[14px] sm:text-[15px] font-extrabold text-[#0f172a] truncate"
+                      dir="ltr"
+                    >
+                      {displayOrderNumber}
+                    </span>
+                  </div>
 
-            <h1 className="heading-font text-4xl lg:text-6xl mt-4 tracking-wide leading-none">
-              Merci{order?.customerName ? `, ${order.customerName.split(' ')[0]}` : ''} !
-            </h1>
+                  <button
+                    type="button"
+                    onClick={handleCopyOrder}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-colors shrink-0 cursor-pointer ${
+                      copied
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : 'border-[#e3ded3] bg-[#faf8f4] text-[#0f172a] hover:border-[#0284c7] hover:text-[#0284c7]'
+                    }`}
+                  >
+                    {copied ? <Check size={13} /> : <Copy size={13} />}
+                    <span>{copied ? 'Copié' : 'Copier'}</span>
+                  </button>
+                </div>
 
-            <p className="mt-5 text-[15px] lg:text-base text-[#6B6B6B] max-w-lg mx-auto leading-relaxed">
-              {order?.customerEmail?.trim()
-                ? `Votre commande a été reçue avec succès. Un récapitulatif est associé à ${order.customerEmail} et notre équipe vous contactera par téléphone ou WhatsApp avant la livraison.`
-                : 'Votre commande a été reçue avec succès. Notre équipe vous contactera par téléphone ou WhatsApp pour coordonner votre livraison express.'}
-            </p>
+                <div className="pt-3.5 grid grid-cols-2 gap-2.5">
+                  {order?.invoiceToken && order.invoiceToken !== 'DEMO-TOKEN' ? (
+                    <a
+                      href={`/${locale}/invoice/${encodeURIComponent(displayOrderNumber)}?token=${encodeURIComponent(order.invoiceToken)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-10 px-3 rounded-xl bg-[#0f172a] hover:bg-[#0284c7] text-white text-[11.5px] font-bold flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
+                    >
+                      <Printer size={14} className="shrink-0" />
+                      <span>Facture PDF</span>
+                    </a>
+                  ) : /^NF-/i.test(displayOrderNumber) ? (
+                    <a
+                      href={`/${locale}/invoice/${encodeURIComponent(displayOrderNumber)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-10 px-3 rounded-xl bg-[#0f172a] hover:bg-[#0284c7] text-white text-[11.5px] font-bold flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
+                    >
+                      <Printer size={14} className="shrink-0" />
+                      <span>Facture PDF</span>
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="h-10 px-3 rounded-xl bg-[#0f172a] hover:bg-[#0284c7] text-white text-[11.5px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+                    >
+                      <Printer size={14} className="shrink-0" />
+                      <span>Facture PDF</span>
+                    </button>
+                  )}
 
-            {/* Order number */}
-            <div className="mt-8 inline-flex items-center gap-3 bg-white border border-[#e0ddd4] border border-[#e0ddd4] rounded-full px-6 py-3">
-              <span className="text-[11px] font-semibold tracking-[0.15em] uppercase text-[#9A9A9A]">
-                Numéro de commande
-              </span>
-              <span className="text-[13px] font-mono font-semibold text-[#1A1A1A]">
-                {order?.orderNumber || orderNumber || '—'}
-              </span>
-              <button
-                onClick={handleCopyOrder}
-                className="text-[#0ea5e9] hover:text-[#7e22ce] transition-colors"
-                title="Copier"
-              >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-              </button>
-            </div>
-
-            {/* Print Button */}
-            {(order?.orderNumber || orderNumber) && (
-              <div className="mt-6">
-                <Link
-                  href={`/invoice/${order?.orderNumber || orderNumber}${order?.invoiceToken ? `?token=${encodeURIComponent(order.invoiceToken)}` : ''}`}
-                  target="_blank"
-                  className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase text-[#1A1A1A] hover:text-[#0ea5e9] transition-colors"
-                >
-                  <Printer size={16} /> Imprimer la facture (PDF)
-                </Link>
+                  <Link
+                    href={`/${locale}/suivi-commande?order=${encodeURIComponent(displayOrderNumber)}`}
+                    className="h-10 px-3 rounded-xl bg-[#faf8f4] hover:bg-[#efece4] text-[#0f172a] border border-[#ded8cc] text-[11.5px] font-bold flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
+                  >
+                    <Search size={13} className="shrink-0" />
+                    <span>Suivi live</span>
+                  </Link>
+                </div>
               </div>
             )}
           </div>
 
-          {/* ========== TIMELINE ========== */}
-          <div className="bg-white border border-[#e0ddd4] rounded-2xl border border-[#e0ddd4] p-6 lg:p-10 mb-8">
-            <h2 className="heading-font text-xl lg:text-2xl mb-8 tracking-wide flex items-center gap-3">
-              <Truck size={18} className="text-[#0ea5e9]" />
-              Suivi de votre commande
-            </h2>
-
-            <div className="relative">
-              <div className="absolute left-4 top-6 bottom-6 w-px bg-[#e0ddd4]" />
-
-              <TimelineStep
-                icon={<Check size={16} />}
-                title="Commande reçue"
-                subtitle={`Aujourd'hui, ${new Date().toLocaleTimeString(
-                  'fr-MA',
-                  { hour: '2-digit', minute: '2-digit' }
-                )}`}
-                active
-                completed
-              />
-              <TimelineStep
-                icon={<Package size={16} />}
-                title="Préparation du colis"
-                subtitle="Sous 24 heures"
-                active
-              />
-              <TimelineStep
-                icon={<Truck size={16} />}
-                title="En livraison"
-                subtitle="Livraison estimée"
-              />
-              <TimelineStep
-                icon={<Home size={16} />}
-                title="Livrée"
-                subtitle={deliveryStr}
-                isLast
-              />
-            </div>
-          </div>
-
-          {order && (
-            <>
-              {/* ========== ORDER DETAILS ========== */}
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                {/* Shipping */}
-                <div className="bg-white border border-[#e0ddd4] rounded-2xl border border-[#e0ddd4] p-6 lg:p-8">
-                  <h3 className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#9A9A9A] mb-4 flex items-center gap-2">
-                    <MapPin size={12} /> Adresse de livraison
-                  </h3>
-                  <div className="text-[14px] text-[#1A1A1A] leading-[1.7]">
-                    <div className="font-semibold">{order.customerName}</div>
-                    <div>{order.shippingAddress}</div>
-                    <div>
-                      {order.shippingCity}
-                      {order.shippingPostalCode
-                        ? `, ${order.shippingPostalCode}`
-                        : ''}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-[#eeece5] text-[#6B6B6B] text-[13px] flex items-center gap-2">
-                      <Phone size={12} /> {order.customerPhone}
-                    </div>
-                    {order.customerEmail?.trim() && (
-                      <div className="text-[#6B6B6B] text-[13px] flex items-center gap-2 mt-1 break-all">
-                        <Mail size={12} className="shrink-0" /> {order.customerEmail}
-                      </div>
-                    )}
+          {/* ========== 2. TWO-COLUMN ATELIER WORKSPACE ========== */}
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.16fr)_minmax(0,0.84fr)] gap-6 lg:gap-8 items-stretch">
+            {/* LEFT COLUMN: TRACKING TIMELINE, LOGISTICS & COMMUNITY */}
+            <div className="space-y-6 min-w-0">
+              {/* SUIVI DE VOTRE COMMANDE (ONLY ANIMATED MODULE ON PAGE) */}
+              <section className="bg-white border border-[#e0ddd4] rounded-3xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(15,23,42,0.03)]">
+                <div className="flex items-start sm:items-center justify-between gap-3 mb-7 flex-wrap">
+                  <div>
+                    <h2 className="heading-font text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2.5 text-[#0f172a]">
+                      <Truck size={20} className="text-[#0284c7] shrink-0" />
+                      <span>Suivi de votre commande</span>
+                    </h2>
+                    <p className="text-[12px] text-[#64748b] mt-1">
+                      Estimation de remise : <strong className="text-[#0f172a] font-semibold">{deliveryLabel}</strong>
+                    </p>
                   </div>
+
+                  {order?.shippingCity && (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#0284c7] bg-sky-50 border border-sky-100 px-3 py-1 rounded-full shrink-0">
+                      <MapPin size={12} />
+                      <span>Vers {order.shippingCity}</span>
+                    </span>
+                  )}
                 </div>
 
-                {/* Payment */}
-                <div className="bg-white border border-[#e0ddd4] rounded-2xl border border-[#e0ddd4] p-6 lg:p-8">
-                  <h3 className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#9A9A9A] mb-4">
-                    Mode de paiement
-                  </h3>
-                  <div className="text-[14px] text-[#1A1A1A]">
-                    {order.paymentMethod === 'cod' ? (
-                      <>
-                        <div className="font-semibold flex items-center gap-2">
-                          <Banknote size={16} className="text-[#0284c7] shrink-0" />
-                          <span>Paiement à la livraison</span>
-                        </div>
-                        <div className="text-[13px] text-[#6B6B6B] mt-2 leading-relaxed">
-                          Merci de préparer{' '}
-                          <span className="font-semibold text-[#1A1A1A]">
-                            {formatMAD(order.total)}
-                          </span>{' '}
-                          en espèces pour le livreur.
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="font-semibold flex items-center gap-2">
-                          <CreditCard size={16} className="text-[#0284c7] shrink-0" />
-                          <span>Carte bancaire</span>
-                        </div>
-                        <div className="text-[13px] text-[#6B6B6B] mt-2">
-                          Paiement effectué avec succès.
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* ========== ITEMS ========== */}
-              <div className="bg-white border border-[#e0ddd4] rounded-2xl border border-[#e0ddd4] p-6 lg:p-8 mb-8">
-                <h3 className="heading-font text-xl mb-6 tracking-wide">
-                  Détails de votre commande
-                </h3>
-
-                <div className="divide-y divide-[#eeece5]">
-                  {order.items.map((item) => (
-                    <div
-                      key={`${item.id}-${item.size}`}
-                      className="flex items-center gap-4 py-4"
-                    >
-                      <div className="relative w-16 h-20 bg-white rounded-xl border border-[#E8E2D6] overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-2xs">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-contain scale-115 mix-blend-multiply"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="heading-font text-lg text-[#1A1A1A]">
-                          {item.name}
-                        </div>
-                        <div className="text-[11px] tracking-[0.1em] uppercase text-[#9A9A9A]">
-                          {item.size} · Quantité : {item.quantity}
-                        </div>
-                      </div>
-                      <div className="text-[14px] font-semibold text-[#1A1A1A]">
-                        {formatMAD(item.price * item.quantity)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-[#e0ddd4] space-y-2.5">
-                  <SummaryRow label="Sous-total" value={formatMAD(order.subtotal)} />
-                  <SummaryRow
-                    label="Livraison"
-                    value={order.shippingCost === 0 ? 'Gratuite' : formatMAD(order.shippingCost)}
-                    green={order.shippingCost === 0}
+                <div className="relative">
+                  {/* Base Track Line */}
+                  <div className="absolute left-[17px] top-5 bottom-6 w-[2px] bg-[#ece8df]" />
+                  {/* Clean Progress Segment (Step 1 -> Step 2) */}
+                  <motion.div
+                    initial={{ scaleY: 0 }}
+                    animate={{ scaleY: 1 }}
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ transformOrigin: 'top center' }}
+                    className="absolute left-[17px] top-5 h-[96px] w-[2px] bg-[#0f172a]"
                   />
-                  <SummaryRow label="Total" value={formatMAD(order.total)} bold />
+
+                  <TimelineStep
+                    index={0}
+                    icon={<ClipboardCheck size={15} strokeWidth={2} />}
+                    title="Commande enregistrée"
+                    subtitle={recordedAtLabel}
+                    completed
+                  />
+                  <TimelineStep
+                    index={1}
+                    icon={<Package size={15} />}
+                    title="Préparation du colis"
+                    subtitle="Contrôle qualité & emballage protecteur sous 24h"
+                    active
+                  />
+                  <TimelineStep
+                    index={2}
+                    icon={<Truck size={15} />}
+                    title="En livraison"
+                    subtitle={
+                      order?.shippingCity
+                        ? `Acheminement express vers ${order.shippingCity}`
+                        : 'Livraison express partout au Maroc'
+                    }
+                  />
+                  <TimelineStep
+                    index={3}
+                    icon={<Home size={15} />}
+                    title="Livrée"
+                    subtitle={`Remise en mains propres · ${deliveryLabel}`}
+                    isLast
+                  />
                 </div>
-              </div>
+              </section>
 
-              {/* ========== NEXT STEPS ========== */}
-              <div className="bg-transparent rounded-2xl p-6 lg:p-8 border border-[#e0ddd4] text-center">
-                <h3 className="heading-font text-2xl mb-3 tracking-wide">
-                  Et maintenant ?
-                </h3>
-                <p className="text-[14px] text-[#6B6B6B] leading-relaxed mb-6 max-w-md mx-auto">
-                  Notre équipe prépare votre commande à Fès. Vous recevrez un
-                  SMS avec le suivi dès l&apos;expédition. Une question ?
-                  Contactez-nous par WhatsApp.
-                </p>
+              {/* DELIVERY & PAYMENT ASSURANCE BENTO */}
+              {order && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="bg-white border border-[#e0ddd4] rounded-2xl p-6 shadow-[0_2px_14px_rgba(15,23,42,0.025)]">
+                    <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#736d65] mb-3.5 flex items-center gap-2">
+                      <MapPin size={13} className="text-[#0284c7]" />
+                      <span>Destination & Contact</span>
+                    </div>
+                    <div className="text-[14px] text-[#0f172a] leading-relaxed">
+                      <div className="font-bold text-[15px]">{order.customerName}</div>
+                      <div className="text-[#475569] mt-1">{order.shippingAddress}</div>
+                      <div className="text-[#475569]">
+                        {order.shippingCity}
+                        {order.shippingPostalCode ? `, ${order.shippingPostalCode}` : ''}
+                      </div>
+                      <div className="mt-4 pt-3.5 border-t border-[#f0ede6] space-y-1.5 text-[12.5px] text-[#5f5a52]">
+                        <div className="flex items-center gap-2">
+                          <Phone size={13} className="text-[#0284c7] shrink-0" />
+                          <span dir="ltr">{order.customerPhone}</span>
+                        </div>
+                        {order.customerEmail?.trim() && (
+                          <div className="flex items-center gap-2 break-all">
+                            <Mail size={13} className="text-[#0284c7] shrink-0" />
+                            <span>{order.customerEmail}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="flex flex-wrap justify-center gap-3">
+                  <div className="bg-white border border-[#e0ddd4] rounded-2xl p-6 shadow-[0_2px_14px_rgba(15,23,42,0.025)] flex flex-col justify-between">
+                    <div>
+                      <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#736d65] mb-3.5 flex items-center gap-2">
+                        <CodCashIcon size={14} className="text-[#0284c7]" />
+                        <span>Règlement à la remise</span>
+                      </div>
+                      <div className="text-[15px] font-bold text-[#0f172a]">
+                        Paiement à la livraison (COD)
+                      </div>
+                      <p className="text-[13px] text-[#5f5a52] mt-1.5 leading-relaxed">
+                        Montant à préparer en espèces pour le livreur :{' '}
+                        <strong className="text-[#0f172a] tabular-nums">{formatMAD(order.total)}</strong>.
+                      </p>
+                    </div>
+
+                    <div className="mt-4 p-3 rounded-xl bg-[#faf8f4] border border-[#ebe6dc] flex items-start gap-2.5 text-[11.5px] text-[#334155]">
+                      <ShieldCheck size={15} className="text-emerald-600 shrink-0 mt-0.5" />
+                      <span>
+                        Ouverture & vérification du flacon autorisées devant le livreur avant paiement.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* VIP COMMUNITY & CONCIERGE POST-PURCHASE SECTION */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="bg-[#0f172a] text-white rounded-2xl p-6 flex flex-col justify-between shadow-[0_14px_34px_-12px_rgba(15,23,42,0.35)] border border-[#1e293b]">
+                  <div>
+                    <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#38bdf8] mb-2.5">
+                      <InstagramVectorIcon size={14} />
+                      <span>Privilège · @nayparfums</span>
+                    </div>
+                    <h3 className="heading-font text-[19px] font-bold text-white leading-snug">
+                      Partagez votre coffret en story
+                    </h3>
+                    <p className="mt-2 text-[12.5px] text-slate-300 leading-relaxed">
+                      Identifiez <strong className="text-white">@nayparfums</strong> à la réception de votre
+                      parfum pour recevoir une attention exclusive sur votre prochaine commande.
+                    </p>
+                  </div>
+
                   <a
-                    href="https://api.whatsapp.com/send?phone=212663380011"
-                    className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-[11px] font-semibold tracking-[0.15em] uppercase rounded-full transition-colors"
-                  >
-                    <Phone size={14} /> WhatsApp
-                  </a>
-                  <a
-                    href="https://www.instagram.com/nayparfum"
+                    href="https://www.instagram.com/nayparfums/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-[#1A1A1A] hover:bg-black text-white px-6 py-3 text-[11px] font-semibold tracking-[0.15em] uppercase rounded-full transition-colors"
+                    className="mt-5 w-full h-11 px-4 rounded-xl bg-white hover:bg-[#38bdf8] text-[#0f172a] hover:text-white font-bold text-[11.5px] uppercase tracking-[0.12em] flex items-center justify-between transition-colors"
                   >
-                    <Share2 size={14} /> Nous suivre
+                    <span className="flex items-center gap-2">
+                      <InstagramVectorIcon size={15} />
+                      <span>Suivre @nayparfums</span>
+                    </span>
+                    <ArrowRight size={15} />
+                  </a>
+                </div>
+
+                <div className="bg-white border border-[#e0ddd4] rounded-2xl p-6 flex flex-col justify-between shadow-[0_2px_14px_rgba(15,23,42,0.025)]">
+                  <div>
+                    <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#0284c7] mb-2.5">
+                      <MessageCircle size={14} />
+                      <span>Conciergerie Express · 7j/7</span>
+                    </div>
+                    <h3 className="heading-font text-[19px] font-bold text-[#0f172a] leading-snug">
+                      Ajuster votre passage ?
+                    </h3>
+                    <p className="mt-2 text-[12.5px] text-[#5f5a52] leading-relaxed">
+                      Modifiez votre adresse ou confirmez un créneau horaire en 1 message WhatsApp avec
+                      votre référence déjà pré-remplie.
+                    </p>
+                  </div>
+
+                  <a
+                    href={whatsappTrackHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 w-full h-11 px-4 rounded-xl bg-[#faf8f4] hover:bg-[#0f172a] text-[#0f172a] hover:text-white border border-[#ded8cc] hover:border-[#0f172a] font-bold text-[11.5px] uppercase tracking-[0.12em] flex items-center justify-between transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <MessageCircle size={15} className="text-emerald-600" />
+                      <span>Écrire sur WhatsApp</span>
+                    </span>
+                    <ArrowRight size={15} />
                   </a>
                 </div>
               </div>
-            </>
-          )}
+            </div>
 
-          {/* ========== CTA ========== */}
-          <div className="mt-14 text-center">
-            <Link
-              href="/shop"
-              className="btn-outline-blue inline-flex items-center gap-3 px-10 py-4 text-[11px] rounded-full"
-            >
-              Continuer les achats
-            </Link>
+            {/* RIGHT COLUMN: STICKY PERFORATED ATELIER BORDEREAU RECEIPT */}
+            <aside className="min-w-0 w-full lg:self-stretch">
+              <div className="lg:sticky lg:top-28 bg-white border border-[#ded8cc] rounded-3xl overflow-hidden shadow-[0_14px_40px_-14px_rgba(15,23,42,0.1)]">
+                {/* Dark Obsidian Receipt Header */}
+                <div className="bg-[#0f172a] text-white px-6 py-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#38bdf8] block">
+                      Récapitulatif officiel
+                    </span>
+                    <h2 className="heading-font text-[17px] font-bold tracking-wide text-white mt-0.5 truncate">
+                      Votre Bordereau Atelier
+                    </h2>
+                  </div>
+                  {order && (
+                    <span className="px-2.5 py-1 rounded-full bg-white/10 text-[10.5px] font-bold text-slate-200 tabular-nums shrink-0">
+                      {totalUnits} {totalUnits > 1 ? 'articles' : 'article'}
+                    </span>
+                  )}
+                </div>
+
+                {order ? (
+                  <>
+                    {/* Ordered Fragrances */}
+                    <div className="px-6 py-2 divide-y divide-[#efece4] max-h-[340px] overflow-y-auto">
+                      {order.items.map((item) => (
+                        <div
+                          key={`${item.id}-${item.size}`}
+                          className="flex items-center gap-3.5 py-4 min-w-0"
+                        >
+                          <div className="relative w-14 h-16 bg-white rounded-xl border border-[#ece8df] overflow-hidden shrink-0 flex items-center justify-center p-1">
+                            <Image
+                              src={item.image || '/placeholder.jpg'}
+                              alt={item.name}
+                              fill
+                              sizes="56px"
+                              className="object-contain scale-110 mix-blend-multiply"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[13.5px] font-bold text-[#0f172a] truncate">
+                              {item.name}
+                            </div>
+                            <div className="text-[11px] font-semibold uppercase tracking-wider text-[#64748b] mt-0.5">
+                              {item.size || '100ml'} · Qté {item.quantity}
+                            </div>
+                          </div>
+                          <div className="text-[13.5px] font-extrabold text-[#0f172a] tabular-nums shrink-0" dir="ltr">
+                            {formatMAD(item.price * item.quantity)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Ticket Perforation Divider */}
+                    <div className="relative px-6 py-3 flex items-center">
+                      <span className="absolute -left-3 w-6 h-6 rounded-full bg-[#fafaf7] border-r border-[#ded8cc]" />
+                      <div className="w-full border-t-2 border-dashed border-[#e5e0d6]" />
+                      <span className="absolute -right-3 w-6 h-6 rounded-full bg-[#fafaf7] border-l border-[#ded8cc]" />
+                    </div>
+
+                    {/* Receipt Totals & Continue Shopping */}
+                    <div className="px-6 pb-6 pt-2 space-y-2.5">
+                      <SummaryRow label="Sous-total" value={formatMAD(order.subtotal)} />
+                      <SummaryRow
+                        label="Livraison Express"
+                        value={order.shippingCost === 0 ? 'Offerte (0 MAD)' : formatMAD(order.shippingCost)}
+                        green={order.shippingCost === 0}
+                      />
+                      <SummaryRow label="Total à la remise" value={formatMAD(order.total)} bold />
+
+                      <div className="pt-4">
+                        <Link
+                          href={`/${locale}/shop`}
+                          className="w-full h-12 px-5 rounded-xl bg-[#faf8f4] hover:bg-[#0f172a] text-[#0f172a] hover:text-white border border-[#ded8cc] hover:border-[#0f172a] text-[12.5px] font-bold tracking-wide flex items-center justify-center gap-2 transition-colors"
+                        >
+                          <ShoppingBag size={15} />
+                          <span>Continuer mes achats</span>
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#f4f8fc] border border-sky-100 text-[#0284c7] flex items-center justify-center shrink-0">
+                        <ShoppingBag size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13.5px] font-bold text-[#0f172a]">
+                          Commande enregistrée
+                        </p>
+                        <p className="text-[12.5px] text-[#5f5a52] mt-1 leading-relaxed">
+                          Utilisez votre numéro de commande pour suivre votre colis en direct ou consulter votre facture officielle.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2">
+                      {displayOrderNumber && (
+                        <Link
+                          href={`/${locale}/suivi-commande?order=${encodeURIComponent(displayOrderNumber)}`}
+                          className="w-full h-11 px-4 rounded-xl bg-[#0f172a] hover:bg-[#0284c7] text-white text-[12.5px] font-bold flex items-center justify-center gap-2 transition-colors"
+                        >
+                          <Search size={14} />
+                          <span>Suivre {displayOrderNumber}</span>
+                        </Link>
+                      )}
+                      <Link
+                        href={`/${locale}/shop`}
+                        className="w-full h-11 px-4 rounded-xl bg-[#faf8f4] hover:bg-[#efece4] text-[#0f172a] border border-[#ded8cc] text-[12.5px] font-bold flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <ShoppingBag size={14} />
+                        <span>Retour à la boutique</span>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </aside>
           </div>
         </div>
       </main>
@@ -354,7 +574,7 @@ function OrderConfirmationInner() {
                     });
                   }
                 }
-              `
+              `,
             }}
           />
           <Script src="https://apis.google.com/js/platform.js?onload=renderOptIn" strategy="afterInteractive" />
@@ -367,6 +587,7 @@ function OrderConfirmationInner() {
 }
 
 function TimelineStep({
+  index = 0,
   icon,
   title,
   subtitle,
@@ -374,6 +595,7 @@ function TimelineStep({
   completed,
   isLast,
 }: {
+  index?: number;
   icon: React.ReactNode;
   title: string;
   subtitle: string;
@@ -382,29 +604,46 @@ function TimelineStep({
   isLast?: boolean;
 }) {
   return (
-    <div className={`flex gap-4 relative ${isLast ? '' : 'pb-8'}`}>
-      <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 ${
-          completed
-            ? 'bg-green-600 border-green-600 text-white'
-            : active
-            ? 'bg-[#0ea5e9] border-[#0ea5e9] text-white'
-            : 'bg-white border border-[#e0ddd4] border-[#e0ddd4] text-[#9A9A9A]'
-        }`}
-      >
-        {icon}
-      </div>
-      <div className="pt-1">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, delay: index * 0.06, ease: 'easeOut' }}
+      className={`flex gap-4 relative ${isLast ? '' : 'pb-8'}`}
+    >
+      <div className="relative flex-shrink-0 z-10 w-9 h-9">
         <div
-          className={`text-[14px] font-semibold ${
-            active || completed ? 'text-[#1A1A1A]' : 'text-[#9A9A9A]'
+          className={`relative w-9 h-9 rounded-full flex items-center justify-center border-2 ${
+            completed
+              ? 'bg-[#0f172a] border-[#0f172a] text-white'
+              : active
+              ? 'bg-[#0284c7] border-[#0284c7] text-white'
+              : 'bg-white border border-[#ded8cc] text-[#94a3b8]'
           }`}
         >
-          {title}
+          {icon}
         </div>
-        <div className="text-[12px] text-[#9A9A9A] mt-0.5">{subtitle}</div>
       </div>
-    </div>
+      <div className="pt-1 min-w-0 flex-1">
+        <div
+          className={`text-[14.5px] font-bold flex items-center gap-2 flex-wrap ${
+            active || completed ? 'text-[#0f172a]' : 'text-[#94a3b8]'
+          }`}
+        >
+          <span>{title}</span>
+          {active && (
+            <span className="inline-flex items-center gap-1.5 text-[9.5px] font-extrabold uppercase tracking-wider text-[#0284c7] bg-sky-50 border border-sky-100 px-2.5 py-0.5 rounded-full">
+              <motion.span
+                animate={{ opacity: [1, 0.35, 1] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-1.5 h-1.5 rounded-full bg-[#0284c7]"
+              />
+              <span>En cours</span>
+            </span>
+          )}
+        </div>
+        <div className="text-[12.5px] text-[#64748b] mt-0.5 leading-snug">{subtitle}</div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -421,27 +660,28 @@ function SummaryRow({
 }) {
   return (
     <div
-      className={`flex justify-between items-baseline ${
-        bold ? 'pt-3 mt-1 border-t border-[#e0ddd4]' : ''
+      className={`flex justify-between items-baseline gap-2 ${
+        bold ? 'pt-3.5 mt-1 border-t border-[#efece4]' : ''
       }`}
     >
       <span
         className={`${
           bold
-            ? 'text-[10px] font-bold tracking-[0.25em] uppercase text-[#9A9A9A]'
-            : 'text-[14px] text-[#6B6B6B]'
+            ? 'text-[10.5px] font-bold tracking-[0.18em] uppercase text-[#64748b]'
+            : 'text-[13.5px] text-[#5f5a52]'
         }`}
       >
         {label}
       </span>
       <span
-        className={`${
+        className={`tabular-nums ${
           bold
-            ? 'heading-font text-2xl font-medium text-[#1A1A1A]'
+            ? 'heading-font text-2xl font-extrabold text-[#0f172a]'
             : green
-            ? 'text-[14px] text-green-600 font-medium'
-            : 'text-[14px] text-[#1A1A1A] font-medium'
+            ? 'text-[13.5px] text-emerald-600 font-bold'
+            : 'text-[13.5px] text-[#0f172a] font-bold'
         }`}
+        dir="ltr"
       >
         {value}
       </span>
@@ -454,9 +694,7 @@ export default function OrderConfirmationPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-[#fafaf7]">
-          <div className="text-[#9A9A9A] text-sm tracking-widest">
-            Chargement…
-          </div>
+          <div className="text-[#736d65] text-sm tracking-widest">Chargement…</div>
         </div>
       }
     >
